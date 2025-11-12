@@ -1,0 +1,52 @@
+services:
+  livekit:
+    image: livekit/livekit-server:latest
+    env_file:
+      - ../.env
+    command:
+      - --dev
+      - --bind=0.0.0.0
+      - --port=${LIVEKIT_PORT}
+      - --udp-port=${LIVEKIT_UDP_PORT}
+      - --keys=${LIVEKIT_KEYS}          # ← this is the important change
+      - --redis-host=${LIVEKIT_REDIS_HOST}
+    ports:
+      - "${LIVEKIT_PORT}:${LIVEKIT_PORT}/tcp"
+      - "${LIVEKIT_UDP_PORT}:${LIVEKIT_UDP_PORT}/udp"
+    restart: no
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ./redis-data:/data
+    restart: no
+
+  letta:
+    image: letta/letta:latest
+    env_file:
+      - ../.env                         # inject into container
+    volumes:
+      - ./letta-data:/var/lib/postgresql/data
+    environment:          
+    - SECURE=true
+    - LETTA_SERVER_PASSWORD=AdaPass123!
+    ports:
+      - "8283:8283"
+    depends_on:
+      - livekit
+      - redis
+    restart: no
+    
+
+  playground:
+    image: node:18
+    working_dir: /app
+    command: ["npm", "run", "dev"]
+    volumes:
+      - ../web/agents-playground:/app
+    env_file:
+      - ../.env
+    ports:
+      - "3000:3000"
+    restart: no

@@ -1,0 +1,603 @@
+(humanoid-core_env) lucas@lucas-ThinkPad-X13-Gen-3:~/Projects/VirtualEmployees/humanoid-core$ /home/lucas/Downloads/choregraphe-suite-2.5.10.7-linux64/bin/python2 /home/lucas/Projects/VirtualEmployees/humanoid-core/Pepper/capabilities.py
+=== Connecting to NAOqi at tcp://10.0.0.149:9559 ===
+Connecting to tcp://10.0.0.149:9559 ...
+
+=== Service Inventory (first 60) ===
+ - {'processId': 3059L, 'name': 'ALAnimatedSpeech', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 68L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAnimationPlayer', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 66L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAudioDevice', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 52L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAudioPlayer', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 54L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAudioRecorder', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 53L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAudioSourceLocalization', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 108L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAutonomousBlinking', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 114L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAutonomousLife', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 134L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALAutonomousMoves', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 117L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBackgroundMovement', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 115L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBacklightingDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 41L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBarcodeReader', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 94L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBasicAwareness', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 113L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBattery', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 58L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBehaviorManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 64L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALBodyTemperature', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 25L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALChestButton', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 59L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALChoregraphe', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': '1976e6ff-fe2c-4504-8c4a-64204b241244', 'serviceId': 143L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALChoregrapheRecorder', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': '1976e6ff-fe2c-4504-8c4a-64204b241244', 'serviceId': 144L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALCloseObjectDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 103L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALCloudToken', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': '430b711b-2291-4453-a60e-8549842952bf', 'serviceId': 5L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALColorBlobDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 35L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALConnectionManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': '5febec47-079c-4659-8a4f-6f2d16cceb7b', 'serviceId': 10L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALDarknessDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 40L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALDebug', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 13L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALDiagnosis', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 21L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALDialog', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 135L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALEngagementZones', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 98L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALExpressionWatcher', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 119L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALFaceCharacteristics', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 102L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALFaceDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 37L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALFileManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 6L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALFrameManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 12L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALFsr', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 23L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALGazeAnalysis', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 100L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALKnowledge', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 48L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALKnowledgeManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 47L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLandMarkDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 39L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLaser', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 63L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLauncher', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 62L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLeds', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 30L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALListeningMovement', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 116L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLocalization', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 89L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALLogger', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 8L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMecaLogger', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 60L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMemory', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 7L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMemoryWatcher', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 69L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALModularity', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 50L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMood', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 141L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMotion', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 26L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMotionRecorder', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 29L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALMovementDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 95L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALNavigation', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 71L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALNotificationManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 14L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPanoramaCompass', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 90L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPeoplePerception', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 97L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPhotoCapture', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 42L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPodDetection', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 137L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPreferenceManager', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 11L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+ - {'processId': 3059L, 'name': 'ALPreferences', 'machineId': 'ea57315c-dc80-4df6-9e09-de36cf63c4d5', 'sessionId': 'f38bbcbd-8317-4951-8211-7a506f39862a', 'serviceId': 9L, 'endpoints': ['tcp://10.0.0.149:9559', 'tcp://198.18.0.1:9559']}
+   ... (144 total)
+[W] 1762351589.315916 128147 qi.path.sdklayout: No Application was created, trying to deduce paths
+
+=== Behaviors ===
+Installed behaviors (509):
+  * .lastUploadedChoregrapheBehavior/behavior_1
+  * animationMode
+  * animations/LED/CircleEyes
+  * animations/Stand/BodyTalk/Listening/Listening_1
+  * animations/Stand/BodyTalk/Listening/Listening_2
+  * animations/Stand/BodyTalk/Listening/Listening_3
+  * animations/Stand/BodyTalk/Listening/Listening_4
+  * animations/Stand/BodyTalk/Listening/Listening_5
+  * animations/Stand/BodyTalk/Listening/Listening_6
+  * animations/Stand/BodyTalk/Listening/Listening_7
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_1
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_10
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_11
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_12
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_13
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_14
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_15
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_16
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_2
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_3
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_4
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_5
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_6
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_7
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_8
+  * animations/Stand/BodyTalk/Speaking/BodyTalk_9
+  * animations/Stand/BodyTalk/Thinking/Remember_1
+  * animations/Stand/BodyTalk/Thinking/Remember_2
+  * animations/Stand/BodyTalk/Thinking/Remember_3
+  * animations/Stand/BodyTalk/Thinking/ThinkingLoop_1
+  * animations/Stand/BodyTalk/Thinking/ThinkingLoop_2
+  * animations/Stand/Emotions/Negative/Angry_1
+  * animations/Stand/Emotions/Negative/Angry_2
+  * animations/Stand/Emotions/Negative/Angry_3
+  * animations/Stand/Emotions/Negative/Angry_4
+  * animations/Stand/Emotions/Negative/Anxious_1
+  * animations/Stand/Emotions/Negative/Bored_1
+  * animations/Stand/Emotions/Negative/Bored_2
+  * animations/Stand/Emotions/Negative/Disappointed_1
+  * animations/Stand/Emotions/Negative/Exhausted_1
+  * animations/Stand/Emotions/Negative/Exhausted_2
+  * animations/Stand/Emotions/Negative/Fear_1
+  * animations/Stand/Emotions/Negative/Fear_2
+  * animations/Stand/Emotions/Negative/Fearful_1
+  * animations/Stand/Emotions/Negative/Frustrated_1
+  * animations/Stand/Emotions/Negative/Humiliated_1
+  * animations/Stand/Emotions/Negative/Hurt_1
+  * animations/Stand/Emotions/Negative/Hurt_2
+  * animations/Stand/Emotions/Negative/Late_1
+  * animations/Stand/Emotions/Negative/Sad_1
+  * animations/Stand/Emotions/Negative/Sad_2
+  * animations/Stand/Emotions/Negative/Shocked_1
+  * animations/Stand/Emotions/Negative/Sorry_1
+  * animations/Stand/Emotions/Negative/Surprise_1
+  * animations/Stand/Emotions/Negative/Surprise_2
+  * animations/Stand/Emotions/Negative/Surprise_3
+  * animations/Stand/Emotions/Neutral/Alienated_1
+  * animations/Stand/Emotions/Neutral/AskForAttention_1
+  * animations/Stand/Emotions/Neutral/AskForAttention_2
+  * animations/Stand/Emotions/Neutral/AskForAttention_3
+  * animations/Stand/Emotions/Neutral/Cautious_1
+  * animations/Stand/Emotions/Neutral/Confused_1
+  * animations/Stand/Emotions/Neutral/Determined_1
+  * animations/Stand/Emotions/Neutral/Embarrassed_1
+  * animations/Stand/Emotions/Neutral/Hesitation_1
+  * animations/Stand/Emotions/Neutral/Innocent_1
+  * animations/Stand/Emotions/Neutral/Lonely_1
+  * animations/Stand/Emotions/Neutral/Mischievous_1
+  * animations/Stand/Emotions/Neutral/Puzzled_1
+  * animations/Stand/Emotions/Neutral/Sneeze
+  * animations/Stand/Emotions/Neutral/Stubborn_1
+  * animations/Stand/Emotions/Neutral/Suspicious_1
+  * animations/Stand/Emotions/Positive/Amused_1
+  * animations/Stand/Emotions/Positive/Confident_1
+  * animations/Stand/Emotions/Positive/Ecstatic_1
+  * animations/Stand/Emotions/Positive/Enthusiastic_1
+  * animations/Stand/Emotions/Positive/Excited_1
+  * animations/Stand/Emotions/Positive/Excited_2
+  * animations/Stand/Emotions/Positive/Excited_3
+  * animations/Stand/Emotions/Positive/Happy_1
+  * animations/Stand/Emotions/Positive/Happy_2
+  * animations/Stand/Emotions/Positive/Happy_3
+  * animations/Stand/Emotions/Positive/Happy_4
+  * animations/Stand/Emotions/Positive/Hungry_1
+  * animations/Stand/Emotions/Positive/Hysterical_1
+  * animations/Stand/Emotions/Positive/Interested_1
+  * animations/Stand/Emotions/Positive/Interested_2
+  * animations/Stand/Emotions/Positive/Laugh_1
+  * animations/Stand/Emotions/Positive/Laugh_2
+  * animations/Stand/Emotions/Positive/Laugh_3
+  * animations/Stand/Emotions/Positive/Mocker_1
+  * animations/Stand/Emotions/Positive/Optimistic_1
+  * animations/Stand/Emotions/Positive/Peaceful_1
+  * animations/Stand/Emotions/Positive/Proud_1
+  * animations/Stand/Emotions/Positive/Proud_2
+  * animations/Stand/Emotions/Positive/Proud_3
+  * animations/Stand/Emotions/Positive/Relieved_1
+  * animations/Stand/Emotions/Positive/Shy_1
+  * animations/Stand/Emotions/Positive/Shy_2
+  * animations/Stand/Emotions/Positive/Sure_1
+  * animations/Stand/Emotions/Positive/Winner_1
+  * animations/Stand/Emotions/Positive/Winner_2
+  * animations/Stand/Gestures/Angry_1
+  * animations/Stand/Gestures/Angry_2
+  * animations/Stand/Gestures/Angry_3
+  * animations/Stand/Gestures/BowShort_1
+  * animations/Stand/Gestures/BowShort_2
+  * animations/Stand/Gestures/BowShort_3
+  * animations/Stand/Gestures/But_1
+  * animations/Stand/Gestures/CalmDown_1
+  * animations/Stand/Gestures/CalmDown_2
+  * animations/Stand/Gestures/CalmDown_3
+  * animations/Stand/Gestures/CalmDown_4
+  * animations/Stand/Gestures/CalmDown_5
+  * animations/Stand/Gestures/CalmDown_6
+  * animations/Stand/Gestures/Choice_1
+  * animations/Stand/Gestures/ComeOn_1
+  * animations/Stand/Gestures/Confused_1
+  * animations/Stand/Gestures/Confused_2
+  * animations/Stand/Gestures/CountFive_1
+  * animations/Stand/Gestures/CountFour_1
+  * animations/Stand/Gestures/CountMore_1
+  * animations/Stand/Gestures/CountOne_1
+  * animations/Stand/Gestures/CountThree_1
+  * animations/Stand/Gestures/CountTwo_1
+  * animations/Stand/Gestures/Desperate_1
+  * animations/Stand/Gestures/Desperate_2
+  * animations/Stand/Gestures/Desperate_3
+  * animations/Stand/Gestures/Desperate_4
+  * animations/Stand/Gestures/Desperate_5
+  * animations/Stand/Gestures/DontUnderstand_1
+  * animations/Stand/Gestures/Enthusiastic_3
+  * animations/Stand/Gestures/Enthusiastic_4
+  * animations/Stand/Gestures/Enthusiastic_5
+  * animations/Stand/Gestures/Everything_1
+  * animations/Stand/Gestures/Everything_2
+  * animations/Stand/Gestures/Everything_3
+  * animations/Stand/Gestures/Everything_4
+  * animations/Stand/Gestures/Everything_6
+  * animations/Stand/Gestures/Excited_1
+  * animations/Stand/Gestures/Explain_1
+  * animations/Stand/Gestures/Explain_10
+  * animations/Stand/Gestures/Explain_11
+  * animations/Stand/Gestures/Explain_2
+  * animations/Stand/Gestures/Explain_3
+  * animations/Stand/Gestures/Explain_4
+  * animations/Stand/Gestures/Explain_5
+  * animations/Stand/Gestures/Explain_6
+  * animations/Stand/Gestures/Explain_7
+  * animations/Stand/Gestures/Explain_8
+  * animations/Stand/Gestures/Far_1
+  * animations/Stand/Gestures/Far_2
+  * animations/Stand/Gestures/Far_3
+  * animations/Stand/Gestures/Follow_1
+  * animations/Stand/Gestures/Give_1
+  * animations/Stand/Gestures/Give_2
+  * animations/Stand/Gestures/Give_3
+  * animations/Stand/Gestures/Give_4
+  * animations/Stand/Gestures/Give_5
+  * animations/Stand/Gestures/Give_6
+  * animations/Stand/Gestures/Great_1
+  * animations/Stand/Gestures/HeSays_1
+  * animations/Stand/Gestures/HeSays_2
+  * animations/Stand/Gestures/HeSays_3
+  * animations/Stand/Gestures/Hey_1
+  * animations/Stand/Gestures/Hey_10
+  * animations/Stand/Gestures/Hey_2
+  * animations/Stand/Gestures/Hey_3
+  * animations/Stand/Gestures/Hey_4
+  * animations/Stand/Gestures/Hey_6
+  * animations/Stand/Gestures/Hey_7
+  * animations/Stand/Gestures/Hey_8
+  * animations/Stand/Gestures/Hey_9
+  * animations/Stand/Gestures/Hide_1
+  * animations/Stand/Gestures/Hot_1
+  * animations/Stand/Gestures/Hot_2
+  * animations/Stand/Gestures/IDontKnow_1
+  * animations/Stand/Gestures/IDontKnow_2
+  * animations/Stand/Gestures/IDontKnow_3
+  * animations/Stand/Gestures/IDontKnow_4
+  * animations/Stand/Gestures/IDontKnow_5
+  * animations/Stand/Gestures/IDontKnow_6
+  * animations/Stand/Gestures/Joy_1
+  * animations/Stand/Gestures/Kisses_1
+  * animations/Stand/Gestures/Look_1
+  * animations/Stand/Gestures/Look_2
+  * animations/Stand/Gestures/Maybe_1
+  * animations/Stand/Gestures/Me_1
+  * animations/Stand/Gestures/Me_2
+  * animations/Stand/Gestures/Me_4
+  * animations/Stand/Gestures/Me_7
+  * animations/Stand/Gestures/Me_8
+  * animations/Stand/Gestures/Mime_1
+  * animations/Stand/Gestures/Mime_2
+  * animations/Stand/Gestures/Next_1
+  * animations/Stand/Gestures/No_1
+  * animations/Stand/Gestures/No_2
+  * animations/Stand/Gestures/No_3
+  * animations/Stand/Gestures/No_4
+  * animations/Stand/Gestures/No_5
+  * animations/Stand/Gestures/No_6
+  * animations/Stand/Gestures/No_7
+  * animations/Stand/Gestures/No_8
+  * animations/Stand/Gestures/No_9
+  * animations/Stand/Gestures/Nothing_1
+  * animations/Stand/Gestures/Nothing_2
+  * animations/Stand/Gestures/OnTheEvening_1
+  * animations/Stand/Gestures/OnTheEvening_2
+  * animations/Stand/Gestures/OnTheEvening_3
+  * animations/Stand/Gestures/OnTheEvening_4
+  * animations/Stand/Gestures/OnTheEvening_5
+  * animations/Stand/Gestures/Please_1
+  * animations/Stand/Gestures/Please_2
+  * animations/Stand/Gestures/Please_3
+  * animations/Stand/Gestures/Reject_1
+  * animations/Stand/Gestures/Reject_2
+  * animations/Stand/Gestures/Reject_3
+  * animations/Stand/Gestures/Reject_4
+  * animations/Stand/Gestures/Reject_5
+  * animations/Stand/Gestures/Reject_6
+  * animations/Stand/Gestures/Salute_1
+  * animations/Stand/Gestures/Salute_2
+  * animations/Stand/Gestures/Salute_3
+  * animations/Stand/Gestures/ShowFloor_1
+  * animations/Stand/Gestures/ShowFloor_2
+  * animations/Stand/Gestures/ShowFloor_3
+  * animations/Stand/Gestures/ShowFloor_4
+  * animations/Stand/Gestures/ShowFloor_5
+  * animations/Stand/Gestures/ShowSky_1
+  * animations/Stand/Gestures/ShowSky_10
+  * animations/Stand/Gestures/ShowSky_11
+  * animations/Stand/Gestures/ShowSky_12
+  * animations/Stand/Gestures/ShowSky_2
+  * animations/Stand/Gestures/ShowSky_3
+  * animations/Stand/Gestures/ShowSky_4
+  * animations/Stand/Gestures/ShowSky_5
+  * animations/Stand/Gestures/ShowSky_6
+  * animations/Stand/Gestures/ShowSky_7
+  * animations/Stand/Gestures/ShowSky_8
+  * animations/Stand/Gestures/ShowSky_9
+  * animations/Stand/Gestures/ShowTablet_1
+  * animations/Stand/Gestures/ShowTablet_2
+  * animations/Stand/Gestures/ShowTablet_3
+  * animations/Stand/Gestures/Shy_1
+  * animations/Stand/Gestures/Stretch_1
+  * animations/Stand/Gestures/Stretch_2
+  * animations/Stand/Gestures/Surprised_1
+  * animations/Stand/Gestures/TakePlace_1
+  * animations/Stand/Gestures/TakePlace_2
+  * animations/Stand/Gestures/Take_1
+  * animations/Stand/Gestures/Thinking_1
+  * animations/Stand/Gestures/Thinking_2
+  * animations/Stand/Gestures/Thinking_3
+  * animations/Stand/Gestures/Thinking_4
+  * animations/Stand/Gestures/Thinking_5
+  * animations/Stand/Gestures/Thinking_6
+  * animations/Stand/Gestures/Thinking_7
+  * animations/Stand/Gestures/Thinking_8
+  * animations/Stand/Gestures/This_1
+  * animations/Stand/Gestures/This_10
+  * animations/Stand/Gestures/This_11
+  * animations/Stand/Gestures/This_12
+  * animations/Stand/Gestures/This_13
+  * animations/Stand/Gestures/This_14
+  * animations/Stand/Gestures/This_15
+  * animations/Stand/Gestures/This_2
+  * animations/Stand/Gestures/This_3
+  * animations/Stand/Gestures/This_4
+  * animations/Stand/Gestures/This_5
+  * animations/Stand/Gestures/This_6
+  * animations/Stand/Gestures/This_7
+  * animations/Stand/Gestures/This_8
+  * animations/Stand/Gestures/This_9
+  * animations/Stand/Gestures/WhatSThis_1
+  * animations/Stand/Gestures/WhatSThis_10
+  * animations/Stand/Gestures/WhatSThis_11
+  * animations/Stand/Gestures/WhatSThis_12
+  * animations/Stand/Gestures/WhatSThis_13
+  * animations/Stand/Gestures/WhatSThis_14
+  * animations/Stand/Gestures/WhatSThis_15
+  * animations/Stand/Gestures/WhatSThis_16
+  * animations/Stand/Gestures/WhatSThis_2
+  * animations/Stand/Gestures/WhatSThis_3
+  * animations/Stand/Gestures/WhatSThis_4
+  * animations/Stand/Gestures/WhatSThis_5
+  * animations/Stand/Gestures/WhatSThis_6
+  * animations/Stand/Gestures/WhatSThis_7
+  * animations/Stand/Gestures/WhatSThis_8
+  * animations/Stand/Gestures/WhatSThis_9
+  * animations/Stand/Gestures/Whisper_1
+  * animations/Stand/Gestures/Wings_1
+  * animations/Stand/Gestures/Wings_2
+  * animations/Stand/Gestures/Wings_3
+  * animations/Stand/Gestures/Wings_4
+  * animations/Stand/Gestures/Wings_5
+  * animations/Stand/Gestures/Yes_1
+  * animations/Stand/Gestures/Yes_2
+  * animations/Stand/Gestures/Yes_3
+  * animations/Stand/Gestures/YouKnowWhat_1
+  * animations/Stand/Gestures/YouKnowWhat_2
+  * animations/Stand/Gestures/YouKnowWhat_3
+  * animations/Stand/Gestures/YouKnowWhat_4
+  * animations/Stand/Gestures/YouKnowWhat_5
+  * animations/Stand/Gestures/YouKnowWhat_6
+  * animations/Stand/Gestures/You_1
+  * animations/Stand/Gestures/You_2
+  * animations/Stand/Gestures/You_3
+  * animations/Stand/Gestures/You_4
+  * animations/Stand/Gestures/You_5
+  * animations/Stand/Gestures/Yum_1
+  * animations/Stand/Reactions/EthernetOff_1
+  * animations/Stand/Reactions/EthernetOn_1
+  * animations/Stand/Reactions/Heat_1
+  * animations/Stand/Reactions/Heat_2
+  * animations/Stand/Reactions/LightShine_1
+  * animations/Stand/Reactions/LightShine_2
+  * animations/Stand/Reactions/LightShine_3
+  * animations/Stand/Reactions/LightShine_4
+  * animations/Stand/Reactions/SeeColor_1
+  * animations/Stand/Reactions/SeeColor_2
+  * animations/Stand/Reactions/SeeColor_3
+  * animations/Stand/Reactions/SeeSomething_1
+  * animations/Stand/Reactions/SeeSomething_3
+  * animations/Stand/Reactions/SeeSomething_4
+  * animations/Stand/Reactions/SeeSomething_5
+  * animations/Stand/Reactions/SeeSomething_6
+  * animations/Stand/Reactions/SeeSomething_7
+  * animations/Stand/Reactions/SeeSomething_8
+  * animations/Stand/Reactions/ShakeBody_1
+  * animations/Stand/Reactions/ShakeBody_2
+  * animations/Stand/Reactions/ShakeBody_3
+  * animations/Stand/Reactions/TouchHead_1
+  * animations/Stand/Reactions/TouchHead_2
+  * animations/Stand/Reactions/TouchHead_3
+  * animations/Stand/Reactions/TouchHead_4
+  * animations/Stand/Waiting/AirGuitar_1
+  * animations/Stand/Waiting/BackRubs_1
+  * animations/Stand/Waiting/Bandmaster_1
+  * animations/Stand/Waiting/Binoculars_1
+  * animations/Stand/Waiting/BreathLoop_1
+  * animations/Stand/Waiting/BreathLoop_2
+  * animations/Stand/Waiting/BreathLoop_3
+  * animations/Stand/Waiting/CallSomeone_1
+  * animations/Stand/Waiting/Drink_1
+  * animations/Stand/Waiting/DriveCar_1
+  * animations/Stand/Waiting/Fitness_1
+  * animations/Stand/Waiting/Fitness_2
+  * animations/Stand/Waiting/Fitness_3
+  * animations/Stand/Waiting/FunnyDancer_1
+  * animations/Stand/Waiting/HappyBirthday_1
+  * animations/Stand/Waiting/Helicopter_1
+  * animations/Stand/Waiting/HideEyes_1
+  * animations/Stand/Waiting/HideHands_1
+  * animations/Stand/Waiting/Innocent_1
+  * animations/Stand/Waiting/Knight_1
+  * animations/Stand/Waiting/KnockEye_1
+  * animations/Stand/Waiting/KungFu_1
+  * animations/Stand/Waiting/LookHand_1
+  * animations/Stand/Waiting/LookHand_2
+  * animations/Stand/Waiting/LoveYou_1
+  * animations/Stand/Waiting/Monster_1
+  * animations/Stand/Waiting/MysticalPower_1
+  * animations/Stand/Waiting/PlayHands_1
+  * animations/Stand/Waiting/PlayHands_2
+  * animations/Stand/Waiting/PlayHands_3
+  * animations/Stand/Waiting/Relaxation_1
+  * animations/Stand/Waiting/Relaxation_2
+  * animations/Stand/Waiting/Relaxation_3
+  * animations/Stand/Waiting/Relaxation_4
+  * animations/Stand/Waiting/Rest_1
+  * animations/Stand/Waiting/Robot_1
+  * animations/Stand/Waiting/ScratchBack_1
+  * animations/Stand/Waiting/ScratchBottom_1
+  * animations/Stand/Waiting/ScratchEye_1
+  * animations/Stand/Waiting/ScratchHand_1
+  * animations/Stand/Waiting/ScratchHead_1
+  * animations/Stand/Waiting/ScratchLeg_1
+  * animations/Stand/Waiting/ScratchTorso_1
+  * animations/Stand/Waiting/ShowMuscles_1
+  * animations/Stand/Waiting/ShowMuscles_2
+  * animations/Stand/Waiting/ShowMuscles_3
+  * animations/Stand/Waiting/ShowMuscles_4
+  * animations/Stand/Waiting/ShowMuscles_5
+  * animations/Stand/Waiting/ShowSky_1
+  * animations/Stand/Waiting/ShowSky_2
+  * animations/Stand/Waiting/SpaceShuttle_1
+  * animations/Stand/Waiting/Stretch_1
+  * animations/Stand/Waiting/Stretch_2
+  * animations/Stand/Waiting/TakePicture_1
+  * animations/Stand/Waiting/Taxi_1
+  * animations/Stand/Waiting/Think_1
+  * animations/Stand/Waiting/Think_2
+  * animations/Stand/Waiting/Think_3
+  * animations/Stand/Waiting/Think_4
+  * animations/Stand/Waiting/Waddle_1
+  * animations/Stand/Waiting/Waddle_2
+  * animations/Stand/Waiting/WakeUp_1
+  * animations/Stand/Waiting/Zombie_1
+  * boot-config
+  * boot-config/animations/bipGentle
+  * boot-config/animations/endReco
+  * boot-config/animations/finishWizard
+  * boot-config/animations/hello
+  * boot-config/animations/inviteTablet
+  * boot-config/animations/networkLoop
+  * boot-config/animations/networkOut
+  * boot-config/animations/nok
+  * boot-config/animations/ok
+  * boot-config/animations/onNextPage
+  * boot-config/animations/onPlugged
+  * boot-config/animations/onPrevPage
+  * boot-config/animations/onUnPlugged
+  * boot-config/animations/poseInit
+  * boot-config/animations/poseInitUp
+  * boot-config/animations/shutdown
+  * boot-config/animations/success
+  * boot-config/animations/turnTabletOn_end
+  * boot-config/animations/turnTabletOn_start
+  * boot-config/animations/updateFailed
+  * boot-config/animations/updateLoop
+  * boot-config/animations/updateOut
+  * boot-config/animations/warning
+  * boot-config/animations/warningValidate
+  * dance_pepper-f14156/behavior_1
+  * demo_czc-10cb16/behavior_1
+  * demo_czc-10cb16/pepper_animations/hand_sensor
+  * demo_czc-10cb16/pepper_animations/head_sensor
+  * demo_czc-10cb16/pepper_animations/hear
+  * demo_czc-10cb16/pepper_animations/hello
+  * demo_czc-10cb16/pepper_animations/like_humans_pic
+  * demo_czc-10cb16/pepper_animations/long_close
+  * demo_czc-10cb16/pepper_animations/microphones
+  * demo_czc-10cb16/pepper_animations/motors
+  * demo_czc-10cb16/pepper_animations/see
+  * demo_czc-10cb16/pepper_animations/show_group
+  * demo_czc-10cb16/pepper_animations/show_himself
+  * demo_czc-10cb16/pepper_animations/show_icub
+  * demo_czc-10cb16/pepper_animations/show_kinova
+  * demo_czc-10cb16/pepper_animations/show_kuka
+  * demo_czc-10cb16/pepper_animations/show_logo
+  * demo_czc-10cb16/pepper_animations/show_nao
+  * demo_czc-10cb16/pepper_animations/show_paris
+  * demo_czc-10cb16/pepper_animations/show_qb
+  * demo_czc-10cb16/pepper_animations/tablet
+  * demo_czc-10cb16/pepper_animations/waves
+  * dialog_engines/bhv_rest
+  * dialog_engines/bhv_wake_up
+  * dialog_impossible_moves/animations/Backflip
+  * dialog_impossible_moves/animations/CrossArms
+  * dialog_impossible_moves/animations/TurnHead360
+  * dialog_impossible_moves/animations/Wave01
+  * dialog_internet_connection/bhr_IP_adress
+  * dialog_internet_connection/bhr_network_status
+  * dialog_move_arms/animations/StretchBothArms
+  * dialog_move_arms/animations/StretchLArm
+  * dialog_move_arms/animations/StretchRArm
+  * dialog_move_arms/animations/UpBothArms
+  * dialog_move_arms/animations/UpLArm
+  * dialog_move_arms/animations/UpRArm
+  * dialog_move_hands/animations/CloseBothHands
+  * dialog_move_hands/animations/CloseLHand
+  * dialog_move_hands/animations/CloseRHand
+  * dialog_move_hands/animations/HandsBack
+  * dialog_move_hands/animations/HandsOnEyes
+  * dialog_move_hands/animations/OpenBothHands
+  * dialog_move_hands/animations/OpenLHand
+  * dialog_move_hands/animations/OpenRHand
+  * dialog_move_hands/animations/UpBothArms
+  * dialog_move_hands/animations/Wave01
+  * dialog_move_head/animations/LookDown
+  * dialog_move_head/animations/LookLeft
+  * dialog_move_head/animations/LookRight
+  * dialog_move_head/animations/LookUp
+  * dialog_move_head/animations/TurnHead360
+  * dialog_posture/bhv_crouch
+  * dialog_posture/bhv_lie_down_back
+  * dialog_posture/bhv_lie_down_belly
+  * dialog_posture/bhv_sit_down
+  * dialog_posture/bhv_stand_up
+  * dialog_reflex/vc_iremocon
+  * dialog_shutdown/bhr_reboot
+  * dialog_shutdown/bhr_shutdown
+  * dialog_store/show_tablet/Show_tablet_1
+  * dialog_store/show_tablet/Show_tablet_2
+  * dialog_store/show_tablet/Show_tablet_3
+  * dialog_store/show_tablet/Show_tablet_4
+  * dialog_store/show_tablet/Show_tablet_5
+  * dialog_switch_language/bhr_check_language_packs
+  * dialog_switch_language/bhr_switch_language
+  * dialog_touch/animations/head_touched
+  * dialog_touch/headster_egg
+  * dialog_what_can_you_do/show_tablet/Show_tablet_1
+  * dialog_what_can_you_do/show_tablet/Show_tablet_2
+  * dialog_what_can_you_do/show_tablet/Show_tablet_3
+  * dialog_what_can_you_do/show_tablet/Show_tablet_4
+  * dialog_what_can_you_do/show_tablet/Show_tablet_5
+  * j-tablet-browser
+  * push-recovered/animations/pushed_0
+  * push-recovered/animations/pushed_1
+  * push-recovered/animations/pushed_2
+  * push-recovered/animations/searchHumans_1
+  * push-recovered/solitary
+  * run_dialog_dev
+  * run_dialog_dev/init
+  * sleep-reactions/Animations/End_ShakeHead
+  * sleep-reactions/Animations/Start_ShakeHead
+  * sleep-reactions/RandomHand
+  * sleep-reactions/TouchHand
+  * zones_change-3c0a83/behavior_1
+Running behaviors (1): demo_czc-10cb16/behavior_1
+
+=== Postures ===
+Available postures (4): Crouch, Stand, StandInit, StandZero
+Current posture: Crouch
+
+=== LEDs ===
+LED groups (74): AllLeds, AllLedsBlue, AllLedsGreen, AllLedsRed, ChestLeds, EarLed1, EarLed10, EarLed2, EarLed3, EarLed4, EarLed5, EarLed6, EarLed7, EarLed8, EarLed9, EarLeds, FaceLed0, FaceLed1, FaceLed2, FaceLed3, FaceLed4, FaceLed5, FaceLed6, FaceLed7, FaceLedLeft0, FaceLedLeft1, FaceLedLeft2, FaceLedLeft3, FaceLedLeft4, FaceLedLeft5, FaceLedLeft6, FaceLedLeft7, FaceLedRight0, FaceLedRight1, FaceLedRight2, FaceLedRight3, FaceLedRight4, FaceLedRight5, FaceLedRight6, FaceLedRight7, FaceLeds, FaceLedsBottom, FaceLedsExternal, FaceLedsInternal, FaceLedsLeftBottom, FaceLedsLeftExternal, FaceLedsLeftInternal, FaceLedsLeftTop, FaceLedsRightBottom, FaceLedsRightExternal, FaceLedsRightInternal, FaceLedsRightTop, FaceLedsTop, LeftEarLeds, LeftEarLedsBack, LeftEarLedsEven, LeftEarLedsFront, LeftEarLedsOdd, LeftFaceLeds, LeftFaceLedsBlue, LeftFaceLedsGreen, LeftFaceLedsRed, RightEarLeds, RightEarLedsBack, RightEarLedsEven, RightEarLedsFront, RightEarLedsOdd, RightFaceLeds, RightFaceLedsBlue, RightFaceLedsGreen, RightFaceLedsRed, duringsleep-faceleds, sleep-faceLeds, sleep-semiFaceLeds
+
+=== Autonomous Life ===
+Life state: interactive (e.g., disabled/solitary/interactive)
+
+=== Dialog ===
+Activated topics: dlg_applauncher, chat, lab_presentation, self_presentation
+Loaded topics: lab_presentation-7, self_presentation-7, chat-7, chat, lab_presentation, self_presentation, lab_presentation-7, self_presentation-7, chat-7, chat, lab_presentation, self_presentation, dlg_suggest_app, chat, lab_presentation, self_presentation, dlg_applauncher, chat, lab_presentation, self_presentation, dlg_thank_you, dlg_battery_capacity
+
+=== Mood / Emotions (best-effort) ===
+Mood service present but no known getters available on this version.
+
+=== Memory keys (selected) ===
+ - AutonomousLife/State: interactive
+ - Device/SubDeviceList/HeadYaw/Position/Sensor/Value: 0.00460195541382
+
+=== Quick demo (wake → StandInit → green face → rest) ===

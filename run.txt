@@ -1,0 +1,20 @@
+docker
+cd /Projects/FEL/Pepper
+docker compose -f docker/docker-compose.yml --env-file .env up -d
+docker compose -f docker/docker-compose.yml --env-file .env down
+
+
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 ~/Projects/FEL/Pepper/src/bridge.py
+
+
+curl -X POST "http://localhost:5000/emotion/happy"
+
+python /src/simple_voice_pepper.py connect --room test-room
+
+
+Choregraphe
+./choregraphe/bin/choregraphe-bin
