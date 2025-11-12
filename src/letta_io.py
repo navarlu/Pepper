@@ -2,6 +2,7 @@ import os
 import time
 from typing import List, Dict, Any, Optional
 import requests
+import re
 
 from dotenv import load_dotenv
 from pathlib import Path
@@ -123,6 +124,30 @@ def send_to_ego(agent_id: str, user_text: str) -> str:
     return last_assistant or "(no response)"
 
 import json
+_HEARTBEAT_PATTERNS = [
+    re.compile(r'(?:\\?")?,\s*(?:\\?")?request_heartbeat(?:\\?")?\s*:\s*false\}', re.IGNORECASE),
+    re.compile(r'(?:\\?")?,\s*(?:\\?")?request_heartbeat(?:\\?")?\s*:\s*false', re.IGNORECASE),
+    re.compile(r'(?:\\?")?request_heartbeat(?:\\?")?\s*:\s*false', re.IGNORECASE),
+]
+
+
+def sanitize_letta_text(text: str, *, preserve_whitespace: bool = False) -> str:
+    """
+    Remove Letta heartbeat metadata while optionally keeping leading spaces in streamed deltas.
+    """
+    if not isinstance(text, str):
+        return ""
+
+    cleaned = text
+    for pat in _HEARTBEAT_PATTERNS:
+        cleaned = pat.sub("", cleaned)
+
+    if preserve_whitespace:
+        # Keep tokens readable while trimming control characters that Letta adds to boundaries.
+        return cleaned.strip("\r\n")
+    return cleaned.strip()
+
+
 def send_to_ego_sse_stream(
     agent_id: str,
     user_text: str,
@@ -167,15 +192,13 @@ def send_to_ego_sse_stream(
             return "".join(parts)
         return ""
 
+    last_by_id = {}  # msg_id -> last_text_seen
+
     with sess.post(url, json=payload, headers=headers, stream=True, timeout=request_timeout) as r:
         r.raise_for_status()
         for raw in r.iter_lines(decode_unicode=True):
-            if not raw:
+            if not raw or not raw.startswith("data:"):
                 continue
-            # SSE frames are lines beginning with "data:"
-            if not raw.startswith("data:"):
-                continue
-
             data = raw[5:].strip()
             if data == "[DONE]":
                 break
@@ -186,38 +209,36 @@ def send_to_ego_sse_stream(
                 continue
 
             msg_type = evt.get("message_type")
-
-            # Non-text events: ignore for chat UI
-            if msg_type in ("stop_reason", "usage_statistics", "tool_call_message", "tool_return_message"):
+            if msg_type not in ("assistant_message",):
+                # ignore reasoning/tool/usage/stop events for chat text
                 continue
 
-            # Optionally handle reasoning in a side-channel (we don't print it)
-            if include_reasoning and msg_type == "reasoning_message":
-                # reasoning text is usually in evt["reasoning"]
-                # you could log it if you like; we don't yield it
-                continue
+            msg_id = evt.get("id") or evt.get("message_id")
+            # Prefer fine-grained deltas if present
+            piece = evt.get("delta") or evt.get("text_delta")
 
-            if msg_type == "assistant_message":
-                piece = evt.get("delta") or evt.get("text_delta")
-                # Fallback to full content only if delta missing
-                if not piece and "content" in evt:
-                    piece = _extract_text_from_content(evt["content"])
+            # Fallback: some providers send full 'content' each time
+            if not piece and "content" in evt:
+                # normalize content to string
+                c = evt["content"]
+                if isinstance(c, list):
+                    c = "".join([p.get("text", "") for p in c if isinstance(p, dict) and p.get("type") == "text"])
+                elif not isinstance(c, str):
+                    c = ""
+                # compute suffix vs last seen for this message id
+                prev = last_by_id.get(msg_id, "")
+                # emit only the new part
+                piece = c[len(prev):] if c.startswith(prev) else c
+                last_by_id[msg_id] = c  # update accumulator
+            elif isinstance(piece, str):
+                # if deltas are true granular deltas, accumulate too
+                prev = last_by_id.get(msg_id, "")
+                last_by_id[msg_id] = prev + piece
 
-                if not piece:
-                    continue
-
-                # If the provider sent a JSON-escaped string like "\"hello\"", unescape it.
-                try:
-                    if isinstance(piece, str) and piece.startswith('"') and piece.endswith('"'):
-                        piece = json.loads(piece)
-                except Exception:
-                    pass
-
-                # Drop any chunks that still look like metadata
-                if "request_heartbeat" in piece:
-                    continue
-
-                yield piece
+            if isinstance(piece, str):
+                piece = sanitize_letta_text(piece, preserve_whitespace=True)
+                if piece:
+                    yield piece
 
 
 def fetch_recent_conversation(agent_id: str, limit: int = 12) -> List[Dict[str, Any]]:

@@ -24,6 +24,8 @@ from flask import Flask, request, jsonify
 
 from threading import Lock
 
+from virtual_animations import VIRTUAL_EMOTIONS
+
 # .env support (optional, safe if not installed)
 try:
     from dotenv import load_dotenv  # type: ignore
@@ -42,8 +44,14 @@ print("Loading .env from:", ENV_PATH)
 load_dotenv(dotenv_path=ENV_PATH)
 
 DEFAULT_QI_URL = os.environ.get("PEPPER_URL")
+DEFAULT_VIRTUAL_QI_URL = (
+    os.environ.get("VIRTUAL_PEPPER_URL")
+    or os.environ.get("NAOQI_URL")
+    or "tcp://127.0.0.1:41095"
+)
 ANIMATIONS_FILE = os.environ.get("ANIMATIONS_FILE")
 print("Using DEFAULT_QI_URL =", DEFAULT_QI_URL)
+print("Using DEFAULT_VIRTUAL_QI_URL =", DEFAULT_VIRTUAL_QI_URL)
 print("Using ANIMATIONS_FILE =", ANIMATIONS_FILE)
 
 AUTO_TABLET_ANNOUNCE = True
@@ -51,6 +59,8 @@ AUTO_TABLET_DURATION_MS = 2500   # how long to show the label (ms), 0 = keep unt
 AUTO_TABLET_SIZE = 72            # font size (px)
 AUTO_TABLET_BG = u"#000000"
 AUTO_TABLET_FG = u"#FFFFFF"
+
+EMOTION_BEHAVIORS = VIRTUAL_EMOTIONS
 
 def _resolve_config_path(p):
     """
@@ -106,16 +116,21 @@ def connect_session(qi_url):
     s.connect(qi_url)
     return s
 
-def get_services(qi_url):
+def get_services(qi_url, include_tablet=True):
     s = connect_session(qi_url)
-    return {
+    services = {
         "session": s,
         "motion": s.service("ALMotion"),
         "posture": s.service("ALRobotPosture"),
         "bm": s.service("ALBehaviorManager"),
-        "tablet": s.service("ALTabletService"), 
         # "leds": s.service("ALLeds"),
     }
+    if include_tablet:
+        try:
+            services["tablet"] = s.service("ALTabletService")
+        except Exception:
+            services["tablet"] = None
+    return services
 
 def load_animations():
     """(Re)load key->behavior path mapping from animations.json."""
@@ -198,6 +213,160 @@ def rest():
     except Exception as e:
         return jsonify({"ok": False, "error": to_text(e), "url": qi_url}), 500
 
+# ---- Virtual Robot Routes ---------------------------------------------------
+
+@app.route("/virtual_health", methods=["GET"])
+def virtual_health():
+    return jsonify({"ok": True, "virtual": True}), 200
+
+
+@app.route("/virtual_wake", methods=["POST", "GET"])
+def virtual_wake():
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        svcs["motion"].wakeUp()
+        time.sleep(0.3)
+        return jsonify({"ok": True, "action": "wakeUp", "url": qi_url, "virtual": True}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
+
+
+@app.route("/virtual_rest", methods=["POST"])
+def virtual_rest():
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        svcs["motion"].rest()
+        return jsonify({"ok": True, "action": "rest", "url": qi_url, "virtual": True}), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
+
+
+@app.route("/virtual_behaviors", methods=["GET"])
+def virtual_behaviors():
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        bm = svcs["bm"]
+        installed = sorted(bm.getInstalledBehaviors())
+        running = sorted(bm.getRunningBehaviors())
+        tags = sorted(bm.getTagList()) if hasattr(bm, "getTagList") else []
+        by_tag = {}
+        for tag in tags:
+            try:
+                tagged = bm.getBehaviorsByTag(tag)
+                if tagged:
+                    by_tag[tag] = tagged
+            except Exception:
+                pass
+        return jsonify({
+            "ok": True,
+            "url": qi_url,
+            "virtual": True,
+            "installed": installed,
+            "running": running,
+            "tags": tags,
+            "by_tag": by_tag,
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
+
+
+@app.route("/virtual_behavior/start", methods=["POST"])
+def virtual_behavior_start():
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    payload = request.get_json(silent=True) or {}
+    name = payload.get("name")
+    blocking = bool(payload.get("blocking", False))
+    if not name:
+        return jsonify({"ok": False, "error": "Missing 'name' in JSON body", "virtual": True}), 400
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        bm = svcs["bm"]
+        if not bm.isBehaviorInstalled(name):
+            return jsonify({"ok": False, "error": "Behavior not installed", "name": name, "virtual": True}), 404
+
+        if blocking:
+            bm.runBehavior(name)
+        else:
+            bm.startBehavior(name)
+
+        return jsonify({
+            "ok": True,
+            "started": name,
+            "blocking": blocking,
+            "url": qi_url,
+            "virtual": True,
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "name": name, "url": qi_url, "virtual": True}), 500
+
+
+@app.route("/virtual_behavior/stop", methods=["POST"])
+def virtual_behavior_stop():
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    payload = request.get_json(silent=True) or {}
+    name = payload.get("name")
+    if not name:
+        return jsonify({"ok": False, "error": "Missing 'name' in JSON body", "virtual": True}), 400
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        bm = svcs["bm"]
+        if bm.isBehaviorRunning(name):
+            bm.stopBehavior(name)
+            stopped = True
+        else:
+            stopped = False
+        return jsonify({
+            "ok": True,
+            "stopped": stopped,
+            "name": name,
+            "reason": None if stopped else "not running",
+            "url": qi_url,
+            "virtual": True,
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "name": name, "url": qi_url, "virtual": True}), 500
+
+
+@app.route("/virtual_emotion/<emotion>", methods=["POST"])
+def virtual_emotion(emotion):
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    payload = request.get_json(silent=True) or {}
+    blocking = bool(payload.get("blocking", False))
+    key = (emotion or "").strip().lower()
+    if key not in EMOTION_BEHAVIORS:
+        return jsonify({
+            "ok": False,
+            "error": "Unknown emotion",
+            "emotion": key,
+            "allowed": sorted(EMOTION_BEHAVIORS.keys()),
+            "virtual": True,
+        }), 400
+    name = EMOTION_BEHAVIORS[key]
+    try:
+        svcs = get_services(qi_url, include_tablet=False)
+        bm = svcs["bm"]
+        if not bm.isBehaviorInstalled(name):
+            return jsonify({"ok": False, "error": "Mapped behavior is not installed", "name": name, "virtual": True}), 404
+
+        if blocking:
+            bm.runBehavior(name)
+        else:
+            bm.startBehavior(name)
+
+        return jsonify({
+            "ok": True,
+            "emotion": key,
+            "started": name,
+            "blocking": blocking,
+            "url": qi_url,
+            "virtual": True,
+        }), 200
+    except Exception as e:
+        return jsonify({"ok": False, "error": to_text(e), "emotion": key, "name": name, "url": qi_url, "virtual": True}), 500
+
 @app.route("/animations", methods=["GET"])
 def list_animations():
     """
@@ -234,40 +403,49 @@ def reload_animations():
             return jsonify({"ok": True, "reloaded": True, "count": len(_animations)}), 200
     return jsonify({"ok": False, "error": to_text(err)}), 500
 
-@app.route("/animation/<name>", methods=["POST"])
-def animation(name):
-    """
-    POST /animation/<key-or-path>
-    Body (optional): { "blocking": false }
-    - If <name> is a key in animations.json, its path is used.
-    - If <name> includes '/', it is treated as a full behavior path.
-    - Otherwise we try a suffix match against installed behaviors.
-    """
-    print("Received request to play animation:", name)
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
+def _run_animation_request(name, qi_url, virtual=False):
     try:
         payload = request.get_json(silent=True) or {}
     except Exception:
         payload = {}
+
     blocking = bool(payload.get("blocking", False))
-    blocking = True 
+    blocking = True  # keep legacy behavior: always run blocking
+
     try:
         print("Connecting to robot at:", qi_url)
-        svcs = get_services(qi_url)
+        svcs = get_services(qi_url, include_tablet=not virtual)
         bm = svcs["bm"]
-        
-        if AUTO_TABLET_ANNOUNCE:
-            print("Announcing animation on tablet:", name)
-            import requests
-            requests.post("http://localhost:5000/tablet/text_inline", json={"text": "Animation: " + name})
+
+        if AUTO_TABLET_ANNOUNCE and not virtual:
+            try:
+                print("Announcing animation on tablet:", name)
+                requests.post(
+                    "http://localhost:5000/tablet/text_inline",
+                    json={"text": "Animation: " + name},
+                    timeout=1.5,
+                )
+            except Exception as announce_err:
+                print("[WARN] Tablet announce failed:", announce_err)
+
         print("Resolving animation key/path:", name)
         installed = bm.getInstalledBehaviors()
         path, err = resolve_animation_key(name, installed=installed)
         if err:
-            return jsonify({"ok": False, "error": err, "name": to_text(name)}), 400
+            return jsonify({
+                "ok": False,
+                "error": err,
+                "name": to_text(name),
+                "virtual": bool(virtual),
+            }), 400
 
         if not bm.isBehaviorInstalled(path):
-            return jsonify({"ok": False, "error": "Behavior not installed", "path": path}), 404
+            return jsonify({
+                "ok": False,
+                "error": "Behavior not installed",
+                "path": path,
+                "virtual": bool(virtual),
+            }), 404
 
         if blocking:
             print("Playing blocking behavior:", path)
@@ -276,9 +454,38 @@ def animation(name):
             print("Playing non-blocking behavior:", path)
             bm.startBehavior(path)
 
-        return jsonify({"ok": True, "name": to_text(name), "path": path, "blocking": blocking, "url": qi_url}), 200
+        return jsonify({
+            "ok": True,
+            "name": to_text(name),
+            "path": path,
+            "blocking": blocking,
+            "url": qi_url,
+            "virtual": bool(virtual),
+        }), 200
     except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "name": to_text(name), "url": qi_url}), 500
+        return jsonify({
+            "ok": False,
+            "error": to_text(e),
+            "name": to_text(name),
+            "url": qi_url,
+            "virtual": bool(virtual),
+        }), 500
+
+
+@app.route("/animation/<name>", methods=["POST"])
+def animation(name):
+    """Trigger a behavior on the real robot via animations.json mapping."""
+    print("Received request to play animation:", name)
+    qi_url = request.args.get("url", DEFAULT_QI_URL)
+    return _run_animation_request(name, qi_url, virtual=False)
+
+
+@app.route("/virtual_animation/<name>", methods=["POST"])
+def virtual_animation(name):
+    """Same as /animation but targets the virtual robot session."""
+    print("Received request to play VIRTUAL animation:", name)
+    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
+    return _run_animation_request(name, qi_url, virtual=True)
 
 # ---- Main -------------------------------------------------------------------
 @app.route("/tablet/text_inline", methods=["POST"])
@@ -307,7 +514,10 @@ def tablet_text_inline():
         # URL-encode as data URL so tablet doesn’t need the network
         data_url = "data:text/html;charset=utf-8," + urllib.quote(html.encode("utf-8"))
         svcs = get_services(qi_url)
-        svcs["tablet"].showWebview(data_url)
+        tablet = svcs.get("tablet")
+        if tablet is None:
+            raise RuntimeError("ALTabletService unavailable")
+        tablet.showWebview(data_url)
         return jsonify({"ok": True, "mode": "inline"}), 200
     except Exception as e:
         return jsonify({"ok": False, "error": to_text(e)}), 500
@@ -536,9 +746,10 @@ def camera_photo():
         print("[camera] ERROR in /camera/photo:", msg)
         return jsonify({"ok": False, "error": msg}), 500
 # ===== end patch =====
+
+_animations_ok, _animations_err = load_animations()
+if not _animations_ok:
+    print("[WARN] animations.json not loaded (ANIMATIONS_FILE='{}'): {}".format(ANIMATIONS_FILE, _animations_err))
+
 if __name__ == "__main__":
-    
-    ok, err = load_animations()
-    if not ok:
-        print("[WARN] animations.json not loaded (ANIMATIONS_FILE='{}'): {}".format(ANIMATIONS_FILE, err))
     app.run(host="0.0.0.0", port=5000)

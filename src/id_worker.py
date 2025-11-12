@@ -23,28 +23,36 @@ EGO_AGENT_ID = os.getenv("EGO_AGENT_ID")
 MAX_RECENT_MESSAGES = int(os.getenv("MAX_RECENT_MESSAGES"))
 GOAL_BLOCK_ID = os.getenv("GOAL_BLOCK_ID")
 EMOTION_STATE_BLOCK_ID = os.getenv("EMOTION_STATE_BLOCK_ID")  # keep name to avoid wider changes
+ROBOT_TARGET = (os.getenv("ROBOT_TARGET") or "real").strip().lower()
+if ROBOT_TARGET not in {"real", "virtual"}:
+    ROBOT_TARGET = "real"
 
 from letta_io import fetch_recent_conversation, overwrite_block_text
 
 # ⬇️ swap play_emotion → play_animation (same import location)
 from motion import play_animation, wave_hand
+from virtual_animations import VIRTUAL_EMOTIONS
 
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 # System now talks about animations instead of emotions
+TARGET_LABEL = "Pepper" if ROBOT_TARGET == "real" else "virtual Pepper"
+
 ID_SYSTEM = (
     "You are ID, the robot's reactive controller.\n"
     "You see the recent user–assistant conversation and must decide via function tools:\n"
-    "- activate_animation() to trigger a single Pepper animation by key from the provided list.\n"
+    "- activate_animation() to trigger a single {} animation by key from the provided list.\n"
     "- If no motion is needed, do nothing."
-)
+).format(TARGET_LABEL)
 
 def _load_animation_keys_from_json(max_keys: int = 256) -> List[str]:
     """
     Read animations.json and return the list of keys we allow the LLM to call.
     If the file is missing or invalid, return a tiny safe fallback.
     """
+    if ROBOT_TARGET == "virtual":
+        return sorted(VIRTUAL_EMOTIONS.keys())
     try:
         with open(ANIMATIONS_FILE, "r", encoding="utf-8") as f:
             data = json.load(f) or {}
@@ -60,15 +68,16 @@ def _load_animation_keys_from_json(max_keys: int = 256) -> List[str]:
 def id_tools_def():
     # Tool schema mirrors your previous one but for animations
     enum_values = _load_animation_keys_from_json()
+    desc = (
+        "Trigger exactly one {} animation by its key from animations.json. "
+        "Examples: 'Listening_1', 'CircleEyes'."
+    ).format("Pepper" if ROBOT_TARGET == "real" else "virtual Pepper")
     return [
         {
             "type": "function",
             "function": {
                 "name": "activate_animation",
-                "description": (
-                    "Trigger exactly one Pepper animation by its key from animations.json. "
-                    "Examples: 'Listening_1', 'CircleEyes'."
-                ),
+                "description": desc,
                 "parameters": {
                     "type": "object",
                     "properties": {
