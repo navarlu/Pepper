@@ -48,7 +48,9 @@ VOICE_AGENT_ID = (
 )
 LETTA_KEY = os.getenv("LETTA_API_KEY")
 VOICE_OUTPUT_MODE = (os.getenv("VOICE_OUTPUT_MODE") or "livekit").strip().lower()
-USE_LIVEKIT_TTS = VOICE_OUTPUT_MODE in {"livekit", "room", "speaker"}
+PEPPER_SPEAK = True
+print("LETTA_VOICE_BASE:", LETTA_VOICE_BASE)
+print("VOICE_AGENT_ID:", VOICE_AGENT_ID)
 
 
 # --- tools ----------------------------------------------------------------
@@ -63,7 +65,6 @@ LLM = openai.LLM.with_letta(
     api_key=LETTA_KEY,
     base_url=f"{LETTA_VOICE_BASE}",
 )
-
 
 # --- helpers ---------------------------------------------------------------
 def _strip_trailing_unbalanced_quote(text: str) -> str:
@@ -83,7 +84,6 @@ def _strip_trailing_unbalanced_quote(text: str) -> str:
         return text.rstrip()[:-1].rstrip()
     return text
 
-
 def sanitize_response_text(text: Optional[str]) -> str:
     if not text:
         return ""
@@ -96,27 +96,23 @@ def sanitize_response_text(text: Optional[str]) -> str:
     cleaned = cleaned.replace("\\\"", '"')
     return _strip_trailing_unbalanced_quote(cleaned)
 
-
 async def _run_in_background(func, *args, **kwargs):
     loop = asyncio.get_running_loop()
     await loop.run_in_executor(None, lambda: func(*args, **kwargs))
-
 
 async def _log_conversation(role: str, text: str):
     if not CONVERSATION_BLOCK_ID:
         return
     await _run_in_background(append_block_text, CONVERSATION_BLOCK_ID, f"{role}: {text}")
 
-
 async def _trigger_id_user(text: str):
     await _run_in_background(id_react_user_text, text)
-
 
 async def _trigger_id_ego_start(text: str):
     await _run_in_background(id_react_ego_start, text)
 
-
 async def _pepper_say_async(text: str):
+    print(f"[VOICE CLI] Pepper is trying to speak ({len(text)} chars).")
     if ROBOT_TARGET != "real":
         return
     await _run_in_background(
@@ -129,7 +125,6 @@ async def _pepper_say_async(text: str):
         volume=0.2,
     )
 
-
 # --- Hooks for external integration ---------------------------------------
 async def on_user_turn_final_text(text: str):
     print(f"[HOOK] user finished speaking: {text}")
@@ -139,20 +134,20 @@ async def on_user_turn_final_text(text: str):
         return_exceptions=True,
     )
 
-
 async def on_assistant_text_before_tts(text: str):
     cleaned = sanitize_response_text(text)
     if not cleaned:
         return
     print(f"[HOOK] assistant will say: {cleaned}")
+    print(f"[HOOK] sending {len(cleaned)} chars into TTS pipeline")
     tasks = [
         _log_conversation("EGO", cleaned),
         _trigger_id_ego_start(cleaned),
     ]
-    if not USE_LIVEKIT_TTS:
+    if PEPPER_SPEAK:
+        print("[HOOK] PEPPER_SPEAK enabled -> mirroring text to Pepper")
         tasks.append(_pepper_say_async(cleaned))
     await asyncio.gather(*tasks, return_exceptions=True)
-
 
 async def entrypoint(ctx: JobContext):
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
@@ -162,20 +157,21 @@ async def entrypoint(ctx: JobContext):
         tools=[lookup_weather],
     )
 
-    output_desc = "LiveKit room TTS" if USE_LIVEKIT_TTS else "Pepper on-device speech"
-    print(f"[cli_voice] Voice output mode: {output_desc}")
+    output_targets = ["LiveKit room TTS"]
+    if PEPPER_SPEAK:
+        output_targets.append("Pepper mirroring")
+    print(f"[cli_voice] Voice output mode env: {VOICE_OUTPUT_MODE}")
+    print(f"[cli_voice] Voice output targets: {', '.join(output_targets)}")
 
-    tts_model = (
-        openai.TTS(model="gpt-4o-mini-tts", voice=os.getenv("TTS_VOICE", "alloy"))
-        if USE_LIVEKIT_TTS
-        else None
-    )
-
+    tts_voice = os.getenv("TTS_VOICE", "alloy")
+    print(f"[cli_voice] Configured TTS voice: {tts_voice}")
+    print(f"[cli_voice] PEPPER_SPEAK flag: {PEPPER_SPEAK}")
+    
     session = AgentSession(
         vad=silero.VAD.load(),
         stt=openai.STT(model="gpt-4o-transcribe", language=os.getenv("STT_LANG", "cs")),
         llm=LLM,
-        tts=tts_model,
+        tts=openai.TTS(model="gpt-4o-mini-tts", voice="alloy"),
     )
 
     @session.on("user_input_transcribed")
@@ -186,8 +182,10 @@ async def entrypoint(ctx: JobContext):
 
     @session.on("conversation_item_added")
     def _on_conversation_item_added(ev: ConversationItemAddedEvent):
+        
         role = ev.item.role
         text = ev.item.text_content
+        print(f"[cli_voice] on conversation item added: {text}")
         if not text:
             return
         if role == "assistant":
@@ -203,7 +201,6 @@ async def entrypoint(ctx: JobContext):
     )
 
     await greeting.wait_for_playout()
-
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))

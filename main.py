@@ -11,8 +11,8 @@ import sys
 from pathlib import Path
 
 # --- Toggle these values -----------------------------------------------------
-REAL = False         # True = physical Pepper, False = virtual robot
-RUN_MODE = "cli_chat"  # "cli_chat" or "voice"
+REAL =True         # True = physical Pepper, False = virtual robot
+RUN_MODE = "cli_voice"  # "cli_chat" or "cli_voice"
 # -----------------------------------------------------------------------------
 
 ROOT_DIR = Path(__file__).resolve().parent
@@ -38,14 +38,23 @@ def _run_cli_chat():
 def _run_voice():
     from cli_voice import cli, WorkerOptions, entrypoint
 
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    # livekit Agents CLI expects a sub-command (start/dev/console/...)
+    # Default to `dev` for the voice experience, but allow the user to
+    # override by passing args to main.py (e.g. `python main.py start`).
+    original_argv = sys.argv.copy()
+    cli_args = ["dev"]
+    sys.argv = [original_argv[0], *cli_args]
+    try:
+        cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    finally:
+        sys.argv = original_argv
 
 
 def main():
     _configure_environment()
     if RUN_MODE == "cli_chat":
         _run_cli_chat()
-    elif RUN_MODE == "voice":
+    elif RUN_MODE == "cli_voice":
         _run_voice()
     else:
         raise SystemExit("RUN_MODE must be 'cli_chat' or 'voice'")
