@@ -1,0 +1,38 @@
+@staticmethod
+    def with_letta(
+        *,
+        agent_id: str,
+        base_url: str = "http://127.0.0.1:8283/v1",  # self-host default
+        api_key: str | None = None,
+    ) -> LLM:
+        # do NOT append /{agent_id} to the base_url
+        parsed = urlparse(base_url)
+        if parsed.scheme not in {"http", "https"}:
+            raise ValueError(...)
+        if not parsed.netloc:
+            raise ValueError(...)
+
+        api_key = api_key or os.environ.get("LETTA_API_KEY")
+        if api_key is None:
+            raise ValueError("Letta API key is required ...")
+
+        return LLM(
+            model=agent_id,         # key change: use agent id as model
+            api_key=api_key,
+            base_url=base_url,      # e.g. http://127.0.0.1:8283/v1
+            client=None,
+            user=NOT_GIVEN,
+            temperature=NOT_GIVEN,
+            parallel_tool_calls=NOT_GIVEN,
+            tool_choice=NOT_GIVEN,
+        )
+
+
+To have the CLI’s TTS audio come out of the real Pepper speaker, run the LiveKit→Pepper bridge while the CLI is running:
+
+On the Pepper/NAOqi (python2.7) side start src/pepper_audio_server.py so it opens a TCP socket and streams into ALAudioDevice: python2 src/pepper_audio_server.py (with your NAOqi env vars active, e.g., PEPPER_URL).
+On your machine (python3 env) start src/listener_pepper_bridge.py; it subscribes to the LiveKit room audio and forwards PCM over TCP to that server: python src/listener_pepper_bridge.py (needs LIVEKIT_* env values and the room token file).
+Keep both running alongside the CLI and Pepper will play the audio.
+
+
+test ethernt connection

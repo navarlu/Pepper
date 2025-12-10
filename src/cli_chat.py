@@ -60,7 +60,9 @@ def pepper_say(
             payload["volume"] = float(volume)
 
         import requests
-        r = requests.post(url, json=payload, timeout=1)
+        #r = requests.post(url, json=payload, timeout=1)
+        print("Pepper silenced for testing.")
+        return
         if r.status_code != 200:
             print("[cli] Pepper say error:", r.text)
         else:

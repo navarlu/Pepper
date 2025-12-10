@@ -11,8 +11,9 @@ export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
 python2 ~/Projects/FEL/Pepper/src/bridge.py
 
 
-curl -X POST "http://localhost:5000/emotion/happy"
+curl -X POST "http://localhost:5000/animation/Embarrassed_1"
 
+source ./Pepper_env/bin/activate
 python /src/simple_voice_pepper.py connect --room test-room
 
 

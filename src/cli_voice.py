@@ -18,7 +18,8 @@ from livekit.agents import (
     cli,
     function_tool,
 )
-from livekit.plugins import openai, silero
+from livekit.plugins import openai as lk_openai
+from livekit.plugins import silero
 
 from cli_chat import (
     CONVERSATION_BLOCK_ID,
@@ -39,13 +40,11 @@ except Exception:
     load_dotenv()
 
 
-LETTA_VOICE_BASE = os.getenv("LETTA_BASE", "http://localhost:8283/v1/voice-beta")
-VOICE_AGENT_ID = (
-    os.getenv("VOICE_AGENT_ID")
-    or os.getenv("AGENT_ID")
-    or os.getenv("EGO_AGENT_ID")
-    or "agent-0a54da6e-93a1-4092-837c-5f0141809f8b"
-)
+LETTA_VOICE_BASE = "http://127.0.0.1:8283/v1"
+
+
+VOICE_AGENT_ID = "agent-705ed358-88fb-44de-a22c-ef1fcad56824"
+
 LETTA_KEY = os.getenv("LETTA_API_KEY")
 VOICE_OUTPUT_MODE = (os.getenv("VOICE_OUTPUT_MODE") or "livekit").strip().lower()
 PEPPER_SPEAK = True
@@ -60,10 +59,10 @@ async def lookup_weather(context: Any, location: str) -> dict:
 
 
 # --- LLM bound to Letta ----------------------------------------------------
-LLM = openai.LLM.with_letta(
+LLM = lk_openai.LLM.with_letta(
     agent_id=VOICE_AGENT_ID,
     api_key=LETTA_KEY,
-    base_url=f"{LETTA_VOICE_BASE}",
+    base_url="http://localhost:8283/v1",
 )
 
 # --- helpers ---------------------------------------------------------------
@@ -115,6 +114,7 @@ async def _pepper_say_async(text: str):
     print(f"[VOICE CLI] Pepper is trying to speak ({len(text)} chars).")
     if ROBOT_TARGET != "real":
         return
+    #TODO comented out just to test pepper lietsenr
     await _run_in_background(
         pepper_say,
         text,
@@ -169,9 +169,9 @@ async def entrypoint(ctx: JobContext):
     
     session = AgentSession(
         vad=silero.VAD.load(),
-        stt=openai.STT(model="gpt-4o-transcribe", language=os.getenv("STT_LANG", "cs")),
+        stt=lk_openai.STT(model="gpt-4o-transcribe", language=os.getenv("STT_LANG", "cs")),
         llm=LLM,
-        tts=openai.TTS(model="gpt-4o-mini-tts", voice="alloy"),
+        tts=lk_openai.TTS(model="gpt-4o-mini-tts", voice="alloy"),
     )
 
     @session.on("user_input_transcribed")
