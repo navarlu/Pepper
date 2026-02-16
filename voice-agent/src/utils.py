@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
@@ -40,51 +41,35 @@ def _get_vector_config():
 
 
 def ensure_collection(client) -> bool:
-    print(f"{SEED_LOG_PREFIX} ensure collection: {WEAVIATE_COLLECTION}")
     if client.collections.exists(WEAVIATE_COLLECTION):
-        print(f"{SEED_LOG_PREFIX} collection exists: {WEAVIATE_COLLECTION}")
         return False
-    create_kwargs = {
-        "name": WEAVIATE_COLLECTION,
-        "properties": [
+
+    client.collections.create(
+        name=WEAVIATE_COLLECTION,
+        properties=[
             Property(name=DOC_TITLE_FIELD, data_type=DataType.TEXT),
             Property(name=DOC_CONTENT_FIELD, data_type=DataType.TEXT),
             Property(name=DOC_SOURCE_FIELD, data_type=DataType.TEXT),
             Property(name=DOC_CREATED_AT_FIELD, data_type=DataType.DATE),
         ],
-        "vector_config": _get_vector_config(),
-    }
-    print(
-        f"{SEED_LOG_PREFIX} creating collection: {WEAVIATE_COLLECTION} "
-        f"(vector_model={WEAVIATE_OPENAI_MODEL})"
+        vector_config=_get_vector_config(),
     )
-    client.collections.create(**create_kwargs)
-    print(f"{SEED_LOG_PREFIX} collection created: {WEAVIATE_COLLECTION}")
     return True
 
 
-def _iter_seed_texts(paths: list[Path]) -> list[dict]:
-    items: list[dict] = []
+def _iter_seed_texts(paths: list[Path]) -> list[dict[str, str]]:
+    items: list[dict[str, str]] = []
     for base in paths:
-        base = Path(base)
-        print(f"{SEED_LOG_PREFIX} scanning: {base}")
-        if base.is_dir():
-            candidates = sorted(base.rglob("*.txt"))
-            print(f"{SEED_LOG_PREFIX} found {len(candidates)} .txt files in {base}")
-        else:
-            candidates = [base] if base.suffix.lower() == ".txt" else []
-            if candidates:
-                print(f"{SEED_LOG_PREFIX} using file: {base}")
-            else:
-                print(f"{SEED_LOG_PREFIX} skipping non-txt path: {base}")
+        path = Path(base)
+        candidates = sorted(path.rglob("*.txt")) if path.is_dir() else [path]
         for file_path in candidates:
+            if file_path.suffix.lower() != ".txt":
+                continue
             try:
                 text = file_path.read_text(encoding="utf-8", errors="ignore").strip()
             except OSError:
-                print(f"{SEED_LOG_PREFIX} failed to read: {file_path}")
                 continue
             if not text:
-                print(f"{SEED_LOG_PREFIX} empty file: {file_path}")
                 continue
             items.append(
                 {
@@ -93,36 +78,39 @@ def _iter_seed_texts(paths: list[Path]) -> list[dict]:
                     "source": str(file_path),
                 }
             )
-    print(f"{SEED_LOG_PREFIX} total seed items: {len(items)}")
     return items
 
 
 def seed_collection(client) -> None:
-    print(f"{SEED_LOG_PREFIX} seed start collection={WEAVIATE_COLLECTION}")
     created = ensure_collection(client)
     if not created:
-        print(f"{SEED_LOG_PREFIX} collection exists, skipping seed")
         return
-    collection = client.collections.use(WEAVIATE_COLLECTION)
-    created_at = datetime.now(timezone.utc).isoformat()
+
+    print(f"{SEED_LOG_PREFIX} collection created: {WEAVIATE_COLLECTION}")
+
     items = _iter_seed_texts(SEED_DATA_PATHS)
     if not items:
-        print(f"{SEED_LOG_PREFIX} no seed items found")
+        print(f"{SEED_LOG_PREFIX} no seed data found")
         return
-    for index, item in enumerate(items, start=1):
+
+    collection = client.collections.use(WEAVIATE_COLLECTION)
+    created_at = datetime.now(timezone.utc).isoformat()
+
+    for item in items:
         collection.data.insert(
             {
-                DOC_TITLE_FIELD: item["title"] or f"Seed {index}",
+                DOC_TITLE_FIELD: item["title"],
                 DOC_CONTENT_FIELD: item["content"],
                 DOC_SOURCE_FIELD: item["source"],
                 DOC_CREATED_AT_FIELD: created_at,
             }
         )
-        print(f"{SEED_LOG_PREFIX} inserted: {item['source']}")
+
+    print(f"{SEED_LOG_PREFIX} seeded {len(items)} items")
 
 
-def _format_results(response) -> list[dict]:
-    results = []
+def _format_results(response) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
     for obj in response.objects:
         props = obj.properties or {}
         created_at = props.get(DOC_CREATED_AT_FIELD, "")
@@ -142,7 +130,7 @@ def _format_results(response) -> list[dict]:
     return results
 
 
-def search_vectors(query: str, limit: int = 5) -> list[dict]:
+def search_vectors(query: str, limit: int = 5) -> list[dict[str, Any]]:
     with connect_weaviate() as client:
         ensure_collection(client)
         collection = client.collections.use(WEAVIATE_COLLECTION)
