@@ -1,5 +1,7 @@
 # Pepper — LiveKit + LLM Voice Agent for Pepper
 
+![Pepper](docs/assets/pepper.jpeg)
+
 This project turns a Pepper robot into a conversational assistant by connecting:
 1) a **Python 2.7 NAOqi bridge** (Pepper control/TTS/tablet/camera),
 2) a **Python 3 LiveKit voice pipeline** (STT → LLM → TTS),
@@ -95,4 +97,3 @@ On your machine (Python 3):
 python3 src/listener_pepper_bridge.py
 ```
 `listener_pepper_bridge.py` watches a token snapshot file (default: `web/agents-playground/token-latest.json`) to reconnect when a new LiveKit session is created.
-
