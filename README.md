@@ -1,4 +1,4 @@
-# Pepper — LiveKit + LLM Voice Agent for Pepper
+# Pepper — The FEE CTU Receptionist
 
 ![Pepper](docs/assets/pepper.jpeg)
 

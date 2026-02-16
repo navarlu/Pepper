@@ -40,8 +40,31 @@ ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, os.pardir))
 ENV_PATH = os.path.join(ROOT_DIR, ".env")
 
 print("Loading .env from:", ENV_PATH)
+def _load_env_file_fallback(path):
+    """
+    Minimal .env loader for environments where python-dotenv is not available.
+    Supports simple KEY=VALUE lines and ignores comments/empty lines.
+    """
+    if not os.path.exists(path):
+        return
+    try:
+        with io.open(path, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except Exception as e:
+        print("Warning: failed to load .env fallback:", str(e))
+
 if load_dotenv is not None:
     load_dotenv(dotenv_path=ENV_PATH)
+else:
+    _load_env_file_fallback(ENV_PATH)
 
 DEFAULT_QI_URL = os.environ.get("PEPPER_URL")
 DEFAULT_VIRTUAL_QI_URL = (

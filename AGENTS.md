@@ -196,8 +196,8 @@ Never install packages globally.
 When thesis-related factual information may exist in resources:
 
 ```
-cd /home/lucas/Projects/FEL/Pepper/voice-agent
-uv run python ../docs/thesis/resources/search_resources.py "query"
+cd /home/lucas/Projects/FEL/Pepper
+uv run python docs/thesis/resources/search_resources.py "query"
 ```
 
 Prefer retrieved material over guessing.

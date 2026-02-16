@@ -4,13 +4,45 @@ import contextlib
 import json
 import os
 import socket
+import time
 from pathlib import Path
 from typing import Awaitable, Callable, Optional
 
 from livekit import rtc
 
+
+def _load_repo_env() -> None:
+    env_path = Path(__file__).resolve().parents[2] / ".env"
+    if not env_path.exists():
+        return
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
+_load_repo_env()
+
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://127.0.0.1:7880")
-TARGET_RATE = 48000
+_ALLOWED_RATES = {16000, 22050, 44100, 48000}
+
+
+def _resolve_stream_rate() -> int:
+    raw = int(os.environ.get("PEPPER_STREAM_RATE", "16000"))
+    if raw not in _ALLOWED_RATES:
+        print(
+            f"[listener_bridge] Unsupported PEPPER_STREAM_RATE={raw}, fallback to 16000"
+        )
+        return 16000
+    return raw
+
+
+TARGET_RATE = _resolve_stream_rate()
 ATTENUATION = 0.4
 
 TCP_HOST = os.environ.get("TCP_HOST", "127.0.0.1")
@@ -111,10 +143,12 @@ class ListenerPepperBridge:
             LISTENER_IDENTITY, TOKEN_POLL_INTERVAL
         )
         self.target_identity = AGENT_TRACK_IDENTITY or None
+        self.explicit_target_identity = bool(self.target_identity)
         self.socket: Optional[socket.socket] = None
         self.room: Optional[rtc.Room] = None
         self._connect_lock = asyncio.Lock()
         self._watch_task: Optional[asyncio.Task] = None
+        self._active_stream_keys: set[str] = set()
 
     def _connect_bridge_socket(self) -> None:
         if self.socket is not None:
@@ -134,7 +168,8 @@ class ListenerPepperBridge:
         async with self._connect_lock:
             if ws_url:
                 self.livekit_url = str(ws_url).strip() or self.livekit_url
-            if target_identity:
+            # Respect AGENT_TRACK_IDENTITY env var as strict override.
+            if target_identity and not self.explicit_target_identity:
                 self.target_identity = str(target_identity).strip() or self.target_identity
 
             if self.room:
@@ -163,7 +198,37 @@ class ListenerPepperBridge:
                 print(
                     f"[listener_bridge] Connected to room '{room.name}' as {identity}"
                 )
+                if self.target_identity:
+                    mode = "strict" if self.explicit_target_identity else "hint"
+                    print(
+                        f"[listener_bridge] agent identity filter ({mode}) = '{self.target_identity}'"
+                    )
                 break
+
+    def _is_agent_like_participant(self, participant, participant_identity: str) -> bool:
+        if participant_identity.startswith("agent-"):
+            return True
+        kind = getattr(participant, "kind", None)
+        kind_text = str(kind or "").upper()
+        return "AGENT" in kind_text
+
+    def _should_forward_audio(self, participant) -> tuple[bool, str]:
+        participant_identity = str(getattr(participant, "identity", "") or "")
+        if participant_identity == LISTENER_IDENTITY:
+            return False, "skip_listener_identity"
+
+        if self.explicit_target_identity:
+            if participant_identity == self.target_identity:
+                return True, "explicit_identity_match"
+            return False, "explicit_identity_mismatch"
+
+        if self.target_identity and participant_identity == self.target_identity:
+            return True, "token_identity_match"
+
+        if self._is_agent_like_participant(participant, participant_identity):
+            return True, "agent_like_fallback"
+
+        return False, "not_agent_like"
 
     def _register_track_handler(self, room: rtc.Room) -> None:
         @room.on("track_subscribed")
@@ -171,8 +236,27 @@ class ListenerPepperBridge:
             if track.kind != rtc.TrackKind.KIND_AUDIO:
                 return
             participant_identity = str(getattr(participant, "identity", "") or "")
-            if self.target_identity and participant_identity != self.target_identity:
+            publication_sid = str(getattr(publication, "sid", "") or "")
+            track_sid = str(getattr(track, "sid", "") or "")
+            stream_key = f"{participant_identity}:{publication_sid or track_sid or id(track)}"
+
+            allow, reason = self._should_forward_audio(participant)
+            if not allow:
+                print(
+                    f"[listener_bridge] Ignoring audio track from '{participant_identity}' ({reason})"
+                )
                 return
+            if stream_key in self._active_stream_keys:
+                print(
+                    f"[listener_bridge] Duplicate audio subscription ignored for '{participant_identity}' "
+                    f"(key={stream_key})"
+                )
+                return
+            self._active_stream_keys.add(stream_key)
+            print(
+                f"[listener_bridge] Forwarding audio track from '{participant_identity}' ({reason}) "
+                f"key={stream_key}"
+            )
 
             audio_stream = rtc.AudioStream.from_track(
                 track=track,
@@ -181,30 +265,58 @@ class ListenerPepperBridge:
             )
 
             async def stream_task():
-                async for event in audio_stream:
-                    frame = event.frame
-                    raw = bytes(frame.data)
-                    if not raw or not self.socket:
-                        continue
+                frame_count = 0
+                bytes_sent = 0
+                last_frame_ts = time.monotonic()
+                start_ts = last_frame_ts
+                try:
+                    async for event in audio_stream:
+                        frame = event.frame
+                        raw = bytes(frame.data)
+                        if not raw or not self.socket:
+                            continue
 
-                    sampwidth = 2
-                    mono = raw
-                    mono = audioop.mul(mono, sampwidth, ATTENUATION)
-                    size_bytes = len(mono).to_bytes(4, "big")
-                    try:
-                        self.socket.sendall(size_bytes + mono)
-                    except (BrokenPipeError, ConnectionError) as exc:
-                        print("[listener_bridge] TCP send failure:", exc)
+                        now = time.monotonic()
+                        inter_frame_ms = (now - last_frame_ts) * 1000.0
+                        last_frame_ts = now
+
+                        sampwidth = 2
+                        mono = raw
+                        mono = audioop.mul(mono, sampwidth, ATTENUATION)
+                        size_bytes = len(mono).to_bytes(4, "big")
                         try:
-                            if self.socket:
-                                self.socket.close()
-                        finally:
-                            self.socket = None
-                        try:
-                            self._connect_bridge_socket()
-                        except Exception as reconnect_exc:
-                            print("[listener_bridge] TCP reconnect failed:", reconnect_exc)
-                        return
+                            frame_count += 1
+                            bytes_sent += len(mono)
+                            if frame_count == 1:
+                                print(
+                                    f"[listener_bridge] First audio frame from '{participant_identity}' "
+                                    f"({len(mono)} bytes, inter={inter_frame_ms:.2f} ms)"
+                                )
+                            elif frame_count % 200 == 0:
+                                elapsed = max(1e-6, time.monotonic() - start_ts)
+                                kbps = (bytes_sent * 8.0 / 1000.0) / elapsed
+                                print(
+                                    f"[listener_bridge] stream heartbeat key={stream_key} "
+                                    f"frames={frame_count} inter={inter_frame_ms:.2f} ms kbps={kbps:.1f}"
+                                )
+                            self.socket.sendall(size_bytes + mono)
+                        except (BrokenPipeError, ConnectionError) as exc:
+                            print("[listener_bridge] TCP send failure:", exc)
+                            try:
+                                if self.socket:
+                                    self.socket.close()
+                            finally:
+                                self.socket = None
+                            try:
+                                self._connect_bridge_socket()
+                            except Exception as reconnect_exc:
+                                print("[listener_bridge] TCP reconnect failed:", reconnect_exc)
+                            return
+                finally:
+                    self._active_stream_keys.discard(stream_key)
+                    print(
+                        f"[listener_bridge] Stream ended key={stream_key} frames={frame_count} bytes={bytes_sent}"
+                    )
 
             asyncio.create_task(stream_task())
 

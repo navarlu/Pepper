@@ -1,0 +1,7 @@
+did this to setup ethernet
+lucas@lucas-ThinkPad-X13-Gen-3:~/Projects/FEL/Pepper$ sudo ip addr add 10.0.0.200/24 dev enx00e04c026907
+sudo ip link set enx00e04c026907 up
+ip route get 10.0.0.149
+[sudo] password for lucas: 
+10.0.0.149 dev enx00e04c026907 src 10.0.0.200 uid 1000 
+    cache 

@@ -6,7 +6,7 @@ docker compose -f docker/docker-compose.yml --env-file .env down
 
 pyenv shell naoqi27
 unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/choregraphe"
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
 export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
 python2 ~/Projects/FEL/Pepper/src/bridge.py
 
