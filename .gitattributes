@@ -1,0 +1,1 @@
+docs/thesis/resources/data/**/*.pdf filter=lfs diff=lfs merge=lfs -text
