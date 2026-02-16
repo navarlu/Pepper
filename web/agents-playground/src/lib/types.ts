@@ -1,0 +1,27 @@
+import { LocalAudioTrack, LocalVideoTrack } from "livekit-client";
+
+export interface SessionProps {
+  roomName: string;
+  identity: string;
+  audioTrack?: LocalAudioTrack;
+  videoTrack?: LocalVideoTrack;
+  region?: string;
+  turnServer?: RTCIceServer;
+  forceRelay?: boolean;
+}
+
+export interface TokenResult {
+  identity: string;
+  accessToken: string;
+  roomName?: string;
+  listenerIdentity?: string;
+  listenerToken?: string;
+  agentIdentity?: string;
+  agentToken?: string;
+}
+
+export interface AttributeItem {
+  id: string;
+  key: string;
+  value: string;
+}
