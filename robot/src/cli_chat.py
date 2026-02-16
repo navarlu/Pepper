@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 DEBUG_ENV = False
 # Resolve project root (two levels up from this file)
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
 
 # Load .env from root folder

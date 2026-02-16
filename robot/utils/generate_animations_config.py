@@ -59,8 +59,8 @@ def make_unique_keys(paths):
 
 def main():
     # --- EDIT THESE PATHS ---
-    input_txt = "Pepper/real_pepper.txt"       # Path to the Pepper dump
-    output_json = "Pepper/animations.json"     # Output file path
+    input_txt = "robot/data/capabilities.txt"       # Path to the capabilities dump
+    output_json = "robot/data/animations.json"      # Output file path
     include_non_animations = False      # True = include all, False = only 'animations/'
 
     # --- LOGIC ---

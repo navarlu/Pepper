@@ -26,3 +26,32 @@ htmlcov/
 web/
 docker/letta-data
 docker/redis-data
+docker/weaviate_data
+
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.toc
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.run.xml
+*.bcf
+
+# latexmk
+latexmkrc
+
+# LaTeX Workshop
+.vscode/.latex-workshop/

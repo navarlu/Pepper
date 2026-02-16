@@ -29,19 +29,19 @@ from virtual_animations import VIRTUAL_EMOTIONS
 # .env support (optional, safe if not installed)
 try:
     from dotenv import load_dotenv  # type: ignore
-    load_dotenv()
 except Exception:
-    pass
+    load_dotenv = None
 
 # near the other imports
 import io
 import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))          
-ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir))
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, os.pardir))
 ENV_PATH = os.path.join(ROOT_DIR, ".env")
 
 print("Loading .env from:", ENV_PATH)
-load_dotenv(dotenv_path=ENV_PATH)
+if load_dotenv is not None:
+    load_dotenv(dotenv_path=ENV_PATH)
 
 DEFAULT_QI_URL = os.environ.get("PEPPER_URL")
 DEFAULT_VIRTUAL_QI_URL = (

@@ -32,12 +32,9 @@ from letta_io import append_block_text, sanitize_letta_text
 
 
 # --- env ------------------------------------------------------------------
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
-try:
-    load_dotenv(ENV_PATH)
-except Exception:
-    load_dotenv()
+load_dotenv(dotenv_path=ENV_PATH)
 
 
 LETTA_VOICE_BASE = "http://127.0.0.1:8283/v1"

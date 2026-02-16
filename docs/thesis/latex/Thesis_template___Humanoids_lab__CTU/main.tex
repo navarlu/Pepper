@@ -1,0 +1,171 @@
+% arara: pdflatex: { synctex: yes }
+% arara: makeindex: { style: ctuthesis }
+% arara: bibtex
+
+% The class takes all the key=value arguments that \ctusetup does,
+% and a couple more: draft and oneside
+\documentclass[twoside]{ctuthesis}
+
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{subcaption}
+\usepackage{color, colortbl}
+\usepackage{siunitx}
+%\usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{algorithm}% http://ctan.org/pkg/algorithms
+\usepackage{algpseudocode} %http://ctan.org/pkg/algorithmicx\usepackage{array,multirow,graphicx}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
+\usepackage[nolist]{acronym} % acronyms by the \ac{label} command
+\let\labelindent\relax
+\usepackage[inline]{enumitem} % inline enumerate
+\usepackage{cite}
+\graphicspath{ {imgs/} }
+
+
+\newif\ifshowComments
+\showCommentstrue %showCommentsfalse to hide every \added, \deleted and named comments, e.g., \mh{comment}
+
+\ifshowComments
+    \usepackage[draft,markup=bfit, deletedmarkup=sout, authormarkup=brackets]{changes}
+\else
+    \usepackage[final,markup=bfit, deletedmarkup=sout, authormarkup=brackets]{changes}
+\fi
+
+
+\definechangesauthor[name={Lukas},color=green]{LR}
+\definechangesauthor[name={Matej}, color=orange]{MH}
+
+\ifshowComments
+    \newcommand{\lr}[1]{\added[id=LR]{[#1]}}
+    \newcommand{\mh}[1]{\added[id=MH]{[#1]}}
+\else
+    \newcommand{\lr}[1]{\deleted[id=LR]{[#1]}}
+    \newcommand{\mh}[1]{\deleted[id=MH]{[#1]}}
+\fi
+
+\input{acronyms.tex}
+\input{macro.tex}
+
+\ctusetup{
+%	preprint = \ctuverlog,
+%	mainlanguage = english,
+%	titlelanguage = czech,
+	mainlanguage = english,
+	otherlanguages = {czech},
+	title-czech = {Návrh recepčního robota řízeného velkým jazykovým modelem pro sociální interakci},
+	title-english = {Design of an LLM-Driven Receptionist Robot for Social Interaction},
+	subtitle-czech = {},
+	subtitle-english = {},
+	doctype = M,
+	faculty = F3,
+	department-czech = {Katedra kybernetiky},
+	department-english = {Department of Cybernetics},
+	author = {Lukáš Navara},
+	supervisor = {doc. Mgr. Matěj Hoffmann, Ph.D.},
+	supervisor-specialist = {Ing. Lukáš Rustler},
+	fieldofstudy-english = {Cybernetics and Robotics},
+	fieldofstudy-czech = {Kybernetika a Robotika},
+	keywords-czech = {},
+	keywords-english = {},
+	day = 16,
+	month = 02,
+	year = 2026,
+	specification-file = {specification.pdf},
+        declaration-file = {declaration.pdf},
+        onecolumn-ack = true,
+	front-specification = false,
+	front-list-of-figures = false,
+	front-list-of-tables = false,
+}
+
+\ctuprocess
+
+\addto\ctucaptionsczech{%
+	\def\supervisorname{Vedoucí}%
+	\def\subfieldofstudyname{Studijní program}%
+}
+
+% Theorem declarations, this is the reasonable default, anybody can do what they wish.
+% If you prefer theorems in italics rather than slanted, use \theoremstyle{plainit}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{note}
+\newtheorem*{remark*}{Remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\setlength{\parskip}{2.5ex plus 0.2ex minus 0.2ex} %5ex UP
+
+% Abstract in Czech
+\begin{abstract-czech}
+Česká abstrakt
+\end{abstract-czech}
+
+% Abstract in English
+\begin{abstract-english}
+English abstract
+\end{abstract-english}
+   
+% Acknowledgements / Podekovani
+\begin{thanks}
+I thank CTU in Prague for being such a good \textit{alma mater}. 
+\end{thanks}
+
+% Declaration / Prohlaseni
+\begin{declaration}
+I declare that the presented work was developed independently and that I have listed all sources of information used within it in accordance with the methodical instructions for observing the ethical principles in the preparation of university theses.\\[0.2cm]
+
+Prohlašuji, že jsem předloženou práci vypracoval samostatně a že jsem uvedl veškeré použité informační zdroje v souladu s Metodickým pokynem o dodržování etických principů při přípravě vysokoškolských prací.
+\\[0.5cm]
+
+V Praze dne \ctufield{day}.~\monthinlanguage{second}~\ctufield{year}
+\bigskip
+\bigskip
+\bigskip 
+
+\begin{flushright}  
+
+ \begin{minipage}{0.25\textwidth} 
+  \centering   
+  \dotfill\\   
+  Your name
+ \end{minipage}
+\end{flushright}
+\end{declaration}
+
+% Only for testing purposes
+\listfiles
+\usepackage[pagewise]{lineno}
+\usepackage{lipsum,blindtext}
+\usepackage{mathrsfs} % provides \mathscr used in the ridiculous examples
+
+\begin{document}
+
+\maketitle
+\include{src/introduction}
+\include{src/related_work}
+\include{src/methods}
+\include{src/experiments}
+\include{src/conclusion}
+
+\pagestyle{plain}
+\bibliographystyle{IEEEtran}
+\bibliography{src/refs.bib}
+
+\ctuifswitch{front-specification}{}{\ctutemplate{specification.as.chapter}}
+
+\end{document}

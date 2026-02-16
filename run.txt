@@ -19,3 +19,40 @@ python /src/simple_voice_pepper.py connect --room test-room
 
 Choregraphe
 ./choregraphe/bin/choregraphe-bin
+
+
+voice-agent
+uv run python -m robbie_agent.voice_agent console
+
+
+cd livekit-agent
+uv run python -m src.agent console --text
+
+
+Agent:
+cd voice-agent && uv run python -m src.agent dev
+
+Playground:
+http://localhost:3000/
+
+How to use now (your desired flow)
+Start infra:
+docker-compose.yml --env-file .env up -d
+
+Start agent in dev mode:
+cd voice-agent && uv run python -m src.agent dev
+
+Start Pepper audio receiver (Python 2.7):
+pepper_audio_server.py
+
+Start listener bridge:
+listener_pepper_bridge.py
+
+Open playground and click Connect:
+It creates a new room/token set, 
+dispatches agent via token room config, 
+writes fresh snapshot, 
+and bridge follows the new listener token automatically.
+
+cd /home/lucas/Projects/FEL/Pepper/voice-agent
+uv run python ../docs/thesis/resources/ingest_data.py

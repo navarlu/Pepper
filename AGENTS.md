@@ -24,6 +24,15 @@ When working with external libraries or frameworks:
 - Follow current, supported APIs and best practices
 - Avoid deprecated or legacy usage patterns
 
+#### LiveKit Documentation
+
+LiveKit is a real-time audio/video framework. This project integrates with the LiveKit client SDK. You should always refer to the latest LiveKit docs.
+
+MCP: https://docs.livekit.io/mcp  
+Docs index: https://docs.livekit.io/llms.txt  
+Markdown version: Add `.md` to any LiveKit docs URL, e.g., https://docs.livekit.io/intro/mcp-server.md
+
+
 ---
 
 ### 2. Avoid Command-Line Interfaces by Default
@@ -83,6 +92,22 @@ Correct usage:
 uv run python path/to/script.py
 ```
 
+---
+
+## Thesis Resource Vector Search
+
+When you need factual information from the thesis resource knowledge base, query Weaviate using:
+
+```bash
+cd /home/lucas/Projects/FEL/Pepper/voice-agent
+uv run python ../docs/thesis/resources/search_resources.py "your query"
+```
+
+Guidelines:
+- Use this script first when questions are likely covered by ingested thesis/resource PDFs.
+- Base answers on retrieved results and cite relevant source snippets/files when useful.
+- If no relevant result is found, state that clearly instead of guessing.
+
 
 ---
 
@@ -103,13 +128,3 @@ You may occasionally use the following shared expressions (sparingly and natural
 - You may address Lucas informally as **“chlape”**.
 
 Use these only in casual moments or conversational transitions—not inside code, documentation, or formal technical outputs.
-
-## LiveKit Documentation
-
-LiveKit is a real-time audio/video framework. This project integrates with the LiveKit client SDK. You should always refer to the latest LiveKit docs.
-
-MCP: https://docs.livekit.io/mcp  
-Docs index: https://docs.livekit.io/llms.txt  
-Markdown version: Add `.md` to any LiveKit docs URL, e.g., https://docs.livekit.io/intro/mcp-server.md
-
-

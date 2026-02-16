@@ -10,7 +10,7 @@ from pathlib import Path
 
 DEBUG_ENV = False
 DEBUG_ID = False
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
 
 # Where to load the animations list from

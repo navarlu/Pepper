@@ -17,7 +17,7 @@ TCP_HOST = os.environ.get("TCP_HOST", "127.0.0.1")
 TCP_PORT = int(os.environ.get("TCP_PORT", "55555"))
 
 DEFAULT_SESSION_FILE = (
-    Path(__file__).resolve().parents[1]
+    Path(__file__).resolve().parents[2]
     / "web"
     / "agents-playground"
     / "token-latest.json"
@@ -26,7 +26,8 @@ SESSION_FILE = Path(
     os.environ.get("LIVEKIT_SESSION_FILE", DEFAULT_SESSION_FILE)
 )
 LISTENER_IDENTITY = os.environ.get("LISTENER_IDENTITY", "listener-python")
-TOKEN_POLL_INTERVAL = float(os.environ.get("TOKEN_POLL_INTERVAL", "2.0"))
+AGENT_TRACK_IDENTITY = (os.environ.get("AGENT_TRACK_IDENTITY") or "").strip()
+TOKEN_POLL_INTERVAL = float(os.environ.get("TOKEN_POLL_INTERVAL", "0.5"))
 
 
 class SessionWatcher:
@@ -75,6 +76,12 @@ class SessionWatcher:
             "token": token,
             "roomName": snapshot.get("roomName"),
             "identity": role_data.get("identity"),
+            "wsUrl": snapshot.get("wsUrl"),
+            "agentIdentity": (
+                (snapshot.get("agent") or {}).get("identity")
+                if isinstance(snapshot.get("agent"), dict)
+                else None
+            ),
             "generatedAt": snapshot.get("generatedAt"),
         }
 
@@ -103,19 +110,33 @@ class ListenerPepperBridge:
         self.token_watcher = SessionWatcher(
             LISTENER_IDENTITY, TOKEN_POLL_INTERVAL
         )
+        self.target_identity = AGENT_TRACK_IDENTITY or None
         self.socket: Optional[socket.socket] = None
         self.room: Optional[rtc.Room] = None
         self._connect_lock = asyncio.Lock()
         self._watch_task: Optional[asyncio.Task] = None
 
     def _connect_bridge_socket(self) -> None:
+        if self.socket is not None:
+            return
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((TCP_HOST, TCP_PORT))
         self.socket = sock
         print(f"[listener_bridge] Forwarding PCM data to {TCP_HOST}:{TCP_PORT}")
 
-    async def _connect_room(self, token: str, room_name: Optional[str]) -> None:
+    async def _connect_room(
+        self,
+        token: str,
+        room_name: Optional[str],
+        ws_url: Optional[str] = None,
+        target_identity: Optional[str] = None,
+    ) -> None:
         async with self._connect_lock:
+            if ws_url:
+                self.livekit_url = str(ws_url).strip() or self.livekit_url
+            if target_identity:
+                self.target_identity = str(target_identity).strip() or self.target_identity
+
             if self.room:
                 try:
                     await self.room.disconnect()
@@ -149,11 +170,17 @@ class ListenerPepperBridge:
         def on_track(track, publication, participant):
             if track.kind != rtc.TrackKind.KIND_AUDIO:
                 return
+            participant_identity = str(getattr(participant, "identity", "") or "")
+            if self.target_identity and participant_identity != self.target_identity:
+                return
 
-            audio_stream = rtc.AudioStream(track)
+            audio_stream = rtc.AudioStream.from_track(
+                track=track,
+                sample_rate=TARGET_RATE,
+                num_channels=1,
+            )
 
             async def stream_task():
-                state = None
                 async for event in audio_stream:
                     frame = event.frame
                     raw = bytes(frame.data)
@@ -161,29 +188,22 @@ class ListenerPepperBridge:
                         continue
 
                     sampwidth = 2
-                    nch = frame.num_channels
-
-                    if nch == 2:
-                        mono = audioop.tomono(raw, sampwidth, 0.5, 0.5)
-                    else:
-                        mono = raw
-
-                    if frame.sample_rate != TARGET_RATE:
-                        mono, state = audioop.ratecv(
-                            mono,
-                            sampwidth,
-                            1,
-                            frame.sample_rate,
-                            TARGET_RATE,
-                            state,
-                        )
-
+                    mono = raw
                     mono = audioop.mul(mono, sampwidth, ATTENUATION)
                     size_bytes = len(mono).to_bytes(4, "big")
                     try:
                         self.socket.sendall(size_bytes + mono)
                     except (BrokenPipeError, ConnectionError) as exc:
                         print("[listener_bridge] TCP send failure:", exc)
+                        try:
+                            if self.socket:
+                                self.socket.close()
+                        finally:
+                            self.socket = None
+                        try:
+                            self._connect_bridge_socket()
+                        except Exception as reconnect_exc:
+                            print("[listener_bridge] TCP reconnect failed:", reconnect_exc)
                         return
 
             asyncio.create_task(stream_task())
@@ -193,7 +213,12 @@ class ListenerPepperBridge:
         print(
             f"[listener_bridge] Detected new listener token for room '{room_name}', reconnecting..."
         )
-        await self._connect_room(info["token"], info.get("roomName"))
+        await self._connect_room(
+            info["token"],
+            info.get("roomName"),
+            ws_url=info.get("wsUrl"),
+            target_identity=info.get("agentIdentity"),
+        )
 
     async def run(self) -> None:
         self._connect_bridge_socket()
@@ -201,7 +226,12 @@ class ListenerPepperBridge:
         print(
             f"[listener_bridge] Using listener identity '{info.get('identity')}' for room '{info.get('roomName')}'"
         )
-        await self._connect_room(info["token"], info.get("roomName"))
+        await self._connect_room(
+            info["token"],
+            info.get("roomName"),
+            ws_url=info.get("wsUrl"),
+            target_identity=info.get("agentIdentity"),
+        )
         self._watch_task = asyncio.create_task(
             self.token_watcher.watch(self._on_token_change)
         )

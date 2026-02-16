@@ -1,6 +1,6 @@
 services:
   livekit:
-    image: livekit/livekit-server:latest
+    image: livekit/livekit-server:v1.9.11
     env_file:
       - ../.env
     command:
@@ -16,29 +16,15 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.2-alpine3.21
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - ./redis-data:/data
     restart: unless-stopped
 
-  letta:
-    image: letta/letta:latest
-    env_file:
-      - ../.env                         # inject into container
-    volumes:
-      - ./letta-data:/var/lib/postgresql/data
-    environment:          
-    - SECURE=true
-    - LETTA_SERVER_PASSWORD=AdaPass123!
-    ports:
-      - "8283:8283"
-    
-    restart: unless-stopped
-    
-
+  
   playground:
-    image: node:18
+    image: node:18.20.8
     working_dir: /app
     command: ["npm", "run", "dev"]
     volumes:
@@ -48,3 +34,20 @@ services:
     ports:
       - "3000:3000"
     restart: unless-stopped
+
+  weaviate:
+      image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
+      ports:
+        - "8080:8080"
+        - "50051:50051"
+      restart: unless-stopped
+      environment:
+        QUERY_DEFAULTS_LIMIT: 25
+        AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+        PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+        DEFAULT_VECTORIZER_MODULE: text2vec-openai
+        ENABLE_MODULES: text2vec-openai
+        OPENAI_APIKEY: ${OPENAI_API_KEY}
+        CLUSTER_HOSTNAME: "node1"
+      volumes:
+        - ./weaviate_data:/var/lib/weaviate

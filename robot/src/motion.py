@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 DEBUG_ENV = False
 DEBUG_ID = False
-ROOT_DIR = Path(__file__).resolve().parent.parent
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 ENV_PATH = ROOT_DIR / ".env"
 DEBUG = False
 load_dotenv(dotenv_path=ENV_PATH)
