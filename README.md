@@ -2,98 +2,132 @@
 
 ![Pepper](docs/assets/pepper.jpeg)
 
-This project turns a Pepper robot into a conversational assistant by connecting:
-1) a **Python 2.7 NAOqi bridge** (Pepper control/TTS/tablet/camera),
-2) a **Python 3 LiveKit voice pipeline** (STT → LLM → TTS),
-3) optional **Letta** (agent memory) and **Weaviate** (RAG),
-4) and a simple **CLI** for testing.
+This project turns Pepper into a spoken receptionist assistant using:
+1) a **Python 3 LiveKit/OpenAI realtime agent** (`voice-agent/`),
+2) a **web playground UI** for creating sessions and testing dialogue,
+3) an optional **Weaviate-backed retrieval tool** for FEL documents,
+4) optional **Pepper audio playback bridge** (Python 2.7 receiver + Python 3 listener).
 
-The result is a full loop: a user speaks → LiveKit transcribes → the agent responds → audio is played back in the LiveKit room and optionally mirrored to Pepper’s speaker and tablet.
+Current setup does **not** use Letta.
 
-## High-Level Architecture
+## Current Architecture
 
-**Main pieces**
-1. **NAOqi Bridge (Python 2.7, Flask)**  
-   File: `src/bridge.py`  
-   Exposes REST endpoints to:
-   - Speak with Pepper (`/say`)
-   - Trigger behaviors/animations (`/animation/...`)
-   - Show text on tablet (`/tablet/text_inline`)
-   - Capture a photo (`/camera/photo`)
+1. **Voice agent (primary runtime, Python 3)**  
+   File: `voice-agent/src/agent.py`  
+   Runs the LiveKit agent session and OpenAI realtime model.
 
-2. **LiveKit Voice Pipeline (Python 3)**  
-   File: `src/cli_voice.py`  
-   Runs a LiveKit Agent session (STT + LLM + TTS).  
-   When the assistant speaks, the text can be mirrored to Pepper via the bridge.
+2. **RAG tooling (optional)**  
+   Files: `voice-agent/src/tools.py`, `voice-agent/src/utils.py`  
+   Exposes `query_search` over Weaviate for grounded answers.
 
-3. **Motion/Animation Controller (Python 3)**  
-   File: `src/id_worker.py` (+ `src/motion.py`)  
-   A lightweight “ID” agent that reads recent conversation and triggers a **single animation**
-   (e.g., listening, gestures) via the bridge. This gives Pepper physical reactions that match
-   the dialogue.
+3. **Playground frontend**  
+   Folder: `web/agents-playground/`  
+   URL: `http://localhost:3000/`  
+   Creates room/token snapshots used by the listener bridge.
 
-4. **LiveKit → Pepper Audio Bridge (optional, mixed Py2/Py3)**  
-   - `src/listener_pepper_bridge.py` (Python 3): subscribes to LiveKit room audio, resamples to 48 kHz mono, sends PCM via TCP  
-   - `src/pepper_audio_server.py` (Python 2.7): receives PCM and streams into `ALAudioDevice`  
-   This lets Pepper speak **exactly the same audio** that is produced in the LiveKit room.
+4. **LiveKit -> Pepper audio bridge (optional)**  
+   - `robot/src/listener_pepper_bridge.py` (Python 3): joins LiveKit as listener and forwards PCM via TCP  
+   - `robot/src/pepper_audio_server.py` (Python 2.7): receives PCM and plays on Pepper
 
-5. **Voice Agent Service (Python 3, optional)**  
-   Folder: `voice-agent/`  
-   A dedicated LiveKit agent with OpenAI realtime and optional Weaviate search.
-
-6. **Infra via Docker**  
+5. **Infrastructure via Docker**  
    File: `docker/docker-compose.yml`  
-   Starts LiveKit, Redis, Letta, and a web playground.
+   Starts LiveKit, Redis, Playground, and Weaviate.
 
-## Key Flow (Voice)
+## How To Run
 
-1. User speaks in LiveKit room.
-2. `cli_voice.py` transcribes (STT), sends to LLM, then generates TTS.
-3. TTS audio is broadcast in the LiveKit room.
-4. Optional: the same audio is forwarded to Pepper over TCP and played using NAOqi.
-5. Optional: the assistant’s text response is also sent to Pepper `/say` for mirrored TTS.
+### Agent
+```bash
+cd voice-agent && uv run python -m src.agent dev
+```
 
-## Modes
+### Playground
+Open:
+```text
+http://localhost:3000/
+```
 
-**Real vs Virtual robot**
-- The `main.py` launcher sets `ROBOT_TARGET` using `REAL = True/False`.
-- `REAL=True` targets physical Pepper (requires NAOqi).
-- `REAL=False` targets a virtual robot (animations mapped in `virtual_animations.py`).
+### Full desired flow
 
-**Chat vs Voice**
-- `main.py` uses `RUN_MODE = "cli_chat"` or `RUN_MODE = "cli_voice"`.
-
-
-## Quick Start (Typical Demo)
-
-### 1) Start infrastructure
+1. Start infra:
 ```bash
 docker compose -f docker/docker-compose.yml --env-file .env up -d
 ```
 
-### 2) Start the Pepper bridge (Python 2.7)
+2. Start agent in dev mode:
 ```bash
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 src/bridge.py
+cd voice-agent && uv run python -m src.agent dev
 ```
 
-### 3) Start the LiveKit voice CLI (Python 3)
+3. Start Pepper audio receiver (Python 2.7):
 ```bash
-python3 main.py
+cd robot/src
+python2 pepper_audio_server.py
 ```
-`main.py` uses `RUN_MODE = "cli_voice"` by default.  
-To switch to text chat, set `RUN_MODE = "cli_chat"`.
 
-### 4) (Optional) Route LiveKit audio to Pepper speakers
-On the Pepper/NAOqi side (Python 2.7):
+4. Start listener bridge (Python 3):
 ```bash
-python2 src/pepper_audio_server.py
+cd robot/src
+python3 listener_pepper_bridge.py
 ```
-On your machine (Python 3):
+
+5. Open playground and click `Connect`:
+- It creates a fresh room/token set.
+- It dispatches the agent via token room config.
+- It writes a new session snapshot.
+- The listener bridge follows the new listener token automatically.
+
+## Notes
+
+- Session snapshot path used by bridge: `web/agents-playground/token-latest.json`
+- To stop infra:
 ```bash
-python3 src/listener_pepper_bridge.py
+docker compose -f docker/docker-compose.yml --env-file .env down
 ```
-`listener_pepper_bridge.py` watches a token snapshot file (default: `web/agents-playground/token-latest.json`) to reconnect when a new LiveKit session is created.
+
+## Resource Tracker
+
+Use this section to track papers/books/repos and keep reading notes in one place.
+
+| ID | Resource | Type | Link | Physical Copy | PDF | Read | Priority | Notes Ref |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| R-001 | Dummy Paper: Conversational Robots in Reception | Paper | https://example.com/dummy-paper | No | Yes | No | High | Note-R001 |
+| R-002 | Dummy Book: Practical HRI Systems | Book | https://example.com/dummy-book | Yes | No | In Progress | Medium | Note-R002 |
+
+### Notes Template
+
+Copy this block and replace values for each real resource.
+
+```text
+[Note-RESOURCE_ID]
+Title:
+Why relevant to this thesis:
+Main ideas:
+What I can reuse in implementation:
+What I can cite in thesis:
+Limitations / concerns:
+Action items:
+```
+
+### Notes
+
+```text
+[Note-R001]
+Title: Dummy Paper: Conversational Robots in Reception
+Why relevant to this thesis: Discusses receptionist dialogue flow and social constraints.
+Main ideas: Turn-taking, fallback answers, concise system prompts.
+What I can reuse in implementation: Dialogue policy and fallback behavior design.
+What I can cite in thesis: Motivation for structured spoken interaction in public spaces.
+Limitations / concerns: Dummy entry, replace with real source.
+Action items: Find real equivalent paper and add BibTeX entry.
+```
+
+```text
+[Note-R002]
+Title: Dummy Book: Practical HRI Systems
+Why relevant to this thesis: Covers evaluation methods and deployment concerns.
+Main ideas: User-study planning, questionnaire-based evaluation, reliability metrics.
+What I can reuse in implementation: Experiment checklist and latency logging plan.
+What I can cite in thesis: Evaluation rationale for HRI questionnaires.
+Limitations / concerns: Dummy entry, replace with real source.
+Action items: Select real HRI book chapter and map to experiment section.
+```

@@ -5,3 +5,6 @@ ip route get 10.0.0.149
 [sudo] password for lucas: 
 10.0.0.149 dev enx00e04c026907 src 10.0.0.200 uid 1000 
     cache 
+
+
+https://docs.google.com/document/d/18wjGIsm8TbbgqFEvbgbX9QL37sdoOspIgIwiWLcWKaw/edit?pli=1&tab=t.0#heading=h.kmtf914entwk
