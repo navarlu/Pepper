@@ -1,0 +1,25 @@
+# Local LaTeX build artifacts for this thesis project
+*.aux
+*.log
+*.toc
+*.out
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.idx
+*.ilg
+*.ind
+*.lof
+*.lot
+*.nav
+*.snm
+*.vrb
+*.run.xml
+*.bcf
+*.soc
+*.loc
+
+# Common local build outputs
+main.pdf
