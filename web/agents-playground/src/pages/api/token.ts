@@ -23,7 +23,9 @@ const agentParticipantIdentity =
 const agentParticipantName =
   process.env.AGENT_NAME || agentParticipantIdentity;
 const serverLiveKitUrl =
-  process.env.NEXT_PUBLIC_LIVEKIT_URL || process.env.LIVEKIT_URL || "";
+  process.env.NEXT_PUBLIC_LIVEKIT_URL ||
+  process.env.LIVEKIT_URL ||
+  "ws://127.0.0.1:7880";
 
 const createToken = (
   userInfo: AccessTokenOptions,

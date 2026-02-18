@@ -52,10 +52,7 @@ export const ConnectionProvider = ({
         }
         url = cloudWSUrl;
       } else if (mode === "env") {
-        if (!process.env.NEXT_PUBLIC_LIVEKIT_URL) {
-          throw new Error("NEXT_PUBLIC_LIVEKIT_URL is not set");
-        }
-        url = process.env.NEXT_PUBLIC_LIVEKIT_URL;
+        url = process.env.NEXT_PUBLIC_LIVEKIT_URL || "ws://127.0.0.1:7880";
         const body: Record<string, any> = {};
         body.forceNewRoom = true;
         if (config.settings.room_name) {

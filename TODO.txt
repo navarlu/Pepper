@@ -1,3 +1,7 @@
 choregraphe new port each start
 
 Declaration misto specifications
+
+.env.example
+
+cospeach

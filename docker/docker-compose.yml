@@ -1,18 +1,16 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.9.11
-    env_file:
-      - ../.env
     command:
       - --dev
       - --bind=0.0.0.0
-      - --port=${LIVEKIT_PORT}
-      - --udp-port=${LIVEKIT_UDP_PORT}
-      - --keys=${LIVEKIT_KEYS}          # ← this is the important change
-      - --redis-host=${LIVEKIT_REDIS_HOST}
+      - --port=7880
+      - --udp-port=7882
+      - --keys=${LIVEKIT_KEYS}
+      - --redis-host=redis:6379
     ports:
-      - "${LIVEKIT_PORT}:${LIVEKIT_PORT}/tcp"
-      - "${LIVEKIT_UDP_PORT}:${LIVEKIT_UDP_PORT}/udp"
+      - "7880:7880/tcp"
+      - "7882:7882/udp"
     restart: unless-stopped
 
   redis:
@@ -29,8 +27,11 @@ services:
     command: ["npm", "run", "dev"]
     volumes:
       - ../web/agents-playground:/app
-    env_file:
-      - ../.env
+    environment:
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      NEXT_PUBLIC_LIVEKIT_URL: ws://127.0.0.1:7880
     ports:
       - "3000:3000"
     restart: unless-stopped

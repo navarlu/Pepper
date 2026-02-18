@@ -1,778 +1,840 @@
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-'''This is bridge server for Pepper robot.
-It exposes a REST API to control Pepper's behaviors, TTS, and tablet.
-It uses python-qi to connect to Pepper's NAOqi services.
-Starting the server:
-pyenv activate naoqi27
-export PYTHONPATH=/Projects/FEL/Pepper/choregraphe/lib/python2.7/site-packages:$PYTHONPATH
-python /home/lucas/Projects/FEL/Pepper/src/bridge.py
 
-the code is written to be compatible with both Python 2.7
-'''
-from __future__ import print_function, unicode_literals
+from __future__ import print_function
 
-import os
+from collections import deque
+import socket
+import struct
+import sys
+import audioop
 import time
-import io
+import threading
 import json
-
-import urllib
-
-import requests
 import qi
-from flask import Flask, request, jsonify
-
-from threading import Lock
-
-from virtual_animations import VIRTUAL_EMOTIONS
-
-# .env support (optional, safe if not installed)
+import urllib
+import urlparse
 try:
-    from dotenv import load_dotenv  # type: ignore
+    from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 except Exception:
-    load_dotenv = None
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+try:
+    from Queue import Queue, Empty, Full
+except Exception:
+    from queue import Queue, Empty, Full
 
-# near the other imports
-import io
-import os
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))          
-ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, os.pardir, os.pardir))
-ENV_PATH = os.path.join(ROOT_DIR, ".env")
-
-print("Loading .env from:", ENV_PATH)
-def _load_env_file_fallback(path):
-    """
-    Minimal .env loader for environments where python-dotenv is not available.
-    Supports simple KEY=VALUE lines and ignores comments/empty lines.
-    """
-    if not os.path.exists(path):
-        return
-    try:
-        with io.open(path, "r", encoding="utf-8") as f:
-            for raw_line in f:
-                line = raw_line.strip()
-                if not line or line.startswith("#") or "=" not in line:
-                    continue
-                key, value = line.split("=", 1)
-                key = key.strip()
-                value = value.strip().strip('"').strip("'")
-                if key and key not in os.environ:
-                    os.environ[key] = value
-    except Exception as e:
-        print("Warning: failed to load .env fallback:", str(e))
-
-if load_dotenv is not None:
-    load_dotenv(dotenv_path=ENV_PATH)
-else:
-    _load_env_file_fallback(ENV_PATH)
-
-DEFAULT_QI_URL = os.environ.get("PEPPER_URL")
-DEFAULT_VIRTUAL_QI_URL = (
-    os.environ.get("VIRTUAL_PEPPER_URL")
-    or os.environ.get("NAOQI_URL")
-    or "tcp://127.0.0.1:41095"
+from config import (
+    ALLOWED_STREAM_RATES,
+    ANIMATIONS_FILE,
+    BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC,
+    BRIDGE_LOG_TABLET_HTTP,
+    BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC,
+    BRIDGE_URL,
+    LIFE_AUTONOMOUS_BLINKING,
+    LIFE_BACKGROUND_MOVEMENT,
+    LIFE_BASIC_AWARENESS,
+    LIFE_LISTENING_MOVEMENT,
+    LIFE_SPEAKING_MOVEMENT,
+    PEPPER_CHUNK_LIMIT_FRAMES,
+    PEPPER_MAX_BUFFER_FRAMES,
+    PEPPER_OUTPUT_VOLUME,
+    PEPPER_PLAYBACK_BATCH_FRAMES,
+    PEPPER_QI_URL,
+    PEPPER_STREAM_RATE,
+    TABLET_DEFAULT_ALIGN,
+    TABLET_DEFAULT_BG,
+    TABLET_DEFAULT_FG,
+    TABLET_DEFAULT_SIZE,
+    TABLET_DEBUG_AUDIO_ENABLED,
+    TABLET_DEBUG_MAX_LINES,
+    TABLET_DEBUG_MIN_INTERVAL_AUDIO,
+    TABLET_INLINE_HTML_TEMPLATE,
+    TABLET_REPORTER_QUEUE_SIZE,
+    TABLET_SPLIT_CHAT_HTML_TEMPLATE,
+    TOUCH_AUTONOMOUS_LIFE,
+    TCP_HOST,
+    TCP_PORT,
 )
-ANIMATIONS_FILE = os.environ.get("ANIMATIONS_FILE")
-print("Using DEFAULT_QI_URL =", DEFAULT_QI_URL)
-print("Using DEFAULT_VIRTUAL_QI_URL =", DEFAULT_VIRTUAL_QI_URL)
-print("Using ANIMATIONS_FILE =", ANIMATIONS_FILE)
 
-AUTO_TABLET_ANNOUNCE = True
-AUTO_TABLET_DURATION_MS = 2500   # how long to show the label (ms), 0 = keep until hidden
-AUTO_TABLET_SIZE = 72            # font size (px)
-AUTO_TABLET_BG = u"#000000"
-AUTO_TABLET_FG = u"#FFFFFF"
+def _resolve_stream_rate():
+    raw = int(PEPPER_STREAM_RATE)
+    if raw not in ALLOWED_STREAM_RATES:
+        print("[pepper_audio] Unsupported PEPPER_STREAM_RATE=", raw, "fallback to 16000")
+        return 16000
+    return raw
 
-EMOTION_BEHAVIORS = VIRTUAL_EMOTIONS
 
-def _resolve_config_path(p):
-    """
-    Resolve a possibly-relative path from .env. Tries, in order:
-    1) absolute path (as-is)
-    2) relative to current working directory (where you run `python ...`)
-    3) relative to this file's folder (Pepper/)
-    4) relative to repo root (parent of Pepper/)
-    Falls back to #4 if not found.
-    """
-    if not p:
-        return os.path.join(BASE_DIR, "animations.json")
-    if os.path.isabs(p):
-        return p
-    candidates = [
-        os.path.abspath(os.path.join(os.getcwd(), p)),
-        os.path.abspath(os.path.join(BASE_DIR, p)),
-        os.path.abspath(os.path.join(ROOT_DIR, p)),
-    ]
-    for c in candidates:
-        if os.path.exists(c):
-            return c
-    # default fallback (repo-root relative)
-    return os.path.abspath(os.path.join(ROOT_DIR, p))
-# key -> full behavior path (loaded from animations.json)
-_animations = {}
-_anim_lock = Lock()
-
-app = Flask(__name__)
-
-# ---- Helpers ----------------------------------------------------------------
+TARGET_RATE = _resolve_stream_rate()
+DEFAULT_QI_URL = PEPPER_QI_URL
+PEPPER_CHUNK_LIMIT = int(PEPPER_CHUNK_LIMIT_FRAMES)  # max frames for sendRemoteBufferToOutput
+DEFAULT_OUTPUT_VOLUME = int(PEPPER_OUTPUT_VOLUME)
+PLAYBACK_BATCH_FRAMES = int(PEPPER_PLAYBACK_BATCH_FRAMES)
+MAX_BUFFER_FRAMES = int(PEPPER_MAX_BUFFER_FRAMES)
+TABLET_DEBUG_MIN_INTERVAL = float(TABLET_DEBUG_MIN_INTERVAL_AUDIO)
 
 try:
-    text_type = unicode  # noqa: F821  (exists in py2)
+    text_type = unicode  # noqa: F821 (py2)
 except NameError:
     text_type = str
 
+
 def to_text(x):
-    """Return unicode text in py2 and str in py3."""
     try:
         if isinstance(x, bytes):
             return x.decode("utf-8", "ignore")
-    except NameError:
-        # In py3 'bytes' always exists; in py2 we might hit here for non-bytes
+    except Exception:
         pass
     try:
         return text_type(x)
     except Exception:
-        return u"" + x  # last resort
+        return str(x)
+
 
 def connect_session(qi_url):
     s = qi.Session()
     s.connect(qi_url)
     return s
 
-def get_services(qi_url, include_tablet=True):
-    s = connect_session(qi_url)
-    services = {
-        "session": s,
-        "motion": s.service("ALMotion"),
-        "posture": s.service("ALRobotPosture"),
-        "bm": s.service("ALBehaviorManager"),
-        # "leds": s.service("ALLeds"),
-    }
-    if include_tablet:
-        try:
-            services["tablet"] = s.service("ALTabletService")
-        except Exception:
-            services["tablet"] = None
-    return services
 
-def load_animations():
-    """(Re)load key->behavior path mapping from animations.json."""
-    global _animations
+def wait_for_service(session, service_name, timeout_sec=90.0, retry_sec=1.0):
+    deadline = time.time() + float(timeout_sec)
+    last_err = None
+    while time.time() < deadline:
+        try:
+            svc = session.service(service_name)
+            print("[bridge] service ready:", service_name)
+            return svc
+        except Exception as exc:
+            last_err = exc
+            print(
+                "[bridge] waiting for service '{}'... {}".format(
+                    service_name, to_text(exc)
+                )
+            )
+            time.sleep(retry_sec)
+    raise RuntimeError(
+        "Timed out waiting for service '{}': {}".format(service_name, to_text(last_err))
+    )
+
+
+def load_animations_map(path):
     try:
-        resolved = _resolve_config_path(ANIMATIONS_FILE)
-        with io.open(resolved, "r", encoding="utf-8") as f:
+        with open(path, "r") as f:
             data = json.load(f) or {}
         normalized = {}
         for k, v in data.items():
-            key = (u"" + unicode(k)).strip() if not isinstance(k, unicode) else k.strip()
-            if key:
-                val = (u"" + unicode(v)).strip() if not isinstance(v, unicode) else v.strip()
+            key = to_text(k).strip()
+            val = to_text(v).strip()
+            if key and val:
                 normalized[key] = val
-        with _anim_lock:
-            _animations = normalized
-        print("[INFO] Loaded animations from: {}".format(resolved))
-        return True, None
-    except Exception as e:
-        return False, unicode(e)
-    
-def resolve_animation_key(name, installed=None):
-    """
-    Resolve user-supplied name to a full behavior path:
-    1) Exact key in animations.json
-    2) If 'name' looks like a full path (contains '/'), use as-is
-    3) Best-effort suffix match against installed behaviors
-    """
+        print("[bridge] loaded animations:", len(normalized), "from", path)
+        return normalized
+    except Exception as exc:
+        print("[bridge] failed to load animations map:", to_text(exc))
+        return {}
+
+
+def resolve_animation_name(name, animations_map, installed):
     key = to_text(name).strip()
     if not key:
-        return None, "Empty animation name"
-
-    # 1) exact key in JSON
-    with _anim_lock:
-        if key in _animations:
-            return _animations[key], None
-
-    # 2) treat as full path if it contains '/'
+        return None
+    mapped = animations_map.get(key)
+    if mapped:
+        return mapped
     if "/" in key:
-        return key, None
-
-    # 3) suffix match against installed behaviors
-    if installed:
-        suffix = "/" + key
-        candidates = [b for b in installed if b.endswith(suffix)]
-        if len(candidates) == 1:
-            return candidates[0], None
-        elif len(candidates) > 1:
-            # prefer official 'animations/' namespace
-            prio = [c for c in candidates if c.startswith("animations/")]
-            chosen = prio[0] if prio else candidates[0]
-            return chosen, None
-
-    return None, "Unknown animation key '{}' (not in animations.json and no suffix match found)".format(key)
-
-# ---- Routes -----------------------------------------------------------------
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"ok": True}), 200
-
-@app.route("/wake", methods=["POST", "GET"])
-def wake():
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
-    try:
-        svcs = get_services(qi_url)
-        svcs["motion"].wakeUp()
-        time.sleep(0.3)
-        return jsonify({"ok": True, "action": "wakeUp", "url": qi_url}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url}), 500
-
-@app.route("/rest", methods=["POST"])
-def rest():
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
-    try:
-        svcs = get_services(qi_url)
-        svcs["motion"].rest()
-        return jsonify({"ok": True, "action": "rest", "url": qi_url}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url}), 500
-
-# ---- Virtual Robot Routes ---------------------------------------------------
-
-@app.route("/virtual_health", methods=["GET"])
-def virtual_health():
-    return jsonify({"ok": True, "virtual": True}), 200
+        return key
+    suffix = "/" + key
+    matches = [b for b in installed if b.endswith(suffix)]
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        pref = [m for m in matches if m.startswith("animations/")]
+        return pref[0] if pref else matches[0]
+    return None
 
 
-@app.route("/virtual_wake", methods=["POST", "GET"])
-def virtual_wake():
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        svcs["motion"].wakeUp()
-        time.sleep(0.3)
-        return jsonify({"ok": True, "action": "wakeUp", "url": qi_url, "virtual": True}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
+class TabletDebugReporter(object):
+    def __init__(self, enabled, tablet):
+        self.enabled = enabled and (tablet is not None)
+        self._tablet = tablet
+        self._queue = Queue(maxsize=int(TABLET_REPORTER_QUEUE_SIZE))
+        self._stop = threading.Event()
+        self._worker = None
+        self._last_sent = 0.0
 
+    def start(self):
+        if self._tablet is None or self._worker is not None:
+            return
+        self._worker = threading.Thread(target=self._run, name="tablet-debug-audio")
+        self._worker.daemon = True
+        self._worker.start()
 
-@app.route("/virtual_rest", methods=["POST"])
-def virtual_rest():
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        svcs["motion"].rest()
-        return jsonify({"ok": True, "action": "rest", "url": qi_url, "virtual": True}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
+    def stop(self):
+        if not self.enabled:
+            return
+        self._stop.set()
+        if self._worker is not None:
+            self._worker.join(1.0)
+            self._worker = None
 
-
-@app.route("/virtual_behaviors", methods=["GET"])
-def virtual_behaviors():
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        bm = svcs["bm"]
-        installed = sorted(bm.getInstalledBehaviors())
-        running = sorted(bm.getRunningBehaviors())
-        tags = sorted(bm.getTagList()) if hasattr(bm, "getTagList") else []
-        by_tag = {}
-        for tag in tags:
+    def publish(self, title, body="", force=False):
+        if not self.enabled:
+            return
+        now = time.time()
+        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL:
+            return
+        self._last_sent = now
+        text = title.strip()
+        if body.strip():
+            text = text + "\n" + body.strip()
+        payload = {
+            "text": text,
+            "size": int(TABLET_DEFAULT_SIZE),
+            "bg": TABLET_DEFAULT_BG,
+            "fg": TABLET_DEFAULT_FG,
+            "align": TABLET_DEFAULT_ALIGN,
+        }
+        try:
+            self._queue.put_nowait(payload)
+        except Full:
             try:
-                tagged = bm.getBehaviorsByTag(tag)
-                if tagged:
-                    by_tag[tag] = tagged
-            except Exception:
+                self._queue.get_nowait()
+            except Empty:
                 pass
-        return jsonify({
-            "ok": True,
-            "url": qi_url,
-            "virtual": True,
-            "installed": installed,
-            "running": running,
-            "tags": tags,
-            "by_tag": by_tag,
-        }), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url, "virtual": True}), 500
-
-
-@app.route("/virtual_behavior/start", methods=["POST"])
-def virtual_behavior_start():
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    payload = request.get_json(silent=True) or {}
-    name = payload.get("name")
-    blocking = bool(payload.get("blocking", False))
-    if not name:
-        return jsonify({"ok": False, "error": "Missing 'name' in JSON body", "virtual": True}), 400
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        bm = svcs["bm"]
-        if not bm.isBehaviorInstalled(name):
-            return jsonify({"ok": False, "error": "Behavior not installed", "name": name, "virtual": True}), 404
-
-        if blocking:
-            bm.runBehavior(name)
-        else:
-            bm.startBehavior(name)
-
-        return jsonify({
-            "ok": True,
-            "started": name,
-            "blocking": blocking,
-            "url": qi_url,
-            "virtual": True,
-        }), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "name": name, "url": qi_url, "virtual": True}), 500
-
-
-@app.route("/virtual_behavior/stop", methods=["POST"])
-def virtual_behavior_stop():
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    payload = request.get_json(silent=True) or {}
-    name = payload.get("name")
-    if not name:
-        return jsonify({"ok": False, "error": "Missing 'name' in JSON body", "virtual": True}), 400
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        bm = svcs["bm"]
-        if bm.isBehaviorRunning(name):
-            bm.stopBehavior(name)
-            stopped = True
-        else:
-            stopped = False
-        return jsonify({
-            "ok": True,
-            "stopped": stopped,
-            "name": name,
-            "reason": None if stopped else "not running",
-            "url": qi_url,
-            "virtual": True,
-        }), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "name": name, "url": qi_url, "virtual": True}), 500
-
-
-@app.route("/virtual_emotion/<emotion>", methods=["POST"])
-def virtual_emotion(emotion):
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    payload = request.get_json(silent=True) or {}
-    blocking = bool(payload.get("blocking", False))
-    key = (emotion or "").strip().lower()
-    if key not in EMOTION_BEHAVIORS:
-        return jsonify({
-            "ok": False,
-            "error": "Unknown emotion",
-            "emotion": key,
-            "allowed": sorted(EMOTION_BEHAVIORS.keys()),
-            "virtual": True,
-        }), 400
-    name = EMOTION_BEHAVIORS[key]
-    try:
-        svcs = get_services(qi_url, include_tablet=False)
-        bm = svcs["bm"]
-        if not bm.isBehaviorInstalled(name):
-            return jsonify({"ok": False, "error": "Mapped behavior is not installed", "name": name, "virtual": True}), 404
-
-        if blocking:
-            bm.runBehavior(name)
-        else:
-            bm.startBehavior(name)
-
-        return jsonify({
-            "ok": True,
-            "emotion": key,
-            "started": name,
-            "blocking": blocking,
-            "url": qi_url,
-            "virtual": True,
-        }), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "emotion": key, "name": name, "url": qi_url, "virtual": True}), 500
-
-@app.route("/animations", methods=["GET"])
-def list_animations():
-    """
-    GET /animations
-    Query params:
-      - validate=true to check keys against installed behaviors on the robot
-      - url=qi_url (optional; defaults to DEFAULT_QI_URL)
-    """
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
-    validate = (request.args.get("validate", "false") or "").lower() == "true"
-
-    try:
-        with _anim_lock:
-            keys = sorted(_animations.keys())
-        resp = {"ok": True, "count": len(keys), "keys": keys, "url": qi_url}
-
-        if validate:
-            svcs = get_services(qi_url)
-            bm = svcs["bm"]
-            installed = set(bm.getInstalledBehaviors())
-            unknown = [k for k in keys if _animations.get(k) not in installed]
-            resp["installed_count"] = len(installed)
-            resp["unknown_keys"] = sorted(unknown)
-
-        return jsonify(resp), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url}), 500
-
-@app.route("/animations/reload", methods=["POST"])
-def reload_animations():
-    ok, err = load_animations()
-    if ok:
-        with _anim_lock:
-            return jsonify({"ok": True, "reloaded": True, "count": len(_animations)}), 200
-    return jsonify({"ok": False, "error": to_text(err)}), 500
-
-def _run_animation_request(name, qi_url, virtual=False):
-    try:
-        payload = request.get_json(silent=True) or {}
-    except Exception:
-        payload = {}
-
-    blocking = bool(payload.get("blocking", False))
-    blocking = True  # keep legacy behavior: always run blocking
-
-    try:
-        print("Connecting to robot at:", qi_url)
-        svcs = get_services(qi_url, include_tablet=not virtual)
-        bm = svcs["bm"]
-
-        if AUTO_TABLET_ANNOUNCE and not virtual:
             try:
-                print("Announcing animation on tablet:", name)
-                requests.post(
-                    "http://localhost:5000/tablet/text_inline",
-                    json={"text": "Animation: " + name},
-                    timeout=1.5,
+                self._queue.put_nowait(payload)
+            except Full:
+                pass
+    
+    def publish_payload(self, payload, force=False):
+        if self._tablet is None:
+            return
+        now = time.time()
+        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL:
+            return
+        self._last_sent = now
+        try:
+            self._queue.put_nowait(payload)
+        except Full:
+            try:
+                self._queue.get_nowait()
+            except Empty:
+                pass
+            try:
+                self._queue.put_nowait(payload)
+            except Full:
+                pass
+
+    def _post(self, payload):
+        def _esc(u):
+            return (
+                u.replace(u"&", u"&amp;")
+                .replace(u"<", u"&lt;")
+                .replace(u">", u"&gt;")
+            )
+
+        ui_mode = to_text(payload.get("ui", u""))
+        if ui_mode == "split_chat_debug":
+            user_text = to_text(payload.get("user_text", u""))
+            pepper_text = to_text(payload.get("pepper_text", u""))
+            debug_lines = payload.get("debug_lines", []) or []
+            if not isinstance(debug_lines, list):
+                debug_lines = [to_text(debug_lines)]
+            life_state = to_text(payload.get("life_state", u"unknown"))
+            active_animation = to_text(payload.get("active_animation", u""))
+            life_abilities = payload.get("life_abilities", {}) or {}
+            if not isinstance(life_abilities, dict):
+                life_abilities = {}
+            abilities_line = u", ".join(
+                u"{}={}".format(
+                    to_text(k),
+                    u"on" if bool(v) else u"off",
                 )
-            except Exception as announce_err:
-                print("[WARN] Tablet announce failed:", announce_err)
+                for k, v in life_abilities.items()
+            )
+            if active_animation:
+                status_line = u"Life: {} | Anim: {}".format(_esc(life_state), _esc(active_animation))
+            else:
+                status_line = u"Life: {}".format(_esc(life_state))
 
-        print("Resolving animation key/path:", name)
-        installed = bm.getInstalledBehaviors()
-        path, err = resolve_animation_key(name, installed=installed)
-        if err:
-            return jsonify({
-                "ok": False,
-                "error": err,
-                "name": to_text(name),
-                "virtual": bool(virtual),
-            }), 400
+            debug_html = u"".join(
+                u"<div class='dbg-line'>{}</div>".format(_esc(to_text(line)))
+                for line in debug_lines[-int(TABLET_DEBUG_MAX_LINES):]
+            )
+            html = TABLET_SPLIT_CHAT_HTML_TEMPLATE.format(
+                status_line=status_line,
+                abilities_line=_esc(abilities_line),
+                debug_html=debug_html or u"<div class='dbg-line'>waiting for events...</div>",
+                user_text=_esc(user_text or u"..."),
+                pepper_text=_esc(pepper_text or u"..."),
+            )
+            data_url = "data:text/html;charset=utf-8," + urllib.quote(
+                html.encode("utf-8")
+            )
+            self._tablet.showWebview(data_url)
+            return
 
-        if not bm.isBehaviorInstalled(path):
-            return jsonify({
-                "ok": False,
-                "error": "Behavior not installed",
-                "path": path,
-                "virtual": bool(virtual),
-            }), 404
+        text = to_text(payload.get("text", u""))
+        fg = to_text(payload.get("fg", u"#FFFFFF"))
+        bg = to_text(payload.get("bg", u"#000000"))
+        align = to_text(payload.get("align", u"center"))
+        size = int(payload.get("size", 56))
 
-        if blocking:
-            print("Playing blocking behavior:", path)
-            bm.runBehavior(path)
-        else:
-            print("Playing non-blocking behavior:", path)
-            bm.startBehavior(path)
+        html = TABLET_INLINE_HTML_TEMPLATE.format(
+            bg=bg, fg=fg, size=size, align=align, txt=_esc(text)
+        )
+        data_url = "data:text/html;charset=utf-8," + urllib.quote(
+            html.encode("utf-8")
+        )
+        self._tablet.showWebview(data_url)
 
-        return jsonify({
-            "ok": True,
-            "name": to_text(name),
-            "path": path,
-            "blocking": blocking,
-            "url": qi_url,
-            "virtual": bool(virtual),
-        }), 200
-    except Exception as e:
-        return jsonify({
-            "ok": False,
-            "error": to_text(e),
-            "name": to_text(name),
-            "url": qi_url,
-            "virtual": bool(virtual),
-        }), 500
-
-
-@app.route("/animation/<name>", methods=["POST"])
-def animation(name):
-    """Trigger a behavior on the real robot via animations.json mapping."""
-    print("Received request to play animation:", name)
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
-    return _run_animation_request(name, qi_url, virtual=False)
+    def _run(self):
+        while not self._stop.is_set():
+            try:
+                payload = self._queue.get(True, 0.2)
+            except Empty:
+                continue
+            try:
+                self._post(payload)
+            except Exception:
+                pass
 
 
-@app.route("/virtual_animation/<name>", methods=["POST"])
-def virtual_animation(name):
-    """Same as /animation but targets the virtual robot session."""
-    print("Received request to play VIRTUAL animation:", name)
-    qi_url = request.args.get("url", DEFAULT_VIRTUAL_QI_URL)
-    return _run_animation_request(name, qi_url, virtual=True)
+class TabletOverlayHttpServer(threading.Thread):
+    def __init__(
+        self,
+        bridge_url,
+        tablet_reporter,
+        behavior_manager,
+        animation_player,
+        life_service,
+        animations_map,
+    ):
+        super(TabletOverlayHttpServer, self).__init__()
+        self.daemon = True
+        self._tablet = tablet_reporter
+        self._bm = behavior_manager
+        self._anim = animation_player
+        self._life = life_service
+        self._animations_map = animations_map
+        self._server = None
+        parsed = urlparse.urlparse(bridge_url or "")
+        host = parsed.hostname or "127.0.0.1"
+        port = parsed.port or 5000
+        self._bind = (host, port)
 
-# ---- Main -------------------------------------------------------------------
-@app.route("/tablet/text_inline", methods=["POST"])
-def tablet_text_inline():
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
-    payload = request.get_json(silent=True) or {}
+    def run(self):
+        tablet = self._tablet
+        bm = self._bm
+        anim = self._anim
+        life = self._life
+        animations_map = self._animations_map
 
-    text  = to_text(payload.get("text", u"Hello!"))
-    fg    = to_text(payload.get("fg", u"#FFFFFF"))
-    bg    = to_text(payload.get("bg", u"#000000"))
-    align = to_text(payload.get("align", u"center"))
-    size  = int(payload.get("size", 72))
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, fmt, *args):
+                return
 
-    def _esc(u):
-        return (u.replace(u"&", u"&amp;").replace(u"<", u"&lt;").replace(u">", u"&gt;"))
+            def _is_disconnect_error(self, exc):
+                err = getattr(exc, "errno", None)
+                return err in (32, 104)  # EPIPE, ECONNRESET
 
-    html = u"""<!doctype html><meta charset="utf-8">
-<style>html,body{{margin:0;height:100%;background:{bg};color:{fg};}}
-.wrap{{display:flex;align-items:center;justify-content:center;height:100%;padding:4vw;}}
-.txt{{font-family:Arial, sans-serif;font-size:{size}px;line-height:1.2;text-align:{align};word-wrap:break-word;}}
-</style><div class="wrap"><div class="txt">{txt}</div></div>""".format(
-        bg=bg, fg=fg, size=size, align=align, txt=_esc(text))
+            def _write_json(self, status_code, payload):
+                try:
+                    body = json.dumps(payload)
+                    self.send_response(status_code)
+                    self.send_header("Content-Type", "application/json")
+                    self.send_header("Content-Length", str(len(body)))
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return True
+                except socket.error as exc:
+                    if self._is_disconnect_error(exc):
+                        return False
+                    return False
+                except Exception:
+                    return False
 
-    try:
-        import urllib
-        # URL-encode as data URL so tablet doesn’t need the network
-        data_url = "data:text/html;charset=utf-8," + urllib.quote(html.encode("utf-8"))
-        svcs = get_services(qi_url)
-        tablet = svcs.get("tablet")
-        if tablet is None:
-            raise RuntimeError("ALTabletService unavailable")
-        tablet.showWebview(data_url)
-        return jsonify({"ok": True, "mode": "inline"}), 200
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e)}), 500
+            def handle_one_request(self):
+                try:
+                    BaseHTTPRequestHandler.handle_one_request(self)
+                except socket.error as exc:
+                    # Python2 can raise from internal flush() on client timeout/disconnect.
+                    if self._is_disconnect_error(exc):
+                        return
+                    raise
 
-@app.route("/say", methods=["POST"])
-def say_text():
+            def finish(self):
+                try:
+                    BaseHTTPRequestHandler.finish(self)
+                except socket.error as exc:
+                    # Client disconnected before response flush; ignore noisy traceback.
+                    if self._is_disconnect_error(exc):
+                        return
+                    raise
+
+            def do_POST(self):
+                path_only = self.path.split("?", 1)[0]
+                if path_only.startswith("/animation/"):
+                    if bm is None and anim is None:
+                        self._write_json(
+                            500,
+                            {
+                                "ok": False,
+                                "error": "No animation service available (ALAnimationPlayer/ALBehaviorManager)",
+                            },
+                        )
+                        return
+                    raw_name = path_only[len("/animation/"):]
+                    name = urllib.unquote(raw_name)
+                    try:
+                        installed = bm.getInstalledBehaviors()
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                        return
+                    behavior = resolve_animation_name(name, animations_map, installed)
+                    if not behavior:
+                        self._write_json(
+                            404,
+                            {"ok": False, "error": "unknown animation", "name": name},
+                        )
+                        return
+                    try:
+                        # Publish state transition hint for the tablet debug panel.
+                        tablet.publish_payload(
+                            {
+                                "ui": "split_chat_debug",
+                                "debug_lines": [
+                                    "animation: starting {}".format(behavior),
+                                ],
+                                "life_state": to_text(life.getState()) if life is not None else "unknown",
+                                "active_animation": behavior,
+                            },
+                            force=True,
+                        )
+                        if life is not None and TOUCH_AUTONOMOUS_LIFE:
+                            try:
+                                state = to_text(life.getState())
+                                print("[life] state before animation:", state)
+                                if state.lower() == "disabled":
+                                    print("[life] state is disabled, switching to solitary")
+                                    life.setState("solitary")
+                            except Exception as life_exc:
+                                print("[life] warning:", to_text(life_exc))
+
+                        print("[animation] running:", behavior)
+                        # Prefer ALAnimationPlayer to keep AutonomousLife behavior model intact.
+                        if anim is not None and behavior.startswith("animations/"):
+                            fut = anim.run(behavior)
+                            # Wait for completion to keep API semantics of "play now".
+                            try:
+                                fut.value()
+                            except Exception:
+                                pass
+                        else:
+                            bm.runBehavior(behavior)
+                        self._write_json(
+                            200,
+                            {"ok": True, "name": name, "behavior": behavior},
+                        )
+                        tablet.publish_payload(
+                            {
+                                "ui": "split_chat_debug",
+                                "debug_lines": [
+                                    "animation: finished {}".format(behavior),
+                                ],
+                                "life_state": to_text(life.getState()) if life is not None else "unknown",
+                                "active_animation": "",
+                            },
+                            force=True,
+                        )
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc), "behavior": behavior})
+                    return
+
+                if self.path != "/tablet/text_inline":
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                length = int(self.headers.get("Content-Length", "0") or "0")
+                raw = self.rfile.read(length) if length > 0 else "{}"
+                if BRIDGE_LOG_TABLET_HTTP:
+                    print("[tablet_http] POST /tablet/text_inline bytes=%s" % length)
+                try:
+                    payload = json.loads(raw)
+                    if not isinstance(payload, dict):
+                        payload = {"text": to_text(payload)}
+                    preview = to_text(payload.get("text", u""))[:160]
+                    if not preview:
+                        preview = (
+                            "ui=%s user=%s pepper=%s"
+                            % (
+                                to_text(payload.get("ui", u"")),
+                                to_text(payload.get("user_text", u""))[:60],
+                                to_text(payload.get("pepper_text", u""))[:60],
+                            )
+                        )
+                    if BRIDGE_LOG_TABLET_HTTP:
+                        print("[tablet_http] payload %s" % preview)
+                    payload.setdefault("size", int(TABLET_DEFAULT_SIZE))
+                    payload.setdefault("bg", TABLET_DEFAULT_BG)
+                    payload.setdefault("fg", TABLET_DEFAULT_FG)
+                    payload.setdefault("align", TABLET_DEFAULT_ALIGN)
+                    if life is not None:
+                        try:
+                            payload.setdefault("life_state", to_text(life.getState()))
+                            payload.setdefault(
+                                "life_abilities",
+                                {
+                                    "AutonomousBlinking": bool(life.getAutonomousAbilityEnabled("AutonomousBlinking")),
+                                    "BackgroundMovement": bool(life.getAutonomousAbilityEnabled("BackgroundMovement")),
+                                    "BasicAwareness": bool(life.getAutonomousAbilityEnabled("BasicAwareness")),
+                                    "ListeningMovement": bool(life.getAutonomousAbilityEnabled("ListeningMovement")),
+                                    "SpeakingMovement": bool(life.getAutonomousAbilityEnabled("SpeakingMovement")),
+                                },
+                            )
+                        except Exception:
+                            pass
+                    tablet.publish_payload(payload, force=True)
+                    self._write_json(200, {"ok": True})
+                except Exception as exc:
+                    print("[tablet_http] ERROR %s" % to_text(exc))
+                    self._write_json(
+                        500,
+                        {"ok": False, "error": to_text(exc).replace('"', "'")},
+                    )
+
+        self._server = HTTPServer(self._bind, Handler)
+        print("[tablet_http] listening on http://%s:%s" % self._bind)
+        self._server.serve_forever()
+
+    def stop(self):
+        if self._server is not None:
+            try:
+                self._server.shutdown()
+            except Exception:
+                pass
+
+
+def recv_all(conn, size):
+    """Receive exactly size bytes from conn or None on EOF."""
+    chunks = []
+    remaining = size
+    while remaining > 0:
+        chunk = conn.recv(remaining)
+        if not chunk:
+            return None
+        chunks.append(chunk)
+        remaining -= len(chunk)
+    return b"".join(chunks)
+
+
+def mono16_to_stereo16(raw_mono):
     """
-    POST /say
-    JSON body:
-      {
-        "text": "Hello, I am Pepper!",
-        "animated": true,           # optional (default true)
-        "language": "English",      # optional
-        "speed": 100,               # optional (0..400)
-        "pitchShift": 1.0,          # optional (0.5..2.0)
-        "volume": 1.0               # optional (0.0..1.0)
-      }
-    Query params:
-      - url=qi_url (optional; defaults to PEPPER_URL)
+    raw_mono: bytes, int16 mono.
+    Return bytes, int16 stereo interleaved (L,R,L,R,...).
     """
-    qi_url = request.args.get("url", DEFAULT_QI_URL)
+    # Use C-optimized conversion to avoid Python-loop jitter.
+    return audioop.tostereo(raw_mono, 2, 1, 1)
 
+def main():
+    qi_url = PEPPER_QI_URL or DEFAULT_QI_URL
+    print("[pepper_audio] Python version:", sys.version)
+    print("[pepper_audio] Connecting to Pepper:", qi_url)
+
+    sess = connect_session(qi_url)
     try:
-        payload = request.get_json(silent=True) or {}
+        audio = wait_for_service(sess, "ALAudioDevice", timeout_sec=BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC)
+    except Exception as exc:
+        print("[bridge] FATAL:", to_text(exc))
+        return
+    behavior_manager = None
+    try:
+        behavior_manager = wait_for_service(sess, "ALBehaviorManager", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
     except Exception:
-        payload = {}
+        behavior_manager = None
 
-    text       = to_text(payload.get("text", u"")).strip()
-    animated   = bool(payload.get("animated", True))
-    language   = to_text(payload.get("language")) if payload.get("language") else None
-    speed      = payload.get("speed", None)
-    pitch      = payload.get("pitchShift", None)
-    volume     = payload.get("volume", None)
-
-    if not text:
-        return jsonify({"ok": False, "error": "Missing 'text'"}), 400
-
+    animation_player = None
     try:
-        svcs = get_services(qi_url)
-        sess = svcs["session"]
-
-        # Prefer AnimatedSpeech when requested/available
-        tts = sess.service("ALTextToSpeech")
-        animated_svc = None
-        if animated:
-            try:
-                animated_svc = sess.service("ALAnimatedSpeech")
-            except Exception:
-                animated_svc = None  # fallback handled below
-
-        # Configure TTS parameters if provided
-        if language:
-            try:
-                tts.setLanguage(language)
-            except Exception:
-                # keep going even if the language isn't available
-                pass
-
-        if speed is not None:
-            try:
-                tts.setParameter("speed", float(speed))
-            except Exception:
-                pass
-
-        if pitch is not None:
-            try:
-                tts.setParameter("pitchShift", float(pitch))
-            except Exception:
-                pass
-
-        if volume is not None:
-            try:
-                tts.setVolume(float(volume))
-            except Exception:
-                pass
-
-        # Optional: announce on tablet
-        if AUTO_TABLET_ANNOUNCE:
-            try:
-                requests.post("http://localhost:5000/tablet/text_inline",
-                              json={"text": text, "size": AUTO_TABLET_SIZE,
-                                    "bg": AUTO_TABLET_BG, "fg": AUTO_TABLET_FG})
-            except Exception:
-                pass  # non-fatal
-
-        # Speak!
-        if animated_svc is not None:
-            # bodyLanguageMode: "disabled" | "random" | "contextual"
-            cfg = {"bodyLanguageMode": "contextual"}
-            try:
-                animated_svc.say(text, cfg)
-            except Exception:
-                # Fallback to plain TTS if animated fails
-                tts.say(text)
-        else:
-            tts.say(text)
-
-        return jsonify({
-            "ok": True,
-            "spoken": text,
-            "animated": bool(animated_svc),
-            "url": qi_url
-        }), 200
-
-    except Exception as e:
-        return jsonify({"ok": False, "error": to_text(e), "url": qi_url}), 500
-
-#vision
-# ===== /camera/photo: use subscribe() + setParam(kCameraSelectID) =====
-from flask import Response, send_file
-from PIL import Image
-import io
-import time
-
-K_CAMERA_SELECT_ID = 18  # NAOqi param for selecting active camera: 0=top, 1=bottom
-
-def _camera_qi_url():
-    try:
-        url = DEFAULT_QI_URL
-    except NameError:
-        url = None
-    if not url:
-        url = "tcp://127.0.0.1:9559"
-    print("[camera] Using qi url:", url)
-    return url
-
-def _get_video_service():
-    print("[camera] Connecting to ALVideoDevice ...")
-    sess = connect_session(_camera_qi_url())
-    try:
-        video = sess.service("ALVideoDevice")
-        print("[camera] ALVideoDevice ready")
-        return video
-    except Exception as e:
-        try:
-            msg = to_text(e)
-        except Exception:
-            msg = str(e)
-        print("[camera] ERROR getting ALVideoDevice:", msg)
-        raise RuntimeError("ALVideoDevice unavailable: %s" % msg)
-
-def _raw_bytes_py27(raw):
-    # normalize to bytes-like for Py2.7 Pillow
-    if isinstance(raw, str):
-        return raw
-    try:
-        return buffer(raw)  # Py2 'buffer'
+        animation_player = wait_for_service(sess, "ALAnimationPlayer", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
     except Exception:
-        pass
+        animation_player = None
+
+    life_service = None
     try:
-        return "".join(chr(b & 0xFF) for b in raw)
+        life_service = wait_for_service(sess, "ALAutonomousLife", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        try:
+            current_state = to_text(life_service.getState())
+            print("[life] current state:", current_state)
+            if TOUCH_AUTONOMOUS_LIFE and current_state.lower() == "disabled":
+                print("[life] enabling autonomous life -> solitary")
+                life_service.setState("solitary")
+        except Exception as life_exc:
+            print("[life] warning:", to_text(life_exc))
     except Exception:
-        return str(raw)
+        life_service = None
 
-def _image_to_jpeg_bytes(img_tuple):
-    if not img_tuple:
-        raise RuntimeError("getImageRemote returned None/empty tuple")
-    width = int(img_tuple[0]); height = int(img_tuple[1])
-    colorspace = img_tuple[3] if len(img_tuple) > 3 else "?"
-    raw = img_tuple[6] if len(img_tuple) > 6 else None
-    print("[camera] Frame meta w=%d h=%d colorspace=%s type(raw)=%s" %
-          (width, height, str(colorspace), type(raw).__name__))
-    if raw is None:
-        raise RuntimeError("Image buffer is None")
-    raw_bytes = _raw_bytes_py27(raw)
-    try:
-        img = Image.frombytes("RGB", (width, height), raw_bytes, "raw", "RGB")
-    except Exception as e1:
-        print("[camera] RGB decode failed, trying BGR. Error:", e1)
-        img = Image.frombytes("RGB", (width, height), raw_bytes, "raw", "BGR")
-    bio = io.BytesIO()
-    img.save(bio, "JPEG"); bio.seek(0)
-    return bio
-
-@app.route("/camera/photo", methods=["POST"])
-def camera_photo():
-    """
-    Capture one frame from top camera (id 0) and download as pepper_photo_<ts>.jpg
-    curl -X POST "http://localhost:5000/camera/photo" -O
-    """
-    try:
-        video = _get_video_service()
-        client_name = "flask_camera_photo_%d" % int(time.time())
-
-        cam_id = 0        # 0=top, 1=bottom
-        resolution = 2    # 2 = kVGA (640x480)
-        color_space = 11  # 11 = kRGBColorSpace
-        fps = 5
-
-        print("[camera] Subscribing via subscribe() res=%d cs=%d fps=%d" % (resolution, color_space, fps))
-        sub = video.subscribe(client_name, resolution, color_space, fps)
-        print("[camera] Subscribed handle:", sub)
-
-        try:
-            # pick camera AFTER subscribe()
-            print("[camera] Setting camera param %d = %d" % (K_CAMERA_SELECT_ID, cam_id))
-            video.setParam(K_CAMERA_SELECT_ID, cam_id)
-
-            # small warm-up delay helps on some builds
-            time.sleep(0.1)
-
-            img = video.getImageRemote(sub)
-            if img is None:
-                print("[camera] getImageRemote returned None; retrying ...")
-                time.sleep(0.1)
-                img = video.getImageRemote(sub)
-            if img is None:
-                raise RuntimeError("getImageRemote returned None (camera idle?)")
-            print("[camera] Got image tuple of len:", len(img))
-        finally:
+    if life_service is not None and TOUCH_AUTONOMOUS_LIFE:
+        ability_profile = {
+            "AutonomousBlinking": LIFE_AUTONOMOUS_BLINKING,
+            "BackgroundMovement": LIFE_BACKGROUND_MOVEMENT,
+            "BasicAwareness": LIFE_BASIC_AWARENESS,
+            "ListeningMovement": LIFE_LISTENING_MOVEMENT,
+            "SpeakingMovement": LIFE_SPEAKING_MOVEMENT,
+        }
+        for ability, enabled in ability_profile.items():
             try:
-                video.unsubscribe(sub)
-                print("[camera] Unsubscribed:", sub)
-            except Exception as ue:
-                print("[camera] Unsubscribe error (ignored):", ue)
+                life_service.setAutonomousAbilityEnabled(ability, bool(enabled))
+            except Exception as ability_exc:
+                print("[life] ability enable warning", ability, to_text(ability_exc))
+    elif life_service is not None:
+        print("[life] TOUCH_AUTONOMOUS_LIFE=False -> bridge will not modify life state/abilities")
 
-        bio = _image_to_jpeg_bytes(img)
-        filename = "pepper_photo_%d.jpg" % int(time.time())
-        return send_file(bio, mimetype="image/jpeg", as_attachment=True,
-                         attachment_filename=filename)
+    animations_map = load_animations_map(ANIMATIONS_FILE)
+    tablet_service = None
+    try:
+        tablet_service = sess.service("ALTabletService")
+    except Exception:
+        tablet_service = None
+
+    tablet = TabletDebugReporter(TABLET_DEBUG_AUDIO_ENABLED, tablet_service)
+    tablet.start()
+    tablet_http = TabletOverlayHttpServer(
+        BRIDGE_URL,
+        tablet,
+        behavior_manager,
+        animation_player,
+        life_service,
+        animations_map,
+    )
+    tablet_http.start()
+    tablet.publish(
+        "Pepper audio server starting",
+        "qi={}\nrate={}".format(qi_url, TARGET_RATE),
+        force=True,
+    )
+
+    try:
+        audio.openAudioOutputs()
     except Exception as e:
-        try:
-            msg = to_text(e)
-        except Exception:
-            msg = str(e)
-        print("[camera] ERROR in /camera/photo:", msg)
-        return jsonify({"ok": False, "error": msg}), 500
-# ===== end patch =====
+        print("[pepper_audio] openAudioOutputs warning:", to_text(e))
 
-_animations_ok, _animations_err = load_animations()
-if not _animations_ok:
-    print("[WARN] animations.json not loaded (ANIMATIONS_FILE='{}'): {}".format(ANIMATIONS_FILE, _animations_err))
+    try:
+        audio.setParameter("outputSampleRate", TARGET_RATE)
+        print("[pepper_audio] set outputSampleRate to", TARGET_RATE)
+    except Exception as e:
+        print("[pepper_audio] setParameter warning:", to_text(e))
+
+    try:
+        audio.setOutputVolume(DEFAULT_OUTPUT_VOLUME)
+        current_volume = audio.getOutputVolume()
+        print("[pepper_audio] output volume set to", current_volume)
+    except Exception as e:
+        print("[pepper_audio] setOutputVolume warning:", to_text(e))
+
+    if PLAYBACK_BATCH_FRAMES > PEPPER_CHUNK_LIMIT:
+        print(
+            "[pepper_audio] PLAYBACK_BATCH_FRAMES too high, clamping to",
+            PEPPER_CHUNK_LIMIT,
+        )
+    batch_frames = min(PLAYBACK_BATCH_FRAMES, PEPPER_CHUNK_LIMIT)
+    batch_bytes = batch_frames * 4  # int16 stereo => 4 bytes per frame
+    max_buffer_frames = max(MAX_BUFFER_FRAMES, batch_frames)
+    max_buffer_bytes = max_buffer_frames * 4
+    send_warn_threshold_ms = (float(batch_frames) / float(TARGET_RATE)) * 2000.0
+    print(
+        "[pepper_audio] buffering:",
+        "batch_frames=", batch_frames,
+        "max_buffer_frames=", max_buffer_frames,
+    )
+
+    # TCP server: receive mono 48kHz PCM from Python 3 process
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind((TCP_HOST, TCP_PORT))
+    server.listen(1)
+    print("[pepper_audio] Waiting for Python3 client on %s:%d..." % (TCP_HOST, TCP_PORT))
+    tablet.publish(
+        "Pepper audio ready",
+        "waiting bridge on {}:{}".format(TCP_HOST, TCP_PORT),
+        force=True,
+    )
+
+    conn, addr = server.accept()
+    print("[pepper_audio] Client connected:", addr)
+    tablet.publish(
+        "Bridge client connected",
+        "from={}{}".format(addr[0], ":" + str(addr[1]) if len(addr) > 1 else ""),
+        force=True,
+    )
+    frames_sent_total = 0
+    recv_chunks_total = 0
+    send_calls_total = 0
+    last_chunk_ts = time.time()
+    recv_intervals_ms_sum = 0.0
+    send_durations_ms_sum = 0.0
+    max_recv_interval_ms = 0.0
+    max_send_duration_ms = 0.0
+    dropped_frames_total = 0
+    queued_bytes = 0
+    stereo_queue = deque()
+
+    try:
+        while True:
+            # Read 4-byte length header
+            header = recv_all(conn, 4)
+            if not header:
+                print("[pepper_audio] client disconnected (no header)")
+                break
+
+            size = struct.unpack(">I", header)[0]
+
+            # Sanity check
+            if size <= 0 or size > 2 ** 20:
+                print("[pepper_audio] invalid size:", size)
+                break
+
+            # Read 'size' bytes of mono PCM
+            chunk = recv_all(conn, size)
+            if not chunk:
+                print("[pepper_audio] client disconnected (no chunk)")
+                break
+            now_ts = time.time()
+            recv_interval_ms = (now_ts - last_chunk_ts) * 1000.0
+            last_chunk_ts = now_ts
+
+            # mono int16 -> stereo int16 interleaved
+            stereo = mono16_to_stereo16(chunk)
+
+            nb_frames = len(stereo) // 4  # 2 channels * 2 bytes
+            if nb_frames > PEPPER_CHUNK_LIMIT:
+                stereo = stereo[:PEPPER_CHUNK_LIMIT * 4]
+                nb_frames = PEPPER_CHUNK_LIMIT
+
+            stereo_queue.append(stereo)
+            queued_bytes += len(stereo)
+            recv_chunks_total += 1
+            recv_intervals_ms_sum += recv_interval_ms
+            if recv_interval_ms > max_recv_interval_ms:
+                max_recv_interval_ms = recv_interval_ms
+
+            if queued_bytes > max_buffer_bytes:
+                overflow_bytes = queued_bytes - max_buffer_bytes
+                dropped_bytes = 0
+                while stereo_queue and dropped_bytes < overflow_bytes:
+                    head = stereo_queue[0]
+                    need = overflow_bytes - dropped_bytes
+                    if len(head) <= need:
+                        dropped_bytes += len(head)
+                        queued_bytes -= len(head)
+                        stereo_queue.popleft()
+                    else:
+                        stereo_queue[0] = head[need:]
+                        dropped_bytes += need
+                        queued_bytes -= need
+                        break
+
+                dropped_frames = dropped_bytes // 4
+                dropped_frames_total += dropped_frames
+                try:
+                    audio.flushAudioOutputs()
+                except Exception:
+                    pass
+                print(
+                    "[pepper_audio] WARNING buffer overflow:",
+                    "dropped_frames=", dropped_frames,
+                    "dropped_frames_total=", dropped_frames_total,
+                    "buffered_frames=", queued_bytes // 4,
+                )
+
+            while queued_bytes >= batch_bytes:
+                need_bytes = batch_bytes
+                parts = []
+                while need_bytes > 0 and stereo_queue:
+                    head = stereo_queue[0]
+                    if len(head) <= need_bytes:
+                        parts.append(head)
+                        need_bytes -= len(head)
+                        queued_bytes -= len(head)
+                        stereo_queue.popleft()
+                    else:
+                        parts.append(head[:need_bytes])
+                        stereo_queue[0] = head[need_bytes:]
+                        queued_bytes -= need_bytes
+                        need_bytes = 0
+
+                payload = "".join(parts)
+                send_start_ts = time.time()
+                audio.sendRemoteBufferToOutput(batch_frames, payload)
+                send_duration_ms = (time.time() - send_start_ts) * 1000.0
+                send_calls_total += 1
+                frames_sent_total += batch_frames
+                send_durations_ms_sum += send_duration_ms
+                if send_duration_ms > max_send_duration_ms:
+                    max_send_duration_ms = send_duration_ms
+                if send_calls_total == 1:
+                    print(
+                        "[pepper_audio] First playback batch sent:",
+                        "batch_frames=", batch_frames,
+                        "recv_interval_ms=", round(recv_interval_ms, 2),
+                        "send_duration_ms=", round(send_duration_ms, 2),
+                    )
+                if send_duration_ms > send_warn_threshold_ms:
+                    print(
+                        "[pepper_audio] WARNING slow sendRemoteBufferToOutput:",
+                        "send_duration_ms=", round(send_duration_ms, 2),
+                        "batch_frames=", batch_frames,
+                    )
+
+            if recv_chunks_total == 1:
+                print(
+                    "[pepper_audio] First chunk received:",
+                    "bytes=", len(chunk),
+                    "frames=", nb_frames,
+                    "recv_interval_ms=", round(recv_interval_ms, 2),
+                )
+                tablet.publish(
+                    "Audio stream active",
+                    "first_chunk bytes={}\nframes={}".format(len(chunk), nb_frames),
+                    force=True,
+                )
+            elif recv_chunks_total % 200 == 0:
+                avg_recv_interval_ms = recv_intervals_ms_sum / float(recv_chunks_total)
+                avg_send_duration_ms = (
+                    send_durations_ms_sum / float(send_calls_total)
+                    if send_calls_total
+                    else 0.0
+                )
+                print(
+                    "[pepper_audio] stream heartbeat:",
+                    "recv_chunks=", recv_chunks_total,
+                    "send_calls=", send_calls_total,
+                    "frames_total=", frames_sent_total,
+                    "buffered_frames=", queued_bytes // 4,
+                    "dropped_frames_total=", dropped_frames_total,
+                    "avg_recv_interval_ms=", round(avg_recv_interval_ms, 2),
+                    "avg_send_duration_ms=", round(avg_send_duration_ms, 2),
+                    "max_recv_interval_ms=", round(max_recv_interval_ms, 2),
+                    "max_send_duration_ms=", round(max_send_duration_ms, 2),
+                )
+                tablet.publish(
+                    "Audio heartbeat",
+                    "recv={}\nsent_frames={}\nbuffered={}".format(
+                        recv_chunks_total,
+                        frames_sent_total,
+                        queued_bytes // 4,
+                    ),
+                )
+
+            # No explicit sleep: recv_all() already blocks on incoming real-time chunks.
+            # Additional sleeps can cause underruns/overruns and "freeze then catch-up".
+    finally:
+        conn.close()
+        server.close()
+        tablet_http.stop()
+        tablet.publish("Pepper audio server stopped", force=True)
+        tablet.stop()
+        print("[pepper_audio] server shut down")
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    main()

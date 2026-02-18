@@ -27,7 +27,7 @@ Current setup does **not** use Letta.
 
 4. **LiveKit -> Pepper audio bridge (optional)**  
    - `robot/src/listener_pepper_bridge.py` (Python 3): joins LiveKit as listener and forwards PCM via TCP  
-   - `robot/src/pepper_audio_server.py` (Python 2.7): receives PCM and plays on Pepper
+   - `robot/src/bridge.py` (Python 2.7): receives PCM and plays on Pepper
 
 5. **Infrastructure via Docker**  
    File: `docker/docker-compose.yml`  
@@ -61,7 +61,7 @@ cd voice-agent && uv run python -m src.agent dev
 3. Start Pepper audio receiver (Python 2.7):
 ```bash
 cd robot/src
-python2 pepper_audio_server.py
+python2 bridge.py
 ```
 
 4. Start listener bridge (Python 3):
@@ -90,8 +90,20 @@ Use this section to track papers/books/repos and keep reading notes in one place
 
 | ID | Resource | Type | Link | Physical Copy | PDF | Read | Priority | Notes Ref |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| R-001 | Dummy Paper: Conversational Robots in Reception | Paper | https://example.com/dummy-paper | No | Yes | No | High | Note-R001 |
-| R-002 | Dummy Book: Practical HRI Systems | Book | https://example.com/dummy-book | Yes | No | In Progress | Medium | Note-R002 |
+| R-001 | Does ChatGPT and Whisper Make Humanoid Robots More Relatable? | Paper | https://arxiv.org/abs/2402.07095 | No | Yes | No | High | Note-R001 |
+| R-002 | ChatGPT for Robotics: Design Principles and Model Abilities | Paper | https://arxiv.org/abs/2306.17582 | No | Yes | In Progress | High | Note-R002 |
+| R-003 | ROS-LLM: A ROS framework for embodied AI with task feedback and structured reasoning | Paper | https://arxiv.org/abs/2406.19741 | No | Yes | No | High | Note-R003 |
+| R-004 | Do As I Can, Not As I Say: Grounding Language in Robotic Affordances | Paper | https://arxiv.org/abs/2204.01691 | No | Yes | No | High | Note-R004 |
+| R-005 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | Paper | https://arxiv.org/abs/2005.11401 | No | Yes | No | High | Note-R005 |
+| R-006 | Godspeed Questionnaire paper (Bartneck et al., 2009) | Paper | https://link.springer.com/article/10.1007/s12369-008-0001-3 | No | Yes | No | High | Note-R006 |
+| R-007 | Almere Model (Heerink et al., 2010) | Paper | https://link.springer.com/article/10.1007/s12369-010-0068-5 | No | Yes | No | High | Note-R007 |
+| R-008 | LiveKit Agents | GitHub Repo | https://github.com/livekit/agents | No | N/A | No | High | Note-R008 |
+| R-009 | Pepper-GPT | GitHub Repo | https://github.com/UoA-CARES/Pepper-GPT | No | N/A | No | High | Note-R009 |
+| R-010 | Weaviate | GitHub Repo | https://github.com/weaviate/weaviate | No | N/A | In Progress | High | Note-R010 |
+| R-011 | vLLM | GitHub Repo | https://github.com/vllm-project/vllm | No | N/A | No | Medium | Note-R011 |
+| R-012 | Human-Robot Interaction: An Introduction (2nd ed., 2024) | Book | https://www.cambridge.org/ag/universitypress/subjects/computer-science/computer-graphics-image-processing-and-robotics/human-robot-interaction-introduction-2nd-edition?format=PB&isbn=9781009424233 | Yes | Yes | No | High | Note-R012 |
+| R-013 | Speech and Language Processing (3rd ed. draft) | Book | https://web.stanford.edu/~jurafsky/slp3/ | No | Yes | In Progress | Medium | Note-R013 |
+| R-014 | Designing Voice User Interfaces | Book | https://www.cathypearl.com/book | No | No | No | Medium | Note-R014 |
 
 ### Notes Template
 

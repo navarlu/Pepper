@@ -8,7 +8,8 @@ pyenv shell naoqi27
 unset LD_LIBRARY_PATH
 export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
 export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 ~/Projects/FEL/Pepper/src/bridge.py
+python2 robot/utils/safe_startup.py
+python2 robot/src/bridge.py
 
 
 curl -X POST "http://localhost:5000/animation/Embarrassed_1"
@@ -30,23 +31,33 @@ uv run python -m src.agent console --text
 
 
 Agent:
-cd voice-agent && uv run python -m src.agent dev
+uv run python -m voice-agent.src.agent dev
 
 Playground:
 http://localhost:3000/
 
 How to use now (your desired flow)
 Start infra:
-docker-compose.yml --env-file .env up -d
+docker compose -f docker/docker-compose.yml --env-file .env up -d
 
 Start agent in dev mode:
-cd voice-agent && uv run python -m src.agent dev
+uv run python -m voice-agent.src.agent dev
+
+Stabilize Pepper first (Python 2.7):
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 robot/utils/safe_startup.py
 
 Start Pepper audio receiver (Python 2.7):
-pepper_audio_server.py
+python2 robot/src/bridge.py
 
 Start listener bridge:
-listener_pepper_bridge.py
+uv run python robot/src/listener.py
+
+Shutdown Pepper cleanly:
+python2 robot/tests/shutdown_pepper.py
 
 Open playground and click Connect:
 It creates a new room/token set, 

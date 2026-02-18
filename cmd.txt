@@ -1,0 +1,9 @@
+ip -br link
+ip -br addr
+ip route get 10.0.0.149
+ethtool enx00e04c026907 | grep "Link detected"
+ping -I enx00e04c026907 -c 3 10.0.0.149
+
+sudo ip addr add 10.0.0.200/24 dev enx00e04c026907
+sudo ip link set enx00e04c026907 up
+sudo ip route replace 10.0.0.149 dev enx00e04c026907 src 10.0.0.200

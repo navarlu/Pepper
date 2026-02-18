@@ -8,3 +8,42 @@ ip route get 10.0.0.149
 
 
 https://docs.google.com/document/d/18wjGIsm8TbbgqFEvbgbX9QL37sdoOspIgIwiWLcWKaw/edit?pli=1&tab=t.0#heading=h.kmtf914entwk
+
+Pepper startup notes (WORKING FLOW):
+1) Power Pepper on and wait until NAOqi is reachable.
+2) Stabilize first (do this before bridge/listener/agent):
+   cd /home/lucas/Projects/FEL/Pepper
+   pyenv shell naoqi27
+   unset LD_LIBRARY_PATH
+   export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+   export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+   python2 robot/utils/safe_startup.py
+3) Only after stabilization, start bridge:
+   python2 robot/src/bridge.py
+4) In other terminals, start listener + agent if needed:
+   uv run python robot/src/listener.py
+   cd voice-agent && uv run python -m src.agent dev
+
+
+
+
+gitguide:
+1) Update GitHub (source of truth)
+
+cd /home/lucas/Projects/FEL/Pepper
+git add docs/thesis/latex/main
+git commit -m "thesis: update related work section"
+git push origin main
+
+2) Mirror same state to Overleaf (checkpoint)
+
+cd /home/lucas/Projects/FEL/Pepper
+git fetch overleaf
+git worktree add /tmp/overleaf-sync overleaf/master
+rsync -a --delete --exclude '.git' docs/thesis/latex/main/ /tmp/overleaf-sync/
+cd /tmp/overleaf-sync
+git add -A
+git commit -m "Checkpoint from local thesis state"
+git push overleaf HEAD:master
+cd /home/lucas/Projects/FEL/Pepper
+git worktree remove /tmp/overleaf-sync

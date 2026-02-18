@@ -17,6 +17,8 @@ from livekit.plugins import openai
 
 from .config import (
     AGENT_VERSION,
+    LISTENER_IDENTITY,
+    LIVEKIT_URL,
     MODEL_NAME,
     SYSTEM_PROMPT,
     TTS_VOICE,
@@ -45,13 +47,18 @@ def _get_required_env(name: str) -> str:
     return value
 
 
+def _set_runtime_defaults() -> None:
+    # Keep non-secret runtime defaults in config instead of `.env`.
+    os.environ.setdefault("LIVEKIT_URL", LIVEKIT_URL)
+
+
 _load_root_env()
+_set_runtime_defaults()
 
 
 def _is_bridge_listener(participant) -> bool:
-    listener_identity = (os.getenv("LISTENER_IDENTITY") or "listener-python").strip()
     identity = str(getattr(participant, "identity", "") or "")
-    return identity == listener_identity
+    return identity == LISTENER_IDENTITY
 
 
 def _iter_remote_participants(ctx: JobContext):

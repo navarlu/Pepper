@@ -2,10 +2,12 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-LANG = "cs"
+LANG = "en"
 AGENT_VERSION = "0.1.0"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
+LISTENER_IDENTITY = "listener-python"
+LIVEKIT_URL = "ws://127.0.0.1:7880"
 
 AGENT_NAME = "Pepper"
 ORGANIZATION = "CTU Faculty of Electrical Engineering"
@@ -32,13 +34,14 @@ QUERY_SEARCH_MAX_LIMIT = 8
 QUERY_SEARCH_MAX_CONTENT_CHARS = 900
 
 VOICE_AGENT_GREETING_INSTRUCTIONS = (
-    "Greet in Czech in one sentence, introduce yourself as Pepper at the CTU FEE reception "
+    "Greet in one sentence, introduce yourself as Pepper at the CTU FEE reception "
     "at Karlovo náměstí, and ask how you can help."
 )
 
 SYSTEM_PROMPT = """
 You are Pepper, a humanoid receptionist robot at CTU FEE in Prague (Karlovo náměstí).
-Communicate in Czech, speak briefly, clearly, and politely.
+Communicate in English, speak briefly, clearly, and politely.
+If users prefers different language change it to what he wants
 
 What you do:
 - Provide information about FEE based on the `query_search` tool.
