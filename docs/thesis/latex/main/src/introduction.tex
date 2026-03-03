@@ -1,17 +1,1 @@
 \chapter{Introduction}
-
-Social robots are increasingly expected to communicate naturally, respond in real time, and behave safely in public spaces. Reception scenarios are a practical and demanding example of this requirement: the system must understand open-ended user requests, provide correct information, and maintain robust behavior under noisy and uncertain interaction conditions. Recent progress in large language models (LLMs) offers strong language understanding and generation capabilities, but deploying these models on embodied robots still requires careful system design, integration, and validation.
-
-This thesis focuses on the design of an LLM-driven receptionist robot based on Pepper, with the goal of supporting social interaction at the Faculty of Electrical Engineering, CTU in Prague. The proposed system connects speech processing, dialogue generation, and robot-side interaction components into a single pipeline that can be used both in simulation-oriented development and on physical hardware. The implementation combines LiveKit-based real-time voice communication, LLM-based response generation, optional retrieval-augmented generation (RAG) over institutional resources, and behavior interfaces for Pepper.
-
-The main objective is not only to build a functional prototype, but also to identify practical engineering decisions that improve reliability and usability in real deployments. In particular, the work addresses:
-\begin{itemize}
-    \item end-to-end architecture for low-latency voice interaction with a humanoid platform,
-    \item integration of retrieval over domain-specific documents to improve factual grounding,
-    \item orchestration of dialogue, audio routing, and robot behaviors across heterogeneous components,
-    \item operational considerations such as reproducibility, modularity, and safe fallback behavior.
-\end{itemize}
-
-The expected contribution of this thesis is a reproducible, extensible system design and an implementation that can serve as a baseline for future research on socially interactive service robots driven by modern language models.
-
-The remainder of the thesis is structured as follows. Chapter~\ref{ch:related_work} summarizes relevant literature and existing approaches. Chapter~\ref{ch:methods} describes the proposed architecture and implementation details. Chapter~\ref{ch:experiments} presents experimental setup and evaluation. Finally, Chapter~\ref{ch:conclusion} concludes the thesis and outlines future directions.

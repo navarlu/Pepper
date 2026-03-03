@@ -1,2 +1,295 @@
 \chapter{Related Work}
 \label{ch:related_work}
+
+\section{LLM Foundations}
+\label{sec:llm_foundations}
+
+Large Language Models (LLMs) are neural networks trained to model the statistical structure of natural language at scale. 
+Formally, an LLM estimates the conditional probability distribution
+\[
+P(w_t \mid w_1, w_2, \dots, w_{t-1}),
+\]
+that is, the probability of the next token given all previously observed tokens. 
+Through training on massive text data, the model learns linguistic structure, semantic associations, and high-level reasoning patterns encoded implicitly in its parameters.
+
+Modern LLMs are typically based on the Transformer architecture introduced by Vaswani et al.~\cite{vaswani2017attention}, which replaces recurrent computation with self-attention mechanisms. 
+Scaling studies have shown that increasing model size, data, and compute predictably improves performance~\cite{kaplan2020scaling}, leading to the emergence of increasingly general language capabilities.
+
+\subsection*{Tokenization and Representation}
+
+Before text can be processed by a model, it must be converted into discrete units called \emph{tokens}. 
+Tokens are not necessarily whole words; they may correspond to subword fragments, characters, or punctuation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{src/figures/tokens.jpg}
+    \caption{Example tokenization produced by the OpenAI Tokenizer tool~\cite{openai_tokenizer}.}
+    \label{fig:openai_tokenizer_tokens}
+\end{figure}
+
+Each token is mapped to a high-dimensional continuous vector representation called an \emph{embedding}. 
+These embeddings capture semantic similarity: tokens appearing in similar contexts obtain nearby representations in vector space. 
+During inference, the model processes sequences of token embeddings using a transformer architecture, which relies on self-attention mechanisms to model long-range dependencies between tokens~\cite{vaswani2017attention}.
+
+\subsection*{Autoregressive Generation}
+
+LLMs operate autoregressively. Given an input prompt (e.g., a user query), the model generates output one token at a time. 
+At each step, it computes a probability distribution over the vocabulary and samples or selects the next token. 
+This token is appended to the sequence and becomes part of the context for the next prediction.
+
+Although the model appears to ``reason'' or ``understand'', its operation is fundamentally predictive: it produces the most probable continuation of a text sequence conditioned on prior tokens. 
+Complex behaviors such as summarization, dialogue, or planning emerge from this next-token prediction objective combined with large-scale training. 
+Recent work has described such capabilities as emergent phenomena arising from scale~\cite{wei2022emergent}.
+
+\subsection*{Context Window}
+
+The \emph{context window} defines the maximum number of tokens the model can process at once. 
+All dialogue history, system instructions, retrieved documents, and intermediate tool outputs must fit within this window. 
+If the limit is exceeded, older tokens must be truncated or summarized.
+
+Context limitations directly affect system design in long-running interactions and motivate external memory mechanisms such as retrieval augmentation~\cite{lewis2020rag}.
+
+\subsection*{Practical Limitations}
+
+Despite their capabilities, LLMs exhibit several well-known limitations:
+
+\begin{itemize}
+    \item \textbf{Hallucinations:} The model may generate fluent but factually incorrect information when the prompt lacks grounding~\cite{ji2023survey}.
+    \item \textbf{Non-determinism:} Due to probabilistic sampling and internal stochasticity, outputs may vary across runs.
+    \item \textbf{Limited world state awareness:} The model does not have real-time knowledge unless external information is explicitly provided.
+    \item \textbf{Latency and computational cost:} Token-by-token generation introduces delay, which becomes significant in real-time robotic interaction.
+\end{itemize}
+
+\subsection*{Implications for Embodied Systems}
+
+In an embodied agent such as a Pepper receptionist, the LLM serves as a high-level reasoning module rather than a standalone solution. 
+Because the model does not inherently possess grounding in physical state, verified institutional knowledge, or deterministic actuation logic, additional control mechanisms are required.
+
+This motivates the integration of structured prompting, tool calling~\cite{schick2023toolformer}, retrieval pipelines~\cite{lewis2020rag}, and explicit robot-control interfaces. 
+Together, these mechanisms transform a probabilistic language generator into a controllable cognitive component within a larger robotic architecture.
+
+\section{Controlling LLM Behavior}
+\label{sec:llm_control}
+
+While large language models provide powerful general-purpose reasoning capabilities, their raw autoregressive behavior is insufficient for reliable deployment in embodied systems. 
+Several complementary strategies have been developed to improve controllability, factual grounding, and task specialization.
+
+\subsection{Fine-Tuning}
+
+Fine-tuning adapts a pre-trained language model by updating its weights on additional task-specific data. 
+Instead of training from scratch, a base model is further optimized on curated instruction datasets, dialogue transcripts, or domain-specific data. 
+This approach enables specialization of tone, behavior, and knowledge distribution.
+
+Instruction tuning and reinforcement learning from human feedback (RLHF) have been widely used to align models with desired conversational norms and safety constraints~\cite{ouyang2022training, chung2022scaling}. 
+Fine-tuning can significantly improve task performance and reduce undesirable behaviors in well-defined domains.
+
+However, fine-tuning introduces important tradeoffs:
+
+\begin{itemize}
+    \item \textbf{Data demand:} High-quality labeled datasets are required.
+    \item \textbf{Cost:} Training large models requires substantial compute resources.
+    \item \textbf{Maintenance:} Updates to institutional knowledge require repeated retraining.
+    \item \textbf{Reproducibility:} Stochastic training processes and proprietary base models complicate exact replication.
+\end{itemize}
+
+For a receptionist robot operating in a dynamic institutional environment, knowledge frequently changes (e.g., room assignments, contact information, schedules). 
+Embedding such volatile data directly into model weights would be inefficient and difficult to maintain. 
+Therefore, in this thesis, fine-tuning is not used as the primary control mechanism. 
+Instead, behavioral control and knowledge access are handled through prompting and external tools.
+
+\subsection{Prompt Engineering}
+
+Prompt engineering refers to the structured design of input instructions that guide model behavior without modifying its internal parameters. 
+Modern LLMs are highly sensitive to system instructions, role definitions, formatting constraints, and examples provided in the prompt~\cite{brown2020language, wei2022chain}.
+
+System-level instructions can define persona, tone, safety rules, and output structure. 
+Few-shot prompting provides task demonstrations that bias the model toward desired patterns of reasoning or formatting. 
+Output constraints (e.g., JSON schemas) further restrict generation space and improve downstream reliability.
+
+Prompt-based control has several advantages:
+
+\begin{itemize}
+    \item No additional training cost.
+    \item Immediate iteration and deployment.
+    \item Separation between base model and application logic.
+\end{itemize}
+
+However, prompting does not inject new factual knowledge into the model. 
+It can steer style and reasoning patterns, but it cannot reliably compensate for missing or outdated information. 
+This limitation motivates the integration of external knowledge sources.
+
+\subsection{Tool Calling}
+\label{sec:tool_calling}
+
+Tool calling (also referred to as function calling) enables an LLM to produce structured outputs that trigger executable actions instead of free-form text~\cite{schick2023toolformer, yao2023react, openai_function_calling}. 
+Rather than generating only natural language, the model may return a structured function call with validated arguments that correspond to a predefined interface, as formalized in modern LLM APIs~\cite{openai_function_calling}.
+
+This mechanism separates reasoning from execution. 
+The LLM decides \emph{what} should be done, while external deterministic code performs \emph{how} it is done. 
+This is critical in embodied systems, where actions must be reliable, safe, and constrained.
+
+Figure~\ref{fig:tool_calling_flow} illustrates the typical interaction loop.
+
+\begin{wrapfigure}{r}{0.52\textwidth}
+    \centering
+    \includegraphics[width=0.48\textwidth]{src/figures/tool_calling_flow.png}
+    \caption{Source: OpenAI Function Calling Guide~\cite{openai_function_calling}.}
+    \label{fig:tool_calling_flow}
+\end{wrapfigure}
+
+The process consists of the following steps:
+
+\begin{enumerate}
+    \item The developer defines available tools (e.g., \texttt{get\_weather(location)}) and provides them to the model together with the user message.
+    \item The model decides that answering requires structured data and produces a tool call instead of a textual reply.
+    \item The application executes the corresponding function in deterministic code and obtains a result.
+    \item The result is appended to the conversation context.
+    \item The model generates the final user-facing response grounded in the returned data.
+\end{enumerate}
+
+This structured interaction reduces hallucinations because factual information is retrieved from verified sources rather than generated from internal model memory. 
+It also enables safe physical actuation in robotics: the model cannot directly execute arbitrary code but must select from predefined interfaces.
+
+In this thesis, two categories of tools are implemented:
+
+\begin{enumerate}
+    \item \textbf{Knowledge retrieval tools}, which query institutional databases (selected documents, contacts, rooms, schedules).
+    \item \textbf{Pepper control tools}, which trigger robot actions such as navigation, gestures, or gaze control.
+\end{enumerate}
+
+Both knowledge access and physical control share the same structured calling mechanism. 
+This unified abstraction simplifies orchestration and ensures that all external effects are mediated through validated interfaces.
+
+
+
+\subsection{Retrieval-Augmented Generation (RAG)}
+\label{sec:rag}
+
+A baseline approach to grounding an LLM in domain-specific knowledge is to insert all relevant
+documents directly into the context window. However, this strategy does not scale due to:
+\begin{itemize}
+    \item Context window limits,
+    \item Increased token cost,
+    \item Noisy or irrelevant information degrading output quality.
+\end{itemize}
+
+Retrieval-Augmented Generation (RAG) addresses this limitation by separating storage from reasoning~\cite{lewis2020rag}. 
+The typical pipeline consists of:
+
+\begin{enumerate}
+    \item Encoding documents into vector embeddings,
+    \item Indexing them in a vector database,
+    \item Retrieving semantically relevant chunks at query time,
+    \item Conditioning the LLM response on the retrieved context.
+\end{enumerate}
+
+Instead of permanently embedding knowledge into model weights, RAG dynamically injects only the most relevant information into the prompt. 
+This improves factual grounding and reduces hallucination risk.
+
+In the proposed receptionist architecture, retrieval is implemented as a tool call triggered during dialogue. 
+The same tool-calling mechanism supports both knowledge access and robot control, creating a unified orchestration layer. 
+Thus, language reasoning, information grounding, and physical action execution share a common structured interface, increasing modularity and system reliability.
+
+\section{Multimodal Interaction}
+\label{sec:multimodal_voice}
+
+Human--robot interaction in receptionist scenarios is inherently multimodal, with speech serving as the primary communication channel. 
+To enable natural spoken dialogue, a system must process audio input, perform language reasoning, and generate speech output in real time. 
+Two principal architectural paradigms are commonly considered: modular cascaded speech architectures and integrated end-to-end audio architectures.
+
+\subsection{Modular Cascaded Speech Architecture}
+
+The modular cascaded speech architecture decomposes spoken interaction into three sequential stages: 
+(i) Speech-to-Text (STT), 
+(ii) language reasoning using a Large Language Model (LLM), and 
+(iii) Text-to-Speech (TTS) synthesis.
+
+In this pipeline, user speech is first transcribed into text by the STT module. 
+The textual transcript is then processed by the LLM, which performs dialogue reasoning and may invoke tool calls. 
+Finally, the generated textual response is synthesized into audio by the TTS system and played back to the user.
+
+This architectural separation provides several advantages:
+
+\begin{itemize}
+    \item \textbf{Modularity:} Each component can be independently developed, replaced, or optimized.
+    \item \textbf{Transparency:} The intermediate textual representation enables logging, inspection, and debugging.
+    \end{itemize}
+
+However, the cascaded design also introduces limitations:
+
+\begin{itemize}
+    \item \textbf{Cumulative latency:} Delays from STT, LLM generation, and TTS synthesis accumulate sequentially.
+    \item \textbf{Error propagation:} Transcription errors in STT directly affect downstream reasoning.
+    \item \textbf{Pipeline orchestration complexity:} Real-time coordination between independent modules requires additional engineering effort.
+\end{itemize}
+
+Despite these trade-offs, cascaded architectures remain widely adopted due to their interpretability and engineering flexibility.
+\subsection{Integrated End-to-End Audio Architecture}
+
+Integrated end-to-end audio architectures model speech perception, language reasoning, and speech generation within a unified multimodal framework.
+Recent multimodal foundation models operate directly on audio representations, enabling speech-in to speech-out interaction without mandatory intermediate textual stages. 
+
+
+Key characteristics include:
+
+\begin{itemize}
+    \item Unified perception and generation,
+    \item Reduced explicit pipeline orchestration,
+    \item Potentially lower end-to-end latency,
+    \item Native multimodal reasoning capabilities.
+\end{itemize}
+
+However, the absence of explicit intermediate textual representations can reduce transparency and complicate debugging or inspection of internal reasoning processes.
+
+\subsection{Architectural Trade-Offs}
+
+Both cascaded and end-to-end architectures present trade-offs.
+
+Cascaded systems provide modular transparency, explicit logging interfaces, and easier component-level substitution. 
+End-to-end systems offer tighter integration and potentially improved temporal alignment between perception and generation.
+
+The choice between these paradigms depends on system requirements such as latency constraints, deployment environment, hardware availability, transparency needs, and controllability demands.
+
+
+
+\section{Local vs Cloud-Based Model Deployment}
+\label{sec:local_vs_cloud}
+
+Large language models and multimodal foundation models can be deployed either locally on dedicated hardware or accessed through cloud-based APIs. 
+The choice between these deployment paradigms has significant implications for cost structure, performance, scalability, and data governance.
+
+\subsection{Local Deployment}
+
+Local deployment involves running models on privately controlled hardware, typically GPU-equipped servers. 
+Inference performance depends directly on available computational resources, including GPU memory capacity, compute throughput, and storage bandwidth. 
+Larger models generally provide improved reasoning quality and robustness, but require substantially more memory and computational power.
+
+The primary characteristics of local deployment include:
+
+\begin{itemize}
+    \item \textbf{Hardware dependency:} Model size is constrained by available GPU memory and compute capability.
+    \item \textbf{Performance--quality trade-off:} Smaller models enable lower latency and reduced resource consumption, while larger models often provide higher response quality at increased computational cost.
+    \item \textbf{Fixed infrastructure cost:} After hardware acquisition, inference does not incur per-token or per-request fees.
+    \item \textbf{Data sovereignty:} All data processing occurs within controlled infrastructure, reducing exposure of sensitive information.
+\end{itemize}
+
+Local deployment is particularly attractive in scenarios involving sensitive data, strict privacy requirements, or predictable high interaction volume. 
+However, it requires maintenance of hardware infrastructure, model updates, and system optimization.
+
+\subsection{Cloud-Based Deployment}
+
+Cloud-based deployment provides access to large-scale foundation models through remote APIs. 
+The provider manages infrastructure, scaling, optimization, and model updates.
+
+Key properties include:
+
+\begin{itemize}
+    \item \textbf{Elastic scalability:} Compute resources scale automatically based on demand.
+    \item \textbf{Access to frontier-scale models:} Very large models may be accessible without requiring local hardware.
+    \item \textbf{Usage-based pricing:} Costs are typically proportional to the number of processed tokens or requests.
+    \item \textbf{Reduced operational overhead:} Infrastructure management and optimization are handled by the provider.
+\end{itemize}
+
+Cloud-based deployment lowers the barrier to entry and enables rapid experimentation. 
+However, recurring token-based pricing can become significant under high interaction volume. 
+Additionally, data must be transmitted to external servers, which may raise privacy or regulatory concerns depending on the application domain.
