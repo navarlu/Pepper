@@ -23,11 +23,11 @@ Choregraphe
 
 
 voice-agent
-uv run python -m robbie_agent.voice_agent console
+uv run python -m voice-agent.src.agent console
 
 
 cd livekit-agent
-uv run python -m src.agent console --text
+uv run python -m voice-agent.src.agent console --text
 
 
 Agent:

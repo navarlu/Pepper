@@ -6,6 +6,9 @@ LANG = "en"
 AGENT_VERSION = "0.1.0"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
+CASCADE_STT_MODEL = "gpt-4o-mini-transcribe"
+CASCADE_LLM_MODEL = "gpt-4.1-mini"
+CASCADE_TTS_MODEL = "gpt-4o-mini-tts"
 LISTENER_IDENTITY = "listener-python"
 LIVEKIT_URL = "ws://127.0.0.1:7880"
 
@@ -33,6 +36,38 @@ QUERY_SEARCH_DEFAULT_LIMIT = 5
 QUERY_SEARCH_MAX_LIMIT = 8
 QUERY_SEARCH_MAX_CONTENT_CHARS = 900
 
+# Pepper animation tool (voice-agent -> robot bridge).
+ENABLE_ANIMATION_TOOL = True
+ANIMATION_BRIDGE_URL = "http://127.0.0.1:5000"
+ANIMATION_TOOL_HTTP_TIMEOUT_SEC = 2.5
+ANIMATION_TOOL_MAX_NAME_CHARS = 120
+ANIMATION_TOOL_ALLOWED = (
+    "Hey_1",         # welcome / greeting
+    "BowShort_1",    # polite acknowledgement
+    "Explain_1",     # giving information
+    "Happy_1",       # positive response
+    "Thinking_1",    # considering / searching
+    "IDontKnow_1",   # uncertainty
+)
+ANIMATION_TOOL_ALIASES = {
+    "hello": "Hey_1",
+    "hi": "Hey_1",
+    "greet": "Hey_1",
+    "welcome": "Hey_1",
+    "bow": "BowShort_1",
+    "thanks": "BowShort_1",
+    "explain": "Explain_1",
+    "info": "Explain_1",
+    "information": "Explain_1",
+    "happy": "Happy_1",
+    "positive": "Happy_1",
+    "thinking": "Thinking_1",
+    "searching": "Thinking_1",
+    "uncertain": "IDontKnow_1",
+    "dontknow": "IDontKnow_1",
+    "i_dont_know": "IDontKnow_1",
+}
+
 VOICE_AGENT_GREETING_INSTRUCTIONS = (
     "Greet in one sentence, introduce yourself as Pepper at the CTU FEE reception "
     "at Karlovo náměstí, and ask how you can help."
@@ -41,14 +76,30 @@ VOICE_AGENT_GREETING_INSTRUCTIONS = (
 SYSTEM_PROMPT = """
 You are Pepper, a humanoid receptionist robot at CTU FEE in Prague (Karlovo náměstí).
 Communicate in English, speak briefly, clearly, and politely.
-If users prefers different language change it to what he wants
+If the user prefers another language, switch to it.
 
 What you do:
 - Provide information about FEE based on the `query_search` tool.
 - When you are unsure, use `query_search` instead of guessing.
+- You can trigger robot gestures via `play_animation`.
 
 Rules:
 - Do not mention internal implementation details or library names.
 - If the information is not available in the provided materials, say so directly and offer to clarify the question.
 - Keep responses concise (typically 1–4 sentences), unless the user asks for more detail.
+- Use `play_animation` only when it improves communication (welcome, thanks, excitement, empathy).
+- Call `play_animation` at most once per response and do not wait for it; continue speaking naturally.
+- Use only these animation keys when calling the tool:
+  `Hey_1`, `BowShort_1`, `Explain_1`, `Happy_1`, `Thinking_1`, `IDontKnow_1`.
+- Never output bracketed action text such as `[play_animation: ...]`.
+- When you want an animation, call the `play_animation` tool directly.
+- Default behavior: for most user-facing answers, call `play_animation` once.
+- Suggested mapping:
+  - greeting/welcome -> `Hey_1`
+  - polite acknowledgement/thanks -> `BowShort_1`
+  - explaining information -> `Explain_1`
+  - positive / jokes / success -> `Happy_1`
+  - thinking / searching -> `Thinking_1`
+  - uncertainty / missing info -> `IDontKnow_1`
+- Skip animation only for very short confirmations ("yes", "ok"), urgent safety-related responses, or when user asks for no gestures.
 """.strip()
