@@ -18,15 +18,23 @@ from livekit.plugins import openai, silero
 from .config import (
     AGENT_VERSION,
     CASCADE_LLM_MODEL,
+    CASCADE_STT_COMPUTE_TYPE,
+    CASCADE_STT_CPU_THREADS,
+    CASCADE_STT_DEVICE,
     CASCADE_STT_MODEL,
-    CASCADE_TTS_MODEL,
+    CASCADE_TTS_LENGTH_SCALE,
+    CASCADE_TTS_MODEL_PATH,
+    CASCADE_TTS_NOISE_SCALE,
+    CASCADE_TTS_NOISE_W_SCALE,
+    CASCADE_TTS_SPEAKER_ID,
+    CASCADE_TTS_USE_CUDA,
     LANG,
     LISTENER_IDENTITY,
     LIVEKIT_URL,
     SYSTEM_PROMPT,
-    TTS_VOICE,
     VOICE_AGENT_GREETING_INSTRUCTIONS,
 )
+from .local_speech import FasterWhisperSTT, PiperTTS
 from .tools import build_tools
 from .utils import connect_weaviate, seed_collection
 
@@ -41,13 +49,6 @@ def _load_root_env() -> None:
         logger.info("dotenv_loaded path=%s", str(ROOT_ENV_PATH))
         return
     logger.info("dotenv_loaded path=<missing:%s>", str(ROOT_ENV_PATH))
-
-
-def _get_required_env(name: str) -> str:
-    value = (os.getenv(name) or "").strip()
-    if not value:
-        raise RuntimeError(f"Missing required environment variable: {name}")
-    return value
 
 
 def _set_runtime_defaults() -> None:
@@ -93,10 +94,8 @@ async def entrypoint(ctx: JobContext) -> None:
         AGENT_VERSION,
         CASCADE_STT_MODEL,
         CASCADE_LLM_MODEL,
-        CASCADE_TTS_MODEL,
+        str(CASCADE_TTS_MODEL_PATH),
     )
-    openai_api_key = _get_required_env("OPENAI_API_KEY")
-
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     participant = await _wait_for_user_participant(ctx)
 
@@ -115,20 +114,23 @@ async def entrypoint(ctx: JobContext) -> None:
 
     session = AgentSession(
         vad=silero.VAD.load(),
-        stt=openai.STT(
+        stt=FasterWhisperSTT(
             model=CASCADE_STT_MODEL,
             language=LANG,
-            api_key=openai_api_key,
+            device=CASCADE_STT_DEVICE,
+            compute_type=CASCADE_STT_COMPUTE_TYPE,
+            cpu_threads=CASCADE_STT_CPU_THREADS,
         ),
-        llm = openai.LLM(
-    model="Qwen/Qwen2.5-7B-Instruct",
-    base_url="http://127.0.0.1:18000/v1",
-    api_key="dummy"
-),
-        tts=openai.TTS(
-            model=CASCADE_TTS_MODEL,
-            voice=TTS_VOICE,
-            api_key=openai_api_key,
+        llm=openai.LLM(
+            model=CASCADE_LLM_MODEL,
+        ),
+        tts=PiperTTS(
+            model_path=CASCADE_TTS_MODEL_PATH,
+            use_cuda=CASCADE_TTS_USE_CUDA,
+            speaker_id=CASCADE_TTS_SPEAKER_ID,
+            length_scale=CASCADE_TTS_LENGTH_SCALE,
+            noise_scale=CASCADE_TTS_NOISE_SCALE,
+            noise_w_scale=CASCADE_TTS_NOISE_W_SCALE,
         ),
     )
 

@@ -62,3 +62,8 @@ latexmkrc
 
 # LaTeX Workshop
 .vscode/.latex-workshop/
+
+
+voice-agent/models/
+notes.txt
+run*.txt

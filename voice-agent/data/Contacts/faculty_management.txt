@@ -1,0 +1,71 @@
+FACULTY OF ELECTRICAL ENGINEERING (FEE CTU)
+Section: Faculty Management
+
+Description:
+The management of the Faculty of Electrical Engineering (FEE) is responsible for coordinating and managing all study-related matters, from the design and organization of the admission procedure to the successful completion of studies. The faculty management also oversees the development of full-time study programmes in accordance with higher education requirements and the expectations of prospective students.
+
+--------------------------------------------------
+
+Position: Dean
+Name: prof. Mgr. Petr Páta, Ph.D.
+Department: Department of Radioelectronics
+Phone: +420 224 352 850
+Email: pata@fel.cvut.cz
+
+Dean's Secretariat
+Contacts: Dita Květová, Ing. Radka Šmajsová
+Phone: +420 224 310 386
+Email: sekretariat@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Secretary
+Name: Ing. Igor Mráz
+Phone: +420 224 352 014
+Email: mrazigor@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Master and Combined Studies
+Name: prof. Ing. Jiří Jakovenko, Ph.D.
+Department: Department of Microelectronics
+Phone: +420 224 352 029
+Email: jakovenk@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Information Technology
+Name: Ing. Jan Kočí
+Phone: +420 224 352 358
+Email: koci@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Development
+Name: RNDr. Patrik Mottl, Ph.D.
+Phone: +420 224 353 933
+Email: mottlpat@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Doctoral Studies and Research
+Name: doc. Ing. Milan Polívka, Ph.D.
+Department: Department of Electromagnetic Field
+Phone: +420 224 355 801
+Email: polivka@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Bachelor Studies
+Name: doc. RNDr. Veronika Sobotíková, CSc.
+Department: Department of Mathematics
+Phone: +420 224 352 392
+Email: sobotik@fel.cvut.cz
+
+--------------------------------------------------
+
+Position: Vice-Dean for Cooperation with Industry and Commercialization
+Name: prof. Ing. Jan Vobecký, DrSc.
+Department: Department of Microelectronics
+Phone: +420 224 352 862
+Email: vobecky@fel.cvut.cz
