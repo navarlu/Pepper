@@ -13,25 +13,50 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 from livekit import rtc
-from config import (
-    AGENT_TRACK_IDENTITY,
-    ALLOWED_STREAM_RATES,
-    BRIDGE_URL,
-    LISTENER_LOG_PARTIAL_TRANSCRIPTS,
-    LISTENER_LOG_TABLET_POST,
-    LISTENER_IDENTITY,
-    LIVEKIT_SESSION_FILE,
-    LIVEKIT_URL,
-    PEPPER_STREAM_ATTENUATION,
-    PEPPER_STREAM_RATE,
-    TABLET_DEBUG_LISTENER_ENABLED,
-    TABLET_DEBUG_MIN_INTERVAL_LISTENER,
-    TABLET_STATUS_ENABLED,
-    TABLET_TRANSCRIPT_MAX_LINES,
-    TCP_HOST,
-    TCP_PORT,
-    TOKEN_POLL_INTERVAL,
-)
+try:
+    from .config import (
+        AGENT_TRACK_IDENTITY,
+        ALLOWED_STREAM_RATES,
+        BRIDGE_URL,
+        LISTENER_LOG_PARTIAL_TRANSCRIPTS,
+        LISTENER_LOG_TABLET_POST,
+        LISTENER_IDENTITY,
+        LIVEKIT_SESSION_FILE,
+        LIVEKIT_URL,
+        PEPPER_STREAM_ATTENUATION,
+        PEPPER_STREAM_RATE,
+        SESSION_ACTIVITY_DEBOUNCE_SEC,
+        SESSION_MANAGER_URL,
+        TABLET_DEBUG_LISTENER_ENABLED,
+        TABLET_DEBUG_MIN_INTERVAL_LISTENER,
+        TABLET_STATUS_ENABLED,
+        TABLET_TRANSCRIPT_MAX_LINES,
+        TCP_HOST,
+        TCP_PORT,
+        TOKEN_POLL_INTERVAL,
+    )
+except ImportError:
+    from config import (
+        AGENT_TRACK_IDENTITY,
+        ALLOWED_STREAM_RATES,
+        BRIDGE_URL,
+        LISTENER_LOG_PARTIAL_TRANSCRIPTS,
+        LISTENER_LOG_TABLET_POST,
+        LISTENER_IDENTITY,
+        LIVEKIT_SESSION_FILE,
+        LIVEKIT_URL,
+        PEPPER_STREAM_ATTENUATION,
+        PEPPER_STREAM_RATE,
+        SESSION_ACTIVITY_DEBOUNCE_SEC,
+        SESSION_MANAGER_URL,
+        TABLET_DEBUG_LISTENER_ENABLED,
+        TABLET_DEBUG_MIN_INTERVAL_LISTENER,
+        TABLET_STATUS_ENABLED,
+        TABLET_TRANSCRIPT_MAX_LINES,
+        TCP_HOST,
+        TCP_PORT,
+        TOKEN_POLL_INTERVAL,
+    )
 
 
 def _resolve_stream_rate() -> int:
@@ -158,6 +183,8 @@ class TabletPanelState:
         self._last_user = ""
         self._last_pepper = ""
         self._active_animation = ""
+        self._session_state = ""
+        self._idle_countdown = ""
         self._lock = threading.Lock()
 
     def _render_locked(self) -> None:
@@ -167,6 +194,8 @@ class TabletPanelState:
             "pepper_text": self._last_pepper,
             "debug_lines": list(self._debug_lines),
             "active_animation": self._active_animation,
+            "session_state": self._session_state,
+            "idle_countdown": self._idle_countdown,
             "bg": "#0D1522",
             "fg": "#D9F3FF",
         }
@@ -201,6 +230,12 @@ class TabletPanelState:
     def set_active_animation(self, value: str) -> None:
         with self._lock:
             self._active_animation = " ".join(str(value).strip().split())
+            self._render_locked()
+
+    def set_session_status(self, state: str, idle_countdown: str) -> None:
+        with self._lock:
+            self._session_state = " ".join(str(state).strip().split())
+            self._idle_countdown = " ".join(str(idle_countdown).strip().split())
             self._render_locked()
 
 
@@ -289,13 +324,17 @@ class ListenerPepperBridge:
         self.socket: Optional[socket.socket] = None
         self.room: Optional[rtc.Room] = None
         self._connect_lock = asyncio.Lock()
+        self._socket_send_lock = asyncio.Lock()
         self._watch_task: Optional[asyncio.Task] = None
         self._active_stream_keys: set[str] = set()
+        self._stream_tasks: dict[str, asyncio.Task] = {}
         self.tablet = TabletDebugReporter(TABLET_DEBUG_LISTENER_ENABLED)
         self.panel = TabletPanelState(
             self.tablet,
             max_debug_lines=TABLET_TRANSCRIPT_MAX_LINES,
         )
+        self._last_agent_activity_post_monotonic = 0.0
+        self._last_status_poll_monotonic = 0.0
         self.panel.add_debug("Listener initialized")
 
     def _push_debug(self, msg: str) -> None:
@@ -320,6 +359,66 @@ class ListenerPepperBridge:
             return
         self.tablet.publish(title, body, force=force)
 
+    def _report_agent_activity(self) -> None:
+        now = time.monotonic()
+        if now - self._last_agent_activity_post_monotonic < SESSION_ACTIVITY_DEBOUNCE_SEC:
+            return
+        self._last_agent_activity_post_monotonic = now
+        if not SESSION_MANAGER_URL:
+            return
+        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/activity"
+        payload = json.dumps({"source": "agent"}).encode("utf-8")
+        req = Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        try:
+            resp = urlopen(req, timeout=0.35)
+            resp.read()
+        except Exception:
+            pass
+
+    def _post_debug_event(self, event: str, **payload) -> None:
+        if not SESSION_MANAGER_URL:
+            return
+        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/debug-event"
+        body = {"event": event}
+        body.update(payload)
+        req = Request(
+            url,
+            data=json.dumps(body).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            resp = urlopen(req, timeout=0.35)
+            resp.read()
+        except Exception:
+            pass
+
+    async def _poll_session_status(self) -> None:
+        if not SESSION_MANAGER_URL:
+            return
+        now = time.monotonic()
+        if (now - self._last_status_poll_monotonic) < 1.0:
+            return
+        self._last_status_poll_monotonic = now
+        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/status"
+        req = Request(url, method="GET")
+        try:
+            payload = await asyncio.to_thread(
+                lambda: json.loads(urlopen(req, timeout=0.35).read().decode("utf-8"))
+            )
+        except Exception:
+            return
+        state = str(payload.get("session_state") or "").strip() or "-"
+        idle_value = payload.get("idle_countdown_sec")
+        if idle_value is None:
+            idle_text = "-"
+        else:
+            try:
+                idle_text = "{:.1f}s".format(float(idle_value))
+            except Exception:
+                idle_text = "-"
+        self.panel.set_session_status(state, idle_text)
+
     def _connect_bridge_socket(self) -> None:
         if self.socket is not None:
             return
@@ -333,6 +432,46 @@ class ListenerPepperBridge:
             f"bridge={TCP_HOST}:{TCP_PORT}",
             force=True,
         )
+
+    async def _send_bridge_flush(self, reason: str) -> None:
+        if not self.socket:
+            return
+        try:
+            async with self._socket_send_lock:
+                if not self.socket:
+                    return
+                self.socket.sendall((0).to_bytes(4, "big"))
+            print(f"[listener_bridge] Sent bridge flush reason={reason}")
+            self._push_debug(f"bridge flush reason={reason}")
+        except (BrokenPipeError, ConnectionError, OSError) as exc:
+            print(f"[listener_bridge] Bridge flush failed reason={reason} err={exc}")
+            self._push_debug(f"bridge flush failed reason={reason}")
+            try:
+                if self.socket:
+                    self.socket.close()
+            finally:
+                self.socket = None
+
+    async def _cancel_existing_streams(self, reason: str, keep_key: Optional[str] = None) -> None:
+        tasks_to_cancel = [
+            (stream_key, task)
+            for stream_key, task in list(self._stream_tasks.items())
+            if keep_key is None or stream_key != keep_key
+        ]
+        if not tasks_to_cancel:
+            return
+        print(
+            f"[listener_bridge] Cancelling {len(tasks_to_cancel)} stale agent stream(s) reason={reason}"
+        )
+        self._push_debug(f"cancel stale streams reason={reason}")
+        for stream_key, task in tasks_to_cancel:
+            task.cancel()
+        for stream_key, task in tasks_to_cancel:
+            with contextlib.suppress(asyncio.CancelledError, Exception):
+                await task
+            self._stream_tasks.pop(stream_key, None)
+            self._active_stream_keys.discard(stream_key)
+        await self._send_bridge_flush(reason)
 
     async def _connect_room(
         self,
@@ -511,6 +650,7 @@ class ListenerPepperBridge:
                 if not is_final or not text:
                     continue
                 self._push_dialogue(speaker, text, "transcription")
+                self._post_debug_event("transcript", speaker=speaker, text=text)
 
         @room.on("track_subscribed")
         def on_track(track, publication, participant):
@@ -558,6 +698,10 @@ class ListenerPepperBridge:
                 start_ts = last_frame_ts
                 last_heartbeat_ts = start_ts
                 try:
+                    await self._cancel_existing_streams(
+                        reason="new_agent_stream",
+                        keep_key=stream_key,
+                    )
                     async for event in audio_stream:
                         frame = event.frame
                         raw = bytes(frame.data)
@@ -590,6 +734,9 @@ class ListenerPepperBridge:
                                     f"[listener_bridge] First audio frame from '{participant_identity}' "
                                     f"({len(mono)} bytes, inter={inter_frame_ms:.2f} ms)"
                                 )
+                                await self._poll_session_status()
+                                self._report_agent_activity()
+                                self._post_debug_event("agent_speaking", active=True)
                             elif frame_count % 200 == 0:
                                 elapsed = max(1e-6, time.monotonic() - start_ts)
                                 kbps = (bytes_sent * 8.0 / 1000.0) / elapsed
@@ -597,7 +744,17 @@ class ListenerPepperBridge:
                                     f"[listener_bridge] stream heartbeat key={stream_key} "
                                     f"frames={frame_count} inter={inter_frame_ms:.2f} ms kbps={kbps:.1f}"
                                 )
-                            self.socket.sendall(size_bytes + mono)
+                                await self._poll_session_status()
+                                self._report_agent_activity()
+                            try:
+                                rms = audioop.rms(mono, 2) / 32768.0
+                            except Exception:
+                                rms = 0.0
+                            self._post_debug_event("agent_level", level=rms)
+                            async with self._socket_send_lock:
+                                if not self.socket:
+                                    return
+                                self.socket.sendall(size_bytes + mono)
                         except (BrokenPipeError, ConnectionError) as exc:
                             print("[listener_bridge] TCP send failure:", exc)
                             try:
@@ -616,8 +773,15 @@ class ListenerPepperBridge:
                                     force=True,
                                 )
                             return
+                except asyncio.CancelledError:
+                    print(
+                        f"[listener_bridge] Cancelled audio stream for '{participant_identity}' "
+                        f"key={stream_key}"
+                    )
+                    raise
                 finally:
                     self._active_stream_keys.discard(stream_key)
+                    self._stream_tasks.pop(stream_key, None)
                     print(
                         "[listener_bridge] Audio forwarding OFF "
                         f"(stream ended for participant='{participant_identity}', key={stream_key})"
@@ -628,11 +792,13 @@ class ListenerPepperBridge:
                         f"from={participant_identity}",
                         force=True,
                     )
+                    self._post_debug_event("agent_speaking", active=False)
                     print(
                         f"[listener_bridge] Stream ended key={stream_key} frames={frame_count} bytes={bytes_sent}"
                     )
+                    await self._send_bridge_flush("stream_end")
 
-            asyncio.create_task(stream_task())
+            self._stream_tasks[stream_key] = asyncio.create_task(stream_task())
 
     async def _on_token_change(self, info: dict) -> None:
         room_name = info.get("roomName") or "<unknown>"
@@ -676,8 +842,10 @@ class ListenerPepperBridge:
 
         try:
             while True:
+                await self._poll_session_status()
                 await asyncio.sleep(1)
         finally:
+            await self._cancel_existing_streams(reason="listener_shutdown")
             if self._watch_task:
                 self._watch_task.cancel()
                 with contextlib.suppress(asyncio.CancelledError):

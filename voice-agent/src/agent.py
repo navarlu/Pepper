@@ -16,6 +16,7 @@ from livekit.agents import (
 from livekit.plugins import openai
 
 from .config import (
+    AGENT_NAME,
     AGENT_VERSION,
     LISTENER_IDENTITY,
     LIVEKIT_URL,
@@ -158,4 +159,9 @@ async def entrypoint(ctx: JobContext) -> None:
 
 
 if __name__ == "__main__":
-    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            agent_name=AGENT_NAME,
+        )
+    )

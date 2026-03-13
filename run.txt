@@ -65,5 +65,43 @@ dispatches agent via token room config,
 writes fresh snapshot, 
 and bridge follows the new listener token automatically.
 
+
+Permanent room flow (session manager + external mic):
+Start infra:
+docker compose -f docker/docker-compose.yml --env-file .env up -d
+
+Start agent worker:
+uv run python -m voice-agent.src.agent dev
+
+Start session manager + status dashboard:
+uv run python robot/src/session_manager.py
+
+Start Pepper stabilization first (Python 2.7):
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 robot/utils/safe_startup.py
+
+Start Pepper audio receiver (Python 2.7):
+python2 robot/src/bridge.py
+
+Start listener bridge:
+uv run python robot/src/listener.py
+
+Start local external microphone publisher:
+uv run python robot/src/user_client.py
+
+Open operator dashboard:
+http://127.0.0.1:8787/
+
+How this flow works:
+- Session manager creates one permanent room (`pepper-main`)
+- Listener and user client read tokens from `web/agents-playground/token-latest.json`
+- User client publishes external microphone audio as `user`
+- On user speech activity, session manager explicitly dispatches agent `Pepper`
+- Listener reports agent activity while Pepper audio is playing
+- After idle timeout, session manager removes the agent and returns to idle
+
 cd /home/lucas/Projects/FEL/Pepper/voice-agent
 uv run python ../docs/thesis/resources/ingest_data.py

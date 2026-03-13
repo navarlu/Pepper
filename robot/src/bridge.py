@@ -242,6 +242,8 @@ class TabletDebugReporter(object):
                 debug_lines = [to_text(debug_lines)]
             life_state = to_text(payload.get("life_state", u"unknown"))
             active_animation = to_text(payload.get("active_animation", u""))
+            session_state = to_text(payload.get("session_state", u""))
+            idle_countdown = to_text(payload.get("idle_countdown", u""))
             life_abilities = payload.get("life_abilities", {}) or {}
             if not isinstance(life_abilities, dict):
                 life_abilities = {}
@@ -256,6 +258,10 @@ class TabletDebugReporter(object):
                 status_line = u"Life: {} | Anim: {}".format(_esc(life_state), _esc(active_animation))
             else:
                 status_line = u"Life: {}".format(_esc(life_state))
+            if session_state:
+                status_line += u" | Session: {}".format(_esc(session_state))
+            if idle_countdown:
+                status_line += u" | Idle: {}".format(_esc(idle_countdown))
 
             debug_html = u"".join(
                 u"<div class='dbg-line'>{}</div>".format(_esc(to_text(line)))
@@ -688,8 +694,19 @@ def main():
 
             size = struct.unpack(">I", header)[0]
 
+            # Control frame: flush any queued audio without dropping the TCP session.
+            if size == 0:
+                stereo_queue = deque()
+                queued_bytes = 0
+                try:
+                    audio.flushAudioOutputs()
+                except Exception:
+                    pass
+                print("[pepper_audio] control flush: cleared buffered audio")
+                continue
+
             # Sanity check
-            if size <= 0 or size > 2 ** 20:
+            if size > 2 ** 20:
                 print("[pepper_audio] invalid size:", size)
                 break
 

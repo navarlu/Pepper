@@ -47,3 +47,94 @@ git commit -m "Checkpoint from local thesis state"
 git push overleaf HEAD:master
 cd /home/lucas/Projects/FEL/Pepper
 git worktree remove /tmp/overleaf-sync
+
+
+
+Pepper Ethernet setup (permanent via NetworkManager)
+Goal:
+- Keep normal internet on Wi-Fi
+- Force Pepper traffic to go over Ethernet
+- Make the setup reusable and easy to remove
+Current working values on this laptop:
+- Pepper IP: 10.0.0.149
+- Pepper NAOqi: tcp://10.0.0.149:9559
+- Laptop Ethernet interface: enx00e04c026907
+- Laptop Ethernet IP: 10.0.0.200/24
+- NetworkManager profile name: pepper-ethernet
+Why the old `ip addr add ...` method was not enough:
+- It worked only temporarily
+- It disappeared after reconnect/reboot
+- Wi-Fi and Ethernet were both on 10.0.0.0/24, so routing could flip unpredictably
+Permanent solution used:
+```bash
+nmcli connection add \
+  type ethernet \
+  ifname enx00e04c026907 \
+  con-name pepper-ethernet \
+  ipv4.method manual \
+  ipv4.addresses 10.0.0.200/24 \
+  ipv4.routes "10.0.0.149/32" \
+  ipv4.never-default yes \
+  ipv6.method ignore
+```
+Activate:
+```bash
+nmcli connection up pepper-ethernet
+```
+What this does:
+- assigns 10.0.0.200/24 to the Ethernet adapter
+- adds a host-specific route for Pepper (10.0.0.149/32)
+- keeps default internet on Wi-Fi
+How to verify:
+```bash
+ip route get 10.0.0.149
+[sudo] password for lucas: 
+10.0.0.149 dev enx00e04c026907 src 10.0.0.200 uid 1000 
+    cache 
+nmcli device show enx00e04c026907
+ip neigh show dev enx00e04c026907
+nc -vz -s 10.0.0.200 10.0.0.149 9559
+```
+Expected good signs:
+- `ip route get 10.0.0.149` shows `dev enx00e04c026907 src 10.0.0.200`
+- `nmcli` shows `GENERAL.CONNECTION: pepper-ethernet`
+- `ip neigh` shows Pepper MAC as reachable
+- `nc` to port 9559 succeeds
+Important note:
+- `ping` may fail even when Ethernet works
+- use `nc -vz -s 10.0.0.200 10.0.0.149 9559` as the real connectivity test
+Do I need to activate Ethernet again after reboot?
+- The configuration is permanent
+- The profile should reconnect automatically when the adapter/cable is present
+- Still, before running Pepper code, it is worth checking that the route is correct
+Recommended quick check before bridge startup:
+```bash
+ip route get 10.0.0.149
+nc -vz -s 10.0.0.200 10.0.0.149 9559
+```
+If Ethernet did not come up automatically:
+```bash
+nmcli connection up pepper-ethernet
+```
+If you want to disable it temporarily:
+```bash
+nmcli connection down pepper-ethernet
+```
+If you want to remove it permanently:
+```bash
+nmcli connection delete pepper-ethernet
+```
+How to reuse on another computer:
+1) Find the Ethernet device name:
+```bash
+nmcli device status
+```
+2) Create the same kind of dedicated profile, but replace:
+- `ifname`
+- laptop static IP if needed
+- Pepper IP if the robot IP is different
+3) Verify with:
+```bash
+ip route get <pepper-ip>
+nc -vz -s <laptop-ethernet-ip> <pepper-ip> 9559
+```

@@ -41,12 +41,36 @@ TABLET_INLINE_HTML_TEMPLATE = """<!doctype html><meta charset="utf-8">
 
 # LiveKit listener bridge settings.
 LIVEKIT_URL = "ws://127.0.0.1:7880"
+LIVEKIT_HTTP_URL = "http://127.0.0.1:7880"
+LIVEKIT_ROOM_NAME = "pepper-main"
 LISTENER_IDENTITY = "listener-python"
+USER_IDENTITY = "user"
 AGENT_TRACK_IDENTITY = ""
 TOKEN_POLL_INTERVAL = 0.5
 LIVEKIT_SESSION_FILE = os.path.join(
     REPO_ROOT, "web", "agents-playground", "token-latest.json"
 )
+LIVEKIT_STATUS_POLL_INTERVAL_SEC = 2.0
+
+# Session manager service.
+SESSION_MANAGER_HOST = "127.0.0.1"
+SESSION_MANAGER_PORT = 8787
+SESSION_MANAGER_URL = "http://{}:{}".format(
+    SESSION_MANAGER_HOST,
+    SESSION_MANAGER_PORT,
+)
+SESSION_IDLE_TIMEOUT_SEC = 30.0
+SESSION_COOLDOWN_SEC = 4.0
+SESSION_PREROLL_ACTIVITY_SEC = 0.8
+SESSION_ACTIVITY_DEBOUNCE_SEC = 0.75
+
+# Local external microphone publisher (`robot/src/user_client.py`).
+USER_MIC_SAMPLE_RATE = 48000
+USER_MIC_CHANNELS = 1
+USER_MIC_BLOCKSIZE = 4800
+USER_MIC_RMS_THRESHOLD = 0.012
+USER_MIC_DEVICE = None
+USER_CLIENT_TEST_MODE = "publish"
 
 # PCM forwarding from listener -> Pepper audio server.
 ALLOWED_STREAM_RATES = {16000, 22050, 44100, 48000}
