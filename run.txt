@@ -103,5 +103,45 @@ How this flow works:
 - Listener reports agent activity while Pepper audio is playing
 - After idle timeout, session manager removes the agent and returns to idle
 
+
+Service-oriented flow (Compose + host Pepper bridge):
+Build/start the Python 3 stack:
+docker compose -f docker/docker-compose.yml --env-file .env up -d livekit redis weaviate voice-agent session-manager listener
+
+Open operator dashboard:
+http://127.0.0.1:8787/
+
+Start Pepper host-side services (Python 2.7, still outside Docker):
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 robot/utils/safe_startup.py
+python2 robot/src/bridge.py
+
+Optional: run microphone publisher in Docker too:
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
+
+Safer fallback for microphone publisher if Docker audio access is flaky:
+uv run python robot/src/user_client.py
+
+Optional playground debug UI:
+docker compose -f docker/docker-compose.yml --env-file .env --profile debug up -d playground
+
+Expected dashboard component states:
+- session-manager: ready
+- livekit / redis / weaviate: ready
+- listener: ready or streaming
+- bridge: ready after `bridge.py` starts
+- user-client: ready or streaming after microphone publisher starts
+- voice-agent: ready
+
 cd /home/lucas/Projects/FEL/Pepper/voice-agent
 uv run python ../docs/thesis/resources/ingest_data.py
+
+
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 robot/src/bridge.py

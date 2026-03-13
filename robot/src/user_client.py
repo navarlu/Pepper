@@ -67,7 +67,12 @@ class SessionSnapshot:
                 continue
             user = payload.get("user") or {}
             token = str(user.get("token") or "").strip()
-            ws_url = str(payload.get("wsUrl") or "").strip()
+            ws_url = str(
+                payload.get("hostWsUrl")
+                or payload.get("wsUrl")
+                or payload.get("internalWsUrl")
+                or ""
+            ).strip()
             room_name = str(payload.get("roomName") or "").strip()
             if token and ws_url and room_name:
                 print(
@@ -89,14 +94,10 @@ class SessionSnapshot:
 class UserAudioClient:
     def __init__(self) -> None:
         _load_root_env()
-        self.source = rtc.AudioSource(
-            USER_MIC_SAMPLE_RATE,
-            USER_MIC_CHANNELS,
-            queue_size_ms=1500,
-        )
-        self.room: Optional[rtc.Room] = None
         self.http = aiohttp.ClientSession()
-        self.audio_queue: asyncio.Queue[tuple[bytes, int, float]] = asyncio.Queue(maxsize=32)
+        self.source: Optional[rtc.AudioSource] = None
+        self.room: Optional[rtc.Room] = None
+        self.audio_queue: Optional[asyncio.Queue[tuple[bytes, int, float]]] = None
         self._last_activity_post_monotonic = 0.0
         self._frames_sent = 0
         self._last_audio_log_monotonic = 0.0
@@ -104,6 +105,56 @@ class UserAudioClient:
         self._last_level_post_monotonic = 0.0
         self.test_mode = str(USER_CLIENT_TEST_MODE or "publish").strip().lower()
         self.mic_muted = False
+        self._component_state = ""
+        self._component_detail = ""
+        self._last_component_status_monotonic = 0.0
+
+    async def _report_component_status(
+        self,
+        state: str,
+        detail: str,
+        healthy: bool,
+        force: bool = False,
+    ) -> None:
+        now = time.monotonic()
+        if (
+            not force
+            and state == self._component_state
+            and detail == self._component_detail
+            and (now - self._last_component_status_monotonic) < 4.0
+        ):
+            return
+        self._component_state = state
+        self._component_detail = detail
+        self._last_component_status_monotonic = now
+        try:
+            async with self.http.post(
+                f"{SESSION_MANAGER_URL}/api/component-status",
+                json={
+                    "name": "user-client",
+                    "state": state,
+                    "detail": detail,
+                    "healthy": healthy,
+                },
+                timeout=aiohttp.ClientTimeout(total=1.0),
+            ) as resp:
+                await resp.read()
+        except Exception:
+            pass
+
+    def _reset_runtime_state(self) -> None:
+        self.source = rtc.AudioSource(
+            USER_MIC_SAMPLE_RATE,
+            USER_MIC_CHANNELS,
+            queue_size_ms=1500,
+        )
+        self.audio_queue = asyncio.Queue(maxsize=32)
+        self.room = None
+        self._last_activity_post_monotonic = 0.0
+        self._frames_sent = 0
+        self._last_audio_log_monotonic = 0.0
+        self._peak_rms = 0.0
+        self._last_level_post_monotonic = 0.0
 
     def _resolve_sounddevice(self):
         import sounddevice as sd
@@ -142,6 +193,9 @@ class UserAudioClient:
 
     async def _audio_sender_loop(self) -> None:
         while True:
+            if self.audio_queue is None or self.source is None:
+                await asyncio.sleep(0.1)
+                continue
             frame_bytes, samples_per_channel, rms = await self.audio_queue.get()
             now = time.monotonic()
             if now - self._last_level_post_monotonic >= 0.25:
@@ -230,7 +284,15 @@ class UserAudioClient:
             print("[user_client] failed to query audio devices: {}".format(exc))
 
     async def connect(self) -> None:
+        if self.source is None:
+            self._reset_runtime_state()
         snapshot = await SessionSnapshot.wait_for_user_snapshot()
+        await self._report_component_status(
+            "connecting_livekit",
+            "room={} url={}".format(snapshot["roomName"], snapshot["wsUrl"]),
+            healthy=False,
+            force=True,
+        )
         print(
             "[user_client] connecting to LiveKit room={} url={} as={}".format(
                 snapshot["roomName"],
@@ -277,10 +339,17 @@ class UserAudioClient:
             f"[user_client] connected room={snapshot['roomName']} "
             f"as={snapshot['identity']} track_sid={getattr(publication, 'sid', '') if publication else ''}"
         )
+        await self._report_component_status(
+            "ready",
+            "room={}".format(snapshot["roomName"]),
+            healthy=True,
+            force=True,
+        )
 
-    async def run(self) -> None:
+    async def _run_once(self) -> None:
         sd = self._resolve_sounddevice()
         self._log_devices(sd)
+        self._reset_runtime_state()
         await self.connect()
         sender_task = asyncio.create_task(self._audio_sender_loop())
         control_task = asyncio.create_task(self._control_loop())
@@ -296,6 +365,8 @@ class UserAudioClient:
             item = (frame_bytes, int(frames), rms)
 
             def _push() -> None:
+                if self.audio_queue is None:
+                    return
                 if self.audio_queue.full():
                     try:
                         self.audio_queue.get_nowait()
@@ -327,11 +398,21 @@ class UserAudioClient:
             if self.test_mode == "connect-only":
                 print("[user_client] connect-only mode active; keeping room open without microphone")
                 while True:
+                    await self._report_component_status(
+                        "ready",
+                        "connect-only mode",
+                        healthy=True,
+                    )
                     await asyncio.sleep(1)
             print("[user_client] entering microphone stream context")
             with stream:
                 print("[user_client] microphone stream active")
                 while True:
+                    await self._report_component_status(
+                        "streaming",
+                        "microphone active",
+                        healthy=True,
+                    )
                     await asyncio.sleep(1)
         finally:
             print("[user_client] shutting down user client")
@@ -344,13 +425,40 @@ class UserAudioClient:
             if self.room:
                 print("[user_client] disconnecting room")
                 await self.room.disconnect()
+                self.room = None
             print("[user_client] closing http session")
-            await self.http.close()
+            if self.audio_queue is not None:
+                self.audio_queue = None
+            self.source = None
+
+    async def run(self) -> None:
+        await self._report_component_status("starting", "user client booting", healthy=False, force=True)
+        while True:
+            try:
+                await self._report_component_status(
+                    "waiting_for_session",
+                    str(SESSION_FILE),
+                    healthy=False,
+                )
+                await self._run_once()
+            except Exception as exc:
+                print(f"[user_client] service loop error={exc!r} - retrying in 3s")
+                await self._report_component_status(
+                    "degraded",
+                    str(exc),
+                    healthy=False,
+                    force=True,
+                )
+                await asyncio.sleep(3)
 
 
 async def main() -> None:
     client = UserAudioClient()
-    await client.run()
+    try:
+        await client.run()
+    finally:
+        await client._report_component_status("stopping", "user client stopped", healthy=False, force=True)
+        await client.http.close()
 
 
 if __name__ == "__main__":

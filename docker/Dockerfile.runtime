@@ -1,0 +1,23 @@
+FROM python:3.11-slim
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_SYSTEM_PYTHON=1 \
+    PATH=/opt/venv/bin:$PATH
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    git \
+    libportaudio2 \
+    portaudio19-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir uv
+
+WORKDIR /workspace
+
+COPY requirements.txt /tmp/requirements.txt
+RUN uv pip install --python /opt/venv/bin/python --no-cache-dir -r /tmp/requirements.txt
+

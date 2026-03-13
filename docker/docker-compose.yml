@@ -20,6 +20,98 @@ services:
       - ./redis-data:/data
     restart: unless-stopped
 
+  voice-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "-m", "voice-agent.src.agent", "dev"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://livekit:7880
+      SESSION_MANAGER_URL: http://session-manager:8787
+      WEAVIATE_HOST: weaviate
+      ANIMATION_BRIDGE_URL: http://host.docker.internal:5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - livekit
+      - redis
+      - weaviate
+    restart: unless-stopped
+
+  session-manager:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/session_manager.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
+      LIVEKIT_URL: ws://livekit:7880
+      LIVEKIT_HTTP_URL: http://livekit:7880
+      BRIDGE_URL: http://host.docker.internal:5000
+      SESSION_MANAGER_HOST: 0.0.0.0
+      SESSION_MANAGER_PORT: 8787
+      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WEAVIATE_HOST: weaviate
+      WEAVIATE_HTTP_PORT: 8080
+      BRIDGE_TCP_URL: tcp://host.docker.internal:55555
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8787:8787"
+    depends_on:
+      - livekit
+      - redis
+      - weaviate
+    restart: unless-stopped
+
+  listener:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/listener.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://livekit:7880
+      SESSION_MANAGER_URL: http://session-manager:8787
+      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+      TCP_HOST: host.docker.internal
+      TCP_PORT: 55555
+      BRIDGE_URL: http://host.docker.internal:5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - session-manager
+      - livekit
+    restart: unless-stopped
+
+  user-client:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/user_client.py"]
+    volumes:
+      - ..:/workspace
+      - /dev/snd:/dev/snd
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      SESSION_MANAGER_URL: http://127.0.0.1:8787
+      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+    network_mode: host
+    profiles:
+      - audio
+    restart: unless-stopped
+
   
   playground:
     image: node:18.20.8
@@ -34,6 +126,8 @@ services:
       NEXT_PUBLIC_LIVEKIT_URL: ws://127.0.0.1:7880
     ports:
       - "3000:3000"
+    profiles:
+      - debug
     restart: unless-stopped
 
   weaviate:

@@ -5,3 +5,6 @@ Declaration misto specifications
 .env.example
 
 cospeach
+
+
+state on pepper not updates when idle

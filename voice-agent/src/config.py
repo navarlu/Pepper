@@ -1,6 +1,29 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+def _env_str(name: str, default: str) -> str:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    value = value.strip()
+    return value if value else default
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None or not str(value).strip():
+        return int(default)
+    return int(value)
+
+
+def _env_float(name: str, default: float) -> float:
+    value = os.getenv(name)
+    if value is None or not str(value).strip():
+        return float(default)
+    return float(value)
 
 LANG = "en"
 AGENT_VERSION = "0.1.0"
@@ -17,17 +40,18 @@ CASCADE_TTS_SPEAKER_ID = None
 CASCADE_TTS_LENGTH_SCALE = 1.0
 CASCADE_TTS_NOISE_SCALE = 0.667
 CASCADE_TTS_NOISE_W_SCALE = 0.8
-LISTENER_IDENTITY = "listener-python"
-LIVEKIT_URL = "ws://127.0.0.1:7880"
+LISTENER_IDENTITY = _env_str("LISTENER_IDENTITY", "listener-python")
+LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
+SESSION_MANAGER_URL = _env_str("SESSION_MANAGER_URL", "http://127.0.0.1:8787")
 
 AGENT_NAME = "Pepper"
 ORGANIZATION = "CTU Faculty of Electrical Engineering"
 PLACE = "Charles Square"
 
 # Weaviate vector search configuration.
-WEAVIATE_HOST = "localhost"
-WEAVIATE_HTTP_PORT = 8080
-WEAVIATE_GRPC_PORT = 50051
+WEAVIATE_HOST = _env_str("WEAVIATE_HOST", "localhost")
+WEAVIATE_HTTP_PORT = _env_int("WEAVIATE_HTTP_PORT", 8080)
+WEAVIATE_GRPC_PORT = _env_int("WEAVIATE_GRPC_PORT", 50051)
 WEAVIATE_COLLECTION = "fel_v003"
 WEAVIATE_OPENAI_MODEL = "text-embedding-3-large"
 WEAVIATE_HYBRID_ALPHA = 0.7
@@ -46,8 +70,8 @@ QUERY_SEARCH_MAX_CONTENT_CHARS = 900
 
 # Pepper animation tool (voice-agent -> robot bridge).
 ENABLE_ANIMATION_TOOL = True
-ANIMATION_BRIDGE_URL = "http://127.0.0.1:5000"
-ANIMATION_TOOL_HTTP_TIMEOUT_SEC = 2.5
+ANIMATION_BRIDGE_URL = _env_str("ANIMATION_BRIDGE_URL", "http://127.0.0.1:5000")
+ANIMATION_TOOL_HTTP_TIMEOUT_SEC = _env_float("ANIMATION_TOOL_HTTP_TIMEOUT_SEC", 2.5)
 ANIMATION_TOOL_MAX_NAME_CHARS = 120
 ANIMATION_TOOL_ALLOWED = (
     "Hey_1",         # welcome / greeting

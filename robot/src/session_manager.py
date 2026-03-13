@@ -2,11 +2,14 @@ import asyncio
 import contextlib
 import json
 import os
+import socket
 import time
 import uuid
 from collections import deque
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
+from urllib.request import Request, urlopen
 
 from aiohttp import web
 from dotenv import load_dotenv
@@ -15,11 +18,13 @@ from livekit import api
 try:
     from .config import (
         LISTENER_IDENTITY,
+        LIVEKIT_HOST_WS_URL,
         LIVEKIT_HTTP_URL,
         LIVEKIT_ROOM_NAME,
         LIVEKIT_SESSION_FILE,
         LIVEKIT_STATUS_POLL_INTERVAL_SEC,
         LIVEKIT_URL,
+        BRIDGE_URL,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
         SESSION_COOLDOWN_SEC,
         SESSION_IDLE_TIMEOUT_SEC,
@@ -31,11 +36,13 @@ try:
 except ImportError:
     from config import (
         LISTENER_IDENTITY,
+        LIVEKIT_HOST_WS_URL,
         LIVEKIT_HTTP_URL,
         LIVEKIT_ROOM_NAME,
         LIVEKIT_SESSION_FILE,
         LIVEKIT_STATUS_POLL_INTERVAL_SEC,
         LIVEKIT_URL,
+        BRIDGE_URL,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
         SESSION_COOLDOWN_SEC,
         SESSION_IDLE_TIMEOUT_SEC,
@@ -50,6 +57,8 @@ AGENT_NAME_DEFAULT = "Pepper"
 SESSION_SOURCE_USER = "user"
 SESSION_SOURCE_AGENT = "agent"
 MAX_TRANSCRIPT_ITEMS = 40
+COMPONENT_STALE_AFTER_SEC = 12.0
+COMPONENT_PROBE_INTERVAL_SEC = 3.0
 STATUS_HTML = """<!doctype html>
 <meta charset="utf-8">
 <title>Pepper Operator</title>
@@ -157,6 +166,13 @@ button.warn { background:#c64e4e; }
       <tbody id="participantsBody"><tr><td colspan="5">Loading...</td></tr></tbody>
     </table>
   </div>
+  <div class="card" style="margin-top:14px;">
+    <div class="label">Components</div>
+    <table>
+      <thead><tr><th>Name</th><th>State</th><th>Healthy</th><th>Source</th><th>Detail</th><th>Updated</th></tr></thead>
+      <tbody id="componentsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+    </table>
+  </div>
   <div class="grid" style="margin-top:14px;">
     <div class="card"><div class="label">Last User Activity</div><div class="value mono" id="userActivity">-</div></div>
     <div class="card"><div class="label">Last Agent Activity</div><div class="value mono" id="agentActivity">-</div></div>
@@ -211,6 +227,18 @@ async function refresh() {
       </tr>
     `).join("");
     tbody.innerHTML = rows || '<tr><td colspan="5">No participants.</td></tr>';
+    const componentsBody = document.getElementById("componentsBody");
+    const componentRows = (data.components || []).map((item) => `
+      <tr>
+        <td class="mono">${item.name || ""}</td>
+        <td>${item.state || ""}</td>
+        <td>${item.healthy ? "yes" : "no"}</td>
+        <td>${item.source || ""}</td>
+        <td class="mono">${item.detail || ""}</td>
+        <td class="mono">${fmtTs(item.updated_at)}</td>
+      </tr>
+    `).join("");
+    componentsBody.innerHTML = componentRows || '<tr><td colspan="6">No component state.</td></tr>';
     const transcriptEl = document.getElementById("transcriptList");
     const transcriptRows = (data.transcript_items || []).map((item) => `
       <div class="bubble ${item.speaker === 'Pepper' ? 'pepper' : 'user'}">
@@ -275,7 +303,9 @@ class SessionManager:
         _load_root_env()
         self.room_name = LIVEKIT_ROOM_NAME
         self.livekit_ws_url = LIVEKIT_URL
+        self.livekit_host_ws_url = LIVEKIT_HOST_WS_URL
         self.livekit_http_url = LIVEKIT_HTTP_URL
+        self.bridge_url = BRIDGE_URL
         self.session_file = Path(LIVEKIT_SESSION_FILE)
         self.api_key = _get_required_env("LIVEKIT_API_KEY")
         self.api_secret = _get_required_env("LIVEKIT_API_SECRET")
@@ -299,8 +329,108 @@ class SessionManager:
         self.agent_speaking = False
         self.agent_audio_level = 0.0
         self.pending_user_texts: list[dict[str, str]] = []
+        self.components: dict[str, dict[str, Any]] = {}
         self._lock = asyncio.Lock()
         self._bg_tasks: list[asyncio.Task[Any]] = []
+        self._bootstrap_complete = False
+        self._register_component(
+            "session-manager",
+            state="starting",
+            detail="initializing",
+            healthy=True,
+            source="internal",
+        )
+        self._register_component(
+            "listener",
+            state="unknown",
+            detail="waiting for heartbeat",
+            healthy=False,
+            source="service",
+        )
+        self._register_component(
+            "user-client",
+            state="unknown",
+            detail="waiting for heartbeat",
+            healthy=False,
+            source="service",
+        )
+        self._register_component(
+            "voice-agent",
+            state="unknown",
+            detail="waiting for heartbeat",
+            healthy=False,
+            source="service",
+        )
+        self._register_component(
+            "bridge",
+            state="unknown",
+            detail="waiting for probe",
+            healthy=False,
+            source="probe",
+        )
+        self._register_component(
+            "livekit",
+            state="unknown",
+            detail="waiting for probe",
+            healthy=False,
+            source="probe",
+        )
+        self._register_component(
+            "redis",
+            state="unknown",
+            detail="waiting for probe",
+            healthy=False,
+            source="probe",
+        )
+        self._register_component(
+            "weaviate",
+            state="unknown",
+            detail="waiting for probe",
+            healthy=False,
+            source="probe",
+        )
+
+    def _register_component(
+        self,
+        name: str,
+        *,
+        state: str,
+        detail: str,
+        healthy: bool,
+        source: str,
+    ) -> None:
+        self.components[name] = {
+            "name": name,
+            "state": state,
+            "detail": detail,
+            "healthy": healthy,
+            "source": source,
+            "updated_at": _utc_now_iso(),
+            "updated_monotonic": time.monotonic(),
+        }
+
+    def _set_component_state(
+        self,
+        name: str,
+        *,
+        state: str,
+        detail: str = "",
+        healthy: bool = True,
+        source: str | None = None,
+    ) -> None:
+        item = self.components.get(name) or {"name": name}
+        item["name"] = name
+        item["state"] = state
+        item["detail"] = detail
+        item["healthy"] = bool(healthy)
+        if source is not None:
+            item["source"] = source
+        else:
+            item["source"] = item.get("source", "service")
+        item["updated_at"] = _utc_now_iso()
+        item["updated_monotonic"] = time.monotonic()
+        self.components[name] = item
+        self.updated_at = item["updated_at"]
 
     def _new_lkapi(self) -> api.LiveKitAPI:
         return api.LiveKitAPI(self.livekit_http_url, self.api_key, self.api_secret)
@@ -328,6 +458,32 @@ class SessionManager:
             .to_jwt()
         )
 
+    async def _probe_tcp(self, host: str, port: int, timeout: float = 1.0) -> bool:
+        try:
+            conn = asyncio.open_connection(host, port)
+            reader, writer = await asyncio.wait_for(conn, timeout=timeout)
+            writer.close()
+            with contextlib.suppress(Exception):
+                await writer.wait_closed()
+            return True
+        except Exception:
+            return False
+
+    async def _probe_http_health(self, raw_url: str, timeout: float = 1.0) -> bool:
+        health_url = raw_url.rstrip("/") + "/health"
+        req = Request(health_url, method="GET")
+        try:
+            await asyncio.to_thread(lambda: urlopen(req, timeout=timeout).read())
+            return True
+        except Exception:
+            return False
+
+    def _host_port_from_url(self, raw_url: str, default_port: int) -> tuple[str, int]:
+        parsed = urlparse(raw_url)
+        host = parsed.hostname or "127.0.0.1"
+        port = int(parsed.port or default_port)
+        return host, port
+
     async def ensure_room(self) -> None:
         lkapi = self._new_lkapi()
         try:
@@ -338,6 +494,84 @@ class SessionManager:
                 print(f"[session_manager] create_room skipped room={self.room_name} err={exc}")
         finally:
             await lkapi.aclose()
+
+    async def bootstrap_loop(self) -> None:
+        while True:
+            try:
+                self._set_component_state(
+                    "session-manager",
+                    state="bootstrapping",
+                    detail="ensuring room and session snapshot",
+                    healthy=True,
+                    source="internal",
+                )
+                await self.ensure_room()
+                await self.cleanup_stale_dispatches()
+                await self.write_session_snapshot()
+                self._bootstrap_complete = True
+                self._set_component_state(
+                    "session-manager",
+                    state="ready",
+                    detail="dashboard and orchestration online",
+                    healthy=True,
+                    source="internal",
+                )
+                return
+            except Exception as exc:
+                self._set_component_state(
+                    "session-manager",
+                    state="degraded",
+                    detail=f"bootstrap failed: {exc}",
+                    healthy=False,
+                    source="internal",
+                )
+                print(f"[session_manager] bootstrap failed err={exc}")
+                await asyncio.sleep(3)
+
+    async def probe_components_loop(self) -> None:
+        livekit_host, livekit_port = self._host_port_from_url(self.livekit_http_url, 7880)
+        redis_host = os.getenv("REDIS_HOST", "127.0.0.1")
+        redis_port = int(os.getenv("REDIS_PORT", "6379"))
+        weaviate_host = os.getenv("WEAVIATE_HOST", "127.0.0.1")
+        weaviate_port = int(os.getenv("WEAVIATE_HTTP_PORT", "8080"))
+
+        while True:
+            checks = [
+                ("livekit", livekit_host, livekit_port),
+                ("redis", redis_host, redis_port),
+                ("weaviate", weaviate_host, weaviate_port),
+            ]
+            for name, host, port in checks:
+                ok = await self._probe_tcp(host, port)
+                self._set_component_state(
+                    name,
+                    state="ready" if ok else "down",
+                    detail=f"{host}:{port}",
+                    healthy=ok,
+                    source="probe",
+                )
+            bridge_ok = await self._probe_http_health(self.bridge_url)
+            self._set_component_state(
+                "bridge",
+                state="ready" if bridge_ok else "down",
+                detail=self.bridge_url,
+                healthy=bridge_ok,
+                source="probe",
+            )
+            now = time.monotonic()
+            for name, item in list(self.components.items()):
+                if item.get("source") != "service":
+                    continue
+                age = now - float(item.get("updated_monotonic") or 0.0)
+                if age > COMPONENT_STALE_AFTER_SEC:
+                    self._set_component_state(
+                        name,
+                        state="stale",
+                        detail="no heartbeat received recently",
+                        healthy=False,
+                        source="service",
+                    )
+            await asyncio.sleep(COMPONENT_PROBE_INTERVAL_SEC)
 
     async def cleanup_stale_dispatches(self) -> None:
         lkapi = self._new_lkapi()
@@ -359,6 +593,8 @@ class SessionManager:
             "generatedAt": _utc_now_iso(),
             "roomName": self.room_name,
             "wsUrl": self.livekit_ws_url,
+            "internalWsUrl": self.livekit_ws_url,
+            "hostWsUrl": self.livekit_host_ws_url,
             "source": "session-manager",
             "user": {
                 "identity": USER_IDENTITY,
@@ -443,7 +679,7 @@ class SessionManager:
 
     async def dispatch_agent(self) -> None:
         async with self._lock:
-            if self.agent_deployed:
+            if self.agent_deployed or not self._bootstrap_complete:
                 return
             self.conversation_id = uuid.uuid4().hex[:10]
             self.session_state = "starting"
@@ -466,6 +702,27 @@ class SessionManager:
                     f"[session_manager] dispatched agent name={self.agent_name} "
                     f"room={self.room_name} conversation_id={self.conversation_id} dispatch_id={self.active_dispatch_id}"
                 )
+                self._set_component_state(
+                    "session-manager",
+                    state="ready",
+                    detail="agent dispatched",
+                    healthy=True,
+                    source="internal",
+                )
+            except Exception as exc:
+                self.session_state = "idle"
+                self.conversation_id = ""
+                self.agent_deployed = False
+                self.active_dispatch_id = ""
+                self.dispatch_started_monotonic = 0.0
+                self._set_component_state(
+                    "session-manager",
+                    state="degraded",
+                    detail=f"dispatch failed: {exc}",
+                    healthy=False,
+                    source="internal",
+                )
+                print(f"[session_manager] dispatch failed err={exc}")
             finally:
                 await lkapi.aclose()
 
@@ -486,6 +743,13 @@ class SessionManager:
         async with self._lock:
             self.session_state = "idle"
             self.updated_at = _utc_now_iso()
+            self._set_component_state(
+                "session-manager",
+                state="ready",
+                detail="idle",
+                healthy=True,
+                source="internal",
+            )
 
     async def record_activity(self, source: str, level: float | None = None) -> None:
         now = time.monotonic()
@@ -531,7 +795,8 @@ class SessionManager:
     async def monitor_loop(self) -> None:
         while True:
             now = time.monotonic()
-            await self._refresh_participants_once()
+            if self._bootstrap_complete:
+                await self._refresh_participants_once()
             if self.agent_deployed:
                 if self.last_user_activity_monotonic > 0:
                     idle_for = now - self.last_user_activity_monotonic
@@ -566,6 +831,20 @@ class SessionManager:
             "agent_speaking": self.agent_speaking,
             "agent_audio_level": self.agent_audio_level,
             "idle_countdown_sec": self._idle_countdown_sec(),
+            "components": sorted(
+                (
+                    {
+                        "name": item.get("name", ""),
+                        "state": item.get("state", ""),
+                        "detail": item.get("detail", ""),
+                        "healthy": bool(item.get("healthy", False)),
+                        "source": item.get("source", ""),
+                        "updated_at": item.get("updated_at", ""),
+                    }
+                    for item in self.components.values()
+                ),
+                key=lambda item: item["name"],
+            ),
         }
         return web.json_response(payload)
 
@@ -605,6 +884,25 @@ class SessionManager:
 
         self.updated_at = _utc_now_iso()
         return web.json_response({"ok": True})
+
+    async def handle_component_status(self, request: web.Request) -> web.Response:
+        data = await request.json()
+        name = " ".join(str(data.get("name") or "").strip().split())
+        state = " ".join(str(data.get("state") or "").strip().split())
+        detail = " ".join(str(data.get("detail") or "").strip().split())
+        healthy = bool(data.get("healthy", True))
+        if not name or not state:
+            return web.json_response({"ok": False, "error": "name and state required"}, status=400)
+        if name == "bridge":
+            return web.json_response({"ok": True, "name": name, "ignored": True})
+        self._set_component_state(
+            name,
+            state=state,
+            detail=detail,
+            healthy=healthy,
+            source="service",
+        )
+        return web.json_response({"ok": True, "name": name, "state": state})
 
     async def handle_mic_toggle(self, request: web.Request) -> web.Response:
         del request
@@ -649,9 +947,6 @@ class SessionManager:
         return web.Response(text=STATUS_HTML, content_type="text/html")
 
     async def start(self) -> None:
-        await self.ensure_room()
-        await self.cleanup_stale_dispatches()
-        await self.write_session_snapshot()
         app = web.Application()
         app.add_routes(
             [
@@ -659,6 +954,7 @@ class SessionManager:
                 web.get("/api/status", self.handle_status),
                 web.post("/api/activity", self.handle_activity),
                 web.post("/api/debug-event", self.handle_debug_event),
+                web.post("/api/component-status", self.handle_component_status),
                 web.post("/api/control/mic", self.handle_mic_toggle),
                 web.post("/api/control/text", self.handle_text_send),
                 web.post("/api/control/reset", self.handle_reset),
@@ -674,7 +970,9 @@ class SessionManager:
             f"[session_manager] dashboard=http://{SESSION_MANAGER_HOST}:{SESSION_MANAGER_PORT} "
             f"room={self.room_name} agent_name={self.agent_name}"
         )
+        self._bg_tasks.append(asyncio.create_task(self.bootstrap_loop()))
         self._bg_tasks.append(asyncio.create_task(self.monitor_loop()))
+        self._bg_tasks.append(asyncio.create_task(self.probe_components_loop()))
         try:
             while True:
                 await asyncio.sleep(3600)

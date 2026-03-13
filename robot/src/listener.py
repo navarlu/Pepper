@@ -285,7 +285,7 @@ class SessionWatcher:
             "token": token,
             "roomName": snapshot.get("roomName"),
             "identity": role_data.get("identity"),
-            "wsUrl": snapshot.get("wsUrl"),
+            "wsUrl": snapshot.get("internalWsUrl") or snapshot.get("wsUrl"),
             "agentIdentity": (
                 (snapshot.get("agent") or {}).get("identity")
                 if isinstance(snapshot.get("agent"), dict)
@@ -335,11 +335,56 @@ class ListenerPepperBridge:
         )
         self._last_agent_activity_post_monotonic = 0.0
         self._last_status_poll_monotonic = 0.0
+        self._component_status_cache: dict[str, tuple[str, str, float]] = {}
         self.panel.add_debug("Listener initialized")
 
     def _push_debug(self, msg: str) -> None:
         print(f"[listener_bridge][debug] {msg}")
         self.panel.add_debug(msg)
+
+    async def _report_component_status(
+        self,
+        name: str,
+        state: str,
+        detail: str,
+        healthy: bool,
+        force: bool = False,
+    ) -> None:
+        now = time.monotonic()
+        last_state, last_detail, last_ts = self._component_status_cache.get(
+            name,
+            ("", "", 0.0),
+        )
+        if (
+            not force
+            and state == last_state
+            and detail == last_detail
+            and (now - last_ts) < 4.0
+        ):
+            return
+        self._component_status_cache[name] = (state, detail, now)
+        if not SESSION_MANAGER_URL:
+            return
+        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/component-status"
+        payload = {
+            "name": name,
+            "state": state,
+            "detail": detail,
+            "healthy": healthy,
+        }
+        req = Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            await asyncio.to_thread(lambda: urlopen(req, timeout=0.5).read())
+        except Exception:
+            pass
+
+    async def _report_bridge_status(self, state: str, detail: str, healthy: bool, force: bool = False) -> None:
+        await self._report_component_status("bridge", state, detail, healthy, force=force)
 
     def _push_dialogue(self, speaker: str, text: str, source: str) -> None:
         clean = " ".join(str(text).strip().split())
@@ -433,6 +478,39 @@ class ListenerPepperBridge:
             force=True,
         )
 
+    async def _ensure_bridge_socket(self) -> None:
+        while self.socket is None:
+            await self._report_component_status(
+                "listener",
+                "waiting_for_bridge",
+                f"tcp://{TCP_HOST}:{TCP_PORT}",
+                healthy=False,
+            )
+            try:
+                self._connect_bridge_socket()
+                await self._report_component_status(
+                    "listener",
+                    "bridge_connected",
+                    f"tcp://{TCP_HOST}:{TCP_PORT}",
+                    healthy=True,
+                    force=True,
+                )
+                await self._report_bridge_status(
+                    "connected",
+                    f"tcp://{TCP_HOST}:{TCP_PORT}",
+                    healthy=True,
+                    force=True,
+                )
+            except Exception as exc:
+                print(f"[listener_bridge] Bridge TCP unavailable err={exc} - retrying in 2s")
+                self._push_debug(f"bridge wait err={exc}")
+                await self._report_bridge_status(
+                    "down",
+                    f"tcp://{TCP_HOST}:{TCP_PORT}",
+                    healthy=False,
+                )
+                await asyncio.sleep(2)
+
     async def _send_bridge_flush(self, reason: str) -> None:
         if not self.socket:
             return
@@ -451,6 +529,25 @@ class ListenerPepperBridge:
                     self.socket.close()
             finally:
                 self.socket = None
+
+    async def _send_bridge_ping(self) -> bool:
+        if not self.socket:
+            return False
+        try:
+            async with self._socket_send_lock:
+                if not self.socket:
+                    return False
+                self.socket.sendall((0xFFFFFFFF).to_bytes(4, "big"))
+            return True
+        except (BrokenPipeError, ConnectionError, OSError) as exc:
+            print(f"[listener_bridge] Bridge ping failed err={exc}")
+            self._push_debug("bridge ping failed")
+            try:
+                if self.socket:
+                    self.socket.close()
+            finally:
+                self.socket = None
+            return False
 
     async def _cancel_existing_streams(self, reason: str, keep_key: Optional[str] = None) -> None:
         tasks_to_cancel = [
@@ -497,6 +594,12 @@ class ListenerPepperBridge:
             while True:
                 room = rtc.Room()
                 self._register_track_handler(room)
+                await self._report_component_status(
+                    "listener",
+                    "connecting_livekit",
+                    f"url={self.livekit_url}",
+                    healthy=False,
+                )
                 try:
                     await room.connect(self.livekit_url, token)
                 except Exception as exc:
@@ -504,6 +607,13 @@ class ListenerPepperBridge:
                         "[listener_bridge] Failed to connect to LiveKit:",
                         exc,
                         "- retrying in 3s",
+                    )
+                    await self._report_component_status(
+                        "listener",
+                        "waiting_for_livekit",
+                        str(exc),
+                        healthy=False,
+                        force=True,
                     )
                     await asyncio.sleep(3)
                     continue
@@ -517,6 +627,13 @@ class ListenerPepperBridge:
                 self._publish_status(
                     "Listener connected",
                     f"room={room.name}\nas={identity}\nagent={self.target_identity or 'auto'}",
+                    force=True,
+                )
+                await self._report_component_status(
+                    "listener",
+                    "ready",
+                    f"room={room.name}",
+                    healthy=True,
                     force=True,
                 )
                 if self.target_identity:
@@ -762,16 +879,20 @@ class ListenerPepperBridge:
                                     self.socket.close()
                             finally:
                                 self.socket = None
-                            try:
-                                self._connect_bridge_socket()
-                            except Exception as reconnect_exc:
-                                print("[listener_bridge] TCP reconnect failed:", reconnect_exc)
-                                self._push_debug("TCP reconnect failed")
-                                self._publish_status(
-                                    "TCP reconnect failed",
-                                    f"error={reconnect_exc}",
-                                    force=True,
-                                )
+                            await self._report_component_status(
+                                "listener",
+                                "waiting_for_bridge",
+                                f"send failure: {exc}",
+                                healthy=False,
+                                force=True,
+                            )
+                            await self._report_bridge_status(
+                                "down",
+                                f"send failure: {exc}",
+                                healthy=False,
+                                force=True,
+                            )
+                            await self._ensure_bridge_socket()
                             return
                 except asyncio.CancelledError:
                     print(
@@ -820,12 +941,20 @@ class ListenerPepperBridge:
 
     async def run(self) -> None:
         self.tablet.start()
+        await self._report_component_status("listener", "starting", "listener booting", healthy=False, force=True)
         self._publish_status(
             "Listener bridge starting",
             f"session_file={SESSION_FILE}",
             force=True,
         )
-        self._connect_bridge_socket()
+        await self._ensure_bridge_socket()
+        await self._report_component_status(
+            "listener",
+            "waiting_for_session",
+            str(SESSION_FILE),
+            healthy=False,
+            force=True,
+        )
         info = await self.token_watcher.wait_for_initial_token()
         print(
             f"[listener_bridge] Using listener identity '{info.get('identity')}' for room '{info.get('roomName')}'"
@@ -842,9 +971,29 @@ class ListenerPepperBridge:
 
         try:
             while True:
+                if self.socket is None:
+                    await self._ensure_bridge_socket()
+                else:
+                    ping_ok = await self._send_bridge_ping()
+                    if not ping_ok:
+                        await self._report_component_status(
+                            "listener",
+                            "waiting_for_bridge",
+                            f"tcp://{TCP_HOST}:{TCP_PORT}",
+                            healthy=False,
+                            force=True,
+                        )
+                        await self._ensure_bridge_socket()
+                await self._report_component_status(
+                    "listener",
+                    "streaming" if self._active_stream_keys else "ready",
+                    "agent audio active" if self._active_stream_keys else "connected and waiting",
+                    healthy=True,
+                )
                 await self._poll_session_status()
                 await asyncio.sleep(1)
         finally:
+            await self._report_component_status("listener", "stopping", "listener shutting down", healthy=False, force=True)
             await self._cancel_existing_streams(reason="listener_shutdown")
             if self._watch_task:
                 self._watch_task.cancel()
