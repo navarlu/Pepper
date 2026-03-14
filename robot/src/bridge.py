@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
@@ -12,8 +12,7 @@ import time
 import threading
 import json
 import qi
-import urllib
-import urlparse
+from urllib.parse import quote, unquote, urlparse
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 except Exception:
@@ -275,7 +274,7 @@ class TabletDebugReporter(object):
                 user_text=_esc(user_text or u"..."),
                 pepper_text=_esc(pepper_text or u"..."),
             )
-            data_url = "data:text/html;charset=utf-8," + urllib.quote(
+            data_url = "data:text/html;charset=utf-8," + quote(
                 html.encode("utf-8")
             )
             self._tablet.showWebview(data_url)
@@ -290,7 +289,7 @@ class TabletDebugReporter(object):
         html = TABLET_INLINE_HTML_TEMPLATE.format(
             bg=bg, fg=fg, size=size, align=align, txt=_esc(text)
         )
-        data_url = "data:text/html;charset=utf-8," + urllib.quote(
+        data_url = "data:text/html;charset=utf-8," + quote(
             html.encode("utf-8")
         )
         self._tablet.showWebview(data_url)
@@ -325,7 +324,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._life = life_service
         self._animations_map = animations_map
         self._server = None
-        parsed = urlparse.urlparse(bridge_url or "")
+        parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
         if host in ("127.0.0.1", "localhost") and BRIDGE_BIND_HOST == "0.0.0.0":
             host = BRIDGE_BIND_HOST
@@ -394,7 +393,7 @@ class TabletOverlayHttpServer(threading.Thread):
                         )
                         return
                     raw_name = path_only[len("/animation/"):]
-                    name = urllib.unquote(raw_name)
+                    name = unquote(raw_name)
                     try:
                         installed = bm.getInstalledBehaviors()
                     except Exception as exc:
@@ -807,7 +806,7 @@ def main():
                                 queued_bytes -= need_bytes
                                 need_bytes = 0
 
-                        payload = "".join(parts)
+                        payload = b"".join(parts)
                         send_start_ts = time.time()
                         audio.sendRemoteBufferToOutput(batch_frames, payload)
                         send_duration_ms = (time.time() - send_start_ts) * 1000.0

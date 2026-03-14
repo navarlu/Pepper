@@ -237,7 +237,7 @@ python2 robot/utils/safe_startup.py
 Then start the bridge:
 
 ```bash
-python2 robot/src/bridge.py
+python robot/src/bridge.py
 ```
 
 Expected good signs:

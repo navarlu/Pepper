@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     curl \
     git \
+    libglib2.0-0 \
     libportaudio2 \
     portaudio19-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -20,4 +21,3 @@ WORKDIR /workspace
 
 COPY requirements.txt /tmp/requirements.txt
 RUN uv pip install --python /opt/venv/bin/python --no-cache-dir -r /tmp/requirements.txt
-

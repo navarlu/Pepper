@@ -139,7 +139,7 @@ LISTENER_LOG_TABLET_POST = _env_bool("LISTENER_LOG_TABLET_POST", False)
 LISTENER_LOG_PARTIAL_TRANSCRIPTS = _env_bool("LISTENER_LOG_PARTIAL_TRANSCRIPTS", False)
 
 # Pepper NAOqi endpoint used by the audio receiver.
-PEPPER_QI_URL = _env_str("PEPPER_QI_URL", "tcp://10.0.0.149:9559")
+PEPPER_QI_URL = _env_str("PEPPER_QI_URL", "tcp://192.168.210.113:9559")
 
 # Bridge service lookup tuning.
 BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC = _env_float("BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC", 120.0)
