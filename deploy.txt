@@ -1,0 +1,354 @@
+Pepper deployment notes
+=======================
+
+This file describes what to do after cloning this repository onto a new machine.
+
+Important architecture note
+---------------------------
+
+The current Pepper bridge depends on the bundled NAOqi / Choregraphe Python 2 runtime in:
+
+`robot/choregraphe`
+
+That runtime is x86_64:
+
+`robot/choregraphe/lib/python2.7/site-packages/_qi.so -> ELF 64-bit x86-64`
+
+This means:
+
+- the current `robot/src/bridge.py` setup can run on an x86_64 Linux machine
+- it will not run on a Raspberry Pi ARM system as-is
+
+So there are two realistic deployment options:
+
+1. Recommended now:
+- use an x86_64 Linux laptop / mini PC / NUC
+- run Docker services there
+- run `bridge.py` there
+
+2. Split deployment:
+- run Docker services on one machine
+- run the Pepper bridge on a separate x86_64 Linux machine
+
+If you want a full Raspberry Pi deployment later, you need an ARM-compatible NAOqi / `qi` runtime. This repo does not currently contain that.
+
+
+Recommended target machine
+--------------------------
+
+Use a Linux x86_64 machine with:
+
+- Docker Engine + Docker Compose plugin
+- `uv`
+- `pyenv`
+- Python 2.7 available in `pyenv` as `naoqi27`
+- network access to Pepper
+- external microphone connected locally
+
+
+What is in Docker and what is not
+---------------------------------
+
+Docker:
+
+- `livekit`
+- `redis`
+- `weaviate`
+- `voice-agent`
+- `session-manager`
+- `listener`
+
+Host:
+
+- `robot/utils/safe_startup.py`
+- `robot/src/bridge.py`
+- `robot/src/user_client.py`
+
+The host-side split is intentional:
+
+- `bridge.py` needs the x86_64 NAOqi Python 2 runtime
+- `user_client.py` is more reliable on the host than in Docker because Linux desktop microphone access through Docker is flaky
+
+
+1. Clone the repository
+-----------------------
+
+```bash
+git clone <repo-url> Pepper
+cd Pepper
+```
+
+
+2. Create and fill `.env`
+-------------------------
+
+You need at least the LiveKit credentials used by the stack:
+
+```env
+LIVEKIT_API_KEY=devkey
+LIVEKIT_API_SECRET=secret
+OPENAI_API_KEY=...
+```
+
+If you already have a working `.env` from the development machine, reuse it.
+
+
+3. Install host prerequisites
+-----------------------------
+
+Ubuntu / Debian example:
+
+```bash
+sudo apt update
+sudo apt install -y curl git build-essential ffmpeg libasound2-dev portaudio19-dev
+```
+
+Install `uv`:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Restart shell or source your shell rc after installing `uv`.
+
+Install Python dependencies for host-side Python 3:
+
+```bash
+uv sync
+```
+
+
+4. Prepare Python 2.7 for NAOqi
+-------------------------------
+
+You need a Python 2.7 environment in `pyenv` named `naoqi27`.
+
+If you already have that on the source machine, reproduce it on the target machine.
+
+The current runtime expectation is:
+
+```bash
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+```
+
+Notes:
+
+- `robot/choregraphe` is already inside this repo, so you do not need a separate Choregraphe install if this bundled runtime works on the target x86_64 machine
+- this does not solve ARM / Raspberry Pi incompatibility
+
+
+5. Install Docker
+-----------------
+
+Install Docker Engine and Docker Compose plugin on the target machine.
+
+Check:
+
+```bash
+docker --version
+docker compose version
+```
+
+
+6. Start the Docker stack
+-------------------------
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env up -d livekit redis weaviate voice-agent session-manager listener
+```
+
+Check:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env ps
+```
+
+Expected running services:
+
+- `livekit`
+- `redis`
+- `weaviate`
+- `voice-agent`
+- `session-manager`
+- `listener`
+
+
+7. Connect Pepper over Ethernet
+-------------------------------
+
+Recommended approach: dedicated NetworkManager profile for Pepper.
+
+Example values used on the current laptop:
+
+- Pepper IP: `10.0.0.149`
+- laptop Ethernet IP: `10.0.0.200/24`
+
+Create profile:
+
+```bash
+nmcli connection add \
+  type ethernet \
+  ifname <your-ethernet-iface> \
+  con-name pepper-ethernet \
+  ipv4.method manual \
+  ipv4.addresses 10.0.0.200/24 \
+  ipv4.routes "10.0.0.149/32" \
+  ipv4.never-default yes \
+  ipv6.method ignore
+```
+
+Bring it up:
+
+```bash
+nmcli connection up pepper-ethernet
+```
+
+Verify:
+
+```bash
+ip route get 10.0.0.149
+nc -vz -s 10.0.0.200 10.0.0.149 9559
+```
+
+Expected:
+
+- route goes through the Ethernet interface
+- TCP port `9559` succeeds
+
+Do not rely on `ping` as the main test. `nc` to `9559` is the real check.
+
+
+8. Start Pepper host-side services
+----------------------------------
+
+First stabilize Pepper:
+
+```bash
+pyenv shell naoqi27
+unset LD_LIBRARY_PATH
+export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
+export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
+python2 robot/utils/safe_startup.py
+```
+
+Then start the bridge:
+
+```bash
+python2 robot/src/bridge.py
+```
+
+Expected good signs:
+
+- bridge connects to Pepper NAOqi
+- tablet HTTP starts
+- it waits for Python 3 client on `0.0.0.0:55555`
+
+
+9. Start the external microphone client on the host
+---------------------------------------------------
+
+Do not use the Docker `user-client` by default.
+
+Run on host:
+
+```bash
+uv run python robot/src/user_client.py
+```
+
+The session snapshot is already written by Docker `session-manager`, and it includes:
+
+- internal Docker LiveKit URL
+- host LiveKit URL
+
+So the host `user_client.py` should automatically use:
+
+- `ws://127.0.0.1:7880`
+
+
+10. Open the operator panel
+---------------------------
+
+```text
+http://127.0.0.1:8787/
+```
+
+Expected healthy components:
+
+- `session-manager`
+- `livekit`
+- `redis`
+- `weaviate`
+- `voice-agent`
+- `listener`
+- `bridge`
+
+`user-client` should become healthy after starting `robot/src/user_client.py` on the host.
+
+
+Normal startup order
+--------------------
+
+1. Clone repo and prepare `.env`
+2. Start Docker stack
+3. Bring up Pepper Ethernet route
+4. Run `safe_startup.py`
+5. Run `bridge.py`
+6. Run `user_client.py`
+7. Open operator dashboard
+
+
+Useful restart commands
+-----------------------
+
+Restart Docker stack:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env down
+docker compose -f docker/docker-compose.yml --env-file .env up -d livekit redis weaviate voice-agent session-manager listener
+```
+
+Full Docker restart including optional audio profile:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio down
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d
+```
+
+Note:
+
+- the Docker audio profile is currently not the recommended path
+- keep `user_client.py` on the host unless Docker microphone support is intentionally being debugged
+
+
+What to copy from the current machine
+-------------------------------------
+
+If you deploy to another x86_64 Linux machine, copy:
+
+- the repository itself
+- `.env`
+- the working `pyenv` Python 2.7 environment if possible, or recreate `naoqi27`
+
+You do not need a separate Choregraphe install if the bundled `robot/choregraphe` runtime is kept intact.
+
+
+What is likely to fail on Raspberry Pi
+--------------------------------------
+
+Most important:
+
+- `robot/src/bridge.py` depends on x86_64 `qi` binaries
+- the bundled `robot/choregraphe` runtime is x86_64
+
+So on Raspberry Pi ARM:
+
+- Docker services may be portable in principle
+- the current host-side Pepper bridge is not
+
+Conclusion:
+
+- do not plan on running the current bridge on Raspberry Pi without replacing the NAOqi runtime
+

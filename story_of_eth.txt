@@ -1,0 +1,100 @@
+Story of Pepper Ethernet debugging
+
+Goal
+- Connect to Pepper reliably over Ethernet while keeping normal internet elsewhere.
+- Understand why the old setup stopped working.
+- Verify the final working network path from both the laptop and the Raspberry Pi.
+
+Initial assumption
+- The notes assumed Pepper was reachable at 10.0.0.149.
+- The laptop had a NetworkManager profile `pepper-ethernet` bound to interface `enx00e04c026907`.
+- That profile used:
+  - laptop Ethernet IP: 10.0.0.200/24
+  - host route to Pepper: 10.0.0.149/32
+
+What happened first
+- Python `qi.Session().connect("tcp://10.0.0.149:9559")` sometimes worked earlier, but then started timing out or returning `No route to host`.
+- The laptop-side inspection showed:
+  - the Ethernet NIC had carrier
+  - the route to 10.0.0.149 existed
+  - but the `pepper-ethernet` NetworkManager profile was not always actually active
+
+What we fixed on the laptop first
+- We explicitly activated the profile:
+  - `nmcli connection up pepper-ethernet`
+- After that:
+  - NetworkManager showed the Ethernet interface as connected
+  - the route to the target IP used the Ethernet interface
+
+What still failed
+- Even with the profile active, TCP connections to `10.0.0.149:9559` timed out.
+- The laptop could resolve a MAC address on the Ethernet link, which meant the cable and L2 connectivity were alive.
+- But Pepper still did not answer on the expected IP and port.
+
+Key discovery
+- Pepper announced its actual IP address over Ethernet.
+- It was not `10.0.0.149`.
+- Pepper first announced a link-local address:
+  - `169.254.51.29`
+
+What worked next
+- We reconfigured the laptop Ethernet profile to match that link-local network:
+  - laptop Ethernet IP: `169.254.200.1/16`
+  - route to Pepper: `169.254.51.29/32`
+- After bringing the profile down and up again:
+  - `nc -vz -w 3 -s 169.254.200.1 169.254.51.29 9559` succeeded
+  - `curl http://169.254.51.29` returned HTTP 200
+- This proved the Ethernet path itself worked.
+
+What changed after inserting the switch
+- Later Pepper announced a different IP:
+  - `192.168.210.113`
+- This indicated Pepper was no longer using link-local addressing and was now on a routed/DHCP-style subnet behind the switch.
+
+Final laptop fix
+- The laptop was still configured for the old `169.254.x.x` network, so traffic to `192.168.210.113` was going the wrong way.
+- We updated `pepper-ethernet` again:
+  - laptop Ethernet IP: `192.168.210.200/24`
+  - route to Pepper: `192.168.210.113/32`
+- After reconnecting the profile:
+  - `ip route get 192.168.210.113` showed traffic leaving through `enx00e04c026907`
+  - `nc -vz -w 3 -s 192.168.210.200 192.168.210.113 9559` succeeded
+  - `curl -I http://192.168.210.113` returned HTTP 200
+
+Final working state on the laptop
+- Pepper IP: `192.168.210.113`
+- Pepper NAOqi: `tcp://192.168.210.113:9559`
+- Laptop Ethernet interface: `enx00e04c026907`
+- Laptop Ethernet IP: `192.168.210.200/24`
+- NetworkManager profile: `pepper-ethernet`
+
+What this taught us
+- The old fixed IP `10.0.0.149` was stale.
+- Pepper's Ethernet IP can change depending on how it is connected:
+  - direct link can result in `169.254.x.x`
+  - adding a switch/router can move it to something like `192.168.210.x`
+- The right workflow is:
+  - ask Pepper for its current IP
+  - configure the laptop or other device to be on the same subnet
+  - verify with `nc` to port 9559 instead of relying on ping
+
+Useful laptop checks
+- Bring profile up:
+  - `nmcli connection up pepper-ethernet`
+- Verify route:
+  - `ip route get 192.168.210.113`
+- Verify NAOqi:
+  - `nc -vz -w 3 -s 192.168.210.200 192.168.210.113 9559`
+
+Raspberry Pi outcome
+- The Raspberry Pi was connected to the same switch.
+- The Pi needed to be on the same subnet as Pepper.
+- Once the Pi had network access on the `192.168.210.x` network, it was finally able to connect to Pepper.
+- Final result:
+  - the Raspberry Pi could reach Pepper successfully
+  - the Ethernet setup through the switch was working
+
+Final conclusion
+- Ethernet connectivity to Pepper was successfully restored.
+- The main issue was not the cable or NAOqi itself, but stale assumptions about Pepper's IP address.
+- The final stable state used Pepper at `192.168.210.113`, and both the laptop and the Raspberry Pi could connect to it over Ethernet.

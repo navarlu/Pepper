@@ -83,6 +83,17 @@ export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
 export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
 python2 robot/utils/safe_startup.py
 
+
+
+python2 - <<'PY'
+import qi
+s = qi.Session()
+s.connect("tcp://10.0.0.149:9559")
+print("CONNECTED")
+PY
+
+
+
 Start Pepper audio receiver (Python 2.7):
 python2 robot/src/bridge.py
 
