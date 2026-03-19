@@ -56,7 +56,7 @@ docker/weaviate_data
 *.vrb
 *.run.xml
 *.bcf
-
+mcp.json
 # latexmk
 latexmkrc
 
@@ -67,3 +67,4 @@ latexmkrc
 voice-agent/models/
 notes.txt
 run*.txt
+.claude/

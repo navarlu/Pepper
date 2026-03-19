@@ -11,14 +11,14 @@ services:
     ports:
       - "7880:7880/tcp"
       - "7882:7882/udp"
-    restart: unless-stopped
+    restart: on-failure
 
   redis:
     image: redis:7.4.2-alpine3.21
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - ./redis-data:/data
-    restart: unless-stopped
+    restart: on-failure
 
   voice-agent:
     build:
@@ -39,7 +39,7 @@ services:
       - livekit
       - redis
       - weaviate
-    restart: unless-stopped
+    restart: on-failure
 
   session-manager:
     build:
@@ -70,7 +70,23 @@ services:
       - livekit
       - redis
       - weaviate
-    restart: unless-stopped
+    restart: on-failure
+
+  bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/bridge3.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://10.0.0.149:9559}
+      BRIDGE_BIND_HOST: "0.0.0.0"
+      TCP_PORT: "55555"
+      BRIDGE_URL: http://127.0.0.1:5000
+    network_mode: host
+    restart: on-failure
 
   listener:
     build:
@@ -85,14 +101,15 @@ services:
       SESSION_MANAGER_URL: http://session-manager:8787
       LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
       TCP_HOST: host.docker.internal
-      TCP_PORT: 55555
+      TCP_PORT: "55555"
       BRIDGE_URL: http://host.docker.internal:5000
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
       - session-manager
       - livekit
-    restart: unless-stopped
+      - bridge
+    restart: on-failure
 
   user-client:
     build:
@@ -110,7 +127,7 @@ services:
     network_mode: host
     profiles:
       - audio
-    restart: unless-stopped
+    restart: on-failure
 
   
   playground:
@@ -128,14 +145,14 @@ services:
       - "3000:3000"
     profiles:
       - debug
-    restart: unless-stopped
+    restart: on-failure
 
   weaviate:
       image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
       ports:
         - "8080:8080"
         - "50051:50051"
-      restart: unless-stopped
+      restart: on-failure
       environment:
         QUERY_DEFAULTS_LIMIT: 25
         AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"

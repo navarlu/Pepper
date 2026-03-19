@@ -1,12 +1,16 @@
+# Remote Server
 
-
+## SSH
+```bash
 ssh navarlu2@ptak.felk.cvut.cz
 ssh lie
 tmux attach -t lie
+```
 
+## vLLM (Qwen)
+```bash
 vllm serve Qwen/Qwen2.5-7B-Instruct \
   --host 127.0.0.1 --port 8000 \
   --enable-auto-tool-choice \
   --tool-call-parser hermes
-
-
+```

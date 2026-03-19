@@ -6,6 +6,7 @@ import time
 import qi
 
 DEFAULT_URL = "tcp://10.0.0.149:9559"
+#DEFAULT_URL = "tcp://169.254.97.167:9559"
 
 CONNECT_RETRY_SEC = 1.0
 SERVICE_RETRY_SEC = 0.5
@@ -13,12 +14,23 @@ SERVICE_WAIT_TIMEOUT_SEC = 90.0  # how long to wait for services after connect
 
 
 def wait_connect(session, url):
+    attempt = 0
     while True:
+        attempt += 1
+        print("[wait] connect attempt {} to {}...".format(attempt, url))
         try:
-            session.connect(url)
-            return
-        except RuntimeError as e:
-            print("[wait] NAOqi not ready yet:", e)
+            fut = session.connect(url, _async=True)
+            print("[wait] waiting for connect future (timeout 10s)...")
+            fut.value(10 * 1000)  # timeout in ms
+            print("[wait] connected!")
+            return session
+        except Exception as e:
+            print("[wait] attempt {} failed ({}): {}".format(attempt, type(e).__name__, e))
+            try:
+                session.close()
+            except Exception:
+                pass
+            session = qi.Session()
             time.sleep(CONNECT_RETRY_SEC)
 
 
@@ -50,7 +62,7 @@ def main():
 
     session = qi.Session()
     print("[info] waiting for NAOqi at {}".format(url))
-    wait_connect(session, url)
+    session = wait_connect(session, url)
     print("[info] connected; waiting for core services...")
 
     # Wait for services to actually be registered
