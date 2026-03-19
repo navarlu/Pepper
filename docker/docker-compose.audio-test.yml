@@ -1,0 +1,15 @@
+services:
+  audio-test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.audio
+      network: host
+    command: ["uv", "run", "python", "-c", "import sounddevice as sd; print(sd.query_hostapis()); print(sd.query_devices())"]
+    volumes:
+      - ..:/workspace
+      - /dev/snd:/dev/snd
+      - /run/user/1000/pulse/native:/run/user/1000/pulse/native
+    environment:
+      PULSE_SERVER: unix:/run/user/1000/pulse/native
+      XDG_RUNTIME_DIR: /run/user/1000
+    network_mode: host

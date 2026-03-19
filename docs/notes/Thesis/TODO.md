@@ -1,5 +1,8 @@
 # TODO
 
+
+
+
 ## Safe Start in Pepper
 - [ ] Verify safe_startup.py works reliably
 - [ ] Document the exact startup sequence

@@ -798,7 +798,23 @@ class SessionManager:
             if self._bootstrap_complete:
                 await self._refresh_participants_once()
             if self.agent_deployed:
-                if self.last_user_activity_monotonic > 0:
+                # Detect failed dispatch: agent never joined the room within 15s
+                agent_in_room = any(
+                    _identity_is_agent(p["identity"], p["kind"])
+                    for p in self.participants
+                )
+                if (
+                    not agent_in_room
+                    and self.dispatch_started_monotonic > 0
+                    and (now - self.dispatch_started_monotonic) >= 15.0
+                ):
+                    print("[session_manager] agent did not join after dispatch — resetting to idle")
+                    async with self._lock:
+                        self.agent_deployed = False
+                        self.session_state = "idle"
+                        self.active_dispatch_id = ""
+                        self.dispatch_started_monotonic = 0.0
+                elif self.last_user_activity_monotonic > 0:
                     idle_for = now - self.last_user_activity_monotonic
                     if idle_for >= SESSION_IDLE_TIMEOUT_SEC:
                         await self.end_session(reason=f"no_user_activity_{idle_for:.1f}s")

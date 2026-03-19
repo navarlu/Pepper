@@ -3,12 +3,10 @@ FROM python:3.11-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    UV_SYSTEM_PYTHON=1 \
     PATH=/opt/venv/bin:$PATH
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    curl \
     git \
     autoconf \
     autoconf-archive \
@@ -19,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Build PortAudio from git HEAD (Debian package is ALSA-only; PulseAudio hostapi added 2023)
+# Build PortAudio from git HEAD (PulseAudio hostapi support)
 RUN git clone --depth=1 https://github.com/PortAudio/portaudio.git /tmp/portaudio \
     && cd /tmp/portaudio \
     && autoreconf -fiv \
@@ -29,10 +27,6 @@ RUN git clone --depth=1 https://github.com/PortAudio/portaudio.git /tmp/portaudi
     && ldconfig \
     && rm -rf /tmp/portaudio
 
-RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir uv
+RUN python -m venv /opt/venv && /opt/venv/bin/pip install --no-cache-dir uv sounddevice
 
 WORKDIR /workspace
-
-COPY requirements.txt /tmp/requirements.txt
-RUN uv pip install --python /opt/venv/bin/python --no-cache-dir -r /tmp/requirements.txt
-
