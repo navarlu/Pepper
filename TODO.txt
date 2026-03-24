@@ -1,20 +1,19 @@
-choregraphe new port each start
 
-Declaration misto specifications
 
-.env.example
 
-cospeach
+
 
 
 state on pepper not updates when idle
 
-
-Full RPI dev:
-
-merge, differences etc
-safe startup
-
-
-clean repo
+Repo:
+automatic startup, choregraph? 
 faster first join
+
+
+Thesis:
+Declaration misto specifications
+
+
+Look at:
+cospeach

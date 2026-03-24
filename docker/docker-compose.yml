@@ -93,6 +93,24 @@ services:
     network_mode: host
     restart: unless-stopped
 
+  safe-startup:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/utils/safe_startup_watchdog.py"]
+    volumes:
+      - ..:/workspace
+      - /home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release:/opt/qi
+      - /home/lucas/.conan2/p/b/boost00dddf9f5dc9e/p/lib:/opt/boost-lib
+      - /home/lucas/Projects/FEL/QI_test/local_qi/lib:/opt/qi-native-lib
+    environment:
+      PYTHONPATH: /opt/qi
+      LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
+      PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+    network_mode: host
+    restart: unless-stopped
+
   listener:
     build:
       context: ..

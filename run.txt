@@ -1,164 +1,20 @@
-docker
-cd /Projects/FEL/Pepper
-docker compose -f docker/docker-compose.yml --env-file .env up -d
-docker compose -f docker/docker-compose.yml --env-file .env down
+# RPi Run Commands
+# Safe startup runs automatically inside Docker (safe-startup service).
+# Pepper can be turned on before or after — the watchdog will detect her.
 
-
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 robot/utils/safe_startup.py
-python2 robot/src/bridge.py
-
-
-curl -X POST "http://localhost:5000/animation/Embarrassed_1"
-
-source ./Pepper_env/bin/activate
-python /src/simple_voice_pepper.py connect --room test-room
-
-
-Choregraphe
-./choregraphe/bin/choregraphe-bin
-
-
-voice-agent
-uv run python -m voice-agent.src.agent console
-
-
-cd livekit-agent
-uv run python -m voice-agent.src.agent console --text
-
-
-Agent:
-uv run python -m voice-agent.src.agent dev
-
-Playground:
-http://localhost:3000/
-
-How to use now (your desired flow)
-Start infra:
+# 1. Start all services
 docker compose -f docker/docker-compose.yml --env-file .env up -d
 
-Start agent in dev mode:
-uv run python -m voice-agent.src.agent dev
-
-Stabilize Pepper first (Python 2.7):
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 robot/utils/safe_startup.py
-
-Start Pepper audio receiver (Python 2.7):
-python2 robot/src/bridge.py
-
-Start listener bridge:
-uv run python robot/src/listener.py
-
-Shutdown Pepper cleanly:
-python2 robot/tests/shutdown_pepper.py
-
-Open playground and click Connect:
-It creates a new room/token set, 
-dispatches agent via token room config, 
-writes fresh snapshot, 
-and bridge follows the new listener token automatically.
-
-
-Permanent room flow (session manager + external mic):
-Start infra:
-docker compose -f docker/docker-compose.yml --env-file .env up -d
-
-Start agent worker:
-uv run python -m voice-agent.src.agent dev
-
-Start session manager + status dashboard:
-uv run python robot/src/session_manager.py
-
-Start Pepper stabilization first (Python 2.7):
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 robot/utils/safe_startup.py
-
-
-
-python2 - <<'PY'
-import qi
-s = qi.Session()
-s.connect("tcp://10.0.0.149:9559")
-print("CONNECTED")
-PY
-
-
-
-Start Pepper audio receiver (Python 2.7):
-python2 robot/src/bridge.py
-
-Start listener bridge:
-uv run python robot/src/listener.py
-
-Start local external microphone publisher:
-uv run python robot/src/user_client.py
-
-Open operator dashboard:
-http://127.0.0.1:8787/
-
-How this flow works:
-- Session manager creates one permanent room (`pepper-main`)
-- Listener and user client read tokens from `web/agents-playground/token-latest.json`
-- User client publishes external microphone audio as `user`
-- On user speech activity, session manager explicitly dispatches agent `Pepper`
-- Listener reports agent activity while Pepper audio is playing
-- After idle timeout, session manager removes the agent and returns to idle
-
-
-Service-oriented flow (Compose + host Pepper bridge):
-Build/start the Python 3 stack:
-docker compose -f docker/docker-compose.yml --env-file .env up -d livekit redis weaviate voice-agent session-manager listener
-
-Open operator dashboard:
-http://127.0.0.1:8787/
-
-Start Pepper host-side services (Python 2.7, still outside Docker):
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 robot/utils/safe_startup.py
-python2 robot/src/bridge.py
-
-Optional: run microphone publisher in Docker too:
+# 2. Start user-client (audio profile, optional)
 docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
 
-Safer fallback for microphone publisher if Docker audio access is flaky:
-uv run python robot/src/user_client.py
+# 3. Rebuild and restart everything
+docker compose -f docker/docker-compose.yml --env-file .env up -d --build
 
-Optional playground debug UI:
-docker compose -f docker/docker-compose.yml --env-file .env --profile debug up -d playground
+# 4. Restart single service (e.g. bridge after code change)
+docker compose -f docker/docker-compose.yml --env-file .env restart bridge
 
-Expected dashboard component states:
-- session-manager: ready
-- livekit / redis / weaviate: ready
-- listener: ready or streaming
-- bridge: ready after `bridge.py` starts
-- user-client: ready or streaming after microphone publisher starts
-- voice-agent: ready
-
-cd /home/lucas/Projects/FEL/Pepper/voice-agent
-uv run python ../docs/thesis/resources/ingest_data.py
-
-
-pyenv shell naoqi27
-unset LD_LIBRARY_PATH
-export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
-export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
-python2 robot/src/bridge.py
-
-
-
-
-cd /home/lucas/Projects/FEL/Pepper/docker && docker compose up -d --build
-docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
+# 5. Check logs
+docker compose -f docker/docker-compose.yml --env-file .env logs --tail=30 bridge
+docker compose -f docker/docker-compose.yml --env-file .env logs --tail=30 listener
+docker compose -f docker/docker-compose.yml --env-file .env logs --tail=30 safe-startup
