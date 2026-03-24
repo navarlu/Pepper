@@ -11,6 +11,8 @@ import sys
 import socket
 import time
 import logging
+import json
+from urllib.request import Request, urlopen
 
 # ── qi library paths (Docker volumes) ──────────────────────────────
 QI_LIB_PATH = os.environ.get("PYTHONPATH", "/opt/qi")
@@ -35,6 +37,7 @@ CONNECT_TIMEOUT_SEC = 5.0        # TCP probe timeout
 SESSION_CONNECT_TIMEOUT_MS = 10_000
 SERVICE_WAIT_TIMEOUT_SEC = 90.0
 SERVICE_RETRY_SEC = 0.5
+SESSION_MANAGER_URL = os.environ.get("SESSION_MANAGER_URL", "").strip()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -75,6 +78,35 @@ def safe(label: str, fn):
     except Exception as e:
         log.warning("[warn] %s failed: %s", label, e)
         return False, None
+
+
+def report_watchdog(
+    summary: str,
+    *,
+    pepper_reachable: bool,
+    safe_startup_running: bool,
+    last_result: str = "",
+    healthy: bool = True,
+) -> None:
+    if not SESSION_MANAGER_URL:
+        return
+    payload = {
+        "summary": summary,
+        "pepper_reachable": pepper_reachable,
+        "safe_startup_running": safe_startup_running,
+        "last_result": last_result,
+        "healthy": healthy,
+    }
+    req = Request(
+        f"{SESSION_MANAGER_URL.rstrip('/')}/api/watchdog-status",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        urlopen(req, timeout=1.0).read()
+    except Exception:
+        pass
 
 
 def wait_service(session, name: str, timeout_sec: float = SERVICE_WAIT_TIMEOUT_SEC):
@@ -159,14 +191,35 @@ def run_safe_startup(host: str, port: int) -> bool:
 def main():
     host, port = parse_pepper_url()
     log.info("watchdog started — monitoring %s:%d", host, port)
+    report_watchdog(
+        "watchdog started",
+        pepper_reachable=False,
+        safe_startup_running=False,
+        last_result="startup",
+        healthy=True,
+    )
 
     # If Pepper is already online when we start, skip safe_startup —
     # she's already running and we must not disrupt her.
     was_online = is_pepper_reachable(host, port)
     if was_online:
         log.info("Pepper already online at startup — skipping safe_startup, entering idle monitoring")
+        report_watchdog(
+            "Pepper already online",
+            pepper_reachable=True,
+            safe_startup_running=False,
+            last_result="startup skipped",
+            healthy=True,
+        )
     else:
         log.info("Pepper offline at startup — waiting for her to come online")
+        report_watchdog(
+            "Waiting for Pepper",
+            pepper_reachable=False,
+            safe_startup_running=False,
+            last_result="waiting for robot",
+            healthy=False,
+        )
 
     while True:
         online = is_pepper_reachable(host, port)
@@ -174,26 +227,68 @@ def main():
         if online and not was_online:
             # Pepper just came online — run safe startup
             log.info("Pepper is ONLINE at %s:%d — running safe startup", host, port)
+            report_watchdog(
+                "Running safe startup",
+                pepper_reachable=True,
+                safe_startup_running=True,
+                last_result="startup in progress",
+                healthy=True,
+            )
             success = run_safe_startup(host, port)
             if success:
                 was_online = True
                 log.info("safe startup succeeded, entering idle monitoring")
+                report_watchdog(
+                    "Pepper online",
+                    pepper_reachable=True,
+                    safe_startup_running=False,
+                    last_result="safe startup succeeded",
+                    healthy=True,
+                )
             else:
                 log.warning("safe startup failed, will retry next cycle")
                 # keep was_online = False so we retry
+                report_watchdog(
+                    "Safe startup failed",
+                    pepper_reachable=True,
+                    safe_startup_running=False,
+                    last_result="safe startup failed",
+                    healthy=False,
+                )
 
         elif online and was_online:
             # Still online — idle heartbeat
             log.debug("heartbeat: Pepper still online")
+            report_watchdog(
+                "Pepper online",
+                pepper_reachable=True,
+                safe_startup_running=False,
+                last_result="idle heartbeat",
+                healthy=True,
+            )
 
         elif not online and was_online:
             # Pepper went offline
             log.info("Pepper went OFFLINE — resuming polling every %.0fs", POLL_INTERVAL_OFFLINE)
             was_online = False
+            report_watchdog(
+                "Pepper offline",
+                pepper_reachable=False,
+                safe_startup_running=False,
+                last_result="connection lost",
+                healthy=False,
+            )
 
         else:
             # Still offline
             log.debug("Pepper still offline, polling...")
+            report_watchdog(
+                "Waiting for Pepper",
+                pepper_reachable=False,
+                safe_startup_running=False,
+                last_result="still offline",
+                healthy=False,
+            )
 
         interval = POLL_INTERVAL_ONLINE if was_online else POLL_INTERVAL_OFFLINE
         time.sleep(interval)

@@ -109,6 +109,18 @@ class UserAudioClient:
         self._component_detail = ""
         self._last_component_status_monotonic = 0.0
 
+    def _agent_ready_for_text(self) -> bool:
+        if not self.room:
+            return False
+        remote_participants = getattr(self.room, "remote_participants", None) or {}
+        values = remote_participants.values() if hasattr(remote_participants, "values") else remote_participants
+        for participant in values:
+            identity = str(getattr(participant, "identity", "") or "")
+            kind = str(getattr(participant, "kind", "") or "")
+            if identity.startswith("agent-") or "AGENT" in kind.upper():
+                return True
+        return False
+
     async def _report_component_status(
         self,
         state: str,
@@ -251,6 +263,8 @@ class UserAudioClient:
                     text = " ".join(str(item.get("text") or "").strip().split())
                     command_id = str(item.get("id") or "").strip()
                     if not text or not command_id or not self.room:
+                        continue
+                    if not self._agent_ready_for_text():
                         continue
                     print("[user_client] sending text input via room topic={} text={}".format(TOPIC_CHAT, text))
                     await self.room.local_participant.send_text(text, topic=TOPIC_CHAT)

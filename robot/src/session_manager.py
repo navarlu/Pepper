@@ -2,7 +2,7 @@ import asyncio
 import contextlib
 import json
 import os
-import socket
+import struct
 import time
 import uuid
 from collections import deque
@@ -11,6 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
+import aiohttp
 from aiohttp import web
 from dotenv import load_dotenv
 from livekit import api
@@ -59,138 +60,1187 @@ SESSION_SOURCE_AGENT = "agent"
 MAX_TRANSCRIPT_ITEMS = 40
 COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
+DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
+DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
+KNOWN_DOCKER_SERVICES = (
+    "bridge",
+    "listener",
+    "livekit",
+    "playground",
+    "redis",
+    "safe-startup",
+    "session-manager",
+    "user-client",
+    "voice-agent",
+    "weaviate",
+)
 STATUS_HTML = """<!doctype html>
 <meta charset="utf-8">
-<title>Pepper Operator</title>
+<title>Pepper Operator Debug</title>
 <style>
 :root {
-  --bg: #f4f7fb;
+  --bg: #eef4fb;
+  --bg-soft: #f8fbff;
   --panel: rgba(255,255,255,0.92);
-  --line: #d6e1ee;
+  --panel-strong: rgba(255,255,255,0.98);
+  --line: #d8e4f1;
+  --line-strong: #c4d6ea;
   --text: #16324a;
-  --muted: #5f7a92;
-  --good: #2e9f6b;
-  --warn: #d89a2b;
-  --hot: #d85b5b;
-  --accent: #2d6cdf;
+  --muted: #667f97;
+  --accent: #2968d8;
+  --accent-soft: #edf4ff;
+  --accent-deep: #17479f;
+  --good: #5aa878;
+  --good-soft: #ebf8ef;
+  --warn: #cb8c2c;
+  --hot: #c85757;
+  --shadow: 0 18px 40px rgba(40, 74, 111, 0.10);
 }
-html,body { margin:0; padding:0; background:
-  radial-gradient(circle at top left, rgba(45,108,223,0.10), transparent 28%),
-  radial-gradient(circle at top right, rgba(46,159,107,0.10), transparent 24%),
-  linear-gradient(180deg, #f9fbfe, #eef4fa);
-  color:var(--text); font-family: "Segoe UI", Arial, sans-serif; }
-.page { max-width: 1280px; margin: 0 auto; padding: 28px 20px 40px; }
-.hero { display:flex; justify-content:space-between; gap:16px; align-items:flex-end; margin-bottom:18px; }
-.hero h1 { margin:0; font-size:32px; }
-.hero p { margin:6px 0 0; color:var(--muted); }
-.grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-bottom:14px; }
-.card { background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; box-shadow:0 14px 32px rgba(62,91,121,0.10); backdrop-filter: blur(10px); }
-.label { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
-.value { font-size:24px; font-weight:600; }
-.pill { display:inline-block; padding:4px 10px; border-radius:999px; background:#e8f6ef; color:var(--good); font-size:13px; }
-table { width:100%; border-collapse:collapse; }
-th, td { text-align:left; padding:10px 8px; border-bottom:1px solid rgba(39,65,95,0.7); }
-th { color:var(--muted); font-size:13px; font-weight:600; }
-.mono { font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; }
-.footer { color:var(--muted); font-size:13px; margin-top:12px; }
-.stack { display:grid; grid-template-columns: 1.2fr 0.8fr; gap:14px; }
-.meter { height:14px; background:#edf2f8; border:1px solid var(--line); border-radius:999px; overflow:hidden; }
-.meter > div { height:100%; width:0%; background:linear-gradient(90deg, var(--good), var(--warn), var(--hot)); transition:width 120ms linear; }
-.bubble-list { display:flex; flex-direction:column; gap:10px; max-height:420px; overflow:auto; }
-.bubble { padding:12px 14px; border-radius:14px; line-height:1.35; }
-.bubble.user { background:#edf4ff; }
-.bubble.pepper { background:#eaf8f0; }
-.bubble .speaker { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px; }
-.controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-textarea { width:100%; min-height:92px; resize:vertical; background:white; color:var(--text); border:1px solid var(--line); border-radius:12px; padding:12px; font:inherit; }
-button { background:var(--accent); color:white; border:none; border-radius:10px; padding:10px 14px; font:inherit; cursor:pointer; }
-button.secondary { background:#6b7f94; }
-button.warn { background:#c64e4e; }
-.countdown { font-size:32px; font-weight:700; }
+* { box-sizing:border-box; }
+html,body {
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:
+    radial-gradient(circle at top left, rgba(41,104,216,0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(90,168,120,0.12), transparent 22%),
+    linear-gradient(180deg, #f9fbff, #eef4fb 42%, #e9f0f8 100%);
+  color:var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+body { min-height:100vh; }
+.page { max-width: 1540px; margin: 0 auto; padding: 16px 16px 24px; }
+.hero {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:12px;
+}
+.hero h1 { margin:0; font-size:32px; line-height:1; letter-spacing:-0.03em; }
+.hero p { margin:6px 0 0; color:var(--muted); font-size:14px; }
+.hero-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+.nav-link {
+  display:inline-flex;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:999px;
+  text-decoration:none;
+  color:var(--accent-deep);
+  background:rgba(255,255,255,0.72);
+  border:1px solid var(--line);
+  font-size:13px;
+  font-weight:600;
+}
+.nav-link.active {
+  background:var(--accent-soft);
+  border-color:rgba(41,104,216,0.18);
+}
+.shell {
+  display:grid;
+  gap:12px;
+}
+.card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:16px;
+  box-shadow:var(--shadow);
+  backdrop-filter: blur(12px);
+}
+.card.featured {
+  background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,250,255,0.95));
+}
+.label {
+  color:var(--muted);
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  margin-bottom:10px;
+}
+.value { font-size:32px; font-weight:700; line-height:1.05; }
+.value.compact { font-size:24px; }
+.subvalue { margin-top:8px; color:var(--muted); font-size:14px; }
+.pill {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent-deep);
+  font-size:13px;
+  font-weight:600;
+  border:1px solid rgba(41,104,216,0.14);
+}
+.pill::before {
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:currentColor;
+  opacity:0.9;
+}
+.pill.good {
+  background:var(--good-soft);
+  color:var(--good);
+  border-color: rgba(90,168,120,0.18);
+}
+.pill.warn {
+  background:#fff4e6;
+  color:var(--warn);
+  border-color: rgba(203,140,44,0.2);
+}
+.pill.hot {
+  background:#fff0f0;
+  color:var(--hot);
+  border-color: rgba(200,87,87,0.2);
+}
+.top-strip {
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,0.84);
+  box-shadow: 0 10px 22px rgba(40, 74, 111, 0.06);
+  overflow:hidden;
+}
+.mini-table {
+  width:100%;
+  min-width:0;
+}
+.mini-table th,
+.mini-table td {
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+.mini-table th {
+  width:18%;
+  background:rgba(244,248,253,0.92);
+}
+.mini-table tr:last-child th,
+.mini-table tr:last-child td {
+  border-bottom:none;
+}
+.mini-cell-main {
+  font-weight:700;
+  font-size:15px;
+}
+.mini-cell-sub {
+  margin-top:2px;
+  color:var(--muted);
+  font-size:12px;
+}
+.main-grid {
+  display:grid;
+  grid-template-columns: minmax(380px, 0.98fr) minmax(0, 1.62fr);
+  gap:12px;
+  align-items:start;
+}
+.rail,
+.content-stack {
+  display:grid;
+  gap:12px;
+  align-content:start;
+}
+.chat-card { padding:0; overflow:hidden; }
+.chat-header {
+  padding:18px 20px 12px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-end;
+}
+.chat-header-main h2,
+.panel-title,
+.table-card h3,
+.log-title {
+  margin:0;
+  font-size:20px;
+  letter-spacing:-0.02em;
+}
+.chat-header-main p,
+.panel-note,
+.table-note {
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.chat-feed {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:620px;
+  max-height:620px;
+  overflow:auto;
+  padding:18px 20px 20px;
+  background:
+    linear-gradient(180deg, rgba(244,248,253,0.88), rgba(255,255,255,0.92));
+}
+.controls-card {
+  background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(245,250,255,0.95));
+}
+.controls-grid {
+  display:grid;
+  gap:10px;
+}
+.controls-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+}
+.controls-header .panel-note { margin:4px 0 0; }
+.bubble {
+  max-width:92%;
+  border-radius:20px;
+  padding:16px 18px;
+  line-height:1.48;
+  box-shadow: 0 8px 22px rgba(40, 74, 111, 0.06);
+}
+.bubble.user {
+  align-self:flex-end;
+  background:#edf4ff;
+  border:1px solid rgba(41,104,216,0.10);
+}
+.bubble.pepper {
+  align-self:flex-start;
+  background:#ffffff;
+  border:1px solid #dbe7f3;
+}
+.bubble.system {
+  align-self:center;
+  width:100%;
+  max-width:100%;
+  background:transparent;
+  box-shadow:none;
+  border:none;
+  padding:4px 0;
+}
+.bubble .speaker {
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  margin-bottom:8px;
+}
+.bubble .body {
+  font-size:18px;
+  color:var(--text);
+  word-break:break-word;
+}
+.bubble.user .body { font-size:17px; }
+.session-divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--accent-deep);
+}
+.session-divider::before,
+.session-divider::after {
+  content:"";
+  height:1px;
+  flex:1;
+  background:linear-gradient(90deg, transparent, var(--line-strong), transparent);
+}
+.session-chip {
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(41,104,216,0.08);
+  border:1px solid rgba(41,104,216,0.14);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.10em;
+  text-transform:uppercase;
+}
+.metrics-grid {
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+.metric-tile {
+  padding:14px;
+  border-radius:18px;
+  background:var(--bg-soft);
+  border:1px solid var(--line);
+}
+.countdown { font-size:30px; font-weight:700; line-height:1; }
+.meter {
+  height:14px;
+  background:#e8eff7;
+  border:1px solid var(--line);
+  border-radius:999px;
+  overflow:hidden;
+}
+.meter > div {
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg, #7fc39b, #4d88e6, #17479f);
+  transition:width 120ms linear;
+}
+.controls {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+textarea,
+select {
+  width:100%;
+  background:white;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  font:inherit;
+}
+textarea {
+  min-height:92px;
+  resize:vertical;
+}
+select { padding-right:40px; }
+button {
+  background:#f6faff;
+  color:var(--accent-deep);
+  border:1px solid rgba(41,104,216,0.14);
+  border-radius:14px;
+  padding:12px 16px;
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:none;
+}
+button.primary {
+  background:rgba(41,104,216,0.10);
+  color:var(--accent-deep);
+  border-color:rgba(41,104,216,0.22);
+}
+button.secondary {
+  background:#f3f7fb;
+  color:#617892;
+  border-color:rgba(98,122,148,0.18);
+}
+button.warn {
+  background:#fff6f6;
+  color:#a44a4a;
+  border-color:rgba(187,86,86,0.22);
+}
+button.ghost {
+  background:#fbfdff;
+  color:var(--accent-deep);
+  border:1px solid var(--line-strong);
+  box-shadow:none;
+}
+.btn-icon {
+  display:inline-flex;
+  width:18px;
+  justify-content:center;
+  margin-right:6px;
+  opacity:0.82;
+}
+.panel-section { display:grid; gap:14px; }
+.utility-grid { display:grid; gap:12px; }
+.kv-list { display:grid; gap:12px; }
+.kv-row {
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid var(--line);
+}
+.kv-row:last-child { padding-bottom:0; border-bottom:none; }
+.kv-key { color:var(--muted); font-size:13px; text-transform:uppercase; letter-spacing:0.08em; }
+.kv-value { font-weight:600; text-align:right; }
+.mono { font-family: "SFMono-Regular", Consolas, monospace; font-size:13px; }
+.table-wrap {
+  overflow:auto;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:rgba(255,255,255,0.72);
+}
+table { width:100%; border-collapse:collapse; min-width:760px; }
+.compact-table table { min-width:0; }
+th, td {
+  text-align:left;
+  padding:9px 12px;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+th {
+  color:var(--muted);
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  background:rgba(244,248,253,0.92);
+}
+tr:last-child td { border-bottom:none; }
+.table-wrap td { font-size:13px; line-height:1.35; }
+.table-wrap .mono { font-size:12px; }
+.table-card { padding:18px; }
+.table-head {
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:flex-end;
+  margin-bottom:14px;
+}
+.fold-card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.fold-summary {
+  list-style:none;
+  cursor:pointer;
+  padding:15px 18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+}
+.fold-summary::-webkit-details-marker { display:none; }
+.fold-summary::after {
+  content:"+";
+  font-size:24px;
+  color:var(--accent-deep);
+  line-height:1;
+}
+.fold-card[open] .fold-summary::after { content:"−"; }
+.fold-body { padding:0 16px 16px; }
+.state-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#eef4ff;
+  color:var(--accent-deep);
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+}
+.state-badge::before {
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:currentColor;
+}
+.state-badge.good {
+  background:var(--good-soft);
+  color:var(--good);
+}
+.state-badge.warn {
+  background:#fff4e6;
+  color:var(--warn);
+}
+.state-badge.hot {
+  background:#fff0f0;
+  color:var(--hot);
+}
+.log-block {
+  min-height:220px;
+  max-height:220px;
+  overflow:auto;
+  padding:12px 14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  background:#f7fbff;
+  color:#29425f;
+  white-space:pre-wrap;
+  line-height:1.45;
+}
+.mini-note { color:var(--muted); font-size:12px; }
+.footer {
+  color:var(--muted);
+  font-size:13px;
+  margin-top:14px;
+}
+@media (max-width: 1120px) {
+  .main-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 760px) {
+  .page { padding: 18px 14px 28px; }
+  .hero { flex-direction:column; align-items:flex-start; }
+  .hero h1 { font-size:36px; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .chat-feed { min-height:380px; max-height:380px; padding:16px; }
+  .chat-header { padding:16px; }
+  .bubble .body { font-size:17px; }
+  .bubble.user .body { font-size:16px; }
+}
+</style>
+<div class="page">
+  <div class="hero">
+    <div>
+      <h1>Pepper Operator Debug</h1>
+      <p>Debug view for logs, participants, service health, and supporting diagnostics.</p>
+    </div>
+    <div class="hero-meta">
+      <a class="nav-link" href="/">Chat</a>
+      <a class="nav-link active" href="/debug">Debug</a>
+      <div class="pill" id="pollState">Polling</div>
+      <div class="pill good" id="watchdogPill">Watchdog waiting</div>
+    </div>
+  </div>
+  <div class="shell">
+    <div class="main-grid">
+      <div class="rail">
+        <div class="card">
+          <div class="utility-grid">
+            <div>
+              <div class="log-title">Container Logs</div>
+              <div class="panel-note">Recent logs sit here as a side utility, not as a main panel.</div>
+            </div>
+            <div>
+              <select id="logContainerSelect"><option value="">Loading containers...</option></select>
+              <div class="controls">
+                <button class="ghost" id="refreshLogsBtn">Refresh Logs</button>
+                <div class="mini-note">Recent tail only.</div>
+              </div>
+              <div class="log-block mono" id="logOutput">Select a container to inspect recent logs.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="utility-grid">
+            <div>
+              <div class="panel-title">Room Snapshot</div>
+              <div class="panel-note">Compact room and watchdog facts in table form.</div>
+            </div>
+            <div class="table-wrap compact-table">
+              <table class="mini-table">
+                <tbody>
+                  <tr><th>Last user activity</th><td class="mono" id="userActivity">-</td></tr>
+                  <tr><th>Last agent activity</th><td class="mono" id="agentActivity">-</td></tr>
+                  <tr><th>Watchdog</th><td id="watchdogSummary">-</td></tr>
+                  <tr><th>Pepper reachable</th><td id="watchdogReachable">-</td></tr>
+                  <tr><th>Safe startup</th><td id="watchdogStartup">-</td></tr>
+                  <tr><th>Last result</th><td id="watchdogResult">-</td></tr>
+                  <tr><th>Updated</th><td class="mono" id="watchdogUpdated">-</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="content-stack">
+        <details class="fold-card" open>
+          <summary class="fold-summary">
+            <div>
+              <h3 style="margin:0;">Components</h3>
+              <div class="table-note">Heartbeat state, probes, and supporting services.</div>
+            </div>
+          </summary>
+          <div class="fold-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Name</th><th>State</th><th>Healthy</th><th>Source</th><th>Detail</th><th>Updated</th></tr></thead>
+                <tbody id="componentsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+        <details class="fold-card" open>
+          <summary class="fold-summary">
+            <div>
+              <h3 style="margin:0;">Participants</h3>
+              <div class="table-note">Joined room participants, available on demand.</div>
+            </div>
+          </summary>
+          <div class="fold-body">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Identity</th><th>Name</th><th>Kind</th><th>State</th><th>Metadata</th></tr></thead>
+                <tbody id="participantsBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+  <div class="footer">Session lifecycle is still driven by mic activity and idle timeout. This dashboard remains an operator surface layered on top.</div>
+</div>
+<script>
+let selectedContainerId = "";
+function fmtTs(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
+}
+function text(el, value) {
+  document.getElementById(el).textContent = value || "-";
+}
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+function meter(el, value) {
+  const pct = Math.max(0, Math.min(100, Math.round((value || 0) * 100)));
+  document.getElementById(el).style.width = pct + "%";
+}
+function toneClass(value) {
+  const clean = String(value || "").toLowerCase();
+  if (["ready", "active", "live", "connected", "healthy", "online", "success", "running", "reachable", "yes"].includes(clean)) return "good";
+  if (["starting", "bootstrapping", "cooldown", "waiting", "unknown", "idle", "muted"].includes(clean)) return "warn";
+  if (["down", "failed", "degraded", "disconnected", "stale", "offline", "error", "unreachable", "no"].includes(clean)) return "hot";
+  return "";
+}
+function badge(value) {
+  const tone = toneClass(value);
+  return `<span class="state-badge ${tone}">${escapeHtml(value || "-")}</span>`;
+}
+async function postJson(url, body) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  return await res.json();
+}
+async function refreshContainers() {
+  const select = document.getElementById("logContainerSelect");
+  try {
+    const res = await fetch("/api/docker/containers");
+    const data = await res.json();
+    const items = data.containers || [];
+    if (!items.length) {
+      select.innerHTML = '<option value="">Docker access unavailable</option>';
+      document.getElementById("logOutput").textContent = data.error || "No managed containers detected.";
+      return;
+    }
+    select.innerHTML = items.map((item) => {
+      const label = `${item.service} · ${item.name} · ${item.status}`;
+      const selected = selectedContainerId === item.id ? "selected" : "";
+      return `<option value="${escapeHtml(item.id)}" ${selected}>${escapeHtml(label)}</option>`;
+    }).join("");
+    if (!selectedContainerId) {
+      selectedContainerId = items[0].id;
+      select.value = selectedContainerId;
+    }
+  } catch (err) {
+    select.innerHTML = '<option value="">Docker access unavailable</option>';
+    document.getElementById("logOutput").textContent = "Failed to load container list.";
+  }
+}
+async function refreshLogs() {
+  const output = document.getElementById("logOutput");
+  const select = document.getElementById("logContainerSelect");
+  const containerId = select.value;
+  selectedContainerId = containerId;
+  if (!containerId) {
+    output.textContent = "Select a container to inspect recent logs.";
+    return;
+  }
+  output.textContent = "Loading logs...";
+  try {
+    const res = await fetch(`/api/docker/logs?container=${encodeURIComponent(containerId)}`);
+    const data = await res.json();
+    if (!data.ok) {
+      output.textContent = data.error || "Failed to read logs.";
+      return;
+    }
+    output.textContent = data.logs || "No logs available for this container.";
+  } catch (err) {
+    output.textContent = "Failed to read logs.";
+  }
+}
+async function refresh() {
+  const pill = document.getElementById("pollState");
+  try {
+    const res = await fetch("/api/status");
+    const data = await res.json();
+    pill.textContent = "Live";
+    pill.className = "pill good";
+    text("userActivity", fmtTs(data.last_user_activity_at));
+    text("agentActivity", fmtTs(data.last_agent_activity_at));
+    const tbody = document.getElementById("participantsBody");
+    const rows = (data.participants || []).map((item) => `
+      <tr>
+        <td class="mono">${escapeHtml(item.identity || "")}</td>
+        <td>${escapeHtml(item.name || "")}</td>
+        <td>${escapeHtml(item.kind || "")}</td>
+        <td>${badge(item.state || "")}</td>
+        <td class="mono">${escapeHtml(item.metadata || "")}</td>
+      </tr>
+    `).join("");
+    tbody.innerHTML = rows || '<tr><td colspan="5">No participants.</td></tr>';
+    const componentsBody = document.getElementById("componentsBody");
+    const componentRows = (data.components || []).map((item) => `
+      <tr>
+        <td class="mono">${escapeHtml(item.name || "")}</td>
+        <td>${badge(item.state || "")}</td>
+        <td>${badge(item.healthy ? "yes" : "no")}</td>
+        <td>${escapeHtml(item.source || "")}</td>
+        <td class="mono">${escapeHtml(item.detail || "")}</td>
+        <td class="mono">${escapeHtml(fmtTs(item.updated_at))}</td>
+      </tr>
+    `).join("");
+    componentsBody.innerHTML = componentRows || '<tr><td colspan="6">No component state.</td></tr>';
+    const watchdog = data.watchdog || {};
+    text("watchdogSummary", watchdog.summary || "waiting for updates");
+    text("watchdogReachable", watchdog.pepper_reachable ? "reachable" : "offline");
+    text("watchdogStartup", watchdog.safe_startup_running ? "running" : "idle");
+    text("watchdogResult", watchdog.last_result || "none");
+    text("watchdogUpdated", fmtTs(watchdog.updated_at));
+    const watchdogPill = document.getElementById("watchdogPill");
+    const watchdogTone = watchdog.safe_startup_running ? "warn" : (watchdog.pepper_reachable ? "good" : "hot");
+    watchdogPill.className = `pill ${watchdogTone}`;
+    watchdogPill.textContent = watchdog.summary || "Watchdog waiting";
+  } catch (err) {
+    pill.textContent = "Disconnected";
+    pill.className = "pill hot";
+  }
+}
+document.getElementById("logContainerSelect").addEventListener("change", refreshLogs);
+document.getElementById("refreshLogsBtn").addEventListener("click", refreshLogs);
+refresh();
+refreshContainers().then(refreshLogs);
+setInterval(refresh, 1500);
+setInterval(refreshContainers, 8000);
+</script>
+"""
+
+CHAT_HTML = """<!doctype html>
+<meta charset="utf-8">
+<title>Pepper Operator Chat</title>
+<style>
+:root {
+  --bg: #eef4fb;
+  --panel: rgba(255,255,255,0.94);
+  --line: #d8e4f1;
+  --text: #16324a;
+  --muted: #667f97;
+  --accent: #2968d8;
+  --accent-soft: #edf4ff;
+  --accent-deep: #17479f;
+  --good: #5aa878;
+  --good-soft: #ebf8ef;
+  --hot: #c85757;
+  --shadow: 0 18px 40px rgba(40, 74, 111, 0.10);
+}
+* { box-sizing:border-box; }
+html,body {
+  margin:0;
+  padding:0;
+  min-height:100%;
+  background:
+    radial-gradient(circle at top left, rgba(41,104,216,0.14), transparent 28%),
+    radial-gradient(circle at top right, rgba(90,168,120,0.12), transparent 22%),
+    linear-gradient(180deg, #f9fbff, #eef4fb 42%, #e9f0f8 100%);
+  color:var(--text);
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+.page { max-width: 1220px; margin: 0 auto; padding: 18px 16px 24px; }
+.hero {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:12px;
+}
+.hero h1 { margin:0; font-size:32px; line-height:1; letter-spacing:-0.03em; }
+.hero p { margin:6px 0 0; color:var(--muted); font-size:14px; }
+.hero-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.layout {
+  display:grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 240px);
+  gap:12px;
+  align-items:start;
+}
+.main-column,
+.side-column {
+  display:grid;
+  gap:12px;
+}
+.nav-link {
+  display:inline-flex;
+  align-items:center;
+  padding:8px 12px;
+  border-radius:999px;
+  text-decoration:none;
+  color:var(--accent-deep);
+  background:rgba(255,255,255,0.72);
+  border:1px solid var(--line);
+  font-size:13px;
+  font-weight:600;
+}
+.nav-link.active {
+  background:var(--accent-soft);
+  border-color:rgba(41,104,216,0.18);
+}
+.pill {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius:999px;
+  background:var(--accent-soft);
+  color:var(--accent-deep);
+  font-size:13px;
+  font-weight:600;
+  border:1px solid rgba(41,104,216,0.14);
+}
+.pill::before {
+  content:"";
+  width:8px;
+  height:8px;
+  border-radius:999px;
+  background:currentColor;
+}
+.pill.good {
+  background:var(--good-soft);
+  color:var(--good);
+}
+.pill.hot {
+  background:#fff0f0;
+  color:var(--hot);
+}
+.top-strip {
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,0.84);
+  box-shadow: 0 10px 22px rgba(40, 74, 111, 0.06);
+  overflow:hidden;
+  margin-bottom:12px;
+}
+.mini-table { width:100%; border-collapse:collapse; }
+.mini-table th,
+.mini-table td {
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+  text-align:left;
+}
+.mini-table th { width:18%; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; background:rgba(244,248,253,0.92); }
+.mini-table tr:last-child th,
+.mini-table tr:last-child td { border-bottom:none; }
+.mini-cell-main { font-size:15px; font-weight:700; }
+.mini-cell-sub { margin-top:2px; color:var(--muted); font-size:12px; }
+.card {
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.chat-header {
+  padding:18px 20px 12px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+}
+.chat-header-actions {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.chat-header h2,
+.controls-title {
+  margin:0;
+  font-size:20px;
+  letter-spacing:-0.02em;
+}
+.chat-header p,
+.controls-note {
+  margin:6px 0 0;
+  color:var(--muted);
+  font-size:14px;
+}
+.chat-feed {
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-height:560px;
+  max-height:560px;
+  overflow:auto;
+  padding:18px 20px 20px;
+  background:linear-gradient(180deg, rgba(244,248,253,0.88), rgba(255,255,255,0.92));
+}
+.bubble {
+  max-width:90%;
+  border-radius:18px;
+  padding:14px 16px;
+  line-height:1.45;
+  box-shadow: 0 8px 22px rgba(40, 74, 111, 0.06);
+}
+.bubble.user { align-self:flex-end; background:#edf4ff; border:1px solid rgba(41,104,216,0.10); }
+.bubble.pepper { align-self:flex-start; background:#ffffff; border:1px solid #dbe7f3; }
+.bubble.system {
+  align-self:center;
+  width:100%;
+  max-width:100%;
+  background:transparent;
+  box-shadow:none;
+  border:none;
+  padding:4px 0;
+}
+.speaker {
+  font-size:11px;
+  font-weight:700;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  margin-bottom:8px;
+}
+.body-text { font-size:17px; color:var(--text); word-break:break-word; }
+.session-divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  color:var(--accent-deep);
+}
+.session-divider::before,
+.session-divider::after {
+  content:"";
+  height:1px;
+  flex:1;
+  background:linear-gradient(90deg, transparent, #c4d6ea, transparent);
+}
+.session-chip {
+  padding:10px 14px;
+  border-radius:999px;
+  background:rgba(41,104,216,0.08);
+  border:1px solid rgba(41,104,216,0.14);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.10em;
+  text-transform:uppercase;
+}
+.controls-card { margin-top:12px; padding:18px; }
+.tiny-card {
+  padding:14px 14px 12px;
+}
+.signal-table {
+  width:100%;
+  border-collapse:collapse;
+}
+.signal-table th,
+.signal-table td {
+  padding:10px 0;
+  text-align:left;
+  vertical-align:top;
+  border-bottom:1px solid var(--line);
+}
+.signal-table th {
+  width:44%;
+  color:var(--muted);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+}
+.signal-table tr:last-child th,
+.signal-table tr:last-child td {
+  border-bottom:none;
+}
+.signal-value {
+  font-size:13px;
+  font-weight:600;
+}
+.tiny-meter {
+  height:8px;
+  border-radius:999px;
+  overflow:hidden;
+  background:#e8eff7;
+  border:1px solid var(--line);
+  margin-bottom:6px;
+}
+.tiny-meter > div {
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg, #7fc39b, #4d88e6, #17479f);
+}
+.controls-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:12px;
+  margin-bottom:10px;
+}
+.mini-note { color:var(--muted); font-size:12px; }
+.mono { font-family: "SFMono-Regular", Consolas, monospace; font-size:12px; }
+textarea {
+  width:100%;
+  min-height:48px;
+  resize:vertical;
+  background:white;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+  font:inherit;
+}
+.controls {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.toggle {
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:14px;
+  border:1px solid rgba(41,104,216,0.14);
+  background:#fbfdff;
+  color:var(--accent-deep);
+  font-weight:600;
+}
+.toggle input {
+  appearance:none;
+  width:42px;
+  height:24px;
+  border-radius:999px;
+  background:#d8e4f1;
+  position:relative;
+  outline:none;
+  cursor:pointer;
+}
+.toggle input::after {
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:18px;
+  height:18px;
+  border-radius:999px;
+  background:white;
+  box-shadow:0 1px 4px rgba(0,0,0,0.15);
+  transition:left 120ms ease;
+}
+.toggle input:checked {
+  background:#9dbaf0;
+}
+.toggle input:checked::after {
+  left:21px;
+}
+button {
+  background:#f6faff;
+  color:var(--accent-deep);
+  border:1px solid rgba(41,104,216,0.14);
+  border-radius:14px;
+  padding:12px 16px;
+  font:inherit;
+  font-weight:600;
+  cursor:pointer;
+}
+button.primary { background:rgba(41,104,216,0.10); border-color:rgba(41,104,216,0.22); }
+button.secondary { background:#f3f7fb; color:#617892; border-color:rgba(98,122,148,0.18); }
+button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.22); }
+.btn-icon { display:inline-flex; width:18px; justify-content:center; margin-right:6px; opacity:0.82; }
+@media (max-width: 760px) {
+  .layout { grid-template-columns: 1fr; }
+  .hero { flex-direction:column; align-items:flex-start; }
+  .hero h1 { font-size:28px; }
+  .chat-feed { min-height:420px; max-height:420px; }
+  .body-text { font-size:16px; }
+}
 </style>
 <div class="page">
   <div class="hero">
     <div>
       <h1>Pepper Operator</h1>
-      <p>Permanent room orchestration, agent dispatch state, and joined participants.</p>
+      <p>Focused chat surface for the live interaction.</p>
     </div>
-    <div class="pill" id="pollState">Polling...</div>
-  </div>
-  <div class="grid">
-    <div class="card"><div class="label">Room</div><div class="value" id="roomName">-</div></div>
-    <div class="card"><div class="label">Session State</div><div class="value" id="sessionState">-</div></div>
-    <div class="card"><div class="label">Agent Deployed</div><div class="value" id="agentDeployed">-</div></div>
-    <div class="card"><div class="label">Conversation ID</div><div class="value mono" id="conversationId">-</div></div>
-  </div>
-  <div class="grid">
-    <div class="card">
-      <div class="label">Mic Level</div>
-      <div class="meter"><div id="micLevelBar"></div></div>
-      <div class="footer mono" id="micLevelText">-</div>
-    </div>
-    <div class="card">
-      <div class="label">Pepper Level</div>
-      <div class="meter"><div id="pepperLevelBar"></div></div>
-      <div class="footer mono" id="pepperLevelText">-</div>
-    </div>
-    <div class="card">
-      <div class="label">Pepper Speaking</div>
-      <div class="value" id="pepperSpeaking">-</div>
-    </div>
-    <div class="card">
-      <div class="label">Idle Countdown</div>
-      <div class="countdown mono" id="idleCountdown">-</div>
+    <div class="hero-meta">
+      <a class="nav-link active" href="/">Chat</a>
+      <a class="nav-link" href="/debug">Debug</a>
+      <div class="pill" id="pollState">Polling</div>
+      <div class="pill good" id="chatLivePill">Waiting for session</div>
     </div>
   </div>
-  <div class="stack">
-    <div class="card">
-      <div class="label">Conversation</div>
-      <div class="bubble-list" id="transcriptList"><div class="footer">No transcript yet.</div></div>
-    </div>
-    <div class="card">
-      <div class="label">User Text Input</div>
-      <textarea id="userText" placeholder="Send a text turn as the user"></textarea>
-      <div class="controls" style="margin-top:10px;">
-        <button id="sendBtn">Send</button>
-        <button class="secondary" id="clearBtn">Clear</button>
-        <button class="warn" id="muteBtn">Toggle Mic Mute</button>
-        <button class="warn" id="resetBtn">Restart Session</button>
+  <div class="layout">
+    <div class="main-column">
+      <div class="card">
+        <div class="chat-header">
+          <div>
+            <h2>Conversation History</h2>
+            <p>Primary live view.</p>
+          </div>
+          <div class="chat-header-actions">
+            <button class="warn" id="resetBtn"><span class="btn-icon">↻</span>Restart Session</button>
+          </div>
+        </div>
+        <div class="chat-feed" id="transcriptList"><div class="mini-note">No transcript yet.</div></div>
       </div>
-      <div class="footer" id="muteState">Mic state: -</div>
+      <div class="card controls-card">
+        <div class="controls-head">
+          <div>
+            <div class="controls-title">Operator Controls</div>
+            <div class="controls-note">Send a user turn or control the current session.</div>
+          </div>
+          <div class="mini-note" id="muteState">Mic state: -</div>
+        </div>
+        <textarea id="userText" placeholder="Send a text turn as the user"></textarea>
+        <div class="controls">
+          <button class="primary" id="sendBtn"><span class="btn-icon">→</span>Send</button>
+          <label class="toggle"><input type="checkbox" id="muteToggle"><span>Mute Mic</span></label>
+        </div>
+      </div>
+    </div>
+    <div class="side-column">
+      <div class="card tiny-card">
+        <div class="controls-title" style="font-size:16px;">Live Signal</div>
+        <div class="controls-note" style="margin-top:4px;">Small live telemetry beside the chat.</div>
+        <table class="signal-table">
+          <tbody>
+            <tr>
+              <th>Mic level</th>
+              <td>
+                <div class="tiny-meter"><div id="chatMicLevelBar"></div></div>
+                <div class="signal-value mono" id="chatMicLevelText">-</div>
+              </td>
+            </tr>
+            <tr>
+              <th>Pepper level</th>
+              <td>
+                <div class="tiny-meter"><div id="chatPepperLevelBar"></div></div>
+                <div class="signal-value mono" id="chatPepperLevelText">-</div>
+              </td>
+            </tr>
+            <tr><th>Speaking</th><td class="signal-value" id="chatPepperSpeaking">-</td></tr>
+            <tr><th>Idle</th><td class="signal-value mono" id="chatIdleCountdown">-</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <div class="label">Participants</div>
-    <table>
-      <thead><tr><th>Identity</th><th>Name</th><th>Kind</th><th>State</th><th>Metadata</th></tr></thead>
-      <tbody id="participantsBody"><tr><td colspan="5">Loading...</td></tr></tbody>
-    </table>
-  </div>
-  <div class="card" style="margin-top:14px;">
-    <div class="label">Components</div>
-    <table>
-      <thead><tr><th>Name</th><th>State</th><th>Healthy</th><th>Source</th><th>Detail</th><th>Updated</th></tr></thead>
-      <tbody id="componentsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
-    </table>
-  </div>
-  <div class="grid" style="margin-top:14px;">
-    <div class="card"><div class="label">Last User Activity</div><div class="value mono" id="userActivity">-</div></div>
-    <div class="card"><div class="label">Last Agent Activity</div><div class="value mono" id="agentActivity">-</div></div>
-    <div class="card"><div class="label">Updated</div><div class="value mono" id="updatedAt">-</div></div>
-  </div>
-  <div class="footer">This page is read-only. Session start/end is driven by mic activity and idle timeout.</div>
 </div>
 <script>
-    function fmtTs(value) {
+function fmtTs(value) {
   if (!value) return "-";
-  return new Date(value).toLocaleTimeString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString();
 }
 function text(el, value) {
-  document.getElementById(el).textContent = value || "-";
+  const node = document.getElementById(el);
+  if (node) node.textContent = value || "-";
+}
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 function meter(el, value) {
   const pct = Math.max(0, Math.min(100, Math.round((value || 0) * 100)));
-  document.getElementById(el).style.width = pct + "%";
+  const node = document.getElementById(el);
+  if (node) node.style.width = pct + "%";
 }
 async function postJson(url, body) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -202,53 +1252,47 @@ async function refresh() {
     const res = await fetch("/api/status");
     const data = await res.json();
     pill.textContent = "Live";
-    text("roomName", data.room_name);
-    text("sessionState", data.session_state);
-    text("agentDeployed", data.agent_deployed ? "yes" : "no");
-    text("conversationId", data.conversation_id);
-    text("userActivity", fmtTs(data.last_user_activity_at));
-    text("agentActivity", fmtTs(data.last_agent_activity_at));
-    text("updatedAt", fmtTs(data.updated_at));
-    text("pepperSpeaking", data.agent_speaking ? "yes" : "no");
-    text("idleCountdown", data.idle_countdown_sec != null ? `${data.idle_countdown_sec.toFixed(1)}s` : "waiting");
-    text("micLevelText", `level=${(data.mic_level || 0).toFixed(3)}`);
-    text("pepperLevelText", `level=${(data.agent_audio_level || 0).toFixed(3)}`);
+    pill.className = "pill good";
     text("muteState", `Mic state: ${data.mic_muted ? "muted" : "live"}`);
-    meter("micLevelBar", data.mic_level || 0);
-    meter("pepperLevelBar", data.agent_audio_level || 0);
-    const tbody = document.getElementById("participantsBody");
-    const rows = (data.participants || []).map((item) => `
-      <tr>
-        <td class="mono">${item.identity || ""}</td>
-        <td>${item.name || ""}</td>
-        <td>${item.kind || ""}</td>
-        <td>${item.state || ""}</td>
-        <td class="mono">${item.metadata || ""}</td>
-      </tr>
-    `).join("");
-    tbody.innerHTML = rows || '<tr><td colspan="5">No participants.</td></tr>';
-    const componentsBody = document.getElementById("componentsBody");
-    const componentRows = (data.components || []).map((item) => `
-      <tr>
-        <td class="mono">${item.name || ""}</td>
-        <td>${item.state || ""}</td>
-        <td>${item.healthy ? "yes" : "no"}</td>
-        <td>${item.source || ""}</td>
-        <td class="mono">${item.detail || ""}</td>
-        <td class="mono">${fmtTs(item.updated_at)}</td>
-      </tr>
-    `).join("");
-    componentsBody.innerHTML = componentRows || '<tr><td colspan="6">No component state.</td></tr>';
+    document.getElementById("muteToggle").checked = !!data.mic_muted;
+    text("chatMicLevelText", `level=${(data.mic_level || 0).toFixed(3)}`);
+    text("chatPepperLevelText", `level=${(data.agent_audio_level || 0).toFixed(3)}`);
+    text("chatPepperSpeaking", data.agent_speaking ? "yes" : "no");
+    text("chatIdleCountdown", data.idle_countdown_sec != null ? `${data.idle_countdown_sec.toFixed(1)}s` : "waiting");
+    meter("chatMicLevelBar", data.mic_level || 0);
+    meter("chatPepperLevelBar", data.agent_audio_level || 0);
+    const chatLivePill = document.getElementById("chatLivePill");
+    chatLivePill.className = `pill ${data.agent_deployed ? "good" : ""}`.trim();
+    chatLivePill.textContent = data.agent_deployed ? "Live session" : "Waiting for session";
     const transcriptEl = document.getElementById("transcriptList");
-    const transcriptRows = (data.transcript_items || []).map((item) => `
-      <div class="bubble ${item.speaker === 'Pepper' ? 'pepper' : 'user'}">
-        <div class="speaker">${item.speaker} · ${fmtTs(item.at)}</div>
-        <div>${item.text || ""}</div>
-      </div>
-    `).join("");
-    transcriptEl.innerHTML = transcriptRows || '<div class="footer">No transcript yet.</div>';
+    const transcriptRows = (data.transcript_items || []).map((item) => {
+      if (item.kind === "session") {
+        return `
+          <div class="bubble system">
+            <div class="session-divider">
+              <div class="session-chip">${escapeHtml(item.text || "Session update")} · ${escapeHtml(fmtTs(item.at))}</div>
+            </div>
+          </div>
+        `;
+      }
+      const bubbleClass = item.speaker === "Pepper" ? "pepper" : "user";
+      return `
+        <div class="bubble ${bubbleClass}">
+          <div class="speaker">${escapeHtml(item.speaker || "")} · ${escapeHtml(fmtTs(item.at))}</div>
+          <div class="body-text">${escapeHtml(item.text || "")}</div>
+        </div>
+      `;
+    }).join("");
+    const shouldStickToBottom =
+      transcriptEl.scrollTop === 0 ||
+      transcriptEl.scrollHeight - transcriptEl.scrollTop - transcriptEl.clientHeight < 96;
+    transcriptEl.innerHTML = transcriptRows || '<div class="mini-note">No transcript yet.</div>';
+    if (shouldStickToBottom) {
+      transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    }
   } catch (err) {
     pill.textContent = "Disconnected";
+    pill.className = "pill hot";
   }
 }
 document.getElementById("sendBtn").addEventListener("click", async () => {
@@ -259,10 +1303,7 @@ document.getElementById("sendBtn").addEventListener("click", async () => {
   el.value = "";
   refresh();
 });
-document.getElementById("clearBtn").addEventListener("click", () => {
-  document.getElementById("userText").value = "";
-});
-document.getElementById("muteBtn").addEventListener("click", async () => {
+document.getElementById("muteToggle").addEventListener("change", async () => {
   await postJson("/api/control/mic", {});
   refresh();
 });
@@ -330,6 +1371,14 @@ class SessionManager:
         self.agent_audio_level = 0.0
         self.pending_user_texts: list[dict[str, str]] = []
         self.components: dict[str, dict[str, Any]] = {}
+        self.docker_socket_path = DOCKER_SOCKET_PATH
+        self.watchdog_status: dict[str, Any] = {
+            "summary": "waiting for watchdog",
+            "pepper_reachable": False,
+            "safe_startup_running": False,
+            "last_result": "",
+            "updated_at": "",
+        }
         self._lock = asyncio.Lock()
         self._bg_tasks: list[asyncio.Task[Any]] = []
         self._bootstrap_complete = False
@@ -358,6 +1407,13 @@ class SessionManager:
             "voice-agent",
             state="unknown",
             detail="waiting for heartbeat",
+            healthy=False,
+            source="service",
+        )
+        self._register_component(
+            "safe-startup",
+            state="unknown",
+            detail="waiting for watchdog",
             healthy=False,
             source="service",
         )
@@ -431,6 +1487,87 @@ class SessionManager:
         item["updated_monotonic"] = time.monotonic()
         self.components[name] = item
         self.updated_at = item["updated_at"]
+
+    async def _docker_get_json(
+        self,
+        path: str,
+        *,
+        params: dict[str, str] | None = None,
+        timeout_sec: float = 1.5,
+    ) -> Any:
+        if not self.docker_socket_path or not Path(self.docker_socket_path).exists():
+            raise RuntimeError("docker socket unavailable")
+        connector = aiohttp.UnixConnector(path=self.docker_socket_path)
+        timeout = aiohttp.ClientTimeout(total=timeout_sec)
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            async with session.get(f"http://docker{path}", params=params) as response:
+                if response.status >= 400:
+                    raise RuntimeError(f"docker api {response.status}")
+                return await response.json()
+
+    async def _docker_get_text(
+        self,
+        path: str,
+        *,
+        params: dict[str, str] | None = None,
+        timeout_sec: float = 2.5,
+    ) -> str:
+        if not self.docker_socket_path or not Path(self.docker_socket_path).exists():
+            raise RuntimeError("docker socket unavailable")
+        connector = aiohttp.UnixConnector(path=self.docker_socket_path)
+        timeout = aiohttp.ClientTimeout(total=timeout_sec)
+        async with aiohttp.ClientSession(connector=connector, timeout=timeout) as session:
+            async with session.get(f"http://docker{path}", params=params) as response:
+                if response.status >= 400:
+                    raise RuntimeError(f"docker api {response.status}")
+                payload = await response.read()
+                return self._decode_docker_log_payload(payload)
+
+    def _decode_docker_log_payload(self, payload: bytes) -> str:
+        if not payload:
+            return ""
+        chunks: list[bytes] = []
+        idx = 0
+        size = len(payload)
+        while idx + 8 <= size:
+            stream_type = payload[idx]
+            if stream_type not in (0, 1, 2, 3):
+                chunks = [payload]
+                break
+            frame_len = struct.unpack(">I", payload[idx + 4 : idx + 8])[0]
+            frame_start = idx + 8
+            frame_end = frame_start + frame_len
+            if frame_end > size:
+                chunks = [payload]
+                break
+            chunks.append(payload[frame_start:frame_end])
+            idx = frame_end
+        if not chunks:
+            chunks = [payload]
+        if idx < size and chunks != [payload]:
+            chunks.append(payload[idx:])
+        return b"".join(chunks).decode("utf-8", errors="replace")
+
+    async def _list_docker_containers(self) -> list[dict[str, str]]:
+        raw_items = await self._docker_get_json("/containers/json", params={"all": "1"})
+        items: list[dict[str, str]] = []
+        for raw in raw_items or []:
+            labels = raw.get("Labels") or {}
+            service = str(labels.get("com.docker.compose.service") or "").strip()
+            if service not in KNOWN_DOCKER_SERVICES:
+                continue
+            names = raw.get("Names") or []
+            container_name = str(names[0] or "").lstrip("/") if names else service
+            items.append(
+                {
+                    "id": str(raw.get("Id") or ""),
+                    "service": service,
+                    "name": container_name,
+                    "state": str(raw.get("State") or ""),
+                    "status": str(raw.get("Status") or ""),
+                }
+            )
+        return sorted(items, key=lambda item: (item["service"], item["name"]))
 
     def _new_lkapi(self) -> api.LiveKitAPI:
         return api.LiveKitAPI(self.livekit_http_url, self.api_key, self.api_secret)
@@ -697,6 +1834,7 @@ class SessionManager:
                 self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
                 self.agent_deployed = True
                 self.session_state = "active"
+                self._append_session_marker(f"New session · {self.conversation_id}")
                 self.updated_at = _utc_now_iso()
                 print(
                     f"[session_manager] dispatched agent name={self.agent_name} "
@@ -732,11 +1870,16 @@ class SessionManager:
                 return
             self.session_state = "ending"
             print(f"[session_manager] ending session reason={reason}")
+            ended_conversation_id = self.conversation_id
             await self._remove_agent_participants()
             self.agent_deployed = False
             self.conversation_id = ""
             self.last_user_activity_monotonic = 0.0
             self.last_agent_activity_monotonic = 0.0
+            if ended_conversation_id:
+                self._append_session_marker(
+                    f"Session ended · {ended_conversation_id} · {reason}"
+                )
             self.session_state = "cooldown"
             self.updated_at = _utc_now_iso()
         await asyncio.sleep(SESSION_COOLDOWN_SEC)
@@ -771,16 +1914,19 @@ class SessionManager:
             if level is not None:
                 self.agent_audio_level = max(0.0, min(1.0, level))
 
-    def _append_transcript(self, speaker: str, text: str) -> None:
+    def _append_transcript(self, speaker: str, text: str, *, kind: str = "message") -> None:
         clean = " ".join(str(text).strip().split())
         if not clean:
             return
-        item = {"speaker": speaker, "text": clean, "at": _utc_now_iso()}
+        item = {"speaker": speaker, "text": clean, "at": _utc_now_iso(), "kind": kind}
         self.transcript_items.append(item)
         if speaker == "Pepper":
             self.last_pepper_text = clean
-        else:
+        elif speaker == "User":
             self.last_user_text = clean
+
+    def _append_session_marker(self, text: str) -> None:
+        self._append_transcript("System", text, kind="session")
 
     def _idle_countdown_sec(self) -> float | None:
         if not self.agent_deployed:
@@ -831,6 +1977,7 @@ class SessionManager:
             "agent_speaking": self.agent_speaking,
             "agent_audio_level": self.agent_audio_level,
             "idle_countdown_sec": self._idle_countdown_sec(),
+            "watchdog": dict(self.watchdog_status),
             "components": sorted(
                 (
                     {
@@ -885,6 +2032,36 @@ class SessionManager:
         self.updated_at = _utc_now_iso()
         return web.json_response({"ok": True})
 
+    async def handle_watchdog_status(self, request: web.Request) -> web.Response:
+        data = await request.json()
+        summary = " ".join(str(data.get("summary") or "").strip().split()) or "watchdog update"
+        pepper_reachable = bool(data.get("pepper_reachable", False))
+        safe_startup_running = bool(data.get("safe_startup_running", False))
+        last_result = " ".join(str(data.get("last_result") or "").strip().split())
+        healthy = bool(data.get("healthy", pepper_reachable or safe_startup_running))
+        updated_at = _utc_now_iso()
+        self.watchdog_status = {
+            "summary": summary,
+            "pepper_reachable": pepper_reachable,
+            "safe_startup_running": safe_startup_running,
+            "last_result": last_result,
+            "updated_at": updated_at,
+        }
+        detail_parts = [
+            "Pepper reachable" if pepper_reachable else "Pepper offline",
+            "safe startup running" if safe_startup_running else "safe startup idle",
+        ]
+        if last_result:
+            detail_parts.append(last_result)
+        self._set_component_state(
+            "safe-startup",
+            state=summary,
+            detail=" | ".join(detail_parts),
+            healthy=healthy,
+            source="service",
+        )
+        return web.json_response({"ok": True, "updated_at": updated_at})
+
     async def handle_component_status(self, request: web.Request) -> web.Response:
         data = await request.json()
         name = " ".join(str(data.get("name") or "").strip().split())
@@ -915,9 +2092,13 @@ class SessionManager:
         text = " ".join(str(data.get("text") or "").strip().split())
         if not text:
             return web.json_response({"ok": False, "error": "text required"}, status=400)
+        now = time.monotonic()
+        self.last_user_activity_monotonic = now
+        self.last_user_activity_at = _utc_now_iso()
+        if not self.agent_deployed and self.session_state == "idle":
+            await self.dispatch_agent()
         item = {"id": uuid.uuid4().hex[:10], "text": text}
         self.pending_user_texts.append(item)
-        self._append_transcript("User", text)
         self.updated_at = _utc_now_iso()
         return web.json_response({"ok": True, "queued": item})
 
@@ -926,6 +2107,8 @@ class SessionManager:
         return web.json_response(
             {
                 "mic_muted": self.mic_muted,
+                "agent_deployed": self.agent_deployed,
+                "session_state": self.session_state,
                 "pending_texts": list(self.pending_user_texts),
             }
         )
@@ -942,7 +2125,46 @@ class SessionManager:
         await self.end_session(reason="manual_reset")
         return web.json_response({"ok": True, "session_state": self.session_state})
 
+    async def handle_docker_containers(self, request: web.Request) -> web.Response:
+        del request
+        try:
+            containers = await self._list_docker_containers()
+            return web.json_response({"ok": True, "containers": containers})
+        except Exception as exc:
+            return web.json_response(
+                {"ok": False, "containers": [], "error": f"docker unavailable: {exc}"},
+                status=503,
+            )
+
+    async def handle_docker_logs(self, request: web.Request) -> web.Response:
+        container_id = str(request.query.get("container") or "").strip()
+        if not container_id:
+            return web.json_response(
+                {"ok": False, "error": "container query param required"},
+                status=400,
+            )
+        try:
+            logs = await self._docker_get_text(
+                f"/containers/{container_id}/logs",
+                params={
+                    "stdout": "1",
+                    "stderr": "1",
+                    "tail": str(DOCKER_LOG_TAIL_LINES),
+                    "timestamps": "1",
+                },
+            )
+            return web.json_response({"ok": True, "logs": logs})
+        except Exception as exc:
+            return web.json_response(
+                {"ok": False, "error": f"failed to fetch logs: {exc}"},
+                status=503,
+            )
+
     async def handle_root(self, request: web.Request) -> web.Response:
+        del request
+        return web.Response(text=CHAT_HTML, content_type="text/html")
+
+    async def handle_debug_root(self, request: web.Request) -> web.Response:
         del request
         return web.Response(text=STATUS_HTML, content_type="text/html")
 
@@ -951,13 +2173,17 @@ class SessionManager:
         app.add_routes(
             [
                 web.get("/", self.handle_root),
+                web.get("/debug", self.handle_debug_root),
                 web.get("/api/status", self.handle_status),
                 web.post("/api/activity", self.handle_activity),
                 web.post("/api/debug-event", self.handle_debug_event),
+                web.post("/api/watchdog-status", self.handle_watchdog_status),
                 web.post("/api/component-status", self.handle_component_status),
                 web.post("/api/control/mic", self.handle_mic_toggle),
                 web.post("/api/control/text", self.handle_text_send),
                 web.post("/api/control/reset", self.handle_reset),
+                web.get("/api/docker/containers", self.handle_docker_containers),
+                web.get("/api/docker/logs", self.handle_docker_logs),
                 web.get("/api/user-client/state", self.handle_user_client_state),
                 web.post("/api/user-client/ack", self.handle_user_client_ack),
             ]

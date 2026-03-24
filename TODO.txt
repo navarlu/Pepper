@@ -1,13 +1,8 @@
-
-
-
-
-
-
+Operator panel:
+make it cleaner
 state on pepper not updates when idle
 
-Repo:
-automatic startup, choregraph? 
+Repo: 
 faster first join
 
 
