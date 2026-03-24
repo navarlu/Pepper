@@ -14,3 +14,7 @@ Full RPI dev:
 
 merge, differences etc
 safe startup
+
+
+clean repo
+faster first join

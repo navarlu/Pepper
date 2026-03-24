@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 from collections import deque
+import os
 import socket
 import struct
 import sys
@@ -11,6 +12,9 @@ import audioop
 import time
 import threading
 import json
+
+# Self-built qi library for ARM64 — when running outside Docker,
+# set PYTHONPATH and LD_LIBRARY_PATH manually (see RPI_DEV.md)
 import qi
 from urllib.parse import quote, unquote, urlparse
 try:
@@ -348,7 +352,7 @@ class TabletOverlayHttpServer(threading.Thread):
 
             def _write_json(self, status_code, payload):
                 try:
-                    body = json.dumps(payload)
+                    body = json.dumps(payload).encode("utf-8")
                     self.send_response(status_code)
                     self.send_header("Content-Type", "application/json")
                     self.send_header("Content-Length", str(len(body)))

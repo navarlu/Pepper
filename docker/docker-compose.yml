@@ -72,6 +72,27 @@ services:
       - weaviate
     restart: unless-stopped
 
+  bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/bridge.py"]
+    volumes:
+      - ..:/workspace
+      - /home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release:/opt/qi
+      - /home/lucas/.conan2/p/b/boost00dddf9f5dc9e/p/lib:/opt/boost-lib
+      - /home/lucas/Projects/FEL/QI_test/local_qi/lib:/opt/qi-native-lib
+    environment:
+      PYTHONPATH: /opt/qi
+      LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
+      PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+      BRIDGE_BIND_HOST: "0.0.0.0"
+      TCP_PORT: "55555"
+      BRIDGE_URL: http://0.0.0.0:5000
+    network_mode: host
+    restart: unless-stopped
+
   listener:
     build:
       context: ..
@@ -92,6 +113,7 @@ services:
     depends_on:
       - session-manager
       - livekit
+      - bridge
     restart: unless-stopped
 
   user-client:
@@ -102,7 +124,10 @@ services:
     command: ["uv", "run", "python", "robot/src/user_client.py"]
     volumes:
       - ..:/workspace
+    devices:
       - /dev/snd:/dev/snd
+    group_add:
+      - audio
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       SESSION_MANAGER_URL: http://127.0.0.1:8787

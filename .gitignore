@@ -67,3 +67,7 @@ latexmkrc
 voice-agent/models/
 notes.txt
 run*.txt
+
+AGENTS.md
+CLAUDE.md
+.mcp.json

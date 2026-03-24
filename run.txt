@@ -156,3 +156,9 @@ unset LD_LIBRARY_PATH
 export NAOQI_ROOT="$HOME/Projects/FEL/Pepper/robot/choregraphe"
 export PYTHONPATH="$NAOQI_ROOT/lib/python2.7/site-packages"
 python2 robot/src/bridge.py
+
+
+
+
+cd /home/lucas/Projects/FEL/Pepper/docker && docker compose up -d --build
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
