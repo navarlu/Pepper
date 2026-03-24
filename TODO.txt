@@ -8,3 +8,9 @@ cospeach
 
 
 state on pepper not updates when idle
+
+
+Full RPI dev:
+
+merge, differences etc
+safe startup

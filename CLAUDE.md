@@ -11,6 +11,14 @@ When implementing new features, always ensure they:
 
 Quality, correctness, and maintainability take priority.
 
+### 0. Observability First
+
+Every piece of code must be easy to inspect and debug:
+- Log every meaningful action: incoming requests, outgoing API calls, agent decisions, errors
+- Include context in logs: reservation ID, guest phone, agent name, etc.
+- No silent failures — always log errors, even in best-effort/catch blocks
+- When adding new functionality, always think: "Can Lucas see what happened by reading the logs?"
+
 ---
 
 ## Coding Rules
@@ -31,6 +39,21 @@ To use context7: call `mcp__MCP_DOCKER__resolve-library-id` with the library nam
 - Do **not** introduce `argparse` or CLI-based argument handling unless explicitly requested
 - Configuration files are allowed
 - If no configuration file is used, define parameters, paths, and constants as **simple global variables at the top of the file**
+
+---
+
+## Dev Scripts
+
+- **Reset all data:** `.venv\Scripts\python.exe reset_dev.py` (from `/backend`) — clears all guests, reservations, messages and re-seeds nightly rates. Does NOT delete WhatsApp groups on the phone — those must be deleted manually.
+
+---
+
+## Development Environment
+
+- **OS:** Windows 11
+- **Shell:** PowerShell / Git Bash
+- When writing shell commands, use Windows-compatible syntax (e.g., `.venv\Scripts\python.exe` not `.venv/bin/python`)
+- The `uv` executable is at `C:\Users\lukan\.local\bin\uv.exe` — not on the default bash PATH, so use the full path or run via `cmd.exe` / PowerShell when needed
 
 ---
 
