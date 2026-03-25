@@ -1,18 +1,19 @@
-
 https://docs.google.com/document/d/18wjGIsm8TbbgqFEvbgbX9QL37sdoOspIgIwiWLcWKaw/edit?pli=1&tab=t.0#heading=h.kmtf914entwk
 
+## gitguide:
 
+### 1) Update GitHub (source of truth)
 
-gitguide:
-1) Update GitHub (source of truth)
-
+```bash
 cd /home/lucas/Projects/FEL/Pepper
 git add docs/thesis/latex/main
 git commit -m "thesis: update related work section"
 git push origin main
+```
 
-2) Mirror same state to Overleaf (checkpoint)
+### 2) Mirror same state to Overleaf (checkpoint)
 
+```bash
 cd /home/lucas/Projects/FEL/Pepper
 git fetch overleaf
 git worktree add /tmp/overleaf-sync overleaf/master
@@ -23,12 +24,15 @@ git commit -m "Checkpoint from local thesis state"
 git push overleaf HEAD:master
 cd /home/lucas/Projects/FEL/Pepper
 git worktree remove /tmp/overleaf-sync
+```
 
-operator panel adress:
+## operator panel adress:
+
 http://100.111.97.63:8787/
 
+## run on GPU server
 
-run on GPU server
+```bash
 ssh navarlu2@ptak.felk.cvut.cz
 ssh lie
 tmux attach -t lie
@@ -37,10 +41,11 @@ vllm serve Qwen/Qwen2.5-7B-Instruct \
   --host 127.0.0.1 --port 8000 \
   --enable-auto-tool-choice \
   --tool-call-parser hermes
+```
 
+## safe_startup_example:
 
-
-safe_startup_example:
+```text
 lucas@lucas-rpi-5-8gb:~/Projects/FEL/Pepper$ uv run python robot/utils/safe_startup.py 
 Safe startup 3 staring...
 [info] no URL provided, waiting for Pepper to appear on the network...
@@ -77,3 +82,4 @@ Safe startup 3 staring...
 [ok] ALDiagnosis.getPassiveDiagnosis() -> []
 [ok] ALDiagnosis.getActiveDiagnosis() -> []
 [done] stabilization complete. Pepper at tcp://192.168.210.113:9559
+```
