@@ -18,7 +18,6 @@ from .config import (
     ENABLE_ANIMATION_TOOL,
     ENABLE_QUERY_SEARCH,
     QUERY_SEARCH_DEFAULT_LIMIT,
-    QUERY_SEARCH_MAX_CONTENT_CHARS,
     QUERY_SEARCH_MAX_LIMIT,
     WEAVIATE_HYBRID_ALPHA,
 )
@@ -27,7 +26,22 @@ from .utils import search_vectors
 logger = logging.getLogger("voice-agent")
 
 
-def _post_query_log(query: str, limit: int, result_count: int, results: list, duration_ms: float) -> None:
+def _get_runtime_settings() -> dict[str, Any]:
+    """Fetch runtime query settings from dev-console. Falls back to config defaults."""
+    console_url = str(DEV_CONSOLE_URL or "").rstrip("/")
+    if not console_url:
+        return {}
+    try:
+        req = Request(f"{console_url}/api/settings", method="GET")
+        with urlopen(req, timeout=2.0) as resp:
+            return json.loads(resp.read().decode())
+    except Exception as exc:
+        logger.debug("runtime_settings_fetch_failed error=%s", exc)
+        return {}
+
+
+def _post_query_log(query: str, limit: int, result_count: int, results: list,
+                    duration_ms: float, alpha: float = 0.0, mode: str = "hybrid") -> None:
     """Best-effort POST to dev-console to log a live query."""
     console_url = str(DEV_CONSOLE_URL or "").rstrip("/")
     if not console_url:
@@ -36,8 +50,8 @@ def _post_query_log(query: str, limit: int, result_count: int, results: list, du
         payload = json.dumps({
             "query": query,
             "source": "live",
-            "mode": "hybrid",
-            "alpha": float(WEAVIATE_HYBRID_ALPHA),
+            "mode": mode,
+            "alpha": alpha,
             "limit": limit,
             "result_count": result_count,
             "results": results,
@@ -54,13 +68,11 @@ def _post_query_log(query: str, limit: int, result_count: int, results: list, du
         logger.warning("dev_console_log_failed error=%s", exc)
 
 
-def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
-    content = str(item.get("content") or "")
-    if len(content) > QUERY_SEARCH_MAX_CONTENT_CHARS:
-        content = content[:QUERY_SEARCH_MAX_CONTENT_CHARS].rstrip() + "..."
+def _agent_result(item: dict[str, Any]) -> dict[str, Any]:
+    """Fields returned to the LLM agent."""
     return {
         "title": item.get("title"),
-        "content": content,
+        "content": item.get("content"),
         "source": item.get("source"),
         "score": item.get("score"),
     }
@@ -150,25 +162,30 @@ def build_tools() -> list[Any]:
                 ensure_ascii=False,
             )
 
-        safe_limit = max(1, min(int(limit), QUERY_SEARCH_MAX_LIMIT))
-        logger.info("query_search query=%s limit=%s", query_text, safe_limit)
+        # Fetch runtime settings from dev-console (alpha, limit, mode).
+        rt = await asyncio.to_thread(_get_runtime_settings)
+        rt_alpha = float(rt.get("alpha", WEAVIATE_HYBRID_ALPHA))
+        rt_limit = int(rt.get("limit", QUERY_SEARCH_DEFAULT_LIMIT))
+        safe_limit = max(1, min(rt_limit, QUERY_SEARCH_MAX_LIMIT))
+        logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
 
         try:
             import time as _time
             t0 = _time.monotonic()
-            results = await asyncio.to_thread(search_vectors, query_text, safe_limit)
+            results = await asyncio.to_thread(search_vectors, query_text, safe_limit, rt_alpha)
             duration_ms = (_time.monotonic() - t0) * 1000
-            compact = [_compact_result(item) for item in results]
+            agent_results = [_agent_result(item) for item in results]
             payload = {
                 "query": query_text,
                 "count": len(results),
-                "results": compact,
+                "results": agent_results,
             }
-            # Best-effort log to dev-console.
+            # Best-effort log to dev-console (full results for inspection).
             try:
                 logger.info("dev_console_posting query=%s", query_text)
                 await asyncio.to_thread(
-                    _post_query_log, query_text, safe_limit, len(results), compact, duration_ms,
+                    _post_query_log, query_text, safe_limit, len(results), results,
+                    duration_ms, rt_alpha, rt.get("mode", "hybrid"),
                 )
                 logger.info("dev_console_post_ok query=%s", query_text)
             except Exception as log_exc:

@@ -6,11 +6,16 @@ Pepper can be turned on before or after — the watchdog will detect her.
 
 ## 1. Start all services
 
+This project's standard workflow includes both the `audio` and `debug`
+profiles, so "all services" means the base stack plus:
+- `user-client` (`audio`)
+- `playground` and `dev-console` (`debug`)
+
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env up -d
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio --profile debug up -d
 ```
 
-## 2. Start user-client (audio profile, optional)
+## 2. Start only user-client
 
 ```bash
 docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
@@ -19,7 +24,7 @@ docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -
 ## 3. Rebuild and restart everything
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env up -d --build
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio --profile debug up -d --build
 ```
 
 ## 4. Restart single service (e.g. bridge after code change)

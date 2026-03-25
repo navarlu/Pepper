@@ -67,7 +67,6 @@ SEED_LOG_PREFIX = "[weaviate-seed]"
 ENABLE_QUERY_SEARCH = True
 QUERY_SEARCH_DEFAULT_LIMIT = 5
 QUERY_SEARCH_MAX_LIMIT = 8
-QUERY_SEARCH_MAX_CONTENT_CHARS = 900
 
 # Pepper animation tool (voice-agent -> robot bridge).
 ENABLE_ANIMATION_TOOL = True

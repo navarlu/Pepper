@@ -130,14 +130,15 @@ def _format_results(response) -> list[dict[str, Any]]:
     return results
 
 
-def search_vectors(query: str, limit: int = 5) -> list[dict[str, Any]]:
+def search_vectors(query: str, limit: int = 5, alpha: float | None = None) -> list[dict[str, Any]]:
+    effective_alpha = alpha if alpha is not None else WEAVIATE_HYBRID_ALPHA
     with connect_weaviate() as client:
         ensure_collection(client)
         collection = client.collections.use(WEAVIATE_COLLECTION)
         response = collection.query.hybrid(
             query=query,
             query_properties=[DOC_TITLE_FIELD, DOC_CONTENT_FIELD],
-            alpha=WEAVIATE_HYBRID_ALPHA,
+            alpha=effective_alpha,
             limit=limit,
             return_metadata=MetadataQuery(score=True, distance=True),
             return_properties=[

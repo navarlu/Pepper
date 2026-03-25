@@ -9,6 +9,11 @@
 ## Agent:
 
 - faster first join
+- Knowladge
+    - contacts
+    - ways to rooms
+    - calendar
+
 
 ## Tablet
 

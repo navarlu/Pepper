@@ -40,3 +40,6 @@ HISTORY_DB_PATH = BASE_DIR / "data" / "query_history.db"
 
 # Upload temp dir
 UPLOAD_DIR = BASE_DIR / "data" / "uploads"
+
+# Runtime settings file (shared with voice-agent)
+RUNTIME_SETTINGS_PATH = BASE_DIR / "data" / "runtime_settings.json"

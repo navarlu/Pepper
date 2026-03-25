@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
 from pathlib import Path
@@ -12,7 +13,7 @@ import uvicorn
 from fastapi import FastAPI, File, Form, Query, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
 
-from .config import DEV_CONSOLE_HOST, DEV_CONSOLE_PORT, UPLOAD_DIR, WEAVIATE_COLLECTION
+from .config import DEV_CONSOLE_HOST, DEV_CONSOLE_PORT, RUNTIME_SETTINGS_PATH, UPLOAD_DIR, WEAVIATE_COLLECTION
 from .file_parser import parse_file
 from .history import VALID_SOURCES, clear_history, get_history, get_log_entry, log_query
 from .weaviate_client import (
@@ -62,6 +63,40 @@ async def api_delete_collection(name: str):
     if not ok:
         return JSONResponse({"error": "not_found"}, status_code=404)
     return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# API: Runtime settings (shared with voice-agent)
+# ---------------------------------------------------------------------------
+
+RUNTIME_DEFAULTS = {"alpha": 0.7, "limit": 5, "mode": "hybrid"}
+
+
+def _read_runtime_settings() -> dict[str, Any]:
+    if RUNTIME_SETTINGS_PATH.exists():
+        try:
+            return {**RUNTIME_DEFAULTS, **json.loads(RUNTIME_SETTINGS_PATH.read_text("utf-8"))}
+        except Exception:
+            pass
+    return {**RUNTIME_DEFAULTS}
+
+
+def _write_runtime_settings(data: dict[str, Any]) -> None:
+    RUNTIME_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    merged = {**_read_runtime_settings(), **data}
+    RUNTIME_SETTINGS_PATH.write_text(json.dumps(merged, indent=2), encoding="utf-8")
+    logger.info("runtime_settings_saved %s", merged)
+
+
+@app.get("/api/settings")
+async def api_get_settings():
+    return _read_runtime_settings()
+
+
+@app.put("/api/settings")
+async def api_put_settings(body: dict[str, Any]):
+    _write_runtime_settings(body)
+    return {"ok": True, **_read_runtime_settings()}
 
 
 @app.get("/api/stats")
@@ -454,6 +489,7 @@ input[type="checkbox"] { width: auto; }
     <button class="tab active" data-tab="data">Data Viewer</button>
     <button class="tab" data-tab="query">Query Tester</button>
     <button class="tab" data-tab="history">Query Log</button>
+    <button class="tab" data-tab="settings">Settings</button>
   </div>
 
   <!-- ====================== DATA VIEWER ====================== -->
@@ -536,6 +572,45 @@ input[type="checkbox"] { width: auto; }
       <button class="btn-primary" onclick="runQuery()">Run Query</button>
     </div>
     <div id="queryResultsWrap"></div>
+  </div>
+
+  <!-- ====================== SETTINGS ====================== -->
+  <div class="panel" id="panel-settings">
+    <div class="card" style="max-width:560px">
+      <h2>Query Settings</h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+        These defaults are used by the Query Tester and stored in your browser.
+      </p>
+      <div class="form-group">
+        <label>Default Mode</label>
+        <select id="settingsMode">
+          <option value="hybrid">Hybrid</option>
+          <option value="vector">Vector (semantic)</option>
+          <option value="keyword">Keyword (BM25)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Default Limit</label>
+        <input type="number" id="settingsLimit" min="1" max="20" value="5">
+      </div>
+      <div class="form-group">
+        <label>Default Alpha <span style="font-weight:normal;color:var(--muted)">(0 = keyword only, 1 = semantic only)</span></label>
+        <input type="range" id="settingsAlphaRange" min="0" max="1" step="0.05" value="0.7" oninput="document.getElementById('settingsAlphaVal').textContent=this.value;document.getElementById('settingsAlphaNum').value=this.value">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:2px">
+          <span>BM25</span>
+          <span id="settingsAlphaVal" style="font-weight:600;color:var(--fg)">0.7</span>
+          <span>Semantic</span>
+        </div>
+        <input type="number" id="settingsAlphaNum" min="0" max="1" step="0.05" value="0.7" style="margin-top:6px;width:80px" oninput="document.getElementById('settingsAlphaRange').value=this.value;document.getElementById('settingsAlphaVal').textContent=this.value">
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;">
+        <button class="btn-primary" onclick="saveSettings()">Save</button>
+        <button onclick="resetSettings()">Reset Defaults</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:12px;">
+        These settings are shared with the live voice-agent. Changes take effect on Pepper's next query.
+      </p>
+    </div>
   </div>
 
   <!-- ====================== QUERY LOG ====================== -->
@@ -998,6 +1073,42 @@ async function clearHistoryAll() {
   refreshHistory();
 }
 
+// ====================== SETTINGS ======================
+// Settings are stored server-side (runtime_settings.json) so the voice-agent picks them up.
+const DEFAULT_SETTINGS = { mode: 'hybrid', limit: 5, alpha: 0.7 };
+
+async function loadSettings() {
+  try {
+    return { ...DEFAULT_SETTINGS, ...(await api('GET', '/api/settings')) };
+  } catch { return { ...DEFAULT_SETTINGS }; }
+}
+
+async function applySettingsToUI() {
+  const s = await loadSettings();
+  // Settings tab
+  document.getElementById('settingsMode').value = s.mode;
+  document.getElementById('settingsLimit').value = s.limit;
+  document.getElementById('settingsAlphaRange').value = s.alpha;
+  document.getElementById('settingsAlphaNum').value = s.alpha;
+  document.getElementById('settingsAlphaVal').textContent = s.alpha;
+}
+
+async function saveSettings() {
+  const s = {
+    mode: document.getElementById('settingsMode').value,
+    limit: parseInt(document.getElementById('settingsLimit').value) || 5,
+    alpha: parseFloat(document.getElementById('settingsAlphaNum').value) || 0.7,
+  };
+  await api('PUT', '/api/settings', s);
+  toast('Settings saved — Pepper will use these on next query');
+}
+
+async function resetSettings() {
+  await api('PUT', '/api/settings', DEFAULT_SETTINGS);
+  await applySettingsToUI();
+  toast('Settings reset to defaults');
+}
+
 // ---- Init ----
 async function init() {
   await refreshCollections();
@@ -1006,6 +1117,7 @@ async function init() {
     document.getElementById('collectionSelect').value = currentCollection;
   }
   updateCollectionLabels();
+  applySettingsToUI();
   refreshStats();
   refreshDocs();
   refreshHistory();
