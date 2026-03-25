@@ -5,13 +5,14 @@
 - Dev console pointing to localhost
 - Add clear button for the conv hisory
 - Add tools calls in the chat
+- ender for sand
 
 ## Agent:
 
 - faster first join
 - Knowladge
     - contacts
-    - ways to rooms
+    - ways to rooms (fill the rest)
     - calendar
 
 

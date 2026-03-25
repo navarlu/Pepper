@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -139,6 +140,16 @@ async def _dispatch_animation(animation_name: str) -> None:
         logger.warning("play_animation_failed animation=%s error=%s", animation_name, str(exc))
 
 
+def _load_room_data() -> dict:
+    """Load FLOORS dict from map.py at runtime (re-read on every call, no restart needed)."""
+    import importlib.util
+    map_path = Path(__file__).resolve().parents[2] / "dev-console" / "data" / "map" / "map.py"
+    spec = importlib.util.spec_from_file_location("building_map", map_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.FLOORS
+
+
 def build_tools() -> list[Any]:
     @function_tool
     async def query_search(
@@ -256,4 +267,54 @@ def build_tools() -> list[Any]:
             ensure_ascii=False,
         )
 
-    return [query_search, play_animation]
+    @function_tool
+    async def get_directions_to_room(
+        context: RunContext,
+        room_number: str,
+    ) -> str:
+        """Get directions on how to walk to a specific room in Building E.
+
+        Call this whenever a visitor asks where a room is or how to get there.
+        Returns step-by-step walking directions from the main entrance.
+        """
+        del context
+
+        room_number = str(room_number or "").strip()
+        logger.info("get_directions_to_room room=%s", room_number)
+
+        try:
+            floors = await asyncio.to_thread(_load_room_data)
+        except Exception as exc:
+            logger.error("get_directions_to_room map_load_failed error=%s", exc)
+            return json.dumps({"error": "map_unavailable"}, ensure_ascii=False)
+
+        for floor_id, rooms_on_floor in floors.items():
+            if room_number in rooms_on_floor:
+                room = rooms_on_floor[room_number]
+                directions = (room.get("directions") or "").strip()
+                name = (room.get("name") or "").strip()
+
+                if not directions:
+                    logger.warning("get_directions_to_room room=%s directions_empty", room_number)
+                    return json.dumps({
+                        "error": "no_directions",
+                        "message": f"Room {room_number} is known but directions are not filled in yet.",
+                    }, ensure_ascii=False)
+
+                logger.info("get_directions_to_room room=%s floor=%s found=true", room_number, floor_id)
+                result = {
+                    "room": room_number,
+                    "floor": floor_id,
+                    "directions": directions,
+                }
+                if name:
+                    result["name"] = name
+                return json.dumps(result, ensure_ascii=False)
+
+        logger.warning("get_directions_to_room room=%s not_found", room_number)
+        return json.dumps({
+            "error": "room_not_found",
+            "message": f"Room {room_number} is not in my map. I only know Building E rooms.",
+        }, ensure_ascii=False)
+
+    return [query_search, play_animation, get_directions_to_room]
