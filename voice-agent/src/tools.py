@@ -14,15 +14,44 @@ from .config import (
     ANIMATION_TOOL_ALLOWED,
     ANIMATION_TOOL_HTTP_TIMEOUT_SEC,
     ANIMATION_TOOL_MAX_NAME_CHARS,
+    DEV_CONSOLE_URL,
     ENABLE_ANIMATION_TOOL,
     ENABLE_QUERY_SEARCH,
     QUERY_SEARCH_DEFAULT_LIMIT,
     QUERY_SEARCH_MAX_CONTENT_CHARS,
     QUERY_SEARCH_MAX_LIMIT,
+    WEAVIATE_HYBRID_ALPHA,
 )
 from .utils import search_vectors
 
 logger = logging.getLogger("voice-agent")
+
+
+def _post_query_log(query: str, limit: int, result_count: int, results: list, duration_ms: float) -> None:
+    """Best-effort POST to dev-console to log a live query."""
+    console_url = str(DEV_CONSOLE_URL or "").rstrip("/")
+    if not console_url:
+        return
+    try:
+        payload = json.dumps({
+            "query": query,
+            "source": "live",
+            "mode": "hybrid",
+            "alpha": float(WEAVIATE_HYBRID_ALPHA),
+            "limit": limit,
+            "result_count": result_count,
+            "results": results,
+            "duration_ms": duration_ms,
+        }).encode()
+        req = Request(
+            f"{console_url}/api/log-query",
+            data=payload,
+            method="POST",
+            headers={"Content-Type": "application/json"},
+        )
+        urlopen(req, timeout=2.0)
+    except Exception as exc:
+        logger.warning("dev_console_log_failed error=%s", exc)
 
 
 def _compact_result(item: dict[str, Any]) -> dict[str, Any]:
@@ -125,12 +154,25 @@ def build_tools() -> list[Any]:
         logger.info("query_search query=%s limit=%s", query_text, safe_limit)
 
         try:
+            import time as _time
+            t0 = _time.monotonic()
             results = await asyncio.to_thread(search_vectors, query_text, safe_limit)
+            duration_ms = (_time.monotonic() - t0) * 1000
+            compact = [_compact_result(item) for item in results]
             payload = {
                 "query": query_text,
                 "count": len(results),
-                "results": [_compact_result(item) for item in results],
+                "results": compact,
             }
+            # Best-effort log to dev-console.
+            try:
+                logger.info("dev_console_posting query=%s", query_text)
+                await asyncio.to_thread(
+                    _post_query_log, query_text, safe_limit, len(results), compact, duration_ms,
+                )
+                logger.info("dev_console_post_ok query=%s", query_text)
+            except Exception as log_exc:
+                logger.warning("dev_console_post_failed error=%s", log_exc)
             return json.dumps(payload, ensure_ascii=False)
         except Exception as exc:
             logger.exception("query_search_failed error=%s", str(exc))

@@ -50,44 +50,58 @@ def _load_root_env() -> None:
 
 class SessionSnapshot:
     @staticmethod
+    def load_user_snapshot() -> Optional[dict]:
+        try:
+            payload = json.loads(SESSION_FILE.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return None
+        except json.JSONDecodeError:
+            return None
+        user = payload.get("user") or {}
+        token = str(user.get("token") or "").strip()
+        ws_url = str(
+            payload.get("hostWsUrl")
+            or payload.get("wsUrl")
+            or payload.get("internalWsUrl")
+            or ""
+        ).strip()
+        room_name = str(payload.get("roomName") or "").strip()
+        if not (token and ws_url and room_name):
+            return None
+        return {
+            "token": token,
+            "wsUrl": ws_url,
+            "roomName": room_name,
+            "identity": str(user.get("identity") or USER_IDENTITY),
+            "generatedAt": str(payload.get("generatedAt") or "").strip(),
+        }
+
+    @staticmethod
     async def wait_for_user_snapshot() -> dict:
         missing_logged = False
+        invalid_logged = False
         while True:
+            snapshot = SessionSnapshot.load_user_snapshot()
+            if snapshot:
+                print(
+                    "[user_client] session snapshot ready room={} wsUrl={} identity={} generatedAt={}".format(
+                        snapshot["roomName"],
+                        snapshot["wsUrl"],
+                        snapshot["identity"],
+                        snapshot.get("generatedAt") or "?",
+                    )
+                )
+                return snapshot
             try:
-                payload = json.loads(SESSION_FILE.read_text(encoding="utf-8"))
+                SESSION_FILE.read_text(encoding="utf-8")
             except FileNotFoundError:
                 if not missing_logged:
                     print("[user_client] waiting for session snapshot {}".format(SESSION_FILE))
                     missing_logged = True
-                await asyncio.sleep(0.5)
-                continue
             except json.JSONDecodeError:
-                print("[user_client] session snapshot invalid JSON, waiting for rewrite")
-                await asyncio.sleep(0.5)
-                continue
-            user = payload.get("user") or {}
-            token = str(user.get("token") or "").strip()
-            ws_url = str(
-                payload.get("hostWsUrl")
-                or payload.get("wsUrl")
-                or payload.get("internalWsUrl")
-                or ""
-            ).strip()
-            room_name = str(payload.get("roomName") or "").strip()
-            if token and ws_url and room_name:
-                print(
-                    "[user_client] session snapshot ready room={} wsUrl={} identity={}".format(
-                        room_name,
-                        ws_url,
-                        str(user.get("identity") or USER_IDENTITY),
-                    )
-                )
-                return {
-                    "token": token,
-                    "wsUrl": ws_url,
-                    "roomName": room_name,
-                    "identity": str(user.get("identity") or USER_IDENTITY),
-                }
+                if not invalid_logged:
+                    print("[user_client] session snapshot invalid JSON, waiting for rewrite")
+                    invalid_logged = True
             await asyncio.sleep(0.5)
 
 
@@ -108,6 +122,79 @@ class UserAudioClient:
         self._component_state = ""
         self._component_detail = ""
         self._last_component_status_monotonic = 0.0
+        self._reconnect_requested = asyncio.Event()
+        self._reconnect_reason = ""
+        self._snapshot_signature = ""
+        self._connected_room_name = ""
+        self._connected_identity = ""
+
+    def _connection_state_name(self, room: Optional[rtc.Room] = None) -> str:
+        target = room or self.room
+        if target is None:
+            return "detached"
+        try:
+            return rtc.ConnectionState.Name(target.connection_state)
+        except Exception:
+            return str(getattr(target, "connection_state", "unknown"))
+
+    def _build_snapshot_signature(self, snapshot: dict) -> str:
+        return "|".join(
+            [
+                str(snapshot.get("roomName") or ""),
+                str(snapshot.get("wsUrl") or ""),
+                str(snapshot.get("token") or ""),
+            ]
+        )
+
+    def _request_reconnect(self, reason: str) -> None:
+        clean = " ".join(str(reason).strip().split()) or "reconnect_requested"
+        if not self._reconnect_requested.is_set():
+            print("[user_client] reconnect requested reason={}".format(clean))
+            self._reconnect_reason = clean
+        self._reconnect_requested.set()
+
+    def _room_detail(self, extra: str = "") -> str:
+        state_name = self._connection_state_name()
+        parts = [
+            "room={}".format(self._connected_room_name or "<none>"),
+            "state={}".format(state_name),
+            "identity={}".format(self._connected_identity or "<none>"),
+            "mic={}".format("muted" if self.mic_muted else "live"),
+            "frames={}".format(self._frames_sent),
+        ]
+        if self.room is not None:
+            try:
+                parts.append("remote={}".format(len(self.room.remote_participants)))
+            except Exception:
+                pass
+        if extra:
+            parts.append(extra)
+        return " | ".join(parts)
+
+    def _register_room_handlers(self, room: rtc.Room) -> None:
+        @room.on("connected")
+        def _on_connected() -> None:
+            print("[user_client] room event connected")
+
+        @room.on("connection_state_changed")
+        def _on_connection_state_changed(connection_state) -> None:
+            state_name = self._connection_state_name(room)
+            print("[user_client] room state changed -> {}".format(state_name))
+            if state_name == "CONN_DISCONNECTED":
+                self._request_reconnect("livekit state disconnected")
+
+        @room.on("reconnecting")
+        def _on_reconnecting() -> None:
+            print("[user_client] room event reconnecting")
+
+        @room.on("reconnected")
+        def _on_reconnected() -> None:
+            print("[user_client] room event reconnected")
+
+        @room.on("disconnected")
+        def _on_disconnected(reason) -> None:
+            print("[user_client] room event disconnected reason={}".format(reason))
+            self._request_reconnect("livekit disconnected reason={}".format(reason))
 
     def _agent_ready_for_text(self) -> bool:
         if not self.room:
@@ -167,6 +254,10 @@ class UserAudioClient:
         self._last_audio_log_monotonic = 0.0
         self._peak_rms = 0.0
         self._last_level_post_monotonic = 0.0
+        self._reconnect_requested = asyncio.Event()
+        self._reconnect_reason = ""
+        self._connected_room_name = ""
+        self._connected_identity = ""
 
     def _resolve_sounddevice(self):
         import sounddevice as sd
@@ -301,9 +392,14 @@ class UserAudioClient:
         if self.source is None:
             self._reset_runtime_state()
         snapshot = await SessionSnapshot.wait_for_user_snapshot()
+        self._snapshot_signature = self._build_snapshot_signature(snapshot)
         await self._report_component_status(
             "connecting_livekit",
-            "room={} url={}".format(snapshot["roomName"], snapshot["wsUrl"]),
+            "room={} | url={} | generatedAt={}".format(
+                snapshot["roomName"],
+                snapshot["wsUrl"],
+                snapshot.get("generatedAt") or "?",
+            ),
             healthy=False,
             force=True,
         )
@@ -315,6 +411,7 @@ class UserAudioClient:
             )
         )
         room = rtc.Room()
+        self._register_room_handlers(room)
         connect_options = rtc.RoomOptions(auto_subscribe=False)
         print(
             "[user_client] connect options auto_subscribe={}".format(
@@ -349,16 +446,58 @@ class UserAudioClient:
                 )
             )
         self.room = room
+        self._connected_room_name = snapshot["roomName"]
+        self._connected_identity = snapshot["identity"]
         print(
             f"[user_client] connected room={snapshot['roomName']} "
             f"as={snapshot['identity']} track_sid={getattr(publication, 'sid', '') if publication else ''}"
         )
         await self._report_component_status(
-            "ready",
-            "room={}".format(snapshot["roomName"]),
+            "ready_in_room",
+            self._room_detail(
+                "track_sid={}".format(getattr(publication, "sid", "") if publication else "")
+            ),
             healthy=True,
             force=True,
         )
+
+    async def _room_monitor_loop(self) -> None:
+        while not self._reconnect_requested.is_set():
+            await asyncio.sleep(1.0)
+            latest_snapshot = SessionSnapshot.load_user_snapshot()
+            if latest_snapshot:
+                latest_signature = self._build_snapshot_signature(latest_snapshot)
+                if latest_signature != self._snapshot_signature:
+                    self._request_reconnect(
+                        "session snapshot changed generatedAt={}".format(
+                            latest_snapshot.get("generatedAt") or "?"
+                        )
+                    )
+                    continue
+            room = self.room
+            if room is None:
+                self._request_reconnect("room handle missing")
+                continue
+            state_name = self._connection_state_name(room)
+            if state_name == "CONN_CONNECTED":
+                component_state = "streaming_audio" if self._frames_sent else "ready_in_room"
+                healthy = True
+            elif state_name == "CONN_RECONNECTING":
+                component_state = "reconnecting_livekit"
+                healthy = False
+            elif state_name == "CONN_DISCONNECTED":
+                component_state = "detached"
+                healthy = False
+            else:
+                component_state = "connecting_livekit"
+                healthy = False
+            await self._report_component_status(
+                component_state,
+                self._room_detail(),
+                healthy=healthy,
+            )
+            if not room.isconnected() or state_name == "CONN_DISCONNECTED":
+                self._request_reconnect("room not connected")
 
     async def _run_once(self) -> None:
         sd = self._resolve_sounddevice()
@@ -367,6 +506,7 @@ class UserAudioClient:
         await self.connect()
         sender_task = asyncio.create_task(self._audio_sender_loop())
         control_task = asyncio.create_task(self._control_loop())
+        monitor_task = asyncio.create_task(self._room_monitor_loop())
         loop = asyncio.get_running_loop()
 
         def _callback(indata, frames, _time_info, status) -> None:
@@ -411,31 +551,30 @@ class UserAudioClient:
         try:
             if self.test_mode == "connect-only":
                 print("[user_client] connect-only mode active; keeping room open without microphone")
-                while True:
+                while not self._reconnect_requested.is_set():
                     await self._report_component_status(
-                        "ready",
-                        "connect-only mode",
+                        "ready_in_room",
+                        self._room_detail("connect-only"),
                         healthy=True,
                     )
                     await asyncio.sleep(1)
+                return
             print("[user_client] entering microphone stream context")
             with stream:
                 print("[user_client] microphone stream active")
-                while True:
-                    await self._report_component_status(
-                        "streaming",
-                        "microphone active",
-                        healthy=True,
-                    )
+                while not self._reconnect_requested.is_set():
                     await asyncio.sleep(1)
         finally:
             print("[user_client] shutting down user client")
             sender_task.cancel()
             control_task.cancel()
+            monitor_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await sender_task
             with contextlib.suppress(asyncio.CancelledError):
                 await control_task
+            with contextlib.suppress(asyncio.CancelledError):
+                await monitor_task
             if self.room:
                 print("[user_client] disconnecting room")
                 await self.room.disconnect()
@@ -455,6 +594,14 @@ class UserAudioClient:
                     healthy=False,
                 )
                 await self._run_once()
+                reason = self._reconnect_reason or "connection refresh"
+                await self._report_component_status(
+                    "reconnecting",
+                    reason,
+                    healthy=False,
+                    force=True,
+                )
+                await asyncio.sleep(1)
             except Exception as exc:
                 print(f"[user_client] service loop error={exc!r} - retrying in 3s")
                 await self._report_component_status(

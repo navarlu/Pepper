@@ -585,6 +585,7 @@ tr:last-child td { border-bottom:none; }
     <div class="hero-meta">
       <a class="nav-link" href="/">Chat</a>
       <a class="nav-link active" href="/debug">Debug</a>
+      <a class="nav-link" href="http://localhost:8788" target="_blank">Dev Console</a>
       <div class="pill" id="pollState">Polling</div>
       <div class="pill good" id="watchdogPill">Watchdog waiting</div>
     </div>
@@ -1157,6 +1158,7 @@ button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.2
     <div class="hero-meta">
       <a class="nav-link active" href="/">Chat</a>
       <a class="nav-link" href="/debug">Debug</a>
+      <a class="nav-link" href="http://localhost:8788" target="_blank">Dev Console</a>
       <div class="pill" id="pollState">Polling</div>
       <div class="pill good" id="chatLivePill">Waiting for session</div>
     </div>

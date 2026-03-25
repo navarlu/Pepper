@@ -294,6 +294,9 @@ class SessionWatcher:
             "generatedAt": snapshot.get("generatedAt"),
         }
 
+    def latest_token_info(self) -> Optional[dict]:
+        return self._extract_token_info()
+
     async def wait_for_initial_token(self) -> dict:
         while True:
             info = self._extract_token_info()
@@ -578,6 +581,10 @@ class ListenerPepperBridge:
         target_identity: Optional[str] = None,
     ) -> None:
         async with self._connect_lock:
+            current_token = token
+            current_room_name = room_name
+            current_ws_url = ws_url
+            current_target_identity = target_identity
             if ws_url:
                 self.livekit_url = str(ws_url).strip() or self.livekit_url
             # Respect AGENT_TRACK_IDENTITY env var as strict override.
@@ -592,6 +599,12 @@ class ListenerPepperBridge:
                 self.room = None
 
             while True:
+                if current_ws_url:
+                    self.livekit_url = str(current_ws_url).strip() or self.livekit_url
+                if current_target_identity and not self.explicit_target_identity:
+                    self.target_identity = (
+                        str(current_target_identity).strip() or self.target_identity
+                    )
                 room = rtc.Room()
                 self._register_track_handler(room)
                 await self._report_component_status(
@@ -601,7 +614,7 @@ class ListenerPepperBridge:
                     healthy=False,
                 )
                 try:
-                    await room.connect(self.livekit_url, token)
+                    await room.connect(self.livekit_url, current_token)
                 except Exception as exc:
                     print(
                         "[listener_bridge] Failed to connect to LiveKit:",
@@ -615,6 +628,22 @@ class ListenerPepperBridge:
                         healthy=False,
                         force=True,
                     )
+                    latest = self.token_watcher.latest_token_info()
+                    if latest and latest.get("token") and latest["token"] != current_token:
+                        current_token = latest["token"]
+                        current_room_name = latest.get("roomName") or current_room_name
+                        current_ws_url = latest.get("wsUrl") or current_ws_url
+                        current_target_identity = (
+                            latest.get("agentIdentity") or current_target_identity
+                        )
+                        print(
+                            "[listener_bridge] Detected fresher listener session snapshot "
+                            f"generatedAt={latest.get('generatedAt')} room={current_room_name} "
+                            "- switching token and retrying"
+                        )
+                        self._push_debug(
+                            f"session refresh generatedAt={latest.get('generatedAt') or '?'}"
+                        )
                     await asyncio.sleep(3)
                     continue
 
