@@ -5,7 +5,7 @@
 - Dev console pointing to localhost
 - Add clear button for the conv hisory
 - Add tools calls in the chat
-- ender for sand
+- ender for send
 
 ## Agent:
 
@@ -14,6 +14,11 @@
     - contacts
     - ways to rooms (fill the rest)
     - calendar
+
+- Animation
+    - make them muted
+
+- Make her say random stuff ocasionaly
 
 
 ## Tablet

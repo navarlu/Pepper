@@ -46,6 +46,33 @@ To use context7: call `mcp__MCP_DOCKER__resolve-library-id` with the library nam
 
 - **Reset all data:** `.venv\Scripts\python.exe reset_dev.py` (from `/backend`) — clears all guests, reservations, messages and re-seeds nightly rates. Does NOT delete WhatsApp groups on the phone — those must be deleted manually.
 
+## Docker (RPi deployment)
+
+All services run via Docker Compose from `docker/docker-compose.yml`. Source is bind-mounted (`..:/workspace`), so code changes are live on disk — just restart the affected container(s).
+
+```bash
+# From the project root:
+cd docker
+
+# Restart a single service (e.g. bridge):
+docker compose restart bridge
+
+# Restart with fresh logs visible:
+docker compose up -d bridge && docker compose logs -f bridge
+
+# Restart everything:
+docker compose up -d
+
+# View logs for a service:
+docker compose logs -f <service-name>
+```
+
+**Service names:** `bridge`, `voice-agent`, `session-manager`, `listener`, `user-client`, `livekit`, `redis`, `weaviate`, `safe-startup`
+
+**Debug-only services** (need `--profile debug`): `playground`, `dev-console`
+
+**Audio profile** (need `--profile audio`): `user-client`
+
 ---
 
 ## Development Environment

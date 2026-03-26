@@ -977,6 +977,9 @@ html,body {
 }
 .bubble.user { align-self:flex-end; background:#edf4ff; border:1px solid rgba(41,104,216,0.10); }
 .bubble.pepper { align-self:flex-start; background:#ffffff; border:1px solid #dbe7f3; }
+.bubble.pepper.tool-bubble { opacity:0.7; padding:4px 10px; box-shadow:none; border-style:dashed; }
+.bubble.pepper.tool-bubble .speaker { font-size:10px; }
+.bubble.pepper.tool-bubble .body-text { font-size:12px; font-family:monospace; }
 .bubble.system {
   align-self:center;
   width:100%;
@@ -1277,9 +1280,11 @@ async function refresh() {
           </div>
         `;
       }
-      const bubbleClass = item.speaker === "Pepper" ? "pepper" : "user";
+      const isPepper = item.speaker === "Pepper" || item.kind === "tool";
+      const bubbleClass = isPepper ? "pepper" : "user";
+      const toolClass = item.kind === "tool" ? " tool-bubble" : "";
       return `
-        <div class="bubble ${bubbleClass}">
+        <div class="bubble ${bubbleClass}${toolClass}">
           <div class="speaker">${escapeHtml(item.speaker || "")} · ${escapeHtml(fmtTs(item.at))}</div>
           <div class="body-text">${escapeHtml(item.text || "")}</div>
         </div>
@@ -2023,7 +2028,8 @@ class SessionManager:
             level_value = None
 
         if event_type == "transcript" and speaker and text:
-            self._append_transcript(speaker, text)
+            kind = str(data.get("kind") or "message").strip()
+            self._append_transcript(speaker, text, kind=kind)
         elif event_type == "mic_level" and level_value is not None:
             self.mic_level = max(0.0, min(1.0, level_value))
         elif event_type == "agent_level" and level_value is not None:

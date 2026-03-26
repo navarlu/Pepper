@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import random
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -11,6 +12,7 @@ from livekit.agents import RunContext, function_tool
 
 from .config import (
     ANIMATION_BRIDGE_URL,
+    ANIMATION_GROUPS,
     ANIMATION_TOOL_ALIASES,
     ANIMATION_TOOL_ALLOWED,
     ANIMATION_TOOL_HTTP_TIMEOUT_SEC,
@@ -20,6 +22,7 @@ from .config import (
     ENABLE_QUERY_SEARCH,
     QUERY_SEARCH_DEFAULT_LIMIT,
     QUERY_SEARCH_MAX_LIMIT,
+    SESSION_MANAGER_URL,
     WEAVIATE_HYBRID_ALPHA,
 )
 from .utils import search_vectors
@@ -101,30 +104,71 @@ def _post_animation(animation_name: str) -> tuple[int, str]:
         raise RuntimeError("animation_bridge_unreachable: {}".format(exc)) from exc
 
 
+def _pick_from_group(group_name: str) -> str:
+    """Pick a random animation variant from a group."""
+    variants = ANIMATION_GROUPS.get(group_name, [])
+    if not variants:
+        return ""
+    return random.choice(variants)
+
+
 def _normalize_animation_name(raw_name: str) -> str:
+    """Resolve an animation name to a concrete Pepper animation key.
+
+    Accepts:
+    - Group names (e.g. "greeting") → picks a random variant from the group.
+    - Natural-language aliases (e.g. "hello") → mapped to a group, then randomized.
+    - Direct animation keys (e.g. "Hey_1") → passed through as-is.
+    """
     clean = str(raw_name or "").strip()
     if not clean:
         return ""
+
+    # 1. Direct match against a group name (case-insensitive).
+    clean_lower = clean.lower().replace("-", "_").replace(" ", "_")
+    clean_lower = "".join(ch for ch in clean_lower if ch.isalnum() or ch == "_")
+
+    if clean_lower in ANIMATION_GROUPS:
+        return _pick_from_group(clean_lower)
+
+    # 2. Alias lookup → resolves to a group name.
+    mapped_group = ANIMATION_TOOL_ALIASES.get(clean_lower)
+    if mapped_group and mapped_group in ANIMATION_GROUPS:
+        return _pick_from_group(mapped_group)
+
+    # 3. Direct animation key (exact or case-insensitive).
     if clean in ANIMATION_TOOL_ALLOWED:
         return clean
-
-    normalized = (
-        clean.lower()
-        .replace("-", "_")
-        .replace(" ", "_")
-    )
-    normalized = "".join(ch for ch in normalized if ch.isalnum() or ch == "_")
-    mapped = ANIMATION_TOOL_ALIASES.get(normalized)
-    if mapped:
-        return mapped
-    # Accept case-insensitive direct match for allowed keys.
     for key in ANIMATION_TOOL_ALLOWED:
         if key.lower() == clean.lower():
             return key
+
     return ""
 
 
+def _push_tool_transcript(text: str) -> None:
+    """Push a tool-call entry into the session manager transcript (best-effort)."""
+    sm_url = str(SESSION_MANAGER_URL or "").rstrip("/")
+    if not sm_url:
+        return
+    payload = json.dumps(
+        {"event": "transcript", "speaker": "Pepper", "text": text, "kind": "tool"}
+    ).encode("utf-8")
+    req = Request(
+        "{}/api/debug-event".format(sm_url),
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urlopen(req, timeout=0.5) as resp:
+            resp.read()
+    except Exception:
+        pass
+
+
 async def _dispatch_animation(animation_name: str) -> None:
+    await asyncio.to_thread(_push_tool_transcript, "play_animation({})".format(animation_name))
     try:
         status, body = await asyncio.to_thread(_post_animation, animation_name)
         if 200 <= status < 300:
@@ -179,6 +223,7 @@ def build_tools() -> list[Any]:
         rt_limit = int(rt.get("limit", QUERY_SEARCH_DEFAULT_LIMIT))
         safe_limit = max(1, min(rt_limit, QUERY_SEARCH_MAX_LIMIT))
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
+        await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
         try:
             import time as _time
@@ -217,10 +262,10 @@ def build_tools() -> list[Any]:
         context: RunContext,
         animation: str,
     ) -> str:
-        """Trigger a Pepper gesture/animation via bridge.
+        """Trigger a Pepper body gesture/animation.
 
-        Use this tool directly. Do not output textual action markers.
-        Allowed keys: Hey_1, BowShort_1, Explain_1, Happy_1, Thinking_1, IDontKnow_1.
+        Use this tool directly — never write action text like [waves] in your speech.
+        Pass one of: greeting, bow, explain, happy, thinking, dont_know, excited, interested, surprised.
         """
         del context
 
@@ -250,8 +295,8 @@ def build_tools() -> list[Any]:
             return json.dumps(
                 {
                     "error": "unknown_animation",
-                    "message": "Use one of the allowed animation keys.",
-                    "allowed": list(ANIMATION_TOOL_ALLOWED),
+                    "message": "Use one of the allowed animation group names.",
+                    "allowed": list(ANIMATION_GROUPS.keys()),
                 },
                 ensure_ascii=False,
             )
@@ -281,6 +326,7 @@ def build_tools() -> list[Any]:
 
         room_number = str(room_number or "").strip()
         logger.info("get_directions_to_room room=%s", room_number)
+        await asyncio.to_thread(_push_tool_transcript, "get_directions_to_room({})".format(room_number))
 
         try:
             floors = await asyncio.to_thread(_load_room_data)

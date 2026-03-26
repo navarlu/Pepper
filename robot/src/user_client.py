@@ -462,6 +462,8 @@ class UserAudioClient:
         )
 
     async def _room_monitor_loop(self) -> None:
+        _reconnecting_since: Optional[float] = None
+        RECONNECTING_TIMEOUT_SEC = 45.0
         while not self._reconnect_requested.is_set():
             await asyncio.sleep(1.0)
             latest_snapshot = SessionSnapshot.load_user_snapshot()
@@ -482,15 +484,27 @@ class UserAudioClient:
             if state_name == "CONN_CONNECTED":
                 component_state = "streaming_audio" if self._frames_sent else "ready_in_room"
                 healthy = True
+                _reconnecting_since = None
             elif state_name == "CONN_RECONNECTING":
                 component_state = "reconnecting_livekit"
                 healthy = False
+                if _reconnecting_since is None:
+                    _reconnecting_since = time.monotonic()
+                    print("[user_client] room entered CONN_RECONNECTING — starting timeout")
+                elapsed = time.monotonic() - _reconnecting_since
+                if elapsed >= RECONNECTING_TIMEOUT_SEC:
+                    self._request_reconnect(
+                        "stuck in CONN_RECONNECTING for {:.0f}s".format(elapsed)
+                    )
+                    continue
             elif state_name == "CONN_DISCONNECTED":
                 component_state = "detached"
                 healthy = False
+                _reconnecting_since = None
             else:
                 component_state = "connecting_livekit"
                 healthy = False
+                _reconnecting_since = None
             await self._report_component_status(
                 component_state,
                 self._room_detail(),

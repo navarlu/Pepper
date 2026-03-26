@@ -94,10 +94,47 @@ def to_text(x):
         return str(x)
 
 
+CONNECT_POLL_INTERVAL = 5.0  # seconds between retries when Pepper is offline
+
+
+def _pepper_reachable(host, port, timeout=3.0):
+    """Quick TCP probe — returns True if NAOqi port is open."""
+    try:
+        with socket.create_connection((host, int(port)), timeout=timeout):
+            return True
+    except (OSError, socket.timeout):
+        return False
+
+
+def _parse_qi_url(qi_url):
+    """Extract (host, port) from 'tcp://host:port'."""
+    addr = qi_url.replace("tcp://", "")
+    if ":" in addr:
+        host, port = addr.rsplit(":", 1)
+        return host, int(port)
+    return addr, 9559
+
+
 def connect_session(qi_url):
-    s = qi.Session()
-    s.connect(qi_url)
-    return s
+    """Connect to Pepper, retrying with clean logs until she's reachable."""
+    host, port = _parse_qi_url(qi_url)
+
+    while True:
+        if not _pepper_reachable(host, port):
+            print("[bridge] Pepper unreachable at {}:{} — retrying in {}s".format(
+                host, port, int(CONNECT_POLL_INTERVAL)))
+            time.sleep(CONNECT_POLL_INTERVAL)
+            continue
+
+        try:
+            s = qi.Session()
+            s.connect(qi_url)
+            print("[bridge] connected to Pepper at", qi_url)
+            return s
+        except Exception as exc:
+            print("[bridge] qi.connect failed: {} — retrying in {}s".format(
+                to_text(exc), int(CONNECT_POLL_INTERVAL)))
+            time.sleep(CONNECT_POLL_INTERVAL)
 
 
 def wait_for_service(session, service_name, timeout_sec=90.0, retry_sec=1.0):
@@ -319,6 +356,7 @@ class TabletOverlayHttpServer(threading.Thread):
         animation_player,
         life_service,
         animations_map,
+        audio_player=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -327,6 +365,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._anim = animation_player
         self._life = life_service
         self._animations_map = animations_map
+        self._audio_player = audio_player
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -341,6 +380,7 @@ class TabletOverlayHttpServer(threading.Thread):
         anim = self._anim
         life = self._life
         animations_map = self._animations_map
+        audio_player = self._audio_player
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -433,17 +473,34 @@ class TabletOverlayHttpServer(threading.Thread):
                             except Exception as life_exc:
                                 print("[life] warning:", to_text(life_exc))
 
+                        # Mute ALAudioPlayer so animation sounds don't overlap
+                        # with the streamed TTS audio (sent via ALAudioDevice).
+                        if audio_player is not None:
+                            try:
+                                audio_player.setMasterVolume(0.0)
+                                print("[animation] muted ALAudioPlayer")
+                            except Exception as mute_exc:
+                                print("[animation] mute warning:", to_text(mute_exc))
+
                         print("[animation] running:", behavior)
                         # Prefer ALAnimationPlayer to keep AutonomousLife behavior model intact.
-                        if anim is not None and behavior.startswith("animations/"):
-                            fut = anim.run(behavior)
-                            # Wait for completion to keep API semantics of "play now".
-                            try:
-                                fut.value()
-                            except Exception:
-                                pass
-                        else:
-                            bm.runBehavior(behavior)
+                        try:
+                            if anim is not None and behavior.startswith("animations/"):
+                                fut = anim.run(behavior)
+                                # Wait for completion to keep API semantics of "play now".
+                                try:
+                                    fut.value()
+                                except Exception:
+                                    pass
+                            else:
+                                bm.runBehavior(behavior)
+                        finally:
+                            if audio_player is not None:
+                                try:
+                                    audio_player.setMasterVolume(1.0)
+                                    print("[animation] restored ALAudioPlayer volume")
+                                except Exception as unmute_exc:
+                                    print("[animation] unmute warning:", to_text(unmute_exc))
                         self._write_json(
                             200,
                             {"ok": True, "name": name, "behavior": behavior},
@@ -621,6 +678,14 @@ def main():
     elif life_service is not None:
         print("[life] TOUCH_AUTONOMOUS_LIFE=False -> bridge will not modify life state/abilities")
 
+    audio_player_service = None
+    try:
+        audio_player_service = wait_for_service(sess, "ALAudioPlayer", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALAudioPlayer available — animation sounds will be muted")
+    except Exception:
+        print("[bridge] ALAudioPlayer not available — animation sounds cannot be muted")
+        audio_player_service = None
+
     animations_map = load_animations_map(ANIMATIONS_FILE)
     tablet_service = None
     try:
@@ -637,6 +702,7 @@ def main():
         animation_player,
         life_service,
         animations_map,
+        audio_player=audio_player_service,
     )
     tablet_http.start()
     tablet.publish(
