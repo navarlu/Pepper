@@ -185,19 +185,14 @@ class TabletPanelState:
         self._active_animation = ""
         self._session_state = ""
         self._idle_countdown = ""
+        self._transcript_items: list = []
         self._lock = threading.Lock()
 
     def _render_locked(self) -> None:
         payload = {
-            "ui": "split_chat_debug",
-            "user_text": self._last_user,
-            "pepper_text": self._last_pepper,
-            "debug_lines": list(self._debug_lines),
-            "active_animation": self._active_animation,
+            "ui": "chat_history",
+            "transcript_items": self._transcript_items,
             "session_state": self._session_state,
-            "idle_countdown": self._idle_countdown,
-            "bg": "#0D1522",
-            "fg": "#D9F3FF",
         }
         self._tablet.publish_payload(payload, force=True)
 
@@ -207,7 +202,6 @@ class TabletPanelState:
             return
         with self._lock:
             self._debug_lines.append(clean[:180])
-            self._render_locked()
 
     def set_user(self, text: str) -> None:
         clean = " ".join(str(text).strip().split())
@@ -215,9 +209,6 @@ class TabletPanelState:
             return
         with self._lock:
             self._last_user = clean
-            # Turn-based UI: clear previous Pepper reply once a new user turn starts.
-            self._last_pepper = ""
-            self._render_locked()
 
     def set_pepper(self, text: str) -> None:
         clean = " ".join(str(text).strip().split())
@@ -225,7 +216,6 @@ class TabletPanelState:
             return
         with self._lock:
             self._last_pepper = clean
-            self._render_locked()
 
     def set_active_animation(self, value: str) -> None:
         with self._lock:
@@ -236,6 +226,36 @@ class TabletPanelState:
         with self._lock:
             self._session_state = " ".join(str(state).strip().split())
             self._idle_countdown = " ".join(str(idle_countdown).strip().split())
+            self._render_locked()
+
+    def set_transcript_items(self, items: list) -> None:
+        with self._lock:
+            all_items = items or []
+            # Find the last "Session ended" marker — drop everything up to
+            # and including it so the tablet starts clean after a session ends.
+            last_ended_idx = -1
+            for i, item in enumerate(all_items):
+                if (
+                    isinstance(item, dict)
+                    and item.get("kind") == "session"
+                    and "Session ended" in str(item.get("text", ""))
+                ):
+                    last_ended_idx = i
+            if last_ended_idx >= 0:
+                all_items = all_items[last_ended_idx + 1:]
+            # Also skip the "New session" marker itself so only messages show.
+            if (
+                all_items
+                and isinstance(all_items[0], dict)
+                and all_items[0].get("kind") == "session"
+                and "New session" in str(all_items[0].get("text", ""))
+            ):
+                all_items = all_items[1:]
+            # Keep only the most recent messages.
+            max_items = int(TABLET_TRANSCRIPT_MAX_LINES)
+            if len(all_items) > max_items:
+                all_items = all_items[-max_items:]
+            self._transcript_items = all_items
             self._render_locked()
 
 
@@ -465,6 +485,8 @@ class ListenerPepperBridge:
                 idle_text = "{:.1f}s".format(float(idle_value))
             except Exception:
                 idle_text = "-"
+        transcript_items = payload.get("transcript_items") or []
+        self.panel.set_transcript_items(transcript_items)
         self.panel.set_session_status(state, idle_text)
 
     def _connect_bridge_socket(self) -> None:

@@ -68,6 +68,57 @@ TABLET_INLINE_HTML_TEMPLATE = """<!doctype html><meta charset="utf-8">
 .txt{{font-family:Arial, sans-serif;font-size:{size}px;line-height:1.25;text-align:{align};word-wrap:break-word;white-space:pre-wrap;max-height:100%;width:100%;overflow:hidden;}}
 </style><div class="wrap"><div class="txt">{txt}</div></div>"""
 
+# Tablet conversation-history template (mirrors the Pepper Operator chat style).
+# Rendered by the bridge when ``ui == "chat_history"``.
+# Placeholders: {{session_pill}}, {{bubbles_html}}
+TABLET_CHAT_HISTORY_HTML_TEMPLATE = """<!doctype html><meta charset="utf-8">
+<style>
+html,body{{margin:0;height:100%;background:
+  radial-gradient(circle at top left, rgba(41,104,216,0.14), transparent 28%),
+  radial-gradient(circle at top right, rgba(90,168,120,0.12), transparent 22%),
+  linear-gradient(180deg, #f9fbff, #eef4fb 42%, #e9f0f8 100%);
+  color:#16324a;font-family:"Segoe UI",Arial,sans-serif;}}
+*{{box-sizing:border-box;}}
+.page{{height:100%;display:flex;flex-direction:column;padding:16px 18px;}}
+.header{{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}}
+.header h1{{margin:0;font-size:31px;letter-spacing:-0.03em;}}
+.pill{{display:inline-flex;align-items:center;gap:8px;padding:8px 13px;border-radius:999px;
+  font-size:16px;font-weight:600;border:1px solid rgba(41,104,216,0.14);}}
+.pill::before{{content:"";width:9px;height:9px;border-radius:999px;background:currentColor;}}
+.pill.idle{{background:#edf4ff;color:#17479f;}}
+.pill.warm{{background:#fff8e6;color:#b38600;}}
+.pill.active{{background:#ebf8ef;color:#5aa878;}}
+.feed{{flex:1;display:flex;flex-direction:column;gap:13px;overflow-y:auto;
+  padding:16px;border-radius:22px;border:1px solid #d8e4f1;
+  background:linear-gradient(180deg, rgba(244,248,253,0.88), rgba(255,255,255,0.92));}}
+.bubble{{max-width:88%;border-radius:20px;padding:13px 18px;line-height:1.4;
+  box-shadow:0 6px 16px rgba(40,74,111,0.06);}}
+.bubble.user{{align-self:flex-end;background:#edf4ff;border:1px solid rgba(41,104,216,0.10);}}
+.bubble.pepper{{align-self:flex-start;background:#ffffff;border:1px solid #dbe7f3;}}
+.bubble.pepper.tool-bubble{{opacity:0.7;padding:5px 10px;box-shadow:none;border-style:dashed;}}
+.bubble.pepper.tool-bubble .speaker{{font-size:12px;}}
+.bubble.pepper.tool-bubble .body-text{{font-size:14px;font-family:monospace;}}
+.bubble.system{{align-self:center;width:100%;max-width:100%;background:transparent;
+  box-shadow:none;border:none;padding:5px 0;}}
+.speaker{{font-size:13px;font-weight:700;color:#667f97;text-transform:uppercase;
+  letter-spacing:0.12em;margin-bottom:6px;}}
+.body-text{{font-size:29px;color:#16324a;word-break:break-word;}}
+.session-divider{{display:flex;align-items:center;gap:13px;color:#17479f;}}
+.session-divider::before,.session-divider::after{{content:"";height:1px;flex:1;
+  background:linear-gradient(90deg, transparent, #c4d6ea, transparent);}}
+.session-chip{{padding:8px 13px;border-radius:999px;background:rgba(41,104,216,0.08);
+  border:1px solid rgba(41,104,216,0.14);font-size:14px;font-weight:700;
+  letter-spacing:0.10em;text-transform:uppercase;}}
+.empty{{color:#667f97;font-size:18px;text-align:center;margin-top:40px;}}
+</style>
+<div class="page">
+  <div class="header">
+    <h1>Pepper</h1>
+    {session_pill}
+  </div>
+  <div class="feed">{bubbles_html}</div>
+</div>"""
+
 # LiveKit listener bridge settings.
 LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
 LIVEKIT_HOST_WS_URL = _env_str("LIVEKIT_HOST_WS_URL", "ws://127.0.0.1:7880")
@@ -125,7 +176,7 @@ BRIDGE_URL = _env_str("BRIDGE_URL", "http://127.0.0.1:5000")
 TABLET_DEBUG_AUDIO_ENABLED = _env_bool("TABLET_DEBUG_AUDIO_ENABLED", False)
 TABLET_DEBUG_LISTENER_ENABLED = _env_bool("TABLET_DEBUG_LISTENER_ENABLED", True)
 TABLET_STATUS_ENABLED = _env_bool("TABLET_STATUS_ENABLED", False)
-TABLET_TRANSCRIPT_MAX_LINES = _env_int("TABLET_TRANSCRIPT_MAX_LINES", 10)
+TABLET_TRANSCRIPT_MAX_LINES = _env_int("TABLET_TRANSCRIPT_MAX_LINES", 6)
 TABLET_DEBUG_MIN_INTERVAL_LISTENER = _env_float("TABLET_DEBUG_MIN_INTERVAL_LISTENER", 0.8)
 TABLET_DEBUG_MIN_INTERVAL_AUDIO = _env_float("TABLET_DEBUG_MIN_INTERVAL_AUDIO", 1.0)
 TABLET_DEFAULT_SIZE = _env_int("TABLET_DEFAULT_SIZE", 42)

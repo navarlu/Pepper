@@ -52,6 +52,7 @@ from config import (
     TABLET_DEBUG_AUDIO_ENABLED,
     TABLET_DEBUG_MAX_LINES,
     TABLET_DEBUG_MIN_INTERVAL_AUDIO,
+    TABLET_CHAT_HISTORY_HTML_TEMPLATE,
     TABLET_INLINE_HTML_TEMPLATE,
     TABLET_REPORTER_QUEUE_SIZE,
     TABLET_SPLIT_CHAT_HTML_TEMPLATE,
@@ -321,6 +322,56 @@ class TabletDebugReporter(object):
             self._tablet.showWebview(data_url)
             return
 
+        if ui_mode == "chat_history":
+            items = payload.get("transcript_items") or []
+            if not isinstance(items, list):
+                items = []
+            session_state = to_text(payload.get("session_state", u"idle"))
+            pill_cls = "active" if session_state == "active" else (
+                "warm" if session_state == "warm" else "idle"
+            )
+            session_pill = u'<div class="pill {cls}">{state}</div>'.format(
+                cls=pill_cls, state=_esc(session_state.capitalize()),
+            )
+            if not items:
+                bubbles_html = u'<div class="empty">No conversation yet.</div>'
+            else:
+                parts = []
+                for item in items:
+                    kind = to_text(item.get("kind", u"message") if isinstance(item, dict) else u"message")
+                    if kind == "session":
+                        text_val = to_text(item.get("text", u"Session update") if isinstance(item, dict) else u"")
+                        parts.append(
+                            u'<div class="bubble system"><div class="session-divider">'
+                            u'<div class="session-chip">{t}</div>'
+                            u'</div></div>'.format(t=_esc(text_val))
+                        )
+                        continue
+                    speaker = to_text(item.get("speaker", u"") if isinstance(item, dict) else u"")
+                    text_val = to_text(item.get("text", u"") if isinstance(item, dict) else u"")
+                    is_pepper = speaker == "Pepper" or kind == "tool"
+                    bubble_cls = "pepper" if is_pepper else "user"
+                    tool_cls = " tool-bubble" if kind == "tool" else ""
+                    parts.append(
+                        u'<div class="bubble {bc}{tc}">'
+                        u'<div class="speaker">{sp}</div>'
+                        u'<div class="body-text">{tx}</div>'
+                        u'</div>'.format(
+                            bc=bubble_cls, tc=tool_cls,
+                            sp=_esc(speaker), tx=_esc(text_val),
+                        )
+                    )
+                bubbles_html = u"".join(parts)
+            html = TABLET_CHAT_HISTORY_HTML_TEMPLATE.format(
+                session_pill=session_pill,
+                bubbles_html=bubbles_html,
+            )
+            data_url = "data:text/html;charset=utf-8," + quote(
+                html.encode("utf-8")
+            )
+            self._tablet.showWebview(data_url)
+            return
+
         text = to_text(payload.get("text", u""))
         fg = to_text(payload.get("fg", u"#FFFFFF"))
         bg = to_text(payload.get("bg", u"#000000"))
@@ -357,6 +408,8 @@ class TabletOverlayHttpServer(threading.Thread):
         life_service,
         animations_map,
         audio_player=None,
+        tts=None,
+        audio_device=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -366,6 +419,8 @@ class TabletOverlayHttpServer(threading.Thread):
         self._life = life_service
         self._animations_map = animations_map
         self._audio_player = audio_player
+        self._tts = tts
+        self._audio_device = audio_device
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -381,6 +436,8 @@ class TabletOverlayHttpServer(threading.Thread):
         life = self._life
         animations_map = self._animations_map
         audio_player = self._audio_player
+        tts = self._tts
+        audio_device = self._audio_device
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -451,18 +508,6 @@ class TabletOverlayHttpServer(threading.Thread):
                         )
                         return
                     try:
-                        # Publish state transition hint for the tablet debug panel.
-                        tablet.publish_payload(
-                            {
-                                "ui": "split_chat_debug",
-                                "debug_lines": [
-                                    "animation: starting {}".format(behavior),
-                                ],
-                                "life_state": to_text(life.getState()) if life is not None else "unknown",
-                                "active_animation": behavior,
-                            },
-                            force=True,
-                        )
                         if life is not None and TOUCH_AUTONOMOUS_LIFE:
                             try:
                                 state = to_text(life.getState())
@@ -504,17 +549,6 @@ class TabletOverlayHttpServer(threading.Thread):
                         self._write_json(
                             200,
                             {"ok": True, "name": name, "behavior": behavior},
-                        )
-                        tablet.publish_payload(
-                            {
-                                "ui": "split_chat_debug",
-                                "debug_lines": [
-                                    "animation: finished {}".format(behavior),
-                                ],
-                                "life_state": to_text(life.getState()) if life is not None else "unknown",
-                                "active_animation": "",
-                            },
-                            force=True,
                         )
                     except Exception as exc:
                         self._write_json(500, {"ok": False, "error": to_text(exc), "behavior": behavior})
@@ -686,6 +720,14 @@ def main():
         print("[bridge] ALAudioPlayer not available — animation sounds cannot be muted")
         audio_player_service = None
 
+    tts_service = None
+    try:
+        tts_service = wait_for_service(sess, "ALTextToSpeech", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALTextToSpeech available — will be muted during animations")
+    except Exception:
+        print("[bridge] ALTextToSpeech not available")
+        tts_service = None
+
     animations_map = load_animations_map(ANIMATIONS_FILE)
     tablet_service = None
     try:
@@ -703,6 +745,8 @@ def main():
         life_service,
         animations_map,
         audio_player=audio_player_service,
+        tts=tts_service,
+        audio_device=audio,
     )
     tablet_http.start()
     tablet.publish(

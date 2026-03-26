@@ -25,6 +25,7 @@
 
 - remove debug
 - add QR code for websides?
+- remove finsihed sessions
 
 ## Thesis:
 
