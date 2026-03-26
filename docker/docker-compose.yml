@@ -47,7 +47,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "robot/src/session_manager.py"]
+    command: ["uv", "run", "python", "services/src/session_manager.py"]
     volumes:
       - ..:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
@@ -121,7 +121,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "robot/src/listener.py"]
+    command: ["uv", "run", "python", "services/src/listener.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -144,7 +144,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "robot/src/user_client.py"]
+    command: ["uv", "run", "python", "services/src/user_client.py"]
     volumes:
       - ..:/workspace
     devices:

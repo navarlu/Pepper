@@ -149,7 +149,7 @@ SESSION_COOLDOWN_SEC = _env_float("SESSION_COOLDOWN_SEC", 4.0)
 SESSION_PREROLL_ACTIVITY_SEC = _env_float("SESSION_PREROLL_ACTIVITY_SEC", 0.8)
 SESSION_ACTIVITY_DEBOUNCE_SEC = _env_float("SESSION_ACTIVITY_DEBOUNCE_SEC", 0.75)
 
-# Local external microphone publisher (`robot/src/user_client.py`).
+# Local external microphone publisher (`services/src/user_client.py`).
 USER_MIC_SAMPLE_RATE = _env_int("USER_MIC_SAMPLE_RATE", 48000)
 USER_MIC_CHANNELS = _env_int("USER_MIC_CHANNELS", 1)
 USER_MIC_BLOCKSIZE = _env_int("USER_MIC_BLOCKSIZE", 4800)

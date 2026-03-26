@@ -21,7 +21,7 @@ Current setup does **not** use Letta.
    Exposes `query_search` over Weaviate for grounded answers.
 
 3. **Session manager**
-   File: `robot/src/session_manager.py`
+   File: `services/src/session_manager.py`
    Orchestrates session lifecycle, creates LiveKit rooms/tokens, serves the Operator Panel on `:8787`.
 
 4. **LiveKit -> Pepper audio bridge (optional)**  
