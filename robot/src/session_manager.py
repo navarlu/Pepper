@@ -57,10 +57,11 @@ ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 AGENT_NAME_DEFAULT = "Pepper"
 SESSION_SOURCE_USER = "user"
 SESSION_SOURCE_AGENT = "agent"
+SESSION_MANAGER_STATE_FILE = "session-manager-state.json"
 MAX_TRANSCRIPT_ITEMS = 40
 COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
-WARM_AGENT_JOIN_TIMEOUT_SEC = 30.0
+WARM_AGENT_JOIN_TIMEOUT_SEC = 8.0
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
 KNOWN_DOCKER_SERVICES = (
@@ -843,15 +844,22 @@ html,body {
 }
 .page { max-width: 1220px; margin: 0 auto; padding: 18px 16px 24px; }
 .hero {
-  display:flex;
-  justify-content:space-between;
+  display:grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items:center;
   gap:12px;
   margin-bottom:12px;
 }
 .hero h1 { margin:0; font-size:32px; line-height:1; letter-spacing:-0.03em; }
 .hero p { margin:6px 0 0; color:var(--muted); font-size:14px; }
-.hero-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.hero-meta {
+  grid-column:2;
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
 .layout {
   display:grid;
   grid-template-columns: minmax(0, 1fr) minmax(210px, 240px);
@@ -947,6 +955,19 @@ html,body {
   align-items:center;
   gap:10px;
 }
+.chat-header-actions #resetBtn {
+  min-height:50px;
+  padding:0 20px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.9);
+  color:#8c6f6f;
+  border:1px solid rgba(196,176,176,0.32);
+  box-shadow:none;
+}
+.chat-header-actions #resetBtn:hover {
+  background:rgba(250,246,246,0.98);
+  border-color:rgba(196,176,176,0.45);
+}
 .chat-header h2,
 .controls-title {
   margin:0;
@@ -988,7 +1009,7 @@ html,body {
   background:transparent;
   box-shadow:none;
   border:none;
-  padding:4px 0;
+  padding:0;
 }
 .speaker {
   font-size:11px;
@@ -1003,26 +1024,38 @@ html,body {
   display:flex;
   align-items:center;
   gap:12px;
-  color:var(--accent-deep);
+  color:#93a1b2;
 }
 .session-divider::before,
 .session-divider::after {
   content:"";
   height:1px;
   flex:1;
-  background:linear-gradient(90deg, transparent, #c4d6ea, transparent);
+  background:linear-gradient(90deg, transparent, #e1e7ee, transparent);
 }
 .session-chip {
-  padding:10px 14px;
-  border-radius:999px;
-  background:rgba(41,104,216,0.08);
-  border:1px solid rgba(41,104,216,0.14);
+  padding:0;
+  border:none;
+  background:transparent;
   font-size:12px;
-  font-weight:700;
-  letter-spacing:0.10em;
-  text-transform:uppercase;
+  font-weight:500;
+  letter-spacing:0.01em;
+  text-transform:none;
+  color:#93a1b2;
+  line-height:1.2;
+  white-space:nowrap;
 }
-.controls-card { margin-top:12px; padding:18px; }
+.controls-card {
+  margin-top:12px;
+  padding:0;
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  overflow:visible;
+}
+.composer {
+  position:relative;
+}
 .tiny-card {
   padding:14px 14px 12px;
 }
@@ -1066,70 +1099,72 @@ html,body {
   background:linear-gradient(90deg, #7fc39b, #4d88e6, #17479f);
 }
 .controls-head {
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-end;
-  gap:12px;
   margin-bottom:10px;
 }
 .mini-note { color:var(--muted); font-size:12px; }
 .mono { font-family: "SFMono-Regular", Consolas, monospace; font-size:12px; }
 textarea {
+  display:block;
   width:100%;
-  min-height:48px;
-  resize:vertical;
-  background:white;
+  min-height:24px;
+  max-height:136px;
+  resize:none;
+  overflow-y:auto;
+  background:rgba(255,255,255,0.96);
   color:var(--text);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:14px;
+  border:1px solid #cfd9e6;
+  border-radius:22px;
+  padding:14px 118px 14px 24px;
   font:inherit;
+  font-size:18px;
+  line-height:1.25;
+  box-shadow: 0 8px 18px rgba(40, 74, 111, 0.08);
 }
 .controls {
-  display:flex;
-  gap:10px;
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  display:inline-flex;
+  justify-content:flex-end;
   align-items:center;
-  flex-wrap:wrap;
-  margin-top:12px;
+  gap:8px;
+  margin-top:0;
+  min-height:auto;
+  padding:0;
+  pointer-events:none;
 }
 .toggle {
   display:inline-flex;
   align-items:center;
-  gap:10px;
-  padding:10px 14px;
-  border-radius:14px;
-  border:1px solid rgba(41,104,216,0.14);
-  background:#fbfdff;
-  color:var(--accent-deep);
-  font-weight:600;
+  padding:0;
+  border:none;
+  background:transparent;
+  pointer-events:auto;
 }
 .toggle input {
   appearance:none;
-  width:42px;
-  height:24px;
-  border-radius:999px;
-  background:#d8e4f1;
-  position:relative;
+  width:36px;
+  height:36px;
+  border-radius:18px;
+  background-color:rgba(255,255,255,0.98);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d99a7' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='3.5' width='6' height='10.5' rx='3'/%3E%3Cpath d='M6 10.5a6 6 0 0 0 12 0'/%3E%3Cpath d='M12 16.5v4.5'/%3E%3Cpath d='M8.5 21h7'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:18px 18px;
   outline:none;
   cursor:pointer;
+  border:1px solid rgba(207,217,230,0.95);
+  box-shadow: 0 6px 16px rgba(40, 74, 111, 0.08);
+  transition:background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
-.toggle input::after {
-  content:"";
-  position:absolute;
-  top:3px;
-  left:3px;
-  width:18px;
-  height:18px;
-  border-radius:999px;
-  background:white;
-  box-shadow:0 1px 4px rgba(0,0,0,0.15);
-  transition:left 120ms ease;
+.toggle span {
+  display:none;
 }
 .toggle input:checked {
-  background:#9dbaf0;
-}
-.toggle input:checked::after {
-  left:21px;
+  background-color:#f4f7fb;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238d99a7' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4l16 16'/%3E%3Cpath d='M9.2 9.2V6.5a2.8 2.8 0 0 1 5.6 0v6a2.7 2.7 0 0 1-.4 1.4'/%3E%3Cpath d='M6 10.5a6 6 0 0 0 10.4 4.1'/%3E%3Cpath d='M12 16.5v4.5'/%3E%3Cpath d='M8.5 21h7'/%3E%3C/svg%3E");
+  border-color:rgba(180,191,205,0.95);
 }
 button {
   background:#f6faff;
@@ -1145,12 +1180,61 @@ button.primary { background:rgba(41,104,216,0.10); border-color:rgba(41,104,216,
 button.secondary { background:#f3f7fb; color:#617892; border-color:rgba(98,122,148,0.18); }
 button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.22); }
 .btn-icon { display:inline-flex; width:18px; justify-content:center; margin-right:6px; opacity:0.82; }
+.controls #sendBtn {
+  width:36px;
+  height:36px;
+  padding:0;
+  border-radius:18px;
+  background:#a8a8a8;
+  border-color:#a8a8a8;
+  color:#ffffff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:auto;
+}
+.controls #sendBtn .btn-icon {
+  width:16px;
+  height:16px;
+  margin-right:0;
+  font-size:0;
+  opacity:1;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 17V7'/%3E%3Cpath d='M7.5 11.5 12 7l4.5 4.5'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:16px 16px;
+}
+.controls #sendBtn .btn-label {
+  display:none;
+}
 @media (max-width: 760px) {
   .layout { grid-template-columns: 1fr; }
-  .hero { flex-direction:column; align-items:flex-start; }
+  .hero { grid-template-columns: 1fr; }
+  .hero-meta { grid-column:auto; justify-self:start; }
   .hero h1 { font-size:28px; }
   .chat-feed { min-height:420px; max-height:420px; }
   .body-text { font-size:16px; }
+  textarea {
+    min-height:22px;
+    padding:13px 108px 13px 20px;
+    font-size:16px;
+  }
+  .controls {
+    right:10px;
+    margin-top:0;
+    min-height:auto;
+    padding:0;
+  }
+  .toggle input {
+    width:34px;
+    height:34px;
+    border-radius:17px;
+  }
+  .controls #sendBtn {
+    width:34px;
+    height:34px;
+    border-radius:17px;
+  }
 }
 </style>
 <div class="page">
@@ -1173,49 +1257,33 @@ button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.2
         <div class="chat-header">
           <div>
             <h2>Conversation History</h2>
-            <p>Primary live view.</p>
           </div>
           <div class="chat-header-actions">
-            <button class="warn" id="resetBtn"><span class="btn-icon">↻</span>Restart Session</button>
+            <button class="warn" id="resetBtn">Restart Session</button>
           </div>
         </div>
         <div class="chat-feed" id="transcriptList"><div class="mini-note">No transcript yet.</div></div>
       </div>
       <div class="card controls-card">
-        <div class="controls-head">
-          <div>
-            <div class="controls-title">Operator Controls</div>
-            <div class="controls-note">Send a user turn or control the current session.</div>
+        <div class="composer">
+          <textarea id="userText" rows="1" placeholder="Ask anything"></textarea>
+          <div class="controls">
+            <label class="toggle" title="Toggle mic mute"><input type="checkbox" id="muteToggle"><span></span></label>
+            <button class="primary" id="sendBtn" title="Send"><span class="btn-icon">↑</span><span class="btn-label">Send</span></button>
           </div>
-          <div class="mini-note" id="muteState">Mic state: -</div>
-        </div>
-        <textarea id="userText" placeholder="Send a text turn as the user"></textarea>
-        <div class="controls">
-          <button class="primary" id="sendBtn"><span class="btn-icon">→</span>Send</button>
-          <label class="toggle"><input type="checkbox" id="muteToggle"><span>Mute Mic</span></label>
         </div>
       </div>
     </div>
     <div class="side-column">
       <div class="card tiny-card">
         <div class="controls-title" style="font-size:16px;">Live Signal</div>
-        <div class="controls-note" style="margin-top:4px;">Small live telemetry beside the chat.</div>
         <table class="signal-table">
           <tbody>
-            <tr>
-              <th>Mic level</th>
-              <td>
-                <div class="tiny-meter"><div id="chatMicLevelBar"></div></div>
-                <div class="signal-value mono" id="chatMicLevelText">-</div>
-              </td>
-            </tr>
-            <tr>
-              <th>Pepper level</th>
-              <td>
-                <div class="tiny-meter"><div id="chatPepperLevelBar"></div></div>
-                <div class="signal-value mono" id="chatPepperLevelText">-</div>
-              </td>
-            </tr>
+            <tr><th>Mic state</th><td class="signal-value mono" id="chatMuteState">-</td></tr>
+            <tr><th>Mic</th><td class="signal-value mono" id="chatMicLevelText">-</td></tr>
+            <tr><th>Pepper</th><td class="signal-value mono" id="chatPepperLevelText">-</td></tr>
+            <tr><th>Mode</th><td class="signal-value mono" id="chatSessionState">-</td></tr>
+            <tr><th>Standby</th><td class="signal-value mono" id="chatWarmState">-</td></tr>
             <tr><th>Speaking</th><td class="signal-value" id="chatPepperSpeaking">-</td></tr>
             <tr><th>Idle</th><td class="signal-value mono" id="chatIdleCountdown">-</td></tr>
           </tbody>
@@ -1243,10 +1311,29 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
 }
-function meter(el, value) {
-  const pct = Math.max(0, Math.min(100, Math.round((value || 0) * 100)));
-  const node = document.getElementById(el);
-  if (node) node.style.width = pct + "%";
+function warmStateLabel(data) {
+  if (data.session_state === "active") return "activated into live session";
+  if (!data.agent_deployed) return "not deployed";
+  if (data.warm_agent_ready) return "ready";
+  if (data.warm_activation_pending) return "warming, user waiting";
+  return "warming";
+}
+function speakingLabel(data) {
+  const level = Number(data.agent_audio_level || 0);
+  return level >= 0.015 ? "yes" : "no";
+}
+function sessionStateLabel(data) {
+  if (data.session_state === "active") return "active conversation";
+  if (data.session_state === "warm") {
+    if (data.warm_agent_ready) return "idle, warm standby ready";
+    if (data.warm_activation_pending) return "starting session, waiting for standby";
+    return "warming standby";
+  }
+  if (data.session_state === "cooldown") return "cooldown";
+  if (data.session_state === "ending") return "ending session";
+  if (data.session_state === "starting") return "starting session";
+  if (data.session_state === "idle") return "idle";
+  return data.session_state || "-";
 }
 async function postJson(url, body) {
   const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -1259,17 +1346,29 @@ async function refresh() {
     const data = await res.json();
     pill.textContent = "Live";
     pill.className = "pill good";
-    text("muteState", `Mic state: ${data.mic_muted ? "muted" : "live"}`);
+    text("chatMuteState", data.mic_muted ? "muted" : "live");
     document.getElementById("muteToggle").checked = !!data.mic_muted;
-    text("chatMicLevelText", `level=${(data.mic_level || 0).toFixed(3)}`);
-    text("chatPepperLevelText", `level=${(data.agent_audio_level || 0).toFixed(3)}`);
-    text("chatPepperSpeaking", data.agent_speaking ? "yes" : "no");
+    text("chatMicLevelText", (data.mic_level || 0).toFixed(3));
+    text("chatPepperLevelText", (data.agent_audio_level || 0).toFixed(3));
+    text("chatSessionState", sessionStateLabel(data));
+    text("chatWarmState", warmStateLabel(data));
+    text("chatPepperSpeaking", speakingLabel(data));
     text("chatIdleCountdown", data.idle_countdown_sec != null ? `${data.idle_countdown_sec.toFixed(1)}s` : "waiting");
-    meter("chatMicLevelBar", data.mic_level || 0);
-    meter("chatPepperLevelBar", data.agent_audio_level || 0);
     const chatLivePill = document.getElementById("chatLivePill");
-    chatLivePill.className = `pill ${data.agent_deployed ? "good" : ""}`.trim();
-    chatLivePill.textContent = data.agent_deployed ? "Live session" : "Waiting for session";
+    let pillClass = "pill";
+    let pillText = "Waiting for session";
+    if (data.session_state === "active") {
+      pillClass = "pill good";
+      pillText = "Live session";
+    } else if (data.agent_deployed && data.warm_agent_ready) {
+      pillClass = "pill good";
+      pillText = "Agent";
+    } else if (data.agent_deployed) {
+      pillClass = "pill";
+      pillText = data.warm_activation_pending ? "Starting session" : "Warming agent";
+    }
+    chatLivePill.className = pillClass;
+    chatLivePill.textContent = pillText;
     const transcriptEl = document.getElementById("transcriptList");
     const transcriptRows = (data.transcript_items || []).map((item) => {
       if (item.kind === "session") {
@@ -1303,13 +1402,20 @@ async function refresh() {
     pill.className = "pill hot";
   }
 }
-document.getElementById("sendBtn").addEventListener("click", async () => {
+async function sendUserText() {
   const el = document.getElementById("userText");
   const textValue = el.value.trim();
   if (!textValue) return;
   await postJson("/api/control/text", { text: textValue });
   el.value = "";
   refresh();
+}
+document.getElementById("sendBtn").addEventListener("click", sendUserText);
+document.getElementById("userText").addEventListener("keydown", async (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    await sendUserText();
+  }
 });
 document.getElementById("muteToggle").addEventListener("change", async () => {
   await postJson("/api/control/mic", {});
@@ -1356,11 +1462,14 @@ class SessionManager:
         self.livekit_http_url = LIVEKIT_HTTP_URL
         self.bridge_url = BRIDGE_URL
         self.session_file = Path(LIVEKIT_SESSION_FILE)
+        self.state_file = self.session_file.with_name(SESSION_MANAGER_STATE_FILE)
         self.api_key = _get_required_env("LIVEKIT_API_KEY")
         self.api_secret = _get_required_env("LIVEKIT_API_SECRET")
         self.agent_name = (os.getenv("PEPPER_AGENT_NAME") or AGENT_NAME_DEFAULT).strip() or AGENT_NAME_DEFAULT
         self.session_state = "idle"
         self.agent_deployed = False
+        self.warm_agent_ready = False
+        self.warm_activation_pending = False
         self.conversation_id = ""
         self.active_dispatch_id = ""
         self.last_user_activity_monotonic = 0.0
@@ -1380,6 +1489,7 @@ class SessionManager:
         self.pending_user_texts: list[dict[str, str]] = []
         self.components: dict[str, dict[str, Any]] = {}
         self.docker_socket_path = DOCKER_SOCKET_PATH
+        self._load_persisted_state()
         self.watchdog_status: dict[str, Any] = {
             "summary": "waiting for watchdog",
             "pepper_reachable": False,
@@ -1453,6 +1563,33 @@ class SessionManager:
             healthy=False,
             source="probe",
         )
+
+    def _clear_agent_runtime_state(self) -> None:
+        self.agent_deployed = False
+        self.warm_agent_ready = False
+        self.warm_activation_pending = False
+        self.active_dispatch_id = ""
+        self.dispatch_started_monotonic = 0.0
+
+    def _load_persisted_state(self) -> None:
+        try:
+            payload = json.loads(self.state_file.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return
+        except Exception as exc:
+            print(f"[session_manager] load state failed path={self.state_file} err={exc}")
+            return
+        self.mic_muted = bool(payload.get("mic_muted", self.mic_muted))
+
+    def _persist_state(self) -> None:
+        try:
+            self.state_file.parent.mkdir(parents=True, exist_ok=True)
+            payload = {"mic_muted": self.mic_muted, "updated_at": _utc_now_iso()}
+            tmp_path = self.state_file.with_suffix(".tmp")
+            tmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+            tmp_path.replace(self.state_file)
+        except Exception as exc:
+            print(f"[session_manager] persist state failed path={self.state_file} err={exc}")
 
     def _register_component(
         self,
@@ -1844,6 +1981,8 @@ class SessionManager:
                 )
                 self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
                 self.agent_deployed = True
+                self.warm_agent_ready = False
+                self.warm_activation_pending = False
                 self.session_state = "warm"
                 self.dispatch_started_monotonic = time.monotonic()
                 self.updated_at = _utc_now_iso()
@@ -1877,6 +2016,7 @@ class SessionManager:
         """Send activation signal to the warm agent via LiveKit data channel."""
         self.conversation_id = uuid.uuid4().hex[:10]
         self.session_state = "active"
+        self.warm_activation_pending = False
         self.dispatch_started_monotonic = time.monotonic()
         self._append_session_marker(f"New session · {self.conversation_id}")
         self.updated_at = _utc_now_iso()
@@ -1909,7 +2049,15 @@ class SessionManager:
             if not self._bootstrap_complete:
                 return
             if self.session_state == "warm" and self.agent_deployed:
-                await self._activate_warm_agent()
+                if self.warm_agent_ready:
+                    await self._activate_warm_agent()
+                    return
+                print(
+                    "[session_manager] warm standby still connecting "
+                    "— queueing activation request"
+                )
+                self.warm_activation_pending = True
+                self.updated_at = _utc_now_iso()
                 return
             if self.agent_deployed:
                 return
@@ -1929,6 +2077,8 @@ class SessionManager:
                 )
                 self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
                 self.agent_deployed = True
+                self.warm_agent_ready = False
+                self.warm_activation_pending = False
                 self.session_state = "active"
                 self._append_session_marker(f"New session · {self.conversation_id}")
                 self.updated_at = _utc_now_iso()
@@ -1946,9 +2096,7 @@ class SessionManager:
             except Exception as exc:
                 self.session_state = "idle"
                 self.conversation_id = ""
-                self.agent_deployed = False
-                self.active_dispatch_id = ""
-                self.dispatch_started_monotonic = 0.0
+                self._clear_agent_runtime_state()
                 self._set_component_state(
                     "session-manager",
                     state="degraded",
@@ -1968,7 +2116,7 @@ class SessionManager:
             print(f"[session_manager] ending session reason={reason}")
             ended_conversation_id = self.conversation_id
             await self._remove_agent_participants()
-            self.agent_deployed = False
+            self._clear_agent_runtime_state()
             self.conversation_id = ""
             self.last_user_activity_monotonic = 0.0
             self.last_agent_activity_monotonic = 0.0
@@ -2003,7 +2151,10 @@ class SessionManager:
             if level is not None:
                 self.mic_level = max(0.0, min(1.0, level))
             if self.session_state == "warm":
-                await self.dispatch_agent()
+                if self.warm_agent_ready:
+                    await self.dispatch_agent()
+                else:
+                    self.warm_activation_pending = True
             elif not self.agent_deployed and self.session_state == "idle":
                 await self.dispatch_agent()
         elif source == SESSION_SOURCE_AGENT:
@@ -2027,6 +2178,19 @@ class SessionManager:
 
     def _append_session_marker(self, text: str) -> None:
         self._append_transcript("System", text, kind="session")
+
+    def _append_session_marker_once(self, text: str) -> None:
+        clean = " ".join(str(text).strip().split())
+        if not clean:
+            return
+        last_item = self.transcript_items[-1] if self.transcript_items else None
+        if (
+            last_item
+            and last_item.get("kind") == "session"
+            and str(last_item.get("text") or "").strip() == clean
+        ):
+            return
+        self._append_session_marker(clean)
 
     def _idle_countdown_sec(self) -> float | None:
         if not self.agent_deployed or self.session_state == "warm":
@@ -2054,20 +2218,14 @@ class SessionManager:
                         and (now - self.dispatch_started_monotonic) >= SESSION_PREROLL_ACTIVITY_SEC
                     ):
                         await self.end_session(reason="no_activity_after_dispatch")
-            # Re-dispatch warm agent if it never joined the room
+            # Re-dispatch warm agent if it never becomes ready
             if self.session_state == "warm" and self.agent_deployed:
-                has_agent = any(
-                    _identity_is_agent(
-                        p.get("identity", ""), p.get("kind", "")
-                    )
-                    for p in self.participants
-                )
                 if (
-                    not has_agent
+                    not self.warm_agent_ready
                     and self.dispatch_started_monotonic > 0
                     and (now - self.dispatch_started_monotonic) >= WARM_AGENT_JOIN_TIMEOUT_SEC
                 ):
-                    print("[session_manager] warm agent never joined — re-dispatching")
+                    print("[session_manager] warm agent never became ready — re-dispatching")
                     await self.end_session(reason="warm_agent_timeout")
             await asyncio.sleep(LIVEKIT_STATUS_POLL_INTERVAL_SEC)
 
@@ -2077,6 +2235,8 @@ class SessionManager:
             "room_name": self.room_name,
             "session_state": self.session_state,
             "agent_deployed": self.agent_deployed,
+            "warm_agent_ready": self.warm_agent_ready,
+            "warm_activation_pending": self.warm_activation_pending,
             "conversation_id": self.conversation_id,
             "last_user_activity_at": self.last_user_activity_at,
             "last_agent_activity_at": self.last_agent_activity_at,
@@ -2143,6 +2303,15 @@ class SessionManager:
             self.agent_audio_level = max(0.0, min(1.0, level_value))
         elif event_type == "agent_speaking":
             self.agent_speaking = active
+        elif event_type == "warm_ready":
+            self.warm_agent_ready = True
+            self._append_session_marker_once("Agent ready")
+            if (
+                self.session_state == "warm"
+                and self.agent_deployed
+                and (self.warm_activation_pending or self.pending_user_texts)
+            ):
+                asyncio.create_task(self.dispatch_agent())
 
         self.updated_at = _utc_now_iso()
         return web.json_response({"ok": True})
@@ -2199,6 +2368,7 @@ class SessionManager:
     async def handle_mic_toggle(self, request: web.Request) -> web.Response:
         del request
         self.mic_muted = not self.mic_muted
+        self._persist_state()
         self.updated_at = _utc_now_iso()
         return web.json_response({"ok": True, "mic_muted": self.mic_muted})
 

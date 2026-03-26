@@ -85,6 +85,22 @@ def _post_component_status(state: str, detail: str, healthy: bool) -> None:
         pass
 
 
+def _post_debug_event(payload: dict[str, object]) -> None:
+    if not SESSION_MANAGER_URL:
+        return
+    url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/debug-event"
+    req = Request(
+        url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        urlopen(req, timeout=0.5).read()
+    except Exception:
+        pass
+
+
 def _start_component_heartbeat() -> threading.Event:
     stop_event = threading.Event()
 
@@ -251,6 +267,7 @@ async def entrypoint(ctx: JobContext) -> None:
 
     if is_warm and activation_event is not None:
         # Agent is fully connected with live OpenAI session — wait for activation
+        _post_debug_event({"event": "warm_ready", "active": True})
         logger.info("warm_agent_ready openai_session_established waiting_for_activation")
         await activation_event.wait()
         logger.info(
