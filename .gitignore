@@ -25,12 +25,7 @@ __pypackages__/
 .coverage
 htmlcov/
 web/*
-!web/agents-playground/
-web/agents-playground/node_modules/
-web/agents-playground/.next/
-web/agents-playground/token-latest.json
-web/agents-playground/token-log.txt
-web/agents-playground/.env
+data/
 docker/letta-data
 docker/redis-data
 docker/weaviate_data

@@ -4,12 +4,12 @@
 - Dev console rename
 - Dev console pointing to localhost
 - Add clear button for the conv hisory
-- Add tools calls in the chat
-- ender for send
+- Europe date and 24h
+
+
 
 ## Agent:
 
-- faster first join
 - Knowladge
     - contacts
     - ways to rooms (fill the rest)
@@ -23,9 +23,8 @@
 
 ## Tablet
 
-- remove debug
 - add QR code for websides?
-- remove finsihed sessions
+
 
 ## Thesis:
 
@@ -49,7 +48,6 @@
 
 ## Repo:
 
-- remove playground (carfull about the token managment)
 
 ## Bugs:
 

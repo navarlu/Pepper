@@ -41,7 +41,7 @@ if __name__ == "__main__":
     room_name = generate_unique_room_name("test-room")
 
     agent_identity = "agent-user"
-    user_identity = "playground-user"
+    user_identity = "user"
     listener_identity = "listener-python"
 
     agent_token = generate_token(room_name, agent_identity)

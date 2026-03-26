@@ -4,7 +4,7 @@
 
 This project turns Pepper into a spoken receptionist assistant using:
 1) a **Python 3 LiveKit/OpenAI realtime agent** (`voice-agent/`),
-2) a **web playground UI** for creating sessions and testing dialogue,
+2) a **session manager** that orchestrates rooms, tokens, and component lifecycle,
 3) an optional **Weaviate-backed retrieval tool** for FEL documents,
 4) optional **Pepper audio playback bridge** (Python 2.7 receiver + Python 3 listener).
 
@@ -20,10 +20,9 @@ Current setup does **not** use Letta.
    Files: `voice-agent/src/tools.py`, `voice-agent/src/utils.py`  
    Exposes `query_search` over Weaviate for grounded answers.
 
-3. **Playground frontend**  
-   Folder: `web/agents-playground/`  
-   URL: `http://localhost:3000/`  
-   Creates room/token snapshots used by the listener bridge.
+3. **Session manager**
+   File: `robot/src/session_manager.py`
+   Orchestrates session lifecycle, creates LiveKit rooms/tokens, serves the Operator Panel on `:8787`.
 
 4. **LiveKit -> Pepper audio bridge (optional)**  
    - `robot/src/listener_pepper_bridge.py` (Python 3): joins LiveKit as listener and forwards PCM via TCP  
@@ -31,19 +30,13 @@ Current setup does **not** use Letta.
 
 5. **Infrastructure via Docker**  
    File: `docker/docker-compose.yml`  
-   Starts LiveKit, Redis, Playground, and Weaviate.
+   Starts LiveKit, Redis, Session Manager, and Weaviate.
 
 ## How To Run
 
 ### Agent
 ```bash
 cd voice-agent && uv run python -m src.agent dev
-```
-
-### Playground
-Open:
-```text
-http://localhost:3000/
 ```
 
 ### Full desired flow
@@ -70,15 +63,13 @@ cd robot/src
 python3 listener_pepper_bridge.py
 ```
 
-5. Open playground and click `Connect`:
-- It creates a fresh room/token set.
-- It dispatches the agent via token room config.
-- It writes a new session snapshot.
+5. The session manager automatically creates rooms and tokens.
+- Session snapshots are written to `data/token-latest.json`.
 - The listener bridge follows the new listener token automatically.
 
 ## Notes
 
-- Session snapshot path used by bridge: `web/agents-playground/token-latest.json`
+- Session snapshot path: `data/token-latest.json`
 - To stop infra:
 ```bash
 docker compose -f docker/docker-compose.yml --env-file .env down

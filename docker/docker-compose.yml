@@ -58,13 +58,14 @@ services:
       BRIDGE_URL: http://host.docker.internal:5000
       SESSION_MANAGER_HOST: 0.0.0.0
       SESSION_MANAGER_PORT: 8787
-      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/data/token-latest.json
       REDIS_HOST: redis
       REDIS_PORT: 6379
       WEAVIATE_HOST: weaviate
       WEAVIATE_HTTP_PORT: 8080
       BRIDGE_TCP_URL: tcp://host.docker.internal:55555
       DOCKER_SOCKET_PATH: /var/run/docker.sock
+      DEV_CONSOLE_URL: http://dev-console:8788
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -126,7 +127,7 @@ services:
     environment:
       LIVEKIT_URL: ws://livekit:7880
       SESSION_MANAGER_URL: http://session-manager:8787
-      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/data/token-latest.json
       TCP_HOST: host.docker.internal
       TCP_PORT: 55555
       BRIDGE_URL: http://host.docker.internal:5000
@@ -153,28 +154,10 @@ services:
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       SESSION_MANAGER_URL: http://127.0.0.1:8787
-      LIVEKIT_SESSION_FILE: /workspace/web/agents-playground/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/data/token-latest.json
     network_mode: host
     profiles:
       - audio
-    restart: unless-stopped
-
-  
-  playground:
-    image: node:18.20.8
-    working_dir: /app
-    command: ["sh", "-c", "npm install && npm run dev"]
-    volumes:
-      - ../web/agents-playground:/app
-    environment:
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
-      LIVEKIT_URL: ws://127.0.0.1:7880
-      NEXT_PUBLIC_LIVEKIT_URL: ws://127.0.0.1:7880
-    ports:
-      - "3000:3000"
-    profiles:
-      - debug
     restart: unless-stopped
 
   dev-console:

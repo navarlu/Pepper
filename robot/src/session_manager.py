@@ -68,7 +68,6 @@ KNOWN_DOCKER_SERVICES = (
     "bridge",
     "listener",
     "livekit",
-    "playground",
     "redis",
     "safe-startup",
     "session-manager",
@@ -587,7 +586,7 @@ tr:last-child td { border-bottom:none; }
     <div class="hero-meta">
       <a class="nav-link" href="/">Chat</a>
       <a class="nav-link active" href="/debug">Debug</a>
-      <a class="nav-link" href="http://localhost:8788" target="_blank">Dev Console</a>
+      <a class="nav-link" href="/console">Dev Console</a>
       <div class="pill" id="pollState">Polling</div>
       <div class="pill good" id="watchdogPill">Watchdog waiting</div>
     </div>
@@ -1246,7 +1245,7 @@ button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.2
     <div class="hero-meta">
       <a class="nav-link active" href="/">Chat</a>
       <a class="nav-link" href="/debug">Debug</a>
-      <a class="nav-link" href="http://localhost:8788" target="_blank">Dev Console</a>
+      <a class="nav-link" href="/console">Dev Console</a>
       <div class="pill" id="pollState">Polling</div>
       <div class="pill good" id="chatLivePill">Waiting for session</div>
     </div>
@@ -1461,6 +1460,7 @@ class SessionManager:
         self.livekit_host_ws_url = LIVEKIT_HOST_WS_URL
         self.livekit_http_url = LIVEKIT_HTTP_URL
         self.bridge_url = BRIDGE_URL
+        self.dev_console_url = os.getenv("DEV_CONSOLE_URL", "http://localhost:8788").rstrip("/")
         self.session_file = Path(LIVEKIT_SESSION_FILE)
         self.state_file = self.session_file.with_name(SESSION_MANAGER_STATE_FILE)
         self.api_key = _get_required_env("LIVEKIT_API_KEY")
@@ -1789,6 +1789,7 @@ class SessionManager:
                 )
                 await self.ensure_room()
                 await self.cleanup_stale_dispatches()
+                await self._remove_agent_participants()
                 await self.write_session_snapshot()
                 self._bootstrap_complete = True
                 self._set_component_state(
@@ -1942,13 +1943,27 @@ class SessionManager:
                 kind = str(getattr(participant, "kind", "") or "")
                 if not _identity_is_agent(identity, kind):
                     continue
-                try:
-                    await lkapi.room.remove_participant(
-                        api.RoomParticipantIdentity(room=self.room_name, identity=identity)
+                removed = False
+                for attempt in range(3):
+                    try:
+                        await lkapi.room.remove_participant(
+                            api.RoomParticipantIdentity(room=self.room_name, identity=identity)
+                        )
+                        print(f"[session_manager] removed agent participant identity={identity}")
+                        removed = True
+                        break
+                    except Exception as exc:
+                        print(
+                            f"[session_manager] remove agent failed identity={identity} "
+                            f"attempt={attempt + 1}/3 err={exc}"
+                        )
+                        if attempt < 2:
+                            await asyncio.sleep(1.5)
+                if not removed:
+                    print(
+                        f"[session_manager] WARNING: could not remove zombie agent "
+                        f"identity={identity} after 3 attempts — LiveKit restart may be needed"
                     )
-                    print(f"[session_manager] removed agent participant identity={identity}")
-                except Exception as exc:
-                    print(f"[session_manager] remove agent failed identity={identity} err={exc}")
             if self.active_dispatch_id:
                 try:
                     await lkapi.agent_dispatch.delete_dispatch(self.active_dispatch_id, self.room_name)
@@ -2453,6 +2468,35 @@ class SessionManager:
         del request
         return web.Response(text=STATUS_HTML, content_type="text/html")
 
+    async def handle_console_proxy(self, request: web.Request) -> web.Response:
+        """Reverse-proxy requests to the dev-console service."""
+        subpath = request.match_info.get("path", "")
+        target = f"{self.dev_console_url}/{subpath}"
+        qs = request.query_string
+        if qs:
+            target = f"{target}?{qs}"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.request(
+                    method=request.method,
+                    url=target,
+                    headers={k: v for k, v in request.headers.items()
+                             if k.lower() not in ("host", "transfer-encoding")},
+                    data=await request.read() if request.can_read_body else None,
+                ) as resp:
+                    body = await resp.read()
+                    headers = {k: v for k, v in resp.headers.items()
+                               if k.lower() not in ("transfer-encoding", "content-encoding", "content-length")}
+                    # Rewrite API base so the SPA fetches hit /console/api/...
+                    if not subpath and resp.content_type and "html" in resp.content_type:
+                        text = body.decode("utf-8", errors="replace")
+                        text = text.replace("const API = '';", "const API = '/console';", 1)
+                        body = text.encode("utf-8")
+                    return web.Response(body=body, status=resp.status, headers=headers)
+        except Exception as exc:
+            print(f"[session_manager] console proxy error: {exc}")
+            return web.Response(text=f"Dev console unavailable: {exc}", status=502)
+
     async def start(self) -> None:
         app = web.Application()
         app.add_routes(
@@ -2471,6 +2515,8 @@ class SessionManager:
                 web.get("/api/docker/logs", self.handle_docker_logs),
                 web.get("/api/user-client/state", self.handle_user_client_state),
                 web.post("/api/user-client/ack", self.handle_user_client_ack),
+                web.route("*", "/console", self.handle_console_proxy),
+                web.route("*", "/console/{path:.*}", self.handle_console_proxy),
             ]
         )
         runner = web.AppRunner(app)

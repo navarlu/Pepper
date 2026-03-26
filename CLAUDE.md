@@ -69,7 +69,7 @@ docker compose logs -f <service-name>
 
 **Service names:** `bridge`, `voice-agent`, `session-manager`, `listener`, `user-client`, `livekit`, `redis`, `weaviate`, `safe-startup`
 
-**Debug-only services** (need `--profile debug`): `playground`, `dev-console`
+**Debug-only services** (need `--profile debug`): `dev-console`
 
 **Audio profile** (need `--profile audio`): `user-client`
 

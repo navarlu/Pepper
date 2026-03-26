@@ -9,7 +9,7 @@ Pepper can be turned on before or after — the watchdog will detect her.
 This project's standard workflow includes both the `audio` and `debug`
 profiles, so "all services" means the base stack plus:
 - `user-client` (`audio`)
-- `playground` and `dev-console` (`debug`)
+- `dev-console` (`debug`)
 
 ```bash
 docker compose -f docker/docker-compose.yml --env-file .env --profile audio --profile debug up -d

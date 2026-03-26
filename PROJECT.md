@@ -38,11 +38,7 @@ Entry point: `voice-agent/src/agent.py` — connects to LiveKit room, waits for 
 | **Listener** | `robot/src/listener.py` | Joins the LiveKit room as a passive participant, captures the agent's audio track, and forwards raw PCM frames over TCP to the bridge. |
 | **Session Manager** | `robot/src/session_manager.py` | Orchestrates session lifecycle: creates LiveKit rooms/tokens, tracks component health via heartbeats, serves the **Operator Panel** (debug HTML UI on `:8787`), and manages session state (idle → active → cooldown). |
 | **Safe Startup** | `robot/utils/safe_startup_watchdog.py` | Watchdog that ensures Pepper is reachable and services are healthy before the bridge starts accepting audio. |
-| **User Client** | `robot/src/user_client.py` | Optional: joins LiveKit room with a local microphone (ALSA on RPi) as the "user" audio source — used when no web playground is available. |
-
-### Web (`web/agents-playground/`)
-
-Next.js playground UI (LiveKit's agents-playground fork). Creates rooms, generates tokens, lets you test dialogue from a browser. Writes session snapshots to `token-latest.json` for the listener bridge.
+| **User Client** | `robot/src/user_client.py` | Optional: joins LiveKit room with a local microphone (ALSA on RPi) as the "user" audio source. |
 
 ### Infrastructure (`docker/`)
 
@@ -59,7 +55,6 @@ All services run via `docker compose`. Key containers:
 | `listener` | Custom | — |
 | `safe-startup` | Custom, `network_mode: host` | — |
 | `user-client` | Custom, ALSA passthrough | — (profile: `audio`) |
-| `playground` | `node:18` | 3000 (profile: `debug`) |
 
 ### Pepper Connection
 
