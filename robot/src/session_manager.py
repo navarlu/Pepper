@@ -676,7 +676,13 @@ function fmtTs(value) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+  const dd = String(date.getDate()).padStart(2,"0");
+  const mm = String(date.getMonth()+1).padStart(2,"0");
+  const yyyy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2,"0");
+  const min = String(date.getMinutes()).padStart(2,"0");
+  const ss = String(date.getSeconds()).padStart(2,"0");
+  return `${dd}/${mm}/${yyyy}, ${hh}:${min}:${ss}`;
 }
 function text(el, value) {
   document.getElementById(el).textContent = value || "-";
@@ -946,7 +952,7 @@ html,body {
   border-bottom:1px solid var(--line);
   display:flex;
   justify-content:space-between;
-  align-items:flex-end;
+  align-items:center;
   gap:12px;
 }
 .chat-header-actions {
@@ -967,7 +973,13 @@ html,body {
   background:rgba(250,246,246,0.98);
   border-color:rgba(196,176,176,0.45);
 }
-.chat-header h2,
+.chat-header h2 {
+  margin:0;
+  font-size:18px;
+  font-weight:500;
+  letter-spacing:-0.02em;
+  color:#1a1a1a;
+}
 .controls-title {
   margin:0;
   font-size:20px;
@@ -1296,7 +1308,13 @@ function fmtTs(value) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString();
+  const dd = String(date.getDate()).padStart(2,"0");
+  const mm = String(date.getMonth()+1).padStart(2,"0");
+  const yyyy = date.getFullYear();
+  const hh = String(date.getHours()).padStart(2,"0");
+  const min = String(date.getMinutes()).padStart(2,"0");
+  const ss = String(date.getSeconds()).padStart(2,"0");
+  return `${dd}/${mm}/${yyyy}, ${hh}:${min}:${ss}`;
 }
 function text(el, value) {
   const node = document.getElementById(el);

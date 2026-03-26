@@ -1,10 +1,7 @@
 ## Operator panel:
 
-- state on pepper not updates when idle
-- Dev console rename
-- Dev console pointing to localhost
 - Add clear button for the conv hisory
-- Europe date and 24h
+
 
 
 
