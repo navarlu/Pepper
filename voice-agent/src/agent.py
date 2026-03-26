@@ -130,18 +130,72 @@ async def _wait_for_user_participant(ctx: JobContext):
         await asyncio.sleep(0.2)
 
 
+def _parse_dispatch_metadata(ctx: JobContext) -> dict:
+    """Extract metadata dict from the agent dispatch job."""
+    raw = ""
+    # Try job-level metadata first, then room metadata
+    for attr in ("metadata", "agent_metadata"):
+        raw = str(getattr(ctx.job, attr, "") or "").strip()
+        if raw:
+            break
+    if not raw:
+        return {}
+    try:
+        return json.loads(raw)
+    except Exception:
+        logger.warning("dispatch_metadata_parse_failed raw=%s", raw[:200])
+        return {}
+
+
+def _setup_activation_listener(ctx: JobContext) -> tuple[asyncio.Event, dict]:
+    """Register data handler for activation signal. Must be called before session.start().
+
+    Returns (event, payload_container) — await the event, then read the payload.
+    """
+    activation_event = asyncio.Event()
+    activation_payload: dict = {}
+
+    @ctx.room.on("data_received")
+    def _on_data(packet):
+        topic = str(getattr(packet, "topic", "") or "")
+        if topic != "session-control":
+            return
+        raw = getattr(packet, "data", b"") or b""
+        try:
+            data = json.loads(raw)
+        except Exception:
+            return
+        logger.info("data_received topic=%s action=%s", topic, data.get("action"))
+        if data.get("action") == "activate":
+            nonlocal activation_payload
+            activation_payload.update(data)
+            activation_event.set()
+
+    return activation_event, activation_payload
+
+
 async def entrypoint(ctx: JobContext) -> None:
     logger.info("agent version=%s model=%s", AGENT_VERSION, MODEL_NAME)
     openai_api_key = _get_required_env("OPENAI_API_KEY")
 
+    dispatch_meta = _parse_dispatch_metadata(ctx)
+    is_warm = bool(dispatch_meta.get("warm"))
+
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
+
+    # Register activation listener early — before session.start() takes over room events
+    activation_event, activation_payload = (None, None)
+    if is_warm:
+        activation_event, activation_payload = _setup_activation_listener(ctx)
+
     participant = await _wait_for_user_participant(ctx)
 
     logger.info(
-        "session_start room=%s participant_name=%s participant_identity=%s",
+        "session_start room=%s participant_name=%s participant_identity=%s warm=%s",
         getattr(ctx.room, "name", ""),
         getattr(participant, "name", ""),
         getattr(participant, "identity", ""),
+        is_warm,
     )
 
     try:
@@ -194,6 +248,15 @@ async def entrypoint(ctx: JobContext) -> None:
             text_input=room_io.TextInputOptions(text_input_cb=_text_input_cb),
         ),
     )
+
+    if is_warm and activation_event is not None:
+        # Agent is fully connected with live OpenAI session — wait for activation
+        logger.info("warm_agent_ready openai_session_established waiting_for_activation")
+        await activation_event.wait()
+        logger.info(
+            "warm_agent_activated conversation_id=%s",
+            activation_payload.get("conversation_id", ""),
+        )
 
     greeting = await session.generate_reply(
         instructions=VOICE_AGENT_GREETING_INSTRUCTIONS,

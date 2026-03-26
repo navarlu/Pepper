@@ -60,6 +60,7 @@ SESSION_SOURCE_AGENT = "agent"
 MAX_TRANSCRIPT_ITEMS = 40
 COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
+WARM_AGENT_JOIN_TIMEOUT_SEC = 30.0
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
 KNOWN_DOCKER_SERVICES = (
@@ -1660,6 +1661,7 @@ class SessionManager:
                     healthy=True,
                     source="internal",
                 )
+                await self._dispatch_warm_agent()
                 return
             except Exception as exc:
                 self._set_component_state(
@@ -1821,10 +1823,97 @@ class SessionManager:
             self.dispatch_started_monotonic = 0.0
             await lkapi.aclose()
 
-    async def dispatch_agent(self) -> None:
+    async def _dispatch_warm_agent(self) -> None:
+        """Dispatch agent into the room in warm standby mode.
+
+        The agent connects, sets up its OpenAI Realtime session, and waits for
+        an activation signal before greeting the user.
+        """
         async with self._lock:
             if self.agent_deployed or not self._bootstrap_complete:
                 return
+            metadata = json.dumps({"warm": True})
+            lkapi = self._new_lkapi()
+            try:
+                dispatch = await lkapi.agent_dispatch.create_dispatch(
+                    api.CreateAgentDispatchRequest(
+                        agent_name=self.agent_name,
+                        room=self.room_name,
+                        metadata=metadata,
+                    )
+                )
+                self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
+                self.agent_deployed = True
+                self.session_state = "warm"
+                self.dispatch_started_monotonic = time.monotonic()
+                self.updated_at = _utc_now_iso()
+                print(
+                    f"[session_manager] warm agent dispatched name={self.agent_name} "
+                    f"room={self.room_name} dispatch_id={self.active_dispatch_id}"
+                )
+                self._set_component_state(
+                    "session-manager",
+                    state="ready",
+                    detail="warm agent standing by",
+                    healthy=True,
+                    source="internal",
+                )
+            except Exception as exc:
+                self.session_state = "idle"
+                self.agent_deployed = False
+                self.active_dispatch_id = ""
+                self._set_component_state(
+                    "session-manager",
+                    state="degraded",
+                    detail=f"warm dispatch failed: {exc}",
+                    healthy=False,
+                    source="internal",
+                )
+                print(f"[session_manager] warm dispatch failed err={exc}")
+            finally:
+                await lkapi.aclose()
+
+    async def _activate_warm_agent(self) -> None:
+        """Send activation signal to the warm agent via LiveKit data channel."""
+        self.conversation_id = uuid.uuid4().hex[:10]
+        self.session_state = "active"
+        self.dispatch_started_monotonic = time.monotonic()
+        self._append_session_marker(f"New session · {self.conversation_id}")
+        self.updated_at = _utc_now_iso()
+
+        payload = json.dumps({
+            "action": "activate",
+            "conversation_id": self.conversation_id,
+        }).encode("utf-8")
+        lkapi = self._new_lkapi()
+        try:
+            await lkapi.room.send_data(
+                api.SendDataRequest(
+                    room=self.room_name,
+                    data=payload,
+                    topic="session-control",
+                )
+            )
+            print(
+                f"[session_manager] activated warm agent "
+                f"conversation_id={self.conversation_id}"
+            )
+        except Exception as exc:
+            print(f"[session_manager] activate signal failed err={exc}")
+        finally:
+            await lkapi.aclose()
+
+    async def dispatch_agent(self) -> None:
+        """Activate a warm agent, or cold-dispatch if none is warm."""
+        async with self._lock:
+            if not self._bootstrap_complete:
+                return
+            if self.session_state == "warm" and self.agent_deployed:
+                await self._activate_warm_agent()
+                return
+            if self.agent_deployed:
+                return
+            # Fallback: cold dispatch (no warm agent available)
             self.conversation_id = uuid.uuid4().hex[:10]
             self.session_state = "starting"
             self.dispatch_started_monotonic = time.monotonic()
@@ -1844,7 +1933,7 @@ class SessionManager:
                 self._append_session_marker(f"New session · {self.conversation_id}")
                 self.updated_at = _utc_now_iso()
                 print(
-                    f"[session_manager] dispatched agent name={self.agent_name} "
+                    f"[session_manager] cold-dispatched agent name={self.agent_name} "
                     f"room={self.room_name} conversation_id={self.conversation_id} dispatch_id={self.active_dispatch_id}"
                 )
                 self._set_component_state(
@@ -1900,6 +1989,8 @@ class SessionManager:
                 healthy=True,
                 source="internal",
             )
+        # Pre-dispatch next warm agent so it's ready for the next user
+        await self._dispatch_warm_agent()
 
     async def record_activity(self, source: str, level: float | None = None) -> None:
         now = time.monotonic()
@@ -1911,7 +2002,9 @@ class SessionManager:
             self.last_user_activity_at = activity_at
             if level is not None:
                 self.mic_level = max(0.0, min(1.0, level))
-            if not self.agent_deployed and self.session_state == "idle":
+            if self.session_state == "warm":
+                await self.dispatch_agent()
+            elif not self.agent_deployed and self.session_state == "idle":
                 await self.dispatch_agent()
         elif source == SESSION_SOURCE_AGENT:
             if now - self.last_agent_activity_monotonic < SESSION_ACTIVITY_DEBOUNCE_SEC:
@@ -1936,7 +2029,7 @@ class SessionManager:
         self._append_transcript("System", text, kind="session")
 
     def _idle_countdown_sec(self) -> float | None:
-        if not self.agent_deployed:
+        if not self.agent_deployed or self.session_state == "warm":
             return None
         if self.last_user_activity_monotonic <= 0:
             return float(SESSION_IDLE_TIMEOUT_SEC)
@@ -1950,18 +2043,32 @@ class SessionManager:
             now = time.monotonic()
             if self._bootstrap_complete:
                 await self._refresh_participants_once()
-            if self.agent_deployed:
+            if self.agent_deployed and self.session_state == "active":
                 if self.last_user_activity_monotonic > 0:
                     idle_for = now - self.last_user_activity_monotonic
                     if idle_for >= SESSION_IDLE_TIMEOUT_SEC:
                         await self.end_session(reason=f"no_user_activity_{idle_for:.1f}s")
                 elif self.last_user_activity_monotonic == 0 and self.last_agent_activity_monotonic == 0:
-                    if self.session_state == "active":
-                        if (
-                            self.dispatch_started_monotonic > 0
-                            and (now - self.dispatch_started_monotonic) >= SESSION_PREROLL_ACTIVITY_SEC
-                        ):
-                            await self.end_session(reason="no_activity_after_dispatch")
+                    if (
+                        self.dispatch_started_monotonic > 0
+                        and (now - self.dispatch_started_monotonic) >= SESSION_PREROLL_ACTIVITY_SEC
+                    ):
+                        await self.end_session(reason="no_activity_after_dispatch")
+            # Re-dispatch warm agent if it never joined the room
+            if self.session_state == "warm" and self.agent_deployed:
+                has_agent = any(
+                    _identity_is_agent(
+                        p.get("identity", ""), p.get("kind", "")
+                    )
+                    for p in self.participants
+                )
+                if (
+                    not has_agent
+                    and self.dispatch_started_monotonic > 0
+                    and (now - self.dispatch_started_monotonic) >= WARM_AGENT_JOIN_TIMEOUT_SEC
+                ):
+                    print("[session_manager] warm agent never joined — re-dispatching")
+                    await self.end_session(reason="warm_agent_timeout")
             await asyncio.sleep(LIVEKIT_STATUS_POLL_INTERVAL_SEC)
 
     async def handle_status(self, request: web.Request) -> web.Response:
@@ -2103,7 +2210,7 @@ class SessionManager:
         now = time.monotonic()
         self.last_user_activity_monotonic = now
         self.last_user_activity_at = _utc_now_iso()
-        if not self.agent_deployed and self.session_state == "idle":
+        if self.session_state in ("warm", "idle"):
             await self.dispatch_agent()
         item = {"id": uuid.uuid4().hex[:10], "text": text}
         self.pending_user_texts.append(item)
