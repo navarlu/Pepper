@@ -34,6 +34,8 @@ services:
       WEAVIATE_HOST: weaviate
       ANIMATION_BRIDGE_URL: http://host.docker.internal:5000
       DEV_CONSOLE_URL: http://dev-console:8788
+      LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
+      LOCAL_LLM_MODEL: Qwen/Qwen2.5-7B-Instruct
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
