@@ -72,6 +72,9 @@ curl -X POST http://localhost:8787/api/control/agent-mode -H 'Content-Type: appl
 
 The agent reads `LOCAL_LLM_BASE_URL` (default `http://localhost:8000/v1`) and
 `LOCAL_LLM_MODEL` (default `Qwen/Qwen2.5-7B-Instruct`) from environment / config.
+The local Piper voice is configured with `LOCAL_TTS_MODEL_PATH` and can be tuned
+with `LOCAL_TTS_SPEAKER_ID`, `LOCAL_TTS_LENGTH_SCALE`, `LOCAL_TTS_NOISE_SCALE`,
+and `LOCAL_TTS_NOISE_W_SCALE`.
 
 ## 5. Docker integration
 
@@ -80,6 +83,11 @@ In `docker/docker-compose.yml` under `voice-agent`, set these env vars:
 environment:
   LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
   LOCAL_LLM_MODEL: Qwen/Qwen2.5-7B-Instruct
+  LOCAL_TTS_MODEL_PATH: /workspace/voice-agent/models/piper/en_US-hfc_female-medium.onnx
+  LOCAL_TTS_SPEAKER_ID: ""
+  LOCAL_TTS_LENGTH_SCALE: 1.0
+  LOCAL_TTS_NOISE_SCALE: 0.667
+  LOCAL_TTS_NOISE_W_SCALE: 0.8
   PEPPER_AGENT_MODE: local   # optional: hint for prewarm to skip/load local models
 ```
 

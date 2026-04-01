@@ -36,6 +36,11 @@ services:
       DEV_CONSOLE_URL: http://dev-console:8788
       LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
       LOCAL_LLM_MODEL: Qwen/Qwen2.5-7B-Instruct
+      LOCAL_TTS_MODEL_PATH: /workspace/voice-agent/models/piper/en_US-hfc_female-medium.onnx
+      LOCAL_TTS_SPEAKER_ID: ${LOCAL_TTS_SPEAKER_ID:-}
+      LOCAL_TTS_LENGTH_SCALE: ${LOCAL_TTS_LENGTH_SCALE:-1.0}
+      LOCAL_TTS_NOISE_SCALE: ${LOCAL_TTS_NOISE_SCALE:-0.667}
+      LOCAL_TTS_NOISE_W_SCALE: ${LOCAL_TTS_NOISE_W_SCALE:-0.8}
       PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -70,6 +75,7 @@ services:
       DOCKER_SOCKET_PATH: /var/run/docker.sock
       DEV_CONSOLE_URL: http://dev-console:8788
       LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
+      SESSION_IDLE_TIMEOUT_SEC: 60
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

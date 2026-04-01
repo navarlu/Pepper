@@ -25,6 +25,13 @@ def _env_float(name: str, default: float) -> float:
         return float(default)
     return float(value)
 
+
+def _env_optional_int(name: str, default: int | None = None) -> int | None:
+    value = os.getenv(name)
+    if value is None or not str(value).strip():
+        return default
+    return int(value)
+
 LANG = "en"
 AGENT_VERSION = "0.1.0"
 MODEL_NAME = "gpt-realtime-mini"
@@ -35,12 +42,17 @@ LOCAL_STT_COMPUTE_TYPE = "int8"
 LOCAL_STT_CPU_THREADS = 0
 LOCAL_LLM_BASE_URL = _env_str("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1")
 LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
-LOCAL_TTS_MODEL_PATH = BASE_DIR / "models" / "piper" / "en_US-lessac-medium.onnx"
+LOCAL_TTS_MODEL_PATH = Path(
+    _env_str(
+        "LOCAL_TTS_MODEL_PATH",
+        str(BASE_DIR / "models" / "piper" / "en_US-hfc_female-medium.onnx"),
+    )
+)
 LOCAL_TTS_USE_CUDA = False
-LOCAL_TTS_SPEAKER_ID = None
-LOCAL_TTS_LENGTH_SCALE = 1.0
-LOCAL_TTS_NOISE_SCALE = 0.667
-LOCAL_TTS_NOISE_W_SCALE = 0.8
+LOCAL_TTS_SPEAKER_ID = _env_optional_int("LOCAL_TTS_SPEAKER_ID")
+LOCAL_TTS_LENGTH_SCALE = _env_float("LOCAL_TTS_LENGTH_SCALE", 1.0)
+LOCAL_TTS_NOISE_SCALE = _env_float("LOCAL_TTS_NOISE_SCALE", 0.667)
+LOCAL_TTS_NOISE_W_SCALE = _env_float("LOCAL_TTS_NOISE_W_SCALE", 0.8)
 LISTENER_IDENTITY = _env_str("LISTENER_IDENTITY", "listener-python")
 LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
 SESSION_MANAGER_URL = _env_str("SESSION_MANAGER_URL", "http://127.0.0.1:8787")
