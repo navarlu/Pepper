@@ -24,7 +24,7 @@ Investigate how large language models can support natural spoken interaction wit
 |---|---|---|
 | Runtime | **LiveKit Agents SDK** (Python 3) | Manages room, audio tracks, agent session |
 | LLM (cloud) | **OpenAI Realtime API** (`gpt-realtime-mini`) | Streaming speech-to-speech via `livekit-plugins-openai` |
-| LLM (local, WIP) | Cascade pipeline: **Faster Whisper** STT → GPT-4.1-mini → **Piper** TTS | `cascade_agent.py` + `local_speech.py` |
+| LLM (local) | Local pipeline: **Faster Whisper** STT → **Qwen 2.5 7B** (vLLM via SSH tunnel) → **Piper** TTS | `agent.py` (local mode) + `local_speech.py` |
 | RAG | **Weaviate** vector DB + `text-embedding-3-large` | Hybrid search (alpha 0.7), seeded from `voice-agent/data/FEL/` PDFs |
 | Tools | `query_search` — RAG lookup; `play_animation` — trigger Pepper gestures via bridge HTTP | Defined in `tools.py`, registered on agent |
 
@@ -108,9 +108,9 @@ RAG documents in `voice-agent/data/FEL/`: CTU/FEE statutes, scholarship code, ac
 - Design a clean tablet UI that complements the spoken interaction.
 
 ### 5. Local LLM Testing
-- `cascade_agent.py` already scaffolds Whisper STT → LLM → Piper TTS pipeline.
-- Get it running end-to-end and benchmark latency vs. the OpenAI Realtime path.
-- Consider vLLM or Ollama for the local LLM backend.
+- Local pipeline integrated in `agent.py` (local mode): Whisper STT → Qwen 2.5 7B (vLLM) → Piper TTS.
+- Toggle via Operator UI or `/api/control/agent-mode`. Session manager probes vLLM health.
+- Benchmark latency vs. the OpenAI Realtime path.
 
 ## Thesis Task Checklist
 

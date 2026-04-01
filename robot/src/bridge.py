@@ -483,6 +483,30 @@ class TabletOverlayHttpServer(threading.Thread):
 
             def do_POST(self):
                 path_only = self.path.split("?", 1)[0]
+                if path_only == "/audio/volume":
+                    if audio_device is None:
+                        self._write_json(500, {"ok": False, "error": "audio device unavailable"})
+                        return
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw)
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "invalid json"})
+                        return
+                    try:
+                        requested_volume = _normalize_output_volume(payload.get("volume"))
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "volume must be an integer 0-100"})
+                        return
+                    try:
+                        audio_device.setOutputVolume(requested_volume)
+                        current_volume = int(audio_device.getOutputVolume())
+                        print("[bridge] output volume updated to", current_volume)
+                        self._write_json(200, {"ok": True, "volume": current_volume})
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                    return
                 if path_only.startswith("/animation/"):
                     if bm is None and anim is None:
                         self._write_json(
@@ -658,6 +682,15 @@ def mono16_to_stereo16(raw_mono):
     """
     # Use C-optimized conversion to avoid Python-loop jitter.
     return audioop.tostereo(raw_mono, 2, 1, 1)
+
+
+def _normalize_output_volume(raw_value):
+    volume = int(raw_value)
+    if volume < 0:
+        return 0
+    if volume > 100:
+        return 100
+    return volume
 
 def main():
     qi_url = PEPPER_QI_URL or DEFAULT_QI_URL

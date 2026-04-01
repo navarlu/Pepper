@@ -1,5 +1,6 @@
 import asyncio
 import contextlib
+import datetime
 import json
 import os
 import struct
@@ -61,7 +62,8 @@ SESSION_MANAGER_STATE_FILE = "session-manager-state.json"
 MAX_TRANSCRIPT_ITEMS = 40
 COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
-WARM_AGENT_JOIN_TIMEOUT_SEC = 8.0
+WARM_AGENT_JOIN_TIMEOUT_SEC = float(os.getenv("WARM_AGENT_JOIN_TIMEOUT_SEC", "90"))
+DEFAULT_LOCAL_AUDIO_VOLUME = int(os.getenv("PEPPER_OUTPUT_VOLUME", "55"))
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
 KNOWN_DOCKER_SERVICES = (
@@ -960,6 +962,36 @@ html,body {
   align-items:center;
   gap:10px;
 }
+.volume-control {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:50px;
+  padding:0 14px;
+  border-radius:18px;
+  background:rgba(255,255,255,0.9);
+  border:1px solid rgba(207,217,230,0.95);
+  box-shadow:0 8px 18px rgba(40, 74, 111, 0.05);
+}
+.volume-control label {
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+.volume-control input[type="range"] {
+  width:110px;
+  accent-color:var(--accent);
+  cursor:pointer;
+}
+.volume-value {
+  min-width:44px;
+  text-align:right;
+  color:var(--text);
+  font-size:13px;
+  font-weight:600;
+}
 .chat-header-actions #resetBtn {
   min-height:50px;
   padding:0 20px;
@@ -1270,6 +1302,12 @@ button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.2
             <h2>Conversation History</h2>
           </div>
           <div class="chat-header-actions">
+            <button class="primary" id="agentModeBtn" title="Toggle between OpenAI and Local LLM">OpenAI</button>
+            <div class="volume-control" title="Pepper output volume used by the bridge">
+              <label for="audioVolumeSelect">Volume</label>
+              <input id="audioVolumeSelect" type="range" min="0" max="100" step="1" value="55">
+              <span class="volume-value mono" id="audioVolumeValue">55%</span>
+            </div>
             <button class="warn" id="resetBtn">Restart Session</button>
           </div>
         </div>
@@ -1294,7 +1332,8 @@ button.warn { background:#fff6f6; color:#a44a4a; border-color:rgba(187,86,86,0.2
             <tr><th>Mic</th><td class="signal-value mono" id="chatMicLevelText">-</td></tr>
             <tr><th>Pepper</th><td class="signal-value mono" id="chatPepperLevelText">-</td></tr>
             <tr><th>Mode</th><td class="signal-value mono" id="chatSessionState">-</td></tr>
-            <tr><th>Standby</th><td class="signal-value mono" id="chatWarmState">-</td></tr>
+            <tr><th>LLM</th><td class="signal-value mono" id="chatAgentMode">-</td></tr>
+            <tr><th>Pipeline</th><td class="signal-value mono" id="chatWarmState">-</td></tr>
             <tr><th>Speaking</th><td class="signal-value" id="chatPepperSpeaking">-</td></tr>
             <tr><th>Idle</th><td class="signal-value mono" id="chatIdleCountdown">-</td></tr>
           </tbody>
@@ -1329,6 +1368,7 @@ function escapeHtml(value) {
     .replaceAll("'", "&#39;");
 }
 function warmStateLabel(data) {
+  if (data.agent_mode === "local" && !data.local_llm_healthy) return "vLLM unreachable";
   if (data.session_state === "active") return "activated into live session";
   if (!data.agent_deployed) return "not deployed";
   if (data.warm_agent_ready) return "ready";
@@ -1346,10 +1386,13 @@ function sessionStateLabel(data) {
     if (data.warm_activation_pending) return "starting session, waiting for standby";
     return "warming standby";
   }
+  if (data.session_state === "idle") {
+    if (data.agent_mode === "local" && !data.local_llm_healthy) return "idle (vLLM down)";
+    return "idle (waiting for user)";
+  }
   if (data.session_state === "cooldown") return "cooldown";
   if (data.session_state === "ending") return "ending session";
   if (data.session_state === "starting") return "starting session";
-  if (data.session_state === "idle") return "idle";
   return data.session_state || "-";
 }
 async function postJson(url, body) {
@@ -1371,15 +1414,48 @@ async function refresh() {
     text("chatWarmState", warmStateLabel(data));
     text("chatPepperSpeaking", speakingLabel(data));
     text("chatIdleCountdown", data.idle_countdown_sec != null ? `${data.idle_countdown_sec.toFixed(1)}s` : "waiting");
+    if (data.agent_mode === "local") {
+      const llmStatus = data.local_llm_healthy ? "connected" : "offline";
+      text("chatAgentMode", `Local (Qwen) · vLLM ${llmStatus}`);
+    } else {
+      text("chatAgentMode", "OpenAI Realtime");
+    }
+    const audioVolumeSelect = document.getElementById("audioVolumeSelect");
+    const audioVolume = Number(data.local_audio_volume ?? 55);
+    audioVolumeSelect.value = String(audioVolume);
+    text("audioVolumeValue", `${audioVolume}%`);
+    const modeBtn = document.getElementById("agentModeBtn");
+    if (data.agent_mode === "local") {
+      modeBtn.textContent = data.local_llm_healthy ? "Local" : "Local (LLM down)";
+      modeBtn.className = "primary";
+      if (data.local_llm_healthy) {
+        modeBtn.style.background = "var(--good-soft)";
+        modeBtn.style.color = "var(--good)";
+        modeBtn.style.borderColor = "rgba(90,168,120,0.3)";
+      } else {
+        modeBtn.style.background = "#fff0f0";
+        modeBtn.style.color = "var(--hot)";
+        modeBtn.style.borderColor = "rgba(200,87,87,0.3)";
+      }
+    } else {
+      modeBtn.textContent = "OpenAI";
+      modeBtn.className = "primary";
+      modeBtn.style.background = "";
+      modeBtn.style.color = "";
+      modeBtn.style.borderColor = "";
+    }
     const chatLivePill = document.getElementById("chatLivePill");
     let pillClass = "pill";
     let pillText = "Waiting for session";
     if (data.session_state === "active") {
       pillClass = "pill good";
-      pillText = "Live session";
+      pillText = data.agent_mode === "local" ? "Live (Local)" : "Live session";
+    } else if (data.agent_mode === "local" && !data.local_llm_healthy) {
+      pillClass = "pill hot";
+      pillText = "vLLM offline";
     } else if (data.agent_deployed && data.warm_agent_ready) {
       pillClass = "pill good";
-      pillText = "Agent";
+      pillText = "Agent ready";
     } else if (data.agent_deployed) {
       pillClass = "pill";
       pillText = data.warm_activation_pending ? "Starting session" : "Warming agent";
@@ -1438,6 +1514,19 @@ document.getElementById("muteToggle").addEventListener("change", async () => {
   await postJson("/api/control/mic", {});
   refresh();
 });
+document.getElementById("agentModeBtn").addEventListener("click", async () => {
+  await postJson("/api/control/agent-mode", {});
+  refresh();
+});
+document.getElementById("audioVolumeSelect").addEventListener("input", (event) => {
+  const value = Number.parseInt(event.target.value, 10);
+  text("audioVolumeValue", `${value}%`);
+});
+document.getElementById("audioVolumeSelect").addEventListener("change", async (event) => {
+  const value = Number.parseInt(event.target.value, 10);
+  await postJson("/api/control/audio-volume", { volume: value });
+  refresh();
+});
 document.getElementById("resetBtn").addEventListener("click", async () => {
   await postJson("/api/control/reset", {});
   refresh();
@@ -1484,6 +1573,9 @@ class SessionManager:
         self.api_key = _get_required_env("LIVEKIT_API_KEY")
         self.api_secret = _get_required_env("LIVEKIT_API_SECRET")
         self.agent_name = (os.getenv("PEPPER_AGENT_NAME") or AGENT_NAME_DEFAULT).strip() or AGENT_NAME_DEFAULT
+        self.agent_mode = "openai"  # "openai" or "local"
+        self.local_llm_base_url = os.getenv("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1").rstrip("/")
+        self.local_llm_healthy = False  # last probe result for vLLM
         self.session_state = "idle"
         self.agent_deployed = False
         self.warm_agent_ready = False
@@ -1504,6 +1596,8 @@ class SessionManager:
         self.mic_muted = False
         self.agent_speaking = False
         self.agent_audio_level = 0.0
+        self.local_audio_volume = max(0, min(100, DEFAULT_LOCAL_AUDIO_VOLUME))
+        self._bridge_audio_volume_synced: int | None = None
         self.pending_user_texts: list[dict[str, str]] = []
         self.components: dict[str, dict[str, Any]] = {}
         self.docker_socket_path = DOCKER_SOCKET_PATH
@@ -1581,6 +1675,13 @@ class SessionManager:
             healthy=False,
             source="probe",
         )
+        self._register_component(
+            "local-llm",
+            state="unknown",
+            detail="waiting for probe",
+            healthy=False,
+            source="probe",
+        )
 
     def _clear_agent_runtime_state(self) -> None:
         self.agent_deployed = False
@@ -1598,16 +1699,48 @@ class SessionManager:
             print(f"[session_manager] load state failed path={self.state_file} err={exc}")
             return
         self.mic_muted = bool(payload.get("mic_muted", self.mic_muted))
+        loaded_mode = str(payload.get("agent_mode", "")).strip().lower()
+        if loaded_mode in ("openai", "local"):
+            self.agent_mode = loaded_mode
+        loaded_volume = payload.get("local_audio_volume")
+        try:
+            self.local_audio_volume = max(0, min(100, int(loaded_volume)))
+        except Exception:
+            pass
 
     def _persist_state(self) -> None:
         try:
             self.state_file.parent.mkdir(parents=True, exist_ok=True)
-            payload = {"mic_muted": self.mic_muted, "updated_at": _utc_now_iso()}
+            payload = {
+                "mic_muted": self.mic_muted,
+                "agent_mode": self.agent_mode,
+                "local_audio_volume": self.local_audio_volume,
+                "updated_at": _utc_now_iso(),
+            }
             tmp_path = self.state_file.with_suffix(".tmp")
             tmp_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
             tmp_path.replace(self.state_file)
         except Exception as exc:
             print(f"[session_manager] persist state failed path={self.state_file} err={exc}")
+
+    async def _apply_bridge_audio_volume(self, *, force: bool = False) -> tuple[bool, str]:
+        target_volume = max(0, min(100, int(self.local_audio_volume)))
+        if not force and self._bridge_audio_volume_synced == target_volume:
+            return True, "already synced"
+        url = self.bridge_url.rstrip("/") + "/audio/volume"
+        timeout = aiohttp.ClientTimeout(total=1.5)
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, json={"volume": target_volume}) as response:
+                    data = await response.json(content_type=None)
+                    if response.status >= 400 or not bool(data.get("ok")):
+                        error = str(data.get("error") or "bridge rejected volume update")
+                        return False, error
+                    applied = int(data.get("volume", target_volume))
+                    self._bridge_audio_volume_synced = applied
+                    return True, ""
+        except Exception as exc:
+            return False, str(exc)
 
     def _register_component(
         self,
@@ -1744,6 +1877,7 @@ class SessionManager:
     ) -> str:
         return (
             api.AccessToken(self.api_key, self.api_secret)
+            .with_ttl(datetime.timedelta(days=30))
             .with_identity(identity)
             .with_name(identity)
             .with_grants(
@@ -1776,6 +1910,19 @@ class SessionManager:
             await asyncio.to_thread(lambda: urlopen(req, timeout=timeout).read())
             return True
         except Exception:
+            return False
+
+    async def _probe_local_llm(self, timeout: float = 2.0) -> bool:
+        """Check if vLLM is reachable via the SSH tunnel by hitting /models."""
+        models_url = self.local_llm_base_url.rstrip("/") + "/models"
+        req = Request(models_url, method="GET")
+        try:
+            body = await asyncio.to_thread(lambda: urlopen(req, timeout=timeout).read())
+            data = json.loads(body)
+            ok = bool(data.get("data"))
+            return ok
+        except Exception as exc:
+            print(f"[session_manager] local_llm_probe_failed url={models_url} err={exc}")
             return False
 
     def _host_port_from_url(self, raw_url: str, default_port: int) -> tuple[str, int]:
@@ -1817,6 +1964,10 @@ class SessionManager:
                     healthy=True,
                     source="internal",
                 )
+                # Probe vLLM before warm dispatch so local_llm_healthy is current
+                if self.agent_mode == "local":
+                    self.local_llm_healthy = await self._probe_local_llm()
+                    print(f"[session_manager] bootstrap vLLM probe: healthy={self.local_llm_healthy}")
                 await self._dispatch_warm_agent()
                 return
             except Exception as exc:
@@ -1858,6 +2009,22 @@ class SessionManager:
                 state="ready" if bridge_ok else "down",
                 detail=self.bridge_url,
                 healthy=bridge_ok,
+                source="probe",
+            )
+            if bridge_ok:
+                ok, err = await self._apply_bridge_audio_volume()
+                if not ok:
+                    print(f"[session_manager] bridge volume sync failed err={err}")
+            else:
+                self._bridge_audio_volume_synced = None
+            # Probe local LLM (vLLM via SSH tunnel) — always probe so UI shows status
+            llm_ok = await self._probe_local_llm()
+            self.local_llm_healthy = llm_ok
+            self._set_component_state(
+                "local-llm",
+                state="ready" if llm_ok else "down",
+                detail=self.local_llm_base_url,
+                healthy=llm_ok,
                 source="probe",
             )
             now = time.monotonic()
@@ -1996,13 +2163,27 @@ class SessionManager:
     async def _dispatch_warm_agent(self) -> None:
         """Dispatch agent into the room in warm standby mode.
 
-        The agent connects, sets up its OpenAI Realtime session, and waits for
-        an activation signal before greeting the user.
+        The agent connects, builds its session (OpenAI WS or local STT/TTS
+        pipeline), and waits for an activation signal before greeting the user.
+        This works for both openai and local modes — local models are prewarmed
+        at process startup, so the warm agent is ready almost instantly.
         """
         async with self._lock:
             if self.agent_deployed or not self._bootstrap_complete:
                 return
-            metadata = json.dumps({"warm": True})
+            if self.agent_mode == "local" and not self.local_llm_healthy:
+                print("[session_manager] skipping warm dispatch (local mode, vLLM not reachable)")
+                self.session_state = "idle"
+                self.updated_at = _utc_now_iso()
+                self._set_component_state(
+                    "session-manager",
+                    state="degraded",
+                    detail="local mode: vLLM not reachable (SSH tunnel down?)",
+                    healthy=False,
+                    source="internal",
+                )
+                return
+            metadata = json.dumps({"warm": True, "agent_mode": self.agent_mode})
             lkapi = self._new_lkapi()
             try:
                 dispatch = await lkapi.agent_dispatch.create_dispatch(
@@ -2098,7 +2279,7 @@ class SessionManager:
             self.conversation_id = uuid.uuid4().hex[:10]
             self.session_state = "starting"
             self.dispatch_started_monotonic = time.monotonic()
-            metadata = json.dumps({"conversation_id": self.conversation_id})
+            metadata = json.dumps({"conversation_id": self.conversation_id, "agent_mode": self.agent_mode})
             lkapi = self._new_lkapi()
             try:
                 dispatch = await lkapi.agent_dispatch.create_dispatch(
@@ -2276,6 +2457,8 @@ class SessionManager:
             "updated_at": self.updated_at,
             "participants": self.participants,
             "agent_name": self.agent_name,
+            "agent_mode": self.agent_mode,
+            "local_llm_healthy": self.local_llm_healthy,
             "transcript_items": list(self.transcript_items),
             "last_user_text": self.last_user_text,
             "last_pepper_text": self.last_pepper_text,
@@ -2283,6 +2466,7 @@ class SessionManager:
             "mic_muted": self.mic_muted,
             "agent_speaking": self.agent_speaking,
             "agent_audio_level": self.agent_audio_level,
+            "local_audio_volume": self.local_audio_volume,
             "idle_countdown_sec": self._idle_countdown_sec(),
             "watchdog": dict(self.watchdog_status),
             "components": sorted(
@@ -2443,6 +2627,42 @@ class SessionManager:
         await self.end_session(reason="manual_reset")
         return web.json_response({"ok": True, "session_state": self.session_state})
 
+    async def handle_agent_mode(self, request: web.Request) -> web.Response:
+        data = await request.json()
+        new_mode = str(data.get("mode") or "").strip().lower()
+        if new_mode not in ("openai", "local"):
+            # Toggle if no explicit mode given
+            new_mode = "local" if self.agent_mode == "openai" else "openai"
+        old_mode = self.agent_mode
+        self.agent_mode = new_mode
+        self._persist_state()
+        if old_mode != new_mode:
+            print(f"[session_manager] agent_mode changed {old_mode} -> {new_mode}")
+            self._append_session_marker(f"Agent mode: {new_mode}")
+            # Restart session so next dispatch uses new mode
+            await self.end_session(reason=f"agent_mode_changed_to_{new_mode}")
+        return web.json_response({"ok": True, "agent_mode": self.agent_mode})
+
+    async def handle_audio_volume(self, request: web.Request) -> web.Response:
+        data = await request.json()
+        try:
+            volume = int(data.get("volume"))
+        except Exception:
+            return web.json_response({"ok": False, "error": "volume must be an integer 0-100"}, status=400)
+        if volume < 0 or volume > 100:
+            return web.json_response({"ok": False, "error": "volume must be between 0 and 100"}, status=400)
+        self.local_audio_volume = volume
+        self._persist_state()
+        self.updated_at = _utc_now_iso()
+        ok, err = await self._apply_bridge_audio_volume(force=True)
+        if not ok:
+            self._bridge_audio_volume_synced = None
+            return web.json_response(
+                {"ok": False, "volume": self.local_audio_volume, "error": f"bridge update failed: {err}"},
+                status=502,
+            )
+        return web.json_response({"ok": True, "volume": self.local_audio_volume})
+
     async def handle_docker_containers(self, request: web.Request) -> web.Response:
         del request
         try:
@@ -2515,6 +2735,19 @@ class SessionManager:
             print(f"[session_manager] console proxy error: {exc}")
             return web.Response(text=f"Dev console unavailable: {exc}", status=502)
 
+    TOKEN_REFRESH_INTERVAL_SEC = 4 * 3600  # refresh tokens every 4 hours (TTL is 30 days)
+
+    async def token_refresh_loop(self) -> None:
+        while True:
+            await asyncio.sleep(self.TOKEN_REFRESH_INTERVAL_SEC)
+            if not self._bootstrap_complete:
+                continue
+            try:
+                await self.write_session_snapshot()
+                print("[session_manager] token refresh: wrote new session snapshot")
+            except Exception as exc:
+                print(f"[session_manager] token refresh failed err={exc}")
+
     async def start(self) -> None:
         app = web.Application()
         app.add_routes(
@@ -2529,6 +2762,8 @@ class SessionManager:
                 web.post("/api/control/mic", self.handle_mic_toggle),
                 web.post("/api/control/text", self.handle_text_send),
                 web.post("/api/control/reset", self.handle_reset),
+                web.post("/api/control/agent-mode", self.handle_agent_mode),
+                web.post("/api/control/audio-volume", self.handle_audio_volume),
                 web.get("/api/docker/containers", self.handle_docker_containers),
                 web.get("/api/docker/logs", self.handle_docker_logs),
                 web.get("/api/user-client/state", self.handle_user_client_state),
@@ -2548,6 +2783,7 @@ class SessionManager:
         self._bg_tasks.append(asyncio.create_task(self.bootstrap_loop()))
         self._bg_tasks.append(asyncio.create_task(self.monitor_loop()))
         self._bg_tasks.append(asyncio.create_task(self.probe_components_loop()))
+        self._bg_tasks.append(asyncio.create_task(self.token_refresh_loop()))
         try:
             while True:
                 await asyncio.sleep(3600)

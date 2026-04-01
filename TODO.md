@@ -1,7 +1,7 @@
 ## Operator panel:
 
 - Add clear button for the conv hisory
-
+- Add volume control
 
 
 

@@ -177,7 +177,7 @@ class PiperTTS(tts.TTS):
         if not resolved_model_path.exists():
             raise FileNotFoundError(
                 f"Piper model not found: {resolved_model_path}. "
-                "Set CASCADE_TTS_MODEL_PATH to a valid .onnx file."
+                "Set LOCAL_TTS_MODEL_PATH to a valid .onnx file."
             )
 
         self._voice = PiperVoice.load(

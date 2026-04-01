@@ -199,7 +199,6 @@ def build_tools() -> list[Any]:
     async def query_search(
         context: RunContext,
         query: str,
-        limit: int = QUERY_SEARCH_DEFAULT_LIMIT,
     ) -> str:
         """Vyhledej informace z interni znalostni baze FEL."""
         del context

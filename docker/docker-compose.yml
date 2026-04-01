@@ -36,6 +36,7 @@ services:
       DEV_CONSOLE_URL: http://dev-console:8788
       LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
       LOCAL_LLM_MODEL: Qwen/Qwen2.5-7B-Instruct
+      PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
@@ -68,6 +69,7 @@ services:
       BRIDGE_TCP_URL: tcp://host.docker.internal:55555
       DOCKER_SOCKET_PATH: /var/run/docker.sock
       DEV_CONSOLE_URL: http://dev-console:8788
+      LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
