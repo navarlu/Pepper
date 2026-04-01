@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import datetime
 import json
+import math
 import os
 import struct
 import time
@@ -2428,7 +2429,11 @@ class SessionManager:
         remaining = SESSION_IDLE_TIMEOUT_SEC - (
             time.monotonic() - self.last_user_activity_monotonic
         )
-        return max(0.0, remaining)
+        if remaining <= 0.0:
+            return 0.0
+        # Round up for UI purposes so we do not display "0.0s" before the
+        # timeout has actually elapsed and monitor_loop ends the session.
+        return math.ceil(remaining * 10.0) / 10.0
 
     async def monitor_loop(self) -> None:
         while True:
