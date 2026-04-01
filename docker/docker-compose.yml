@@ -41,7 +41,7 @@ services:
       LOCAL_TTS_LENGTH_SCALE: ${LOCAL_TTS_LENGTH_SCALE:-1.0}
       LOCAL_TTS_NOISE_SCALE: ${LOCAL_TTS_NOISE_SCALE:-0.667}
       LOCAL_TTS_NOISE_W_SCALE: ${LOCAL_TTS_NOISE_W_SCALE:-0.8}
-      PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-}
+      PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-openai}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

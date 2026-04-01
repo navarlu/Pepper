@@ -88,7 +88,7 @@ environment:
   LOCAL_TTS_LENGTH_SCALE: 1.0
   LOCAL_TTS_NOISE_SCALE: 0.667
   LOCAL_TTS_NOISE_W_SCALE: 0.8
-  PEPPER_AGENT_MODE: local   # optional: hint for prewarm to skip/load local models
+  PEPPER_AGENT_MODE: local   # set to `local` to prewarm Whisper/Piper; default is `openai`
 ```
 
 Then: `docker compose up -d voice-agent`

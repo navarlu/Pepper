@@ -63,6 +63,7 @@ MAX_TRANSCRIPT_ITEMS = 40
 COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
 WARM_AGENT_JOIN_TIMEOUT_SEC = float(os.getenv("WARM_AGENT_JOIN_TIMEOUT_SEC", "90"))
+VOICE_AGENT_READY_WAIT_SEC = float(os.getenv("VOICE_AGENT_READY_WAIT_SEC", "30"))
 DEFAULT_LOCAL_AUDIO_VOLUME = int(os.getenv("PEPPER_OUTPUT_VOLUME", "55"))
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
@@ -1968,6 +1969,7 @@ class SessionManager:
                 if self.agent_mode == "local":
                     self.local_llm_healthy = await self._probe_local_llm()
                     print(f"[session_manager] bootstrap vLLM probe: healthy={self.local_llm_healthy}")
+                await self._wait_for_voice_agent_ready()
                 await self._dispatch_warm_agent()
                 return
             except Exception as exc:
@@ -1980,6 +1982,18 @@ class SessionManager:
                 )
                 print(f"[session_manager] bootstrap failed err={exc}")
                 await asyncio.sleep(3)
+
+    async def _wait_for_voice_agent_ready(self) -> None:
+        deadline = time.monotonic() + VOICE_AGENT_READY_WAIT_SEC
+        while time.monotonic() < deadline:
+            item = self.components.get("voice-agent") or {}
+            if bool(item.get("healthy")) and str(item.get("state") or "") == "ready":
+                return
+            await asyncio.sleep(0.5)
+        print(
+            "[session_manager] voice-agent did not report ready before bootstrap "
+            f"dispatch timeout={VOICE_AGENT_READY_WAIT_SEC:.1f}s; dispatching anyway"
+        )
 
     async def probe_components_loop(self) -> None:
         livekit_host, livekit_port = self._host_port_from_url(self.livekit_http_url, 7880)

@@ -53,6 +53,7 @@ ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 _PREWARMED_VAD = None
 _PREWARMED_STT = None
 _PREWARMED_TTS = None
+_WORKER_READY = threading.Event()
 
 
 def _load_root_env() -> None:
@@ -124,11 +125,18 @@ def _start_component_heartbeat() -> threading.Event:
     def _worker() -> None:
         _post_component_status("starting", "worker booting", healthy=False)
         while not stop_event.wait(5.0):
-            _post_component_status(
-                "ready",
-                "worker registered and waiting for jobs",
-                healthy=True,
-            )
+            if _WORKER_READY.is_set():
+                _post_component_status(
+                    "ready",
+                    "worker registered and waiting for jobs",
+                    healthy=True,
+                )
+            else:
+                _post_component_status(
+                    "starting",
+                    "worker booting",
+                    healthy=False,
+                )
 
     thread = threading.Thread(target=_worker, name="voice-agent-heartbeat", daemon=True)
     thread.start()
@@ -422,6 +430,12 @@ def _prewarm_process(_) -> None:
         _get_local_stt()
         _get_local_tts()
 
+    _WORKER_READY.set()
+    _post_component_status(
+        "ready",
+        "worker initialized and waiting for jobs",
+        healthy=True,
+    )
     logger.info("prewarm_done total=%.3fs", time.monotonic() - t_start)
 
 
