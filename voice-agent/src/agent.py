@@ -119,6 +119,15 @@ def _post_debug_event(payload: dict[str, object]) -> None:
         pass
 
 
+def _post_pipeline_metric(metric: dict) -> None:
+    """Fire-and-forget pipeline timing metric (STT/LLM/TTS) to the session manager."""
+    threading.Thread(
+        target=_post_debug_event,
+        args=({"event": "pipeline_metric", **metric},),
+        daemon=True,
+    ).start()
+
+
 def _start_component_heartbeat() -> threading.Event:
     stop_event = threading.Event()
 
@@ -245,6 +254,7 @@ def _get_local_stt():
             device=LOCAL_STT_DEVICE,
             compute_type=LOCAL_STT_COMPUTE_TYPE,
             cpu_threads=LOCAL_STT_CPU_THREADS,
+            on_metrics=_post_pipeline_metric,
         )
         logger.info("timing load_stt=%.3fs model=%s (first call)", time.monotonic() - t0, LOCAL_STT_MODEL)
     return _PREWARMED_STT
@@ -261,24 +271,42 @@ def _get_local_tts():
             length_scale=LOCAL_TTS_LENGTH_SCALE,
             noise_scale=LOCAL_TTS_NOISE_SCALE,
             noise_w_scale=LOCAL_TTS_NOISE_W_SCALE,
+            on_metrics=_post_pipeline_metric,
         )
         logger.info("timing load_tts=%.3fs model=%s (first call)", time.monotonic() - t0, LOCAL_TTS_MODEL_PATH)
     return _PREWARMED_TTS
 
 
+def _on_llm_metrics_collected(metrics) -> None:
+    """Handle LLM metrics_collected event from the openai.LLM plugin."""
+    try:
+        _post_pipeline_metric({
+            "stage": "llm",
+            "duration_ms": round(metrics.duration * 1000, 1),
+            "ttft_ms": round(metrics.ttft * 1000, 1),
+            "completion_tokens": metrics.completion_tokens,
+            "prompt_tokens": metrics.prompt_tokens,
+            "tokens_per_second": round(metrics.tokens_per_second, 1),
+        })
+    except Exception:
+        pass
+
+
 def _build_local_session() -> AgentSession:
     """Build an AgentSession using local STT (Whisper) + local LLM (vLLM) + local TTS (Piper)."""
+    local_llm = openai.LLM(
+        model=LOCAL_LLM_MODEL,
+        base_url=LOCAL_LLM_BASE_URL,
+        api_key="not-needed",
+        parallel_tool_calls=False,
+        # vLLM/Qwen in local mode is more reliable with permissive tool schemas.
+        _strict_tool_schema=False,
+    )
+    local_llm.on("metrics_collected", _on_llm_metrics_collected)
     return AgentSession(
         vad=_get_local_vad(),
         stt=_get_local_stt(),
-        llm=openai.LLM(
-            model=LOCAL_LLM_MODEL,
-            base_url=LOCAL_LLM_BASE_URL,
-            api_key="not-needed",
-            parallel_tool_calls=False,
-            # vLLM/Qwen in local mode is more reliable with permissive tool schemas.
-            _strict_tool_schema=False,
-        ),
+        llm=local_llm,
         tts=_get_local_tts(),
     )
 
@@ -314,6 +342,12 @@ async def entrypoint(ctx: JobContext) -> None:
         LOCAL_LLM_MODEL if agent_mode == "local" else MODEL_NAME,
         is_warm,
     )
+
+    # Log when the agent shuts down for debugging zombie issues.
+    async def _on_shutdown(reason: str):
+        logger.info("shutdown_callback reason=%s (room already disconnected by framework)", reason)
+
+    ctx.add_shutdown_callback(_on_shutdown)
 
     t0 = time.monotonic()
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)

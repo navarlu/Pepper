@@ -1,8 +1,11 @@
 import asyncio
+import logging
+import time
 import uuid
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -25,6 +28,9 @@ def _resample_audio(audio: np.ndarray, src_rate: int, dst_rate: int) -> np.ndarr
     return np.interp(dst_positions, src_positions, audio).astype(np.float32, copy=False)
 
 
+logger = logging.getLogger("voice-agent")
+
+
 class FasterWhisperSTT(stt.STT):
     def __init__(
         self,
@@ -34,6 +40,9 @@ class FasterWhisperSTT(stt.STT):
         device: str = "cpu",
         compute_type: str = "int8",
         cpu_threads: int = 0,
+        on_metrics: Callable[[dict[str, Any]], None] | None = None,
+        min_energy: float = 0.01,
+        min_words_for_long_audio: int = 2,
     ) -> None:
         super().__init__(
             capabilities=stt.STTCapabilities(
@@ -43,6 +52,9 @@ class FasterWhisperSTT(stt.STT):
         )
         self._model_name = model
         self._language = language
+        self._on_metrics = on_metrics
+        self._min_energy = min_energy
+        self._min_words_for_long_audio = min_words_for_long_audio
         self._model = WhisperModel(
             model,
             device=device,
@@ -69,7 +81,7 @@ class FasterWhisperSTT(stt.STT):
             beam_size=1,
             best_of=1,
             condition_on_previous_text=False,
-            vad_filter=False,
+            vad_filter=True,
         )
         text = " ".join(segment.text.strip() for segment in segments).strip()
         detected_language = info.language or (language or self._language)
@@ -90,6 +102,7 @@ class FasterWhisperSTT(stt.STT):
 
         audio = (pcm.astype(np.float32) / 32768.0).clip(-1.0, 1.0)
         audio_16k = _resample_audio(audio, src_rate=frame.sample_rate, dst_rate=16000)
+        audio_duration_ms = round(len(audio_16k) / 16000.0 * 1000, 1)
 
         requested_language: Optional[str] = None
         if language is not NOT_GIVEN:
@@ -97,11 +110,32 @@ class FasterWhisperSTT(stt.STT):
         elif self._language:
             requested_language = self._language
 
+        t0 = time.monotonic()
         text, detected_language = await asyncio.to_thread(
             self._recognize_sync,
             audio_16k,
             requested_language,
         )
+        duration_ms = round((time.monotonic() - t0) * 1000, 1)
+
+        # Filter hallucinations from quiet audio or mic bleed.
+        rms = float(np.sqrt(np.mean(audio_16k ** 2)))
+        if rms < self._min_energy:
+            logger.info("stt_filtered reason=low_energy rms=%.4f text=%s", rms, text[:60])
+            text = ""
+
+        logger.info("stt_done duration_ms=%.1f audio_duration_ms=%.1f rms=%.4f text=%s", duration_ms, audio_duration_ms, rms, text[:80])
+
+        if self._on_metrics:
+            try:
+                self._on_metrics({
+                    "stage": "stt",
+                    "duration_ms": duration_ms,
+                    "audio_duration_ms": audio_duration_ms,
+                    "text": text[:200],
+                })
+            except Exception:
+                pass
 
         return stt.SpeechEvent(
             type=stt.SpeechEventType.FINAL_TRANSCRIPT,
@@ -156,7 +190,24 @@ class PiperChunkedStream(tts.ChunkedStream):
             num_channels=self._piper_tts.num_channels,
             mime_type="audio/raw",
         )
+        t0 = time.monotonic()
         pcm_chunks = await asyncio.to_thread(self._synthesize_sync, self.input_text)
+        duration_ms = round((time.monotonic() - t0) * 1000, 1)
+        characters = len(self.input_text)
+        logger.info("tts_done duration_ms=%.1f characters=%d text=%s", duration_ms, characters, self.input_text[:80])
+
+        on_metrics = self._piper_tts._on_metrics
+        if on_metrics:
+            try:
+                on_metrics({
+                    "stage": "tts",
+                    "duration_ms": duration_ms,
+                    "characters": characters,
+                    "text": self.input_text[:200],
+                })
+            except Exception:
+                pass
+
         for chunk in pcm_chunks:
             output_emitter.push(chunk)
         output_emitter.flush()
@@ -172,6 +223,7 @@ class PiperTTS(tts.TTS):
         length_scale: float = 1.0,
         noise_scale: float = 0.667,
         noise_w_scale: float = 0.8,
+        on_metrics: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         resolved_model_path = Path(model_path).expanduser().resolve()
         if not resolved_model_path.exists():
@@ -180,6 +232,7 @@ class PiperTTS(tts.TTS):
                 "Set LOCAL_TTS_MODEL_PATH to a valid .onnx file."
             )
 
+        self._on_metrics = on_metrics
         self._voice = PiperVoice.load(
             model_path=resolved_model_path,
             use_cuda=use_cuda,

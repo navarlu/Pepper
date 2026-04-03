@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import random
+import time
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
@@ -176,6 +177,38 @@ def _push_tool_transcript(text: str) -> None:
         pass
 
 
+def _post_tool_event(
+    tool_name: str,
+    args: dict[str, Any],
+    result: Any,
+    duration_ms: float,
+    error: str | None = None,
+) -> None:
+    """Post a structured tool-call event to the session manager (best-effort)."""
+    sm_url = str(SESSION_MANAGER_URL or "").rstrip("/")
+    if not sm_url:
+        return
+    payload = json.dumps({
+        "event": "tool_call",
+        "tool": tool_name,
+        "args": args,
+        "result": result,
+        "duration_ms": round(duration_ms, 1),
+        "error": error,
+    }).encode("utf-8")
+    req = Request(
+        "{}/api/debug-event".format(sm_url),
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urlopen(req, timeout=0.5) as resp:
+            resp.read()
+    except Exception:
+        pass
+
+
 async def _dispatch_animation(animation_name: str) -> None:
     await asyncio.to_thread(_push_tool_transcript, "play_animation({})".format(animation_name))
     try:
@@ -273,32 +306,44 @@ def build_tools(agent_mode: str) -> list[Any]:
         rt_limit = int(rt.get("limit", QUERY_SEARCH_DEFAULT_LIMIT))
         safe_limit = max(1, min(rt_limit, QUERY_SEARCH_MAX_LIMIT))
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
-        await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
+        t0 = time.monotonic()
         try:
-            import time as _time
-            t0 = _time.monotonic()
             results = await asyncio.to_thread(search_vectors, query_text, safe_limit, rt_alpha)
-            duration_ms = (_time.monotonic() - t0) * 1000
+            duration_ms = (time.monotonic() - t0) * 1000
             agent_results = [_agent_result(item) for item in results]
             payload = {
                 "query": query_text,
                 "count": len(results),
                 "results": agent_results,
             }
+            logger.info(
+                "query_search_done query=%s results=%d duration_ms=%.1f",
+                query_text, len(results), duration_ms,
+            )
             # Best-effort log to dev-console (full results for inspection).
             try:
-                logger.info("dev_console_posting query=%s", query_text)
                 await asyncio.to_thread(
                     _post_query_log, query_text, safe_limit, len(results), results,
                     duration_ms, rt_alpha, rt.get("mode", "hybrid"),
                 )
-                logger.info("dev_console_post_ok query=%s", query_text)
             except Exception as log_exc:
                 logger.warning("dev_console_post_failed error=%s", log_exc)
+            # Post structured tool event to session logger.
+            await asyncio.to_thread(
+                _post_tool_event, "query_search",
+                {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
+                payload, duration_ms,
+            )
             return json.dumps(payload, ensure_ascii=False)
         except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
             logger.exception("query_search_failed error=%s", str(exc))
+            await asyncio.to_thread(
+                _post_tool_event, "query_search",
+                {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
+                None, duration_ms, error=str(exc),
+            )
             return json.dumps(
                 {
                     "error": "query_search_failed",
@@ -321,6 +366,8 @@ def build_tools(agent_mode: str) -> list[Any]:
         Use thinking when searching. Use dont_know when unsure.
         """
         del context
+
+        t0 = time.monotonic()
 
         if not ENABLE_ANIMATION_TOOL:
             return json.dumps(
@@ -353,25 +400,33 @@ def build_tools(agent_mode: str) -> list[Any]:
             error_message = "Use one of the allowed animation group names."
 
         if not resolved:
-            return json.dumps(
-                {
-                    "error": "unknown_animation",
-                    "message": error_message,
-                    "allowed": allowed,
-                },
-                ensure_ascii=False,
+            result_payload = {
+                "error": "unknown_animation",
+                "message": error_message,
+                "allowed": allowed,
+            }
+            duration_ms = (time.monotonic() - t0) * 1000
+            await asyncio.to_thread(
+                _post_tool_event, "play_animation",
+                {"animation": animation_name}, result_payload, duration_ms,
+                error="unknown_animation",
             )
+            return json.dumps(result_payload, ensure_ascii=False)
 
         logger.info("play_animation_queued animation=%s resolved=%s", animation_name, resolved)
         asyncio.create_task(_dispatch_animation(resolved))
-        return json.dumps(
-            {
-                "ok": True,
-                "status": "queued",
-                "animation": resolved,
-            },
-            ensure_ascii=False,
+        result_payload = {
+            "ok": True,
+            "status": "queued",
+            "animation": resolved,
+        }
+        duration_ms = (time.monotonic() - t0) * 1000
+        await asyncio.to_thread(
+            _post_tool_event, "play_animation",
+            {"animation": animation_name, "resolved": resolved},
+            result_payload, duration_ms,
         )
+        return json.dumps(result_payload, ensure_ascii=False)
 
     @function_tool
     async def get_directions_to_room(
@@ -387,12 +442,18 @@ def build_tools(agent_mode: str) -> list[Any]:
 
         room_number = str(room_number or "").strip()
         logger.info("get_directions_to_room room=%s", room_number)
-        await asyncio.to_thread(_push_tool_transcript, "get_directions_to_room({})".format(room_number))
 
+        t0 = time.monotonic()
         try:
             floors = await asyncio.to_thread(_load_room_data)
         except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
             logger.error("get_directions_to_room map_load_failed error=%s", exc)
+            await asyncio.to_thread(
+                _post_tool_event, "get_directions_to_room",
+                {"room_number": room_number}, None, duration_ms,
+                error=f"map_unavailable: {exc}",
+            )
             return json.dumps({"error": "map_unavailable"}, ensure_ascii=False)
 
         for floor_id, rooms_on_floor in floors.items():
@@ -402,27 +463,45 @@ def build_tools(agent_mode: str) -> list[Any]:
                 name = (room.get("name") or "").strip()
 
                 if not directions:
+                    duration_ms = (time.monotonic() - t0) * 1000
                     logger.warning("get_directions_to_room room=%s directions_empty", room_number)
-                    return json.dumps({
+                    result_payload = {
                         "error": "no_directions",
                         "message": f"Room {room_number} is known but directions are not filled in yet.",
-                    }, ensure_ascii=False)
+                    }
+                    await asyncio.to_thread(
+                        _post_tool_event, "get_directions_to_room",
+                        {"room_number": room_number}, result_payload, duration_ms,
+                    )
+                    return json.dumps(result_payload, ensure_ascii=False)
 
                 logger.info("get_directions_to_room room=%s floor=%s found=true", room_number, floor_id)
-                result = {
+                result_payload = {
                     "room": room_number,
                     "floor": floor_id,
                     "directions": directions,
                 }
                 if name:
-                    result["name"] = name
-                return json.dumps(result, ensure_ascii=False)
+                    result_payload["name"] = name
+                duration_ms = (time.monotonic() - t0) * 1000
+                await asyncio.to_thread(
+                    _post_tool_event, "get_directions_to_room",
+                    {"room_number": room_number}, result_payload, duration_ms,
+                )
+                return json.dumps(result_payload, ensure_ascii=False)
 
+        duration_ms = (time.monotonic() - t0) * 1000
         logger.warning("get_directions_to_room room=%s not_found", room_number)
-        return json.dumps({
+        result_payload = {
             "error": "room_not_found",
             "message": f"Room {room_number} is not in my map. I only know Building E rooms.",
-        }, ensure_ascii=False)
+        }
+        await asyncio.to_thread(
+            _post_tool_event, "get_directions_to_room",
+            {"room_number": room_number}, result_payload, duration_ms,
+            error="room_not_found",
+        )
+        return json.dumps(result_payload, ensure_ascii=False)
 
     tools: list[Any] = [query_search, get_directions_to_room, play_animation]
     return tools

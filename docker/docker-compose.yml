@@ -44,6 +44,7 @@ services:
       PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-openai}
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    stop_grace_period: 15s
     depends_on:
       - livekit
       - redis

@@ -19,7 +19,6 @@ from ..config import (
     LISTENER_IDENTITY,
     LIVEKIT_HOST_WS_URL,
     LIVEKIT_HTTP_URL,
-    LIVEKIT_ROOM_NAME,
     LIVEKIT_SESSION_FILE,
     LIVEKIT_STATUS_POLL_INTERVAL_SEC,
     LIVEKIT_URL,
@@ -53,6 +52,7 @@ COMPONENT_PROBE_INTERVAL_SEC = 3.0
 WARM_AGENT_JOIN_TIMEOUT_SEC = float(os.getenv("WARM_AGENT_JOIN_TIMEOUT_SEC", "90"))
 VOICE_AGENT_READY_WAIT_SEC = float(os.getenv("VOICE_AGENT_READY_WAIT_SEC", "30"))
 DEFAULT_LOCAL_AUDIO_VOLUME = int(os.getenv("PEPPER_OUTPUT_VOLUME", "55"))
+WARM_ACTIVATION_MIN_LEVEL = float(os.getenv("WARM_ACTIVATION_MIN_LEVEL", "0.05"))
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
 KNOWN_DOCKER_SERVICES = (
@@ -95,7 +95,7 @@ class SessionManager:
 
     def __init__(self) -> None:
         _load_root_env()
-        self.room_name = LIVEKIT_ROOM_NAME
+        self.room_name = f"pepper-{int(time.time())}"
         self.livekit_ws_url = LIVEKIT_URL
         self.livekit_host_ws_url = LIVEKIT_HOST_WS_URL
         self.livekit_http_url = LIVEKIT_HTTP_URL
@@ -132,6 +132,8 @@ class SessionManager:
         self.local_audio_volume = max(0, min(100, DEFAULT_LOCAL_AUDIO_VOLUME))
         self._bridge_audio_volume_synced: int | None = None
         self.pending_user_texts: list[dict[str, str]] = []
+        self._session_log: list[dict[str, Any]] = []
+        self._session_log_started_at: str = ""
         self.components: dict[str, dict[str, Any]] = {}
         self.docker_socket_path = DOCKER_SOCKET_PATH
         self.docker_log_tail_lines = DOCKER_LOG_TAIL_LINES
@@ -394,11 +396,26 @@ class SessionManager:
     async def ensure_room(self) -> None:
         lkapi = self._new_lkapi()
         try:
-            try:
-                await lkapi.room.create_room(api.CreateRoomRequest(name=self.room_name))
-                print(f"[session_manager] created room={self.room_name}")
-            except Exception as exc:
-                print(f"[session_manager] create_room skipped room={self.room_name} err={exc}")
+            # Delete any leftover rooms from previous runs.
+            existing = await lkapi.room.list_rooms(api.ListRoomsRequest())
+            for old_room in getattr(existing, "rooms", []) or []:
+                old_name = str(getattr(old_room, "name", "") or "")
+                if old_name.startswith("pepper-") and old_name != self.room_name:
+                    try:
+                        await lkapi.room.delete_room(api.DeleteRoomRequest(room=old_name))
+                        print(f"[session_manager] deleted old room={old_name}")
+                    except Exception as exc:
+                        print(f"[session_manager] delete old room failed room={old_name} err={exc}")
+            # Create fresh room with empty_timeout so it auto-deletes when abandoned.
+            await lkapi.room.create_room(
+                api.CreateRoomRequest(
+                    name=self.room_name,
+                    empty_timeout=300,
+                )
+            )
+            print(f"[session_manager] created room={self.room_name} empty_timeout=300s")
+        except Exception as exc:
+            print(f"[session_manager] ensure_room failed room={self.room_name} err={exc}")
         finally:
             await lkapi.aclose()
 
@@ -592,6 +609,7 @@ class SessionManager:
 
     async def _remove_agent_participants(self) -> None:
         lkapi = self._new_lkapi()
+        has_zombies = False
         try:
             response = await lkapi.room.list_participants(
                 api.ListParticipantsRequest(room=self.room_name)
@@ -618,9 +636,10 @@ class SessionManager:
                         if attempt < 2:
                             await asyncio.sleep(1.5)
                 if not removed:
+                    has_zombies = True
                     print(
-                        f"[session_manager] WARNING: could not remove zombie agent "
-                        f"identity={identity} after 3 attempts - LiveKit restart may be needed"
+                        f"[session_manager] WARNING: zombie agent identity={identity} "
+                        f"- will rotate room to clear"
                     )
             if self.active_dispatch_id:
                 try:
@@ -628,10 +647,34 @@ class SessionManager:
                     print(f"[session_manager] deleted active dispatch id={self.active_dispatch_id}")
                 except Exception as exc:
                     print(f"[session_manager] delete active dispatch failed id={self.active_dispatch_id} err={exc}")
+            # If any zombies survived, rotate the room: delete + recreate.
+            if has_zombies:
+                await self._rotate_room(lkapi)
         finally:
             self.active_dispatch_id = ""
             self.dispatch_started_monotonic = 0.0
             await lkapi.aclose()
+
+    async def _rotate_room(self, lkapi: api.LiveKitAPI) -> None:
+        old_name = self.room_name
+        try:
+            await lkapi.room.delete_room(api.DeleteRoomRequest(room=old_name))
+            print(f"[session_manager] deleted zombie room={old_name}")
+        except Exception as exc:
+            print(f"[session_manager] delete zombie room failed room={old_name} err={exc}")
+        self.room_name = f"pepper-{int(time.time())}"
+        try:
+            await lkapi.room.create_room(
+                api.CreateRoomRequest(
+                    name=self.room_name,
+                    empty_timeout=300,
+                )
+            )
+            print(f"[session_manager] rotated to new room={self.room_name}")
+        except Exception as exc:
+            print(f"[session_manager] create rotated room failed room={self.room_name} err={exc}")
+        # Write fresh snapshot so listener/user-client reconnect to the new room.
+        await self.write_session_snapshot()
 
     async def _dispatch_warm_agent(self) -> None:
         async with self._lock:
@@ -694,6 +737,7 @@ class SessionManager:
 
     async def _activate_warm_agent(self) -> None:
         self.conversation_id = uuid.uuid4().hex[:10]
+        self._reset_session_log()
         self.session_state = "active"
         self.warm_activation_pending = False
         self.dispatch_started_monotonic = time.monotonic()
@@ -742,6 +786,7 @@ class SessionManager:
             if self.agent_deployed:
                 return
             self.conversation_id = uuid.uuid4().hex[:10]
+            self._reset_session_log()
             self.session_state = "starting"
             self.dispatch_started_monotonic = time.monotonic()
             metadata = json.dumps({"conversation_id": self.conversation_id, "agent_mode": self.agent_mode})
@@ -794,6 +839,8 @@ class SessionManager:
             self.session_state = "ending"
             print(f"[session_manager] ending session reason={reason}")
             ended_conversation_id = self.conversation_id
+            if ended_conversation_id:
+                self._write_session_log(ended_conversation_id, reason)
             await self._remove_agent_participants()
             self._clear_agent_runtime_state()
             self.conversation_id = ""
@@ -828,13 +875,18 @@ class SessionManager:
             self.last_user_activity_at = activity_at
             if level is not None:
                 self.mic_level = max(0.0, min(1.0, level))
+            # Only activate/dispatch on strong audio signal to avoid
+            # triggering on ambient noise or mic bleed.
+            strong_signal = level is not None and level >= WARM_ACTIVATION_MIN_LEVEL
             if self.session_state == "warm":
-                if self.warm_agent_ready:
-                    await self.dispatch_agent()
-                else:
-                    self.warm_activation_pending = True
+                if strong_signal:
+                    if self.warm_agent_ready:
+                        await self.dispatch_agent()
+                    else:
+                        self.warm_activation_pending = True
             elif not self.agent_deployed and self.session_state == "idle":
-                await self.dispatch_agent()
+                if strong_signal:
+                    await self.dispatch_agent()
         elif source == SESSION_SOURCE_AGENT:
             if now - self.last_agent_activity_monotonic < SESSION_ACTIVITY_DEBOUNCE_SEC:
                 return
@@ -853,9 +905,16 @@ class SessionManager:
             self.last_pepper_text = clean
         elif speaker == "User":
             self.last_user_text = clean
+        # Feed session log (skip tool kind — tools post their own structured events).
+        if kind == "message":
+            if speaker == "User":
+                self._append_session_log_event({"type": "user_speech", "text": clean})
+            elif speaker == "Pepper":
+                self._append_session_log_event({"type": "agent_speech", "text": clean})
 
     def _append_session_marker(self, text: str) -> None:
         self._append_transcript("System", text, kind="session")
+        self._append_session_log_event({"type": "session_event", "detail": text})
 
     def _append_session_marker_once(self, text: str) -> None:
         clean = " ".join(str(text).strip().split())
@@ -869,6 +928,63 @@ class SessionManager:
         ):
             return
         self._append_session_marker(clean)
+
+    # ── Session log (persistent) ─────────────────────────────────────
+
+    def _append_session_log_event(self, event: dict[str, Any]) -> None:
+        event["t"] = _utc_now_iso()
+        self._session_log.append(event)
+
+    def _reset_session_log(self) -> None:
+        self._session_log = []
+        self._session_log_started_at = _utc_now_iso()
+
+    def _write_session_log(self, conversation_id: str, reason: str) -> None:
+        if not self._session_log:
+            return
+        sessions_dir = self.session_file.parent / "sessions"
+        sessions_dir.mkdir(parents=True, exist_ok=True)
+        ended_at = _utc_now_iso()
+        turns = sum(
+            1 for e in self._session_log
+            if e.get("type") in ("user_speech", "agent_speech")
+        )
+        tool_calls = sum(1 for e in self._session_log if e.get("type") == "tool_call")
+        errors = sum(1 for e in self._session_log if e.get("type") == "error")
+        # Calculate duration.
+        duration_sec = 0.0
+        if self._session_log_started_at and ended_at:
+            try:
+                fmt = "%Y-%m-%dT%H:%M:%SZ"
+                t_start = datetime.datetime.strptime(self._session_log_started_at, fmt)
+                t_end = datetime.datetime.strptime(ended_at, fmt)
+                duration_sec = round((t_end - t_start).total_seconds(), 1)
+            except Exception:
+                pass
+        log = {
+            "version": 1,
+            "conversation_id": conversation_id,
+            "agent_mode": self.agent_mode,
+            "started_at": self._session_log_started_at,
+            "ended_at": ended_at,
+            "end_reason": reason,
+            "duration_sec": duration_sec,
+            "summary": {
+                "turns": turns,
+                "tool_calls": tool_calls,
+                "errors": errors,
+            },
+            "events": self._session_log,
+        }
+        filepath = sessions_dir / f"{conversation_id}.json"
+        tmp = filepath.with_suffix(".tmp")
+        tmp.write_text(json.dumps(log, indent=2, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(filepath)
+        print(
+            f"[session_manager] session_log_written path={filepath} "
+            f"events={len(self._session_log)} turns={turns} tool_calls={tool_calls}"
+        )
+        self._session_log = []
 
     def _idle_countdown_sec(self) -> float | None:
         if not self.agent_deployed or self.session_state == "warm":

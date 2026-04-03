@@ -1,12 +1,15 @@
 import asyncio
+import json
+import re
 import time
 import uuid
+from pathlib import Path
 from typing import Any
 
 import aiohttp
 from aiohttp import web
 
-from .views import CHAT_HTML, STATUS_HTML
+from .views import CHAT_HTML, SESSIONS_HTML, STATUS_HTML
 
 
 def _utc_now_iso() -> str:
@@ -106,6 +109,28 @@ class SessionManagerHttp:
                 )
             ):
                 asyncio.create_task(self.manager.dispatch_agent())
+        elif event_type == "tool_call":
+            self.manager._append_session_log_event({
+                "type": "tool_call",
+                "tool": str(data.get("tool") or ""),
+                "args": data.get("args"),
+                "result": data.get("result"),
+                "duration_ms": data.get("duration_ms"),
+                "error": data.get("error"),
+            })
+        elif event_type == "pipeline_metric":
+            self.manager._append_session_log_event({
+                "type": "pipeline_metric",
+                "stage": str(data.get("stage") or ""),
+                "duration_ms": data.get("duration_ms"),
+                "ttft_ms": data.get("ttft_ms"),
+                "audio_duration_ms": data.get("audio_duration_ms"),
+                "completion_tokens": data.get("completion_tokens"),
+                "prompt_tokens": data.get("prompt_tokens"),
+                "tokens_per_second": data.get("tokens_per_second"),
+                "characters": data.get("characters"),
+                "text": data.get("text"),
+            })
 
         self.manager.updated_at = _utc_now_iso()
         return web.json_response({"ok": True})
@@ -310,6 +335,44 @@ class SessionManagerHttp:
         del request
         return web.Response(text=STATUS_HTML, content_type="text/html")
 
+    async def handle_sessions_page(self, request: web.Request) -> web.Response:
+        del request
+        return web.Response(text=SESSIONS_HTML, content_type="text/html")
+
+    async def handle_sessions_list(self, request: web.Request) -> web.Response:
+        del request
+        sessions_dir: Path = self.manager.session_file.parent / "sessions"
+        if not sessions_dir.exists():
+            return web.json_response({"sessions": []})
+        files = sorted(sessions_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+        sessions = []
+        for f in files[:100]:
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                sessions.append({
+                    "conversation_id": data.get("conversation_id", ""),
+                    "agent_mode": data.get("agent_mode", ""),
+                    "started_at": data.get("started_at", ""),
+                    "ended_at": data.get("ended_at", ""),
+                    "end_reason": data.get("end_reason", ""),
+                    "duration_sec": data.get("duration_sec", 0),
+                    "summary": data.get("summary", {}),
+                    "filename": f.name,
+                })
+            except Exception:
+                continue
+        return web.json_response({"sessions": sessions})
+
+    async def handle_session_detail(self, request: web.Request) -> web.Response:
+        filename = request.match_info["filename"]
+        if not re.match(r"^[\w\-.]+$", filename):
+            return web.json_response({"error": "invalid filename"}, status=400)
+        filepath: Path = self.manager.session_file.parent / "sessions" / filename
+        if not filepath.exists():
+            return web.json_response({"error": "not found"}, status=404)
+        data = json.loads(filepath.read_text(encoding="utf-8"))
+        return web.json_response(data)
+
     async def handle_console_proxy(self, request: web.Request) -> web.Response:
         subpath = request.match_info.get("path", "")
         target = f"{self.manager.dev_console_url}/{subpath}"
@@ -360,6 +423,9 @@ def create_app(manager: Any) -> web.Application:
         [
             web.get("/", http.handle_root),
             web.get("/debug", http.handle_debug_root),
+            web.get("/sessions", http.handle_sessions_page),
+            web.get("/api/sessions", http.handle_sessions_list),
+            web.get("/api/sessions/{filename}", http.handle_session_detail),
             web.get("/api/status", http.handle_status),
             web.post("/api/activity", http.handle_activity),
             web.post("/api/debug-event", http.handle_debug_event),
