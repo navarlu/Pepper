@@ -1,6 +1,6 @@
 ## Operator panel:
 - Add clear button for the conv hisory
-
+- resrart session takes ages
 ## Agent:
 
 - Knowladge
@@ -13,11 +13,15 @@
 
 - Make her say random stuff ocasionaly
 
+# Pepper
+    
+- eyes indicating search
 
 ## Tablet
 
 - Flash the imporant stuff
 - Clear history on session end
+
 
 ## Thesis:
 

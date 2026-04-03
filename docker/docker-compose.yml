@@ -55,7 +55,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/session_manager.py"]
+    command: ["uv", "run", "python", "-m", "services.src.session_manager"]
     volumes:
       - ..:/workspace
       - /var/run/docker.sock:/var/run/docker.sock
@@ -190,6 +190,27 @@ services:
       - weaviate
     profiles:
       - debug
+    restart: unless-stopped
+
+  ssh-tunnel:
+    image: alpine:3.21
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache autossh openssh-client &&
+        exec autossh -M 0 -N \
+          -o StrictHostKeyChecking=accept-new \
+          -o ServerAliveInterval=15 \
+          -o ServerAliveCountMax=3 \
+          -o ExitOnForwardFailure=yes \
+          -J navarlu2@ptak.felk.cvut.cz \
+          -L 0.0.0.0:8000:127.0.0.1:8000 \
+          navarlu2@lie
+    volumes:
+      - /home/lucas/.ssh:/root/.ssh:ro
+    network_mode: host
+    profiles:
+      - local-llm
     restart: unless-stopped
 
   weaviate:

@@ -29,6 +29,15 @@ from .utils import search_vectors
 
 logger = logging.getLogger("voice-agent")
 
+OPENAI_ANIMATION_KEYS = (
+    "Hey_1",
+    "BowShort_1",
+    "Explain_1",
+    "Happy_1",
+    "Thinking_1",
+    "IDontKnow_1",
+)
+
 
 def _get_runtime_settings() -> dict[str, Any]:
     """Fetch runtime query settings from dev-console. Falls back to config defaults."""
@@ -184,6 +193,48 @@ async def _dispatch_animation(animation_name: str) -> None:
         logger.warning("play_animation_failed animation=%s error=%s", animation_name, str(exc))
 
 
+async def trigger_animation(animation_name: str) -> bool:
+    """Best-effort dispatch for code-driven animations."""
+    resolved = _normalize_animation_name(animation_name)
+    if not resolved:
+        logger.warning("trigger_animation_failed animation=%s error=unknown_animation", animation_name)
+        return False
+    logger.info("trigger_animation animation=%s resolved=%s", animation_name, resolved)
+    await _dispatch_animation(resolved)
+    return True
+
+
+def _normalize_openai_animation_name(raw_name: str) -> str:
+    clean = str(raw_name or "").strip()
+    if not clean:
+        return ""
+
+    if clean in OPENAI_ANIMATION_KEYS:
+        return clean
+
+    normalized = clean.lower().replace("-", "_").replace(" ", "_")
+    normalized = "".join(ch for ch in normalized if ch.isalnum() or ch == "_")
+    mapped_group = ANIMATION_TOOL_ALIASES.get(normalized)
+    if mapped_group == "greeting":
+        return "Hey_1"
+    if mapped_group == "bow":
+        return "BowShort_1"
+    if mapped_group == "explain":
+        return "Explain_1"
+    if mapped_group == "happy":
+        return "Happy_1"
+    if mapped_group == "thinking":
+        return "Thinking_1"
+    if mapped_group == "dont_know":
+        return "IDontKnow_1"
+
+    for key in OPENAI_ANIMATION_KEYS:
+        if key.lower() == clean.lower():
+            return key
+
+    return ""
+
+
 def _load_room_data() -> dict:
     """Load FLOORS dict from map.py at runtime (re-read on every call, no restart needed)."""
     import importlib.util
@@ -194,7 +245,7 @@ def _load_room_data() -> dict:
     return mod.FLOORS
 
 
-def build_tools() -> list[Any]:
+def build_tools(agent_mode: str) -> list[Any]:
     @function_tool
     async def query_search(
         context: RunContext,
@@ -261,10 +312,13 @@ def build_tools() -> list[Any]:
         context: RunContext,
         animation: str,
     ) -> str:
-        """Trigger a Pepper body gesture/animation.
+        """Move Pepper's robot body. Call this tool on EVERY reply.
 
-        Use this tool directly — never write action text like [waves] in your speech.
-        Pass one of: greeting, bow, explain, happy, thinking, dont_know, excited, interested, surprised.
+        animation must be one of: greeting, bow, explain, happy, thinking, dont_know
+
+        Use greeting when user says hello. Use explain when giving information.
+        Use bow for thanks or goodbye. Use happy for positive replies.
+        Use thinking when searching. Use dont_know when unsure.
         """
         del context
 
@@ -289,13 +343,21 @@ def build_tools() -> list[Any]:
                 ensure_ascii=False,
             )
 
-        resolved = _normalize_animation_name(animation_name)
+        if agent_mode == "openai":
+            resolved = _normalize_openai_animation_name(animation_name)
+            allowed = list(OPENAI_ANIMATION_KEYS)
+            error_message = "Use one of the supported concrete animation keys."
+        else:
+            resolved = _normalize_animation_name(animation_name)
+            allowed = list(ANIMATION_GROUPS.keys())
+            error_message = "Use one of the allowed animation group names."
+
         if not resolved:
             return json.dumps(
                 {
                     "error": "unknown_animation",
-                    "message": "Use one of the allowed animation group names.",
-                    "allowed": list(ANIMATION_GROUPS.keys()),
+                    "message": error_message,
+                    "allowed": allowed,
                 },
                 ensure_ascii=False,
             )
@@ -362,4 +424,5 @@ def build_tools() -> list[Any]:
             "message": f"Room {room_number} is not in my map. I only know Building E rooms.",
         }, ensure_ascii=False)
 
-    return [query_search, play_animation, get_directions_to_room]
+    tools: list[Any] = [query_search, get_directions_to_room, play_animation]
+    return tools

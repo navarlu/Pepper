@@ -36,7 +36,7 @@ Entry point: `voice-agent/src/agent.py` — connects to LiveKit room, waits for 
 |---|---|---|
 | **Bridge** | `robot/src/bridge.py` | Python 3 HTTP server running on the host. Receives PCM audio via TCP from the listener and plays it on Pepper via `qi`. Exposes `/animation/<name>`, `/tablet/...` HTTP endpoints. Manages Pepper's Autonomous Life settings. |
 | **Listener** | `services/src/listener.py` | Joins the LiveKit room as a passive participant, captures the agent's audio track, and forwards raw PCM frames over TCP to the bridge. |
-| **Session Manager** | `services/src/session_manager.py` | Orchestrates session lifecycle: creates LiveKit rooms/tokens, tracks component health via heartbeats, serves the **Operator Panel** (debug HTML UI on `:8787`), and manages session state (idle → active → cooldown). |
+| **Session Manager** | `services/src/session_manager/` | Orchestrates session lifecycle: creates LiveKit rooms/tokens, tracks component health via heartbeats, serves the **Operator Panel** (debug HTML UI on `:8787`), and manages session state (idle → active → cooldown). |
 | **Safe Startup** | `robot/utils/safe_startup_watchdog.py` | Watchdog that ensures Pepper is reachable and services are healthy before the bridge starts accepting audio. |
 | **User Client** | `services/src/user_client.py` | Optional: joins LiveKit room with a local microphone (ALSA on RPi) as the "user" audio source. |
 

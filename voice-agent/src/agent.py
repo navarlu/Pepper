@@ -37,11 +37,11 @@ from .config import (
     LOCAL_TTS_NOISE_W_SCALE,
     LOCAL_TTS_SPEAKER_ID,
     LOCAL_TTS_USE_CUDA,
+    LOCAL_SYSTEM_PROMPT,
     MODEL_NAME,
+    OPENAI_SYSTEM_PROMPT,
     SESSION_MANAGER_URL,
-    SYSTEM_PROMPT,
     TTS_VOICE,
-    VOICE_AGENT_GREETING_INSTRUCTIONS,
 )
 from .local_speech import FasterWhisperSTT, PiperTTS
 from .tools import build_tools
@@ -292,6 +292,13 @@ async def _init_weaviate() -> None:
         logger.warning("weaviate_init_failed error=%s", str(exc))
 
 
+def _get_agent_instructions(agent_mode: str) -> str:
+    if agent_mode == "local":
+        return LOCAL_SYSTEM_PROMPT
+    return OPENAI_SYSTEM_PROMPT
+
+
+
 async def entrypoint(ctx: JobContext) -> None:
     t_entry = time.monotonic()
     dispatch_meta = _parse_dispatch_metadata(ctx)
@@ -357,8 +364,8 @@ async def entrypoint(ctx: JobContext) -> None:
         await reply.wait_for_playout()
 
     agent = Agent(
-        instructions=SYSTEM_PROMPT,
-        tools=build_tools(),
+        instructions=_get_agent_instructions(agent_mode),
+        tools=build_tools(agent_mode),
     )
 
     session_closed = asyncio.Event()
@@ -397,13 +404,12 @@ async def entrypoint(ctx: JobContext) -> None:
             time.monotonic() - t_warm_ready,
         )
 
-    t0 = time.monotonic()
-    logger.info("timing total_before_greeting=%.3fs agent_mode=%s warm=%s", t0 - t_entry, agent_mode, is_warm)
-    greeting = await session.generate_reply(
-        instructions=VOICE_AGENT_GREETING_INSTRUCTIONS,
+    # Agent waits silently for the user to speak first, then responds.
+    logger.info(
+        "waiting_for_user_speech agent_mode=%s total_setup=%.3fs",
+        agent_mode,
+        time.monotonic() - t_entry,
     )
-    await greeting.wait_for_playout()
-    logger.info("timing greeting_playout=%.3fs agent_mode=%s", time.monotonic() - t0, agent_mode)
 
     await session_closed.wait()
 

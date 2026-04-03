@@ -35,17 +35,27 @@ Check if already running:
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@lie "tmux ls"
 ```
 
-## 2. Open the SSH tunnel (from RPi)
+## 2. SSH tunnel (automatic via Docker)
+
+The tunnel runs as a Docker Compose service (`ssh-tunnel`) using `autossh`, which
+auto-reconnects on drops and restarts with the stack. Enable it with the `local-llm` profile:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz -L 8000:127.0.0.1:8000 -N navarlu2@lie &
+docker compose -f docker/docker-compose.yml --env-file .env --profile local-llm up -d ssh-tunnel
 ```
 
-This forwards `localhost:8000` on the RPi to vLLM on lie.
+Or add `--profile local-llm` to your full `docker compose up` command.
 
-Verify the tunnel works:
+The tunnel binds `0.0.0.0:8000` so both the host and Docker containers can reach vLLM.
+
+Verify it works:
 ```bash
 curl -s http://localhost:8000/v1/models | python3 -m json.tool
+```
+
+### Manual fallback (if not using the container)
+```bash
+ssh -J navarlu2@ptak.felk.cvut.cz -L 0.0.0.0:8000:127.0.0.1:8000 -N navarlu2@lie &
 ```
 
 ## 3. Test the LLM (standalone)
