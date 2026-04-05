@@ -706,17 +706,52 @@ class SessionManager:
             finally:
                 await lkapi.aclose()
 
-    async def end_session(self, reason: str) -> None:
+    @property
+    def _is_persistent_agent(self) -> bool:
+        """A persistent agent stays in the room across sessions (local mode only)."""
+        return self.agent_deployed and self.agent_mode == "local"
+
+    async def _send_reset_signal(self) -> None:
+        """Tell the persistent agent to clear its history and wait for next activation."""
+        payload = json.dumps({"action": "reset"}).encode("utf-8")
+        lkapi = self._new_lkapi()
+        try:
+            await lkapi.room.send_data(
+                api.SendDataRequest(
+                    room=self.room_name,
+                    data=payload,
+                    topic="session-control",
+                )
+            )
+            print("[session_manager] sent reset signal to persistent agent")
+        except Exception as exc:
+            print(f"[session_manager] reset signal failed err={exc}")
+        finally:
+            await lkapi.aclose()
+
+    async def end_session(self, reason: str, *, force_teardown: bool = False) -> None:
         async with self._lock:
             if not self.agent_deployed and self.session_state == "idle":
                 return
             self.session_state = "ending"
-            print(f"[session_manager] ending session reason={reason}")
+            print(f"[session_manager] ending session reason={reason} force_teardown={force_teardown}")
             ended_conversation_id = self.conversation_id
             if ended_conversation_id:
                 self._write_session_log(ended_conversation_id, reason)
-            await self._remove_agent_participants()
-            self._clear_agent_runtime_state()
+
+            use_persistent_reset = self._is_persistent_agent and not force_teardown
+
+            if use_persistent_reset:
+                # Persistent local agent: send reset, keep agent alive in room
+                await self._send_reset_signal()
+                # Agent stays deployed — just reset session-level state
+                self._warm_phase = "deploying"  # will become "standby" on warm_ready
+                self.dispatch_started_monotonic = time.monotonic()  # reset timeout window
+            else:
+                # OpenAI / non-persistent: tear down and re-dispatch as before
+                await self._remove_agent_participants()
+                self._clear_agent_runtime_state()
+
             self.conversation_id = ""
             self.last_user_activity_monotonic = 0.0
             self.last_agent_activity_monotonic = 0.0
@@ -724,20 +759,36 @@ class SessionManager:
                 self._append_session_marker(
                     f"Session ended · {ended_conversation_id} · {reason}"
                 )
+            self.updated_at = _utc_now_iso()
+
+        if use_persistent_reset:
+            # No cooldown needed — agent resets instantly.
+            # warm_ready event from agent will set _warm_phase = "standby"
+            async with self._lock:
+                self.session_state = "warm"
+                self.updated_at = _utc_now_iso()
+                self._set_component_state(
+                    "session-manager",
+                    state="ready",
+                    detail="persistent agent resetting",
+                    healthy=True,
+                    source="internal",
+                )
+            print("[session_manager] persistent agent reset — waiting for warm_ready")
+        else:
             self.session_state = "cooldown"
-            self.updated_at = _utc_now_iso()
-        await asyncio.sleep(SESSION_COOLDOWN_SEC)
-        async with self._lock:
-            self.session_state = "idle"
-            self.updated_at = _utc_now_iso()
-            self._set_component_state(
-                "session-manager",
-                state="ready",
-                detail="idle",
-                healthy=True,
-                source="internal",
-            )
-        await self._dispatch_warm_agent()
+            await asyncio.sleep(SESSION_COOLDOWN_SEC)
+            async with self._lock:
+                self.session_state = "idle"
+                self.updated_at = _utc_now_iso()
+                self._set_component_state(
+                    "session-manager",
+                    state="ready",
+                    detail="idle",
+                    healthy=True,
+                    source="internal",
+                )
+            await self._dispatch_warm_agent()
 
     async def record_activity(self, source: str, level: float | None = None) -> None:
         now = time.monotonic()

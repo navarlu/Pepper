@@ -15,6 +15,7 @@ from livekit.agents import (
     JobContext,
     WorkerOptions,
     cli,
+    llm,
     room_io,
 )
 from livekit.plugins import openai, silero
@@ -150,31 +151,38 @@ def _parse_dispatch_metadata(ctx: JobContext) -> dict:
         return {}
 
 
-def _setup_activation_listener(ctx: JobContext) -> tuple[asyncio.Event, dict]:
-    """Register data handler for activation signal. Must be called before session.start().
+class _SessionControl:
+    """Handles session-control signals (activate / reset) from the session manager."""
 
-    Returns (event, payload_container) — await the event, then read the payload.
-    """
-    activation_event = asyncio.Event()
-    activation_payload: dict = {}
+    def __init__(self) -> None:
+        self.activate_event = asyncio.Event()
+        self.reset_event = asyncio.Event()
+        self.payload: dict = {}
 
-    @ctx.room.on("data_received")
-    def _on_data(packet):
-        topic = str(getattr(packet, "topic", "") or "")
-        if topic != "session-control":
-            return
-        raw = getattr(packet, "data", b"") or b""
-        try:
-            data = json.loads(raw)
-        except Exception:
-            return
-        logger.info("data_received topic=%s action=%s", topic, data.get("action"))
-        if data.get("action") == "activate":
-            nonlocal activation_payload
-            activation_payload.update(data)
-            activation_event.set()
+    def register(self, ctx: JobContext) -> None:
+        @ctx.room.on("data_received")
+        def _on_data(packet):
+            topic = str(getattr(packet, "topic", "") or "")
+            if topic != "session-control":
+                return
+            raw = getattr(packet, "data", b"") or b""
+            try:
+                data = json.loads(raw)
+            except Exception:
+                return
+            action = data.get("action")
+            logger.info("session_control_received action=%s payload=%s", action, data)
+            if action == "activate":
+                self.payload.update(data)
+                self.reset_event.clear()
+                self.activate_event.set()
+            elif action == "reset":
+                self.activate_event.clear()
+                self.reset_event.set()
 
-    return activation_event, activation_payload
+    def clear_activate(self) -> None:
+        self.activate_event.clear()
+        self.payload.clear()
 
 
 def _build_openai_session(openai_api_key: str) -> AgentSession:
@@ -287,16 +295,17 @@ async def entrypoint(ctx: JobContext) -> None:
     if agent_mode not in ("openai", "local"):
         agent_mode = "openai"
     is_warm = bool(dispatch_meta.get("warm"))
+    is_persistent = is_warm and agent_mode == "local"
 
     logger.info(
-        "agent version=%s agent_mode=%s model=%s warm=%s",
+        "agent version=%s agent_mode=%s model=%s warm=%s persistent=%s",
         AGENT_VERSION,
         agent_mode,
         LOCAL_LLM_MODEL if agent_mode == "local" else MODEL_NAME,
         is_warm,
+        is_persistent,
     )
 
-    # Log when the agent shuts down for debugging zombie issues.
     async def _on_shutdown(reason: str):
         logger.info("shutdown_callback reason=%s (room already disconnected by framework)", reason)
 
@@ -306,13 +315,11 @@ async def entrypoint(ctx: JobContext) -> None:
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     logger.info("timing ctx.connect=%.3fs", time.monotonic() - t0)
 
-    # Register activation listener early — before session.start() takes over room events
-    activation_event, activation_payload = (None, None)
+    # Session control listener for warm/persistent agents
+    sc = _SessionControl()
     if is_warm:
-        activation_event, activation_payload = _setup_activation_listener(ctx)
+        sc.register(ctx)
 
-    # In warm mode, find whatever participant is already in the room (bridge/listener)
-    # so we can start the session immediately. The real user arrives after activation.
     t0 = time.monotonic()
     participant = await _wait_for_user_participant(ctx)
     logger.info(
@@ -323,7 +330,6 @@ async def entrypoint(ctx: JobContext) -> None:
         agent_mode,
     )
 
-    # Run Weaviate init in parallel with session build — they are independent
     weaviate_task = asyncio.create_task(_init_weaviate())
 
     t0 = time.monotonic()
@@ -373,32 +379,91 @@ async def entrypoint(ctx: JobContext) -> None:
     )
     logger.info("timing session.start=%.3fs agent_mode=%s", time.monotonic() - t0, agent_mode)
 
-    # Ensure Weaviate init finished (should be done by now, it ran in parallel)
     await weaviate_task
 
-    if is_warm and activation_event is not None:
+    if is_warm:
         t_warm_ready = time.monotonic()
         logger.info(
-            "warm_agent_ready waiting_for_activation agent_mode=%s total_warm_setup=%.3fs",
+            "warm_agent_ready waiting_for_activation agent_mode=%s persistent=%s total_warm_setup=%.3fs",
             agent_mode,
+            is_persistent,
             t_warm_ready - t_entry,
         )
         _post_debug_event({"event": "warm_ready", "active": True})
-        await activation_event.wait()
+        await sc.activate_event.wait()
         logger.info(
             "warm_agent_activated conversation_id=%s wait_duration=%.3fs",
-            activation_payload.get("conversation_id", ""),
+            sc.payload.get("conversation_id", ""),
             time.monotonic() - t_warm_ready,
         )
 
-    # Agent waits silently for the user to speak first, then responds.
     logger.info(
         "waiting_for_user_speech agent_mode=%s total_setup=%.3fs",
         agent_mode,
         time.monotonic() - t_entry,
     )
 
-    await session_closed.wait()
+    if not is_persistent:
+        # OpenAI / non-persistent: single session, exit when done.
+        await session_closed.wait()
+        return
+
+    # --- Persistent local agent loop ---
+    # Agent stays alive across sessions; history is cleared on reset signal.
+    session_num = 1
+    while True:
+        # Wait for either: reset signal (session ended) or session close (agent killed)
+        reset_task = asyncio.ensure_future(sc.reset_event.wait())
+        close_task = asyncio.ensure_future(session_closed.wait())
+        done, pending = await asyncio.wait(
+            [reset_task, close_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for t in pending:
+            t.cancel()
+
+        if session_closed.is_set():
+            logger.info("persistent_agent_exiting reason=session_closed sessions_served=%d", session_num)
+            return
+
+        # Reset signal received — clear history, notify ready, wait for next activation
+        session_num += 1
+        logger.info("persistent_agent_reset clearing_history session_num=%d", session_num)
+        try:
+            await session.interrupt()
+            session.clear_user_turn()
+            fresh_ctx = llm.ChatContext.empty()
+            await agent.update_chat_ctx(fresh_ctx)
+            logger.info("persistent_agent_history_cleared session_num=%d", session_num)
+        except Exception as exc:
+            logger.error("persistent_agent_reset_failed error=%s", exc)
+
+        sc.reset_event.clear()
+        sc.clear_activate()
+
+        # Signal session manager we're ready for the next session
+        _post_debug_event({"event": "warm_ready", "active": True})
+        logger.info("persistent_agent_waiting session_num=%d", session_num)
+
+        # Wait for next activation
+        activate_task = asyncio.ensure_future(sc.activate_event.wait())
+        close_task = asyncio.ensure_future(session_closed.wait())
+        done, pending = await asyncio.wait(
+            [activate_task, close_task],
+            return_when=asyncio.FIRST_COMPLETED,
+        )
+        for t in pending:
+            t.cancel()
+
+        if session_closed.is_set():
+            logger.info("persistent_agent_exiting reason=session_closed_while_waiting sessions_served=%d", session_num)
+            return
+
+        logger.info(
+            "persistent_agent_activated conversation_id=%s session_num=%d",
+            sc.payload.get("conversation_id", ""),
+            session_num,
+        )
 
 
 def _prewarm_process(_) -> None:

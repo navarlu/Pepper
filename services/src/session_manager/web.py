@@ -237,12 +237,15 @@ class SessionManagerHttp:
         if new_mode not in ("openai", "local"):
             new_mode = "local" if self.manager.agent_mode == "openai" else "openai"
         old_mode = self.manager.agent_mode
-        self.manager.agent_mode = new_mode
-        self.manager._persist_state()
         if old_mode != new_mode:
-            print(f"[session_manager] agent_mode changed {old_mode} -> {new_mode}")
+            # Force teardown: mode switch always kills the current agent fully.
+            print(f"[session_manager] agent_mode changing {old_mode} -> {new_mode}")
+            await self.manager.end_session(reason=f"agent_mode_changed_to_{new_mode}", force_teardown=True)
+            self.manager.agent_mode = new_mode
+            self.manager._persist_state()
             self.manager._append_session_marker(f"Agent mode: {new_mode}")
-            await self.manager.end_session(reason=f"agent_mode_changed_to_{new_mode}")
+        else:
+            self.manager._persist_state()
         return web.json_response({"ok": True, "agent_mode": self.manager.agent_mode})
 
     async def handle_audio_volume(self, request: web.Request) -> web.Response:

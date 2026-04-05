@@ -69,7 +69,7 @@ tmux attach -t pepper-agent 2>/dev/null || \
 
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper
-source .venv/bin/activate
+source .venv2/bin/activate
 python -m voice-agent.src.agent dev
 ```
 
@@ -81,6 +81,8 @@ To detach from tmux without stopping: `Ctrl+B` then `D`
 # In a separate tmux session on woska:
 tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
 
+cd /mnt/data_personal/navarlu2/work/Pepper
+source .venv2/bin/activate
 vllm serve Qwen/Qwen2.5-7B-Instruct \
   --host 127.0.0.1 --port 8000 \
   --enable-auto-tool-choice --tool-call-parser hermes \
@@ -106,8 +108,8 @@ If requirements.txt changed, also run:
 
 ```bash
 # On woska, in the pepper-agent tmux:
-source .venv/bin/activate
-~/.local/bin/uv pip install -r requirements.txt
+source .venv2/bin/activate
+pip install -r requirements.txt
 ```
 
 ## 6. Restart a single RPi service
