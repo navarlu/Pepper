@@ -69,3 +69,5 @@ CLAUDE.md
 .mcp.json
 piper-samples/
 docker/.env
+docker/livekit/turn.key
+docker/livekit/turn.crt
