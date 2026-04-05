@@ -357,7 +357,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         context: RunContext,
         animation: str,
     ) -> str:
-        """Move Pepper's robot body. Call this tool on EVERY reply.
+        """Move Pepper's robot body. Call exactly once per reply.
 
         animation must be one of: greeting, bow, explain, happy, thinking, dont_know
 

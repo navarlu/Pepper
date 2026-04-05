@@ -69,7 +69,7 @@ tmux attach -t pepper-agent 2>/dev/null || \
 
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper
-source .venv2/bin/activate
+source .venv3/bin/activate
 python -m voice-agent.src.agent dev
 ```
 

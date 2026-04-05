@@ -87,13 +87,12 @@ class SessionManagerHttp:
         elif event_type == "agent_speaking":
             self.manager.agent_speaking = active
         elif event_type == "warm_ready":
-            was_pending = self.manager._warm_phase == "pending"
-            self.manager._warm_phase = "standby"
+            self.manager._warm_phase = "ready"
             self.manager._append_session_marker_once("Agent ready")
             asyncio.create_task(self.manager._notify_tablet_status("Ready"))
-            # If activation was queued while deploying, or text is waiting, activate now
-            if was_pending or self.manager.pending_user_texts:
-                asyncio.create_task(self.manager._try_activate_warm())
+            # If text is waiting, start conversation tracking
+            if self.manager.pending_user_texts and not self.manager.conversation_id:
+                self.manager._start_conversation()
         elif event_type == "tool_call":
             self.manager._append_session_log_event({
                 "type": "tool_call",
@@ -193,9 +192,9 @@ class SessionManagerHttp:
         now = time.monotonic()
         self.manager.last_user_activity_monotonic = now
         self.manager.last_user_activity_at = _utc_now_iso()
-        if self.manager.session_state == "warm":
-            await self.manager._try_activate_warm()
-        elif self.manager.session_state == "idle":
+        if self.manager._warm_phase == "ready" and not self.manager.conversation_id:
+            self.manager._start_conversation()
+        elif self.manager.session_state == "idle" and not self.manager.agent_deployed:
             await self.manager.dispatch_cold_agent()
         item = {"id": uuid.uuid4().hex[:10], "text": text}
         self.manager.pending_user_texts.append(item)

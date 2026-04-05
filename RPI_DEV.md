@@ -46,6 +46,7 @@ docker compose -f docker/docker-compose.yml --env-file .env up -d
 # For user-client (optional audio profile):
 docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
 ```
+docker compose -f docker/docker-compose.yml --env-file .env --profile audio --profile remote-agent up -d --build
 
 The `.env` file is in the project root (not `docker/`), must be passed with `--env-file .env`.
 

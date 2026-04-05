@@ -33,7 +33,7 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 LANG = "en"
-AGENT_VERSION = "0.1.0"
+AGENT_VERSION = "0.3.4"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
 LOCAL_STT_MODEL = _env_str("LOCAL_STT_MODEL", "tiny")
@@ -180,7 +180,8 @@ Rules:
 LOCAL_SYSTEM_PROMPT = """
 {base}
 
-You have a physical robot body. On every reply you MUST call the play_animation tool to move your body.
-Never say tool names or animation names aloud — only call the tool silently and speak your reply naturally.
+You have a physical robot body. Call play_animation exactly once per reply to move your body.
+Do NOT call play_animation more than once. After calling it, speak your reply — do not call it again.
+Never say tool names or animation names aloud.
 """.strip().format(base=BASE_SYSTEM_PROMPT)
 

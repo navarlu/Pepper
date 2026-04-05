@@ -109,7 +109,7 @@ class SessionManager:
         self.local_llm_healthy = False
         self.session_state = "idle"
         self.agent_deployed = False
-        # Warm agent lifecycle: "none" → "deploying" → "standby" → "activating"
+        # Warm agent lifecycle: "none" → "deploying" → "ready"
         self._warm_phase = "none"
         self.conversation_id = ""
         self.active_dispatch_id = ""
@@ -632,42 +632,16 @@ class SessionManager:
             finally:
                 await lkapi.aclose()
 
-    async def _try_activate_warm(self) -> None:
-        """Activate the warm agent if it's in standby, or queue activation if still deploying."""
-        async with self._lock:
-            if self._warm_phase == "standby":
-                await self._activate_warm_agent()
-            elif self._warm_phase == "deploying":
-                self._warm_phase = "pending"
-                print("[session_manager] warm agent still deploying — activation queued")
-
-    async def _activate_warm_agent(self) -> None:
-        """Send activation signal to warm agent. Must be called under self._lock."""
-        self._warm_phase = "activating"
+    def _start_conversation(self) -> None:
+        """Begin tracking a new conversation on first user activity after agent is ready."""
+        if self.conversation_id:
+            return
         self.conversation_id = uuid.uuid4().hex[:10]
         self._reset_session_log()
         self.session_state = "active"
-        self.dispatch_started_monotonic = time.monotonic()
         self._append_session_marker(f"New session · {self.conversation_id}")
         self.updated_at = _utc_now_iso()
-
-        payload = json.dumps(
-            {"action": "activate", "conversation_id": self.conversation_id}
-        ).encode("utf-8")
-        lkapi = self._new_lkapi()
-        try:
-            await lkapi.room.send_data(
-                api.SendDataRequest(
-                    room=self.room_name,
-                    data=payload,
-                    topic="session-control",
-                )
-            )
-            print(f"[session_manager] activated warm agent conversation_id={self.conversation_id}")
-        except Exception as exc:
-            print(f"[session_manager] activate signal failed err={exc}")
-        finally:
-            await lkapi.aclose()
+        print(f"[session_manager] conversation started conversation_id={self.conversation_id}")
 
     async def dispatch_cold_agent(self) -> None:
         """Cold-dispatch an agent (no warm preloading). Used as fallback."""
@@ -745,7 +719,7 @@ class SessionManager:
                 # Persistent local agent: send reset, keep agent alive in room
                 await self._send_reset_signal()
                 # Agent stays deployed — just reset session-level state
-                self._warm_phase = "deploying"  # will become "standby" on warm_ready
+                self._warm_phase = "deploying"  # will become "ready" on warm_ready
                 self.dispatch_started_monotonic = time.monotonic()  # reset timeout window
             else:
                 # OpenAI / non-persistent: tear down and re-dispatch as before
@@ -802,8 +776,8 @@ class SessionManager:
                 self.mic_level = max(0.0, min(1.0, level))
             strong_signal = level is not None and level >= WARM_ACTIVATION_MIN_LEVEL
             if strong_signal:
-                if self.session_state == "warm":
-                    await self._try_activate_warm()
+                if self._warm_phase == "ready" and not self.conversation_id:
+                    self._start_conversation()
                 elif not self.agent_deployed and self.session_state == "idle":
                     await self.dispatch_cold_agent()
         elif source == SESSION_SOURCE_AGENT:
@@ -937,12 +911,12 @@ class SessionManager:
                         await self.end_session(reason="no_activity_after_dispatch")
             if self.session_state == "warm" and self.agent_deployed:
                 if (
-                    self._warm_phase in ("deploying", "pending")
+                    self._warm_phase == "deploying"
                     and self.dispatch_started_monotonic > 0
                     and (now - self.dispatch_started_monotonic) >= WARM_AGENT_JOIN_TIMEOUT_SEC
                 ):
                     print("[session_manager] warm agent never became ready - re-dispatching")
-                    await self.end_session(reason="warm_agent_timeout")
+                    await self.end_session(reason="warm_agent_timeout", force_teardown=True)
             await asyncio.sleep(LIVEKIT_STATUS_POLL_INTERVAL_SEC)
 
     async def token_refresh_loop(self) -> None:

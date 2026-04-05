@@ -1,21 +1,20 @@
 services:
   livekit:
     image: livekit/livekit-server:v1.9.11
+    env_file: ../.env
     command:
-      - --dev
-      - --bind=0.0.0.0
-      - --port=7880
-      - --udp-port=7882
+      - --config=/livekit/livekit.yaml
       - --keys=${LIVEKIT_KEYS}
-      - --redis-host=redis:6379
-    ports:
-      - "7880:7880/tcp"
-      - "7882:7882/udp"
+    volumes:
+      - ./livekit:/livekit:ro
+    network_mode: host
     restart: unless-stopped
 
   redis:
     image: redis:7.4.2-alpine3.21
     command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
     volumes:
       - ./redis-data:/data
     restart: unless-stopped
@@ -29,7 +28,7 @@ services:
     volumes:
       - ..:/workspace
     environment:
-      LIVEKIT_URL: ws://livekit:7880
+      LIVEKIT_URL: ws://host.docker.internal:7880
       SESSION_MANAGER_URL: http://session-manager:8787
       WEAVIATE_HOST: weaviate
       ANIMATION_BRIDGE_URL: http://host.docker.internal:5000
@@ -62,13 +61,13 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
-      LIVEKIT_URL: ws://livekit:7880
-      LIVEKIT_HTTP_URL: http://livekit:7880
+      LIVEKIT_URL: ws://host.docker.internal:7880
+      LIVEKIT_HTTP_URL: http://host.docker.internal:7880
       BRIDGE_URL: http://host.docker.internal:5000
       SESSION_MANAGER_HOST: 0.0.0.0
       SESSION_MANAGER_PORT: 8787
       LIVEKIT_SESSION_FILE: /workspace/data/token-latest.json
-      REDIS_HOST: redis
+      REDIS_HOST: host.docker.internal
       REDIS_PORT: 6379
       WEAVIATE_HOST: weaviate
       WEAVIATE_HTTP_PORT: 8080
@@ -136,7 +135,7 @@ services:
     volumes:
       - ..:/workspace
     environment:
-      LIVEKIT_URL: ws://livekit:7880
+      LIVEKIT_URL: ws://host.docker.internal:7880
       SESSION_MANAGER_URL: http://session-manager:8787
       LIVEKIT_SESSION_FILE: /workspace/data/token-latest.json
       TCP_HOST: host.docker.internal
@@ -208,6 +207,7 @@ services:
           -o ExitOnForwardFailure=yes \
           -J navarlu2@ptak.felk.cvut.cz \
           -R 7880:127.0.0.1:7880 \
+          -R 7443:127.0.0.1:7443 \
           -R 8787:127.0.0.1:8787 \
           -R 5000:127.0.0.1:5000 \
           -R 8080:127.0.0.1:8080 \
@@ -244,6 +244,7 @@ services:
 
   weaviate:
       image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
+      env_file: ../.env
       ports:
         - "8080:8080"
         - "50051:50051"

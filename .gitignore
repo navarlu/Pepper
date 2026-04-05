@@ -68,3 +68,4 @@ AGENTS.md
 CLAUDE.md
 .mcp.json
 piper-samples/
+docker/.env

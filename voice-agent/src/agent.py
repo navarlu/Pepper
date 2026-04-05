@@ -20,6 +20,13 @@ from livekit.agents import (
 )
 from livekit.plugins import openai, silero
 
+from livekit.agents.llm.chat_context import (
+    ChatMessage,
+    FunctionCall,
+    FunctionCallOutput,
+)
+from livekit.agents.llm import utils as _llm_utils
+
 from .config import (
     AGENT_NAME,
     AGENT_VERSION,
@@ -49,6 +56,39 @@ from .tools import build_tools
 from .utils import connect_weaviate, seed_collection
 
 logger = logging.getLogger("voice-agent")
+
+# --- Monkey-patch: fix Qwen's malformed tool call JSON ---
+# Qwen 2.5 7B sometimes emits extra trailing braces, e.g. {"animation": "greeting"}}
+# which causes `from_json` to fail with "trailing characters".
+# We intercept prepare_function_arguments to sanitize the JSON before parsing.
+_original_prepare_fn_args = _llm_utils.prepare_function_arguments
+
+
+def _sanitized_prepare_fn_args(*, fnc, json_arguments, call_ctx=None):
+    try:
+        return _original_prepare_fn_args(fnc=fnc, json_arguments=json_arguments, call_ctx=call_ctx)
+    except ValueError as exc:
+        if "trailing" not in str(exc).lower():
+            raise
+        # Find the matching closing brace for the first '{' and discard the rest
+        cleaned = json_arguments.strip()
+        depth = 0
+        for i, ch in enumerate(cleaned):
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    cleaned = cleaned[: i + 1]
+                    break
+        logger.warning(
+            "sanitized_tool_args original=%r cleaned=%r", json_arguments, cleaned
+        )
+        return _original_prepare_fn_args(fnc=fnc, json_arguments=cleaned, call_ctx=call_ctx)
+
+
+_llm_utils.prepare_function_arguments = _sanitized_prepare_fn_args
+# --- End monkey-patch ---
 
 ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 _PREWARMED_VAD = None
@@ -253,6 +293,30 @@ def _on_llm_metrics_collected(metrics) -> None:
         pass
 
 
+def _strip_tool_history(chat_ctx: llm.ChatContext) -> llm.ChatContext:
+    """Remove FunctionCall + FunctionCallOutput items from chat history.
+
+    Qwen 2.5 7B confuses raw tool-call JSON in history with text generation.
+    We drop tool items entirely and rely on tool_choice=none (set in
+    _chat_with_stripped_history) to prevent repeated calls after a tool executes.
+    """
+    stripped: list = []
+    n_dropped = 0
+
+    for item in chat_ctx.items:
+        if isinstance(item, (FunctionCall, FunctionCallOutput)):
+            n_dropped += 1
+            continue
+        stripped.append(item)
+
+    if n_dropped:
+        logger.info(
+            "strip_tool_history dropped=%d, items %d→%d",
+            n_dropped, len(chat_ctx.items), len(stripped),
+        )
+    return llm.ChatContext(items=stripped)
+
+
 def _build_local_session() -> AgentSession:
     """Build an AgentSession using local STT (Whisper) + local LLM (vLLM) + local TTS (Piper)."""
     local_llm = openai.LLM(
@@ -264,6 +328,44 @@ def _build_local_session() -> AgentSession:
         _strict_tool_schema=False,
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
+
+    # Wrap the LLM's chat method to strip tool history before every call.
+    # This prevents Qwen from seeing raw FunctionCall/FunctionCallOutput items
+    # in multi-turn conversations (see TOSTRIPORNOTTOSTRIP.md).
+    _original_chat = local_llm.chat
+
+    def _chat_with_stripped_history(*, chat_ctx, tools=None, **kwargs):
+        # Check if the context contains a just-completed tool call.
+        # If so, strip tools and force text-only response (tool_choice=none).
+        has_tool_output = any(
+            isinstance(it, FunctionCallOutput) for it in chat_ctx.items
+        )
+        item_types = {}
+        for it in chat_ctx.items:
+            t = type(it).__name__
+            item_types[t] = item_types.get(t, 0) + 1
+
+        stripped = _strip_tool_history(chat_ctx)
+
+        if has_tool_output:
+            # Tool already called this turn — force text-only response.
+            # Pass no tools so Qwen doesn't see tool definitions and
+            # won't generate <tool_call> tags as text.
+            logger.info(
+                "llm_chat_called items=%s tools=none (post-tool)",
+                item_types,
+            )
+            return _original_chat(chat_ctx=stripped, tools=None, **kwargs)
+
+        tool_names = [t.name if hasattr(t, 'name') else str(t) for t in (tools or [])]
+        logger.info(
+            "llm_chat_called items=%s tools=%s",
+            item_types, tool_names,
+        )
+        return _original_chat(chat_ctx=stripped, tools=tools, **kwargs)
+
+    local_llm.chat = _chat_with_stripped_history  # type: ignore[method-assign]
+
     return AgentSession(
         vad=_get_local_vad(),
         stt=_get_local_stt(),
@@ -356,9 +458,15 @@ async def entrypoint(ctx: JobContext) -> None:
         reply = sess.generate_reply(user_input=message)
         await reply.wait_for_playout()
 
+    agent_tools = build_tools(agent_mode)
+    logger.info(
+        "agent_tools_registered count=%d names=%s",
+        len(agent_tools),
+        [getattr(t, 'name', str(t)) for t in agent_tools],
+    )
     agent = Agent(
         instructions=_get_agent_instructions(agent_mode),
-        tools=build_tools(agent_mode),
+        tools=agent_tools,
     )
 
     session_closed = asyncio.Event()
@@ -382,23 +490,16 @@ async def entrypoint(ctx: JobContext) -> None:
     await weaviate_task
 
     if is_warm:
-        t_warm_ready = time.monotonic()
         logger.info(
-            "warm_agent_ready waiting_for_activation agent_mode=%s persistent=%s total_warm_setup=%.3fs",
+            "warm_agent_ready agent_mode=%s persistent=%s total_warm_setup=%.3fs",
             agent_mode,
             is_persistent,
-            t_warm_ready - t_entry,
+            time.monotonic() - t_entry,
         )
         _post_debug_event({"event": "warm_ready", "active": True})
-        await sc.activate_event.wait()
-        logger.info(
-            "warm_agent_activated conversation_id=%s wait_duration=%.3fs",
-            sc.payload.get("conversation_id", ""),
-            time.monotonic() - t_warm_ready,
-        )
 
     logger.info(
-        "waiting_for_user_speech agent_mode=%s total_setup=%.3fs",
+        "agent_listening agent_mode=%s total_setup=%.3fs",
         agent_mode,
         time.monotonic() - t_entry,
     )
@@ -409,10 +510,10 @@ async def entrypoint(ctx: JobContext) -> None:
         return
 
     # --- Persistent local agent loop ---
-    # Agent stays alive across sessions; history is cleared on reset signal.
-    session_num = 1
+    # Agent responds to user speech immediately.
+    # On reset signal from session manager, clear history for a fresh conversation.
+    session_num = 0
     while True:
-        # Wait for either: reset signal (session ended) or session close (agent killed)
         reset_task = asyncio.ensure_future(sc.reset_event.wait())
         close_task = asyncio.ensure_future(session_closed.wait())
         done, pending = await asyncio.wait(
@@ -423,47 +524,22 @@ async def entrypoint(ctx: JobContext) -> None:
             t.cancel()
 
         if session_closed.is_set():
-            logger.info("persistent_agent_exiting reason=session_closed sessions_served=%d", session_num)
+            logger.info("persistent_agent_exiting sessions_served=%d", session_num)
             return
 
-        # Reset signal received — clear history, notify ready, wait for next activation
         session_num += 1
         logger.info("persistent_agent_reset clearing_history session_num=%d", session_num)
         try:
             await session.interrupt()
             session.clear_user_turn()
-            fresh_ctx = llm.ChatContext.empty()
-            await agent.update_chat_ctx(fresh_ctx)
+            await agent.update_chat_ctx(llm.ChatContext.empty())
             logger.info("persistent_agent_history_cleared session_num=%d", session_num)
         except Exception as exc:
             logger.error("persistent_agent_reset_failed error=%s", exc)
 
         sc.reset_event.clear()
-        sc.clear_activate()
-
-        # Signal session manager we're ready for the next session
         _post_debug_event({"event": "warm_ready", "active": True})
-        logger.info("persistent_agent_waiting session_num=%d", session_num)
-
-        # Wait for next activation
-        activate_task = asyncio.ensure_future(sc.activate_event.wait())
-        close_task = asyncio.ensure_future(session_closed.wait())
-        done, pending = await asyncio.wait(
-            [activate_task, close_task],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        for t in pending:
-            t.cancel()
-
-        if session_closed.is_set():
-            logger.info("persistent_agent_exiting reason=session_closed_while_waiting sessions_served=%d", session_num)
-            return
-
-        logger.info(
-            "persistent_agent_activated conversation_id=%s session_num=%d",
-            sc.payload.get("conversation_id", ""),
-            session_num,
-        )
+        logger.info("persistent_agent_ready session_num=%d", session_num)
 
 
 def _prewarm_process(_) -> None:
