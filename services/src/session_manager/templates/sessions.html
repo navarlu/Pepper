@@ -1,0 +1,210 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Pepper Session Logs</title>
+<style>
+:root {
+  --bg: #f4f6f9; --panel: #fff; --line: #dde3ea; --text: #1a2b3c;
+  --muted: #6b7f94; --accent: #2968d8; --accent-soft: #edf4ff;
+  --user: #2968d8; --agent: #3a9e5c; --tool: #c77d20; --error: #c85757;
+  --event: #8b8fa3; --metric: #7c5cbf; --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+       background: var(--bg); color: var(--text); padding: 20px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+.header h1 { font-size: 22px; font-weight: 600; }
+.header .back { font-size: 14px; color: var(--muted); }
+
+/* Session list */
+.sessions-table { width: 100%; border-collapse: collapse; background: var(--panel);
+                  border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
+.sessions-table th { text-align: left; padding: 10px 14px; font-size: 12px;
+                     font-weight: 600; color: var(--muted); text-transform: uppercase;
+                     letter-spacing: 0.5px; border-bottom: 2px solid var(--line); }
+.sessions-table td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--line); }
+.sessions-table tr:last-child td { border-bottom: none; }
+.sessions-table tr:hover td { background: var(--accent-soft); cursor: pointer; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 4px;
+         font-size: 11px; font-weight: 600; }
+.badge-openai { background: #e8f5e9; color: #2e7d32; }
+.badge-local { background: #fff3e0; color: #e65100; }
+.empty { text-align: center; padding: 40px; color: var(--muted); }
+
+/* Detail view */
+.detail-header { background: var(--panel); border-radius: 10px; padding: 18px 22px;
+                 box-shadow: var(--shadow); margin-bottom: 18px; }
+.detail-header h2 { font-size: 18px; margin-bottom: 8px; }
+.detail-meta { display: flex; flex-wrap: wrap; gap: 20px; font-size: 13px; color: var(--muted); }
+.detail-meta strong { color: var(--text); }
+
+.timeline { display: flex; flex-direction: column; gap: 6px; }
+.ev { background: var(--panel); border-radius: 8px; padding: 10px 14px;
+      box-shadow: var(--shadow); border-left: 4px solid var(--line); font-size: 13px; }
+.ev-user_speech { border-left-color: var(--user); }
+.ev-agent_speech { border-left-color: var(--agent); }
+.ev-tool_call { border-left-color: var(--tool); }
+.ev-error { border-left-color: var(--error); background: #fff5f5; }
+.ev-session_event { border-left-color: var(--event); opacity: 0.7; }
+.ev-pipeline_metric { border-left-color: var(--metric); background: #f8f6ff; }
+
+.ev-time { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+.ev-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 4px; }
+.ev-label-user_speech { color: var(--user); }
+.ev-label-agent_speech { color: var(--agent); }
+.ev-label-tool_call { color: var(--tool); }
+.ev-label-error { color: var(--error); }
+.ev-label-session_event { color: var(--event); }
+.ev-label-pipeline_metric { color: var(--metric); }
+.metric-bar { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; }
+.metric-bar .metric-val { font-weight: 700; }
+.metric-bar .metric-lbl { color: var(--muted); }
+
+.ev-text { line-height: 1.5; }
+.ev-duration { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.ev-details { margin-top: 6px; }
+.ev-details summary { font-size: 12px; color: var(--muted); cursor: pointer; }
+.ev-details pre { margin-top: 4px; font-size: 11px; background: #f6f8fa;
+                  padding: 8px 10px; border-radius: 6px; overflow-x: auto;
+                  max-height: 300px; white-space: pre-wrap; word-break: break-word; }
+</style>
+
+<div class="header">
+  <h1 id="pageTitle">Session Logs</h1>
+  <a href="/" class="back">&larr; Dashboard</a>
+  <a href="#" class="back" id="backToList" style="display:none">&larr; All Sessions</a>
+</div>
+<div id="content"><div class="empty">Loading...</div></div>
+
+<script>
+const $content = document.getElementById("content");
+const $title = document.getElementById("pageTitle");
+const $backToList = document.getElementById("backToList");
+
+function fmtTime(iso) {
+  if (!iso) return "";
+  try { return new Date(iso).toLocaleString(); } catch { return iso; }
+}
+function fmtDuration(sec) {
+  if (!sec && sec !== 0) return "";
+  if (sec < 60) return sec.toFixed(1) + "s";
+  return Math.floor(sec/60) + "m " + Math.round(sec%60) + "s";
+}
+
+async function loadList() {
+  $backToList.style.display = "none";
+  $title.textContent = "Session Logs";
+  try {
+    const resp = await fetch("/api/sessions");
+    const data = await resp.json();
+    if (!data.sessions || !data.sessions.length) {
+      $content.innerHTML = '<div class="empty">No sessions recorded yet.</div>';
+      return;
+    }
+    let html = '<table class="sessions-table"><thead><tr>' +
+      '<th>ID</th><th>Mode</th><th>Started</th><th>Duration</th>' +
+      '<th>Turns</th><th>Tools</th><th>Errors</th><th>End Reason</th></tr></thead><tbody>';
+    for (const s of data.sessions) {
+      const sm = s.summary || {};
+      const modeClass = s.agent_mode === "openai" ? "badge-openai" : "badge-local";
+      html += '<tr onclick="loadDetail(\'' + s.filename + '\')">' +
+        '<td><code>' + (s.conversation_id||"").substring(0,8) + '</code></td>' +
+        '<td><span class="badge ' + modeClass + '">' + (s.agent_mode||"?") + '</span></td>' +
+        '<td>' + fmtTime(s.started_at) + '</td>' +
+        '<td>' + fmtDuration(s.duration_sec) + '</td>' +
+        '<td>' + (sm.turns||0) + '</td>' +
+        '<td>' + (sm.tool_calls||0) + '</td>' +
+        '<td>' + (sm.errors||0) + '</td>' +
+        '<td style="font-size:12px;color:var(--muted)">' + (s.end_reason||"") + '</td></tr>';
+    }
+    html += '</tbody></table>';
+    $content.innerHTML = html;
+  } catch (e) {
+    $content.innerHTML = '<div class="empty">Failed to load sessions: ' + e.message + '</div>';
+  }
+}
+
+async function loadDetail(filename) {
+  $backToList.style.display = "inline";
+  $backToList.onclick = (e) => { e.preventDefault(); loadList(); };
+  try {
+    const resp = await fetch("/api/sessions/" + encodeURIComponent(filename));
+    const data = await resp.json();
+    $title.textContent = "Session " + (data.conversation_id || "");
+    const sm = data.summary || {};
+    const modeClass = data.agent_mode === "openai" ? "badge-openai" : "badge-local";
+    let html = '<div class="detail-header">' +
+      '<h2>' + (data.conversation_id||"") + '</h2>' +
+      '<div class="detail-meta">' +
+        '<span>Mode: <span class="badge ' + modeClass + '">' + (data.agent_mode||"") + '</span></span>' +
+        '<span>Start: <strong>' + fmtTime(data.started_at) + '</strong></span>' +
+        '<span>Duration: <strong>' + fmtDuration(data.duration_sec) + '</strong></span>' +
+        '<span>Turns: <strong>' + (sm.turns||0) + '</strong></span>' +
+        '<span>Tool calls: <strong>' + (sm.tool_calls||0) + '</strong></span>' +
+        '<span>Errors: <strong>' + (sm.errors||0) + '</strong></span>' +
+        '<span>End: <strong>' + (data.end_reason||"") + '</strong></span>' +
+      '</div></div>';
+
+    html += '<div class="timeline">';
+    const labels = {
+      user_speech: "User", agent_speech: "Pepper",
+      tool_call: "Tool", error: "Error", session_event: "Event",
+      pipeline_metric: "Metric"
+    };
+    for (const ev of (data.events || [])) {
+      const tp = ev.type || "session_event";
+      html += '<div class="ev ev-' + tp + '">';
+      html += '<div class="ev-time">' + fmtTime(ev.t) + '</div>';
+      html += '<div class="ev-label ev-label-' + tp + '">' + (labels[tp]||tp) + '</div>';
+
+      if (tp === "user_speech" || tp === "agent_speech") {
+        html += '<div class="ev-text">' + escHtml(ev.text||"") + '</div>';
+      } else if (tp === "tool_call") {
+        html += '<div class="ev-text"><strong>' + escHtml(ev.tool||"") + '</strong>';
+        if (ev.duration_ms != null) html += ' <span class="ev-duration">' + ev.duration_ms.toFixed(1) + 'ms</span>';
+        if (ev.error) html += ' <span style="color:var(--error)">(' + escHtml(ev.error) + ')</span>';
+        html += '</div>';
+        html += '<div class="ev-details"><details><summary>args &amp; result</summary>';
+        html += '<pre>' + escHtml(JSON.stringify(ev.args, null, 2)) + '</pre>';
+        html += '<pre>' + escHtml(JSON.stringify(ev.result, null, 2)) + '</pre>';
+        html += '</details></div>';
+      } else if (tp === "pipeline_metric") {
+        const stage = (ev.stage||"").toUpperCase();
+        html += '<div class="metric-bar"><span><span class="metric-lbl">' + stage + '</span> <span class="metric-val">' + (ev.duration_ms||0).toFixed(1) + 'ms</span></span>';
+        if (ev.ttft_ms != null) html += '<span><span class="metric-lbl">TTFT</span> <span class="metric-val">' + ev.ttft_ms.toFixed(1) + 'ms</span></span>';
+        if (ev.tokens_per_second) html += '<span><span class="metric-val">' + ev.tokens_per_second.toFixed(1) + '</span> <span class="metric-lbl">tok/s</span></span>';
+        if (ev.completion_tokens) html += '<span><span class="metric-val">' + ev.completion_tokens + '</span> <span class="metric-lbl">tokens</span></span>';
+        if (ev.audio_duration_ms) html += '<span><span class="metric-lbl">audio</span> <span class="metric-val">' + (ev.audio_duration_ms/1000).toFixed(1) + 's</span></span>';
+        if (ev.characters) html += '<span><span class="metric-val">' + ev.characters + '</span> <span class="metric-lbl">chars</span></span>';
+        html += '</div>';
+        if (ev.text) html += '<div class="ev-text" style="margin-top:4px;font-size:12px;color:var(--muted)">' + escHtml(ev.text) + '</div>';
+      } else if (tp === "error") {
+        html += '<div class="ev-text"><strong>' + escHtml(ev.source||"") + ':</strong> ' + escHtml(ev.message||"") + '</div>';
+      } else if (tp === "session_event") {
+        html += '<div class="ev-text">' + escHtml(ev.detail||"") + '</div>';
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    $content.innerHTML = html;
+  } catch (e) {
+    $content.innerHTML = '<div class="empty">Failed to load session: ' + e.message + '</div>';
+  }
+}
+
+function escHtml(s) {
+  const d = document.createElement("div");
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// Check URL hash for direct link
+if (location.hash && location.hash.startsWith("#detail:")) {
+  loadDetail(location.hash.substring(8));
+} else {
+  loadList();
+}
+</script>

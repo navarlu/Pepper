@@ -193,6 +193,34 @@ services:
       - debug
     restart: unless-stopped
 
+  # Reverse tunnel: exposes RPi services on woska:localhost so the remote voice-agent can reach them.
+  # Also keeps the forward tunnel for vLLM (woska:8000 → RPi:8000) for local-mode fallback.
+  reverse-tunnel:
+    image: alpine:3.21
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache autossh openssh-client &&
+        exec autossh -M 0 -N \
+          -o StrictHostKeyChecking=accept-new \
+          -o ServerAliveInterval=15 \
+          -o ServerAliveCountMax=3 \
+          -o ExitOnForwardFailure=yes \
+          -J navarlu2@ptak.felk.cvut.cz \
+          -R 7880:127.0.0.1:7880 \
+          -R 8787:127.0.0.1:8787 \
+          -R 5000:127.0.0.1:5000 \
+          -R 8080:127.0.0.1:8080 \
+          -R 50051:127.0.0.1:50051 \
+          navarlu2@woska
+    volumes:
+      - /home/lucas/.ssh:/root/.ssh
+    network_mode: host
+    profiles:
+      - remote-agent
+    restart: unless-stopped
+
+  # Forward tunnel: woska:8000 → RPi:8000 (for running voice-agent locally with remote vLLM)
   ssh-tunnel:
     image: alpine:3.21
     entrypoint: ["/bin/sh", "-c"]
@@ -206,7 +234,7 @@ services:
           -o ExitOnForwardFailure=yes \
           -J navarlu2@ptak.felk.cvut.cz \
           -L 0.0.0.0:8000:127.0.0.1:8000 \
-          navarlu2@lie
+          navarlu2@woska
     volumes:
       - /home/lucas/.ssh:/root/.ssh:ro
     network_mode: host

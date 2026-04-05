@@ -80,29 +80,6 @@ _load_root_env()
 _set_runtime_defaults()
 
 
-def _post_component_status(state: str, detail: str, healthy: bool) -> None:
-    if not SESSION_MANAGER_URL:
-        return
-    url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/component-status"
-    req = Request(
-        url,
-        data=json.dumps(
-            {
-                "name": "voice-agent",
-                "state": state,
-                "detail": detail,
-                "healthy": healthy,
-            }
-        ).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        urlopen(req, timeout=0.5).read()
-    except Exception:
-        pass
-
-
 def _post_debug_event(payload: dict[str, object]) -> None:
     if not SESSION_MANAGER_URL:
         return
@@ -126,30 +103,6 @@ def _post_pipeline_metric(metric: dict) -> None:
         args=({"event": "pipeline_metric", **metric},),
         daemon=True,
     ).start()
-
-
-def _start_component_heartbeat() -> threading.Event:
-    stop_event = threading.Event()
-
-    def _worker() -> None:
-        _post_component_status("starting", "worker booting", healthy=False)
-        while not stop_event.wait(5.0):
-            if _WORKER_READY.is_set():
-                _post_component_status(
-                    "ready",
-                    "worker registered and waiting for jobs",
-                    healthy=True,
-                )
-            else:
-                _post_component_status(
-                    "starting",
-                    "worker booting",
-                    healthy=False,
-                )
-
-    thread = threading.Thread(target=_worker, name="voice-agent-heartbeat", daemon=True)
-    thread.start()
-    return stop_event
 
 
 def _is_bridge_listener(participant) -> bool:
@@ -471,26 +424,16 @@ def _prewarm_process(_) -> None:
         _get_local_tts()
 
     _WORKER_READY.set()
-    _post_component_status(
-        "ready",
-        "worker initialized and waiting for jobs",
-        healthy=True,
-    )
     logger.info("prewarm_done total=%.3fs", time.monotonic() - t_start)
 
 
 if __name__ == "__main__":
-    heartbeat_stop = _start_component_heartbeat()
-    try:
-        cli.run_app(
-            WorkerOptions(
-                entrypoint_fnc=entrypoint,
-                prewarm_fnc=_prewarm_process,
-                initialize_process_timeout=120.0,
-                num_idle_processes=1,
-                agent_name=AGENT_NAME,
-            )
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            prewarm_fnc=_prewarm_process,
+            initialize_process_timeout=120.0,
+            num_idle_processes=1,
+            agent_name=AGENT_NAME,
         )
-    finally:
-        heartbeat_stop.set()
-        _post_component_status("stopping", "worker stopped", healthy=False)
+    )

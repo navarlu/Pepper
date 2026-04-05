@@ -26,8 +26,7 @@ class SessionManagerHttp:
             "room_name": self.manager.room_name,
             "session_state": self.manager.session_state,
             "agent_deployed": self.manager.agent_deployed,
-            "warm_agent_ready": self.manager.warm_agent_ready,
-            "warm_activation_pending": self.manager.warm_activation_pending,
+            "warm_phase": self.manager._warm_phase,
             "conversation_id": self.manager.conversation_id,
             "last_user_activity_at": self.manager.last_user_activity_at,
             "last_agent_activity_at": self.manager.last_agent_activity_at,
@@ -47,18 +46,8 @@ class SessionManagerHttp:
             "idle_countdown_sec": self.manager._idle_countdown_sec(),
             "watchdog": dict(self.manager.watchdog_status),
             "components": sorted(
-                (
-                    {
-                        "name": item.get("name", ""),
-                        "state": item.get("state", ""),
-                        "detail": item.get("detail", ""),
-                        "healthy": bool(item.get("healthy", False)),
-                        "source": item.get("source", ""),
-                        "updated_at": item.get("updated_at", ""),
-                    }
-                    for item in self.manager.components.values()
-                ),
-                key=lambda item: item["name"],
+                self.manager.components.values(),
+                key=lambda item: item.get("name", ""),
             ),
         }
         return web.json_response(payload)
@@ -98,17 +87,13 @@ class SessionManagerHttp:
         elif event_type == "agent_speaking":
             self.manager.agent_speaking = active
         elif event_type == "warm_ready":
-            self.manager.warm_agent_ready = True
+            was_pending = self.manager._warm_phase == "pending"
+            self.manager._warm_phase = "standby"
             self.manager._append_session_marker_once("Agent ready")
-            if (
-                self.manager.session_state == "warm"
-                and self.manager.agent_deployed
-                and (
-                    self.manager.warm_activation_pending
-                    or self.manager.pending_user_texts
-                )
-            ):
-                asyncio.create_task(self.manager.dispatch_agent())
+            asyncio.create_task(self.manager._notify_tablet_status("Ready"))
+            # If activation was queued while deploying, or text is waiting, activate now
+            if was_pending or self.manager.pending_user_texts:
+                asyncio.create_task(self.manager._try_activate_warm())
         elif event_type == "tool_call":
             self.manager._append_session_log_event({
                 "type": "tool_call",
@@ -208,8 +193,10 @@ class SessionManagerHttp:
         now = time.monotonic()
         self.manager.last_user_activity_monotonic = now
         self.manager.last_user_activity_at = _utc_now_iso()
-        if self.manager.session_state in ("warm", "idle"):
-            await self.manager.dispatch_agent()
+        if self.manager.session_state == "warm":
+            await self.manager._try_activate_warm()
+        elif self.manager.session_state == "idle":
+            await self.manager.dispatch_cold_agent()
         item = {"id": uuid.uuid4().hex[:10], "text": text}
         self.manager.pending_user_texts.append(item)
         self.manager.updated_at = _utc_now_iso()

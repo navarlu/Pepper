@@ -54,3 +54,6 @@
 
 Log system
 
+Finetune the local agent
+
+Quick autostart for openai

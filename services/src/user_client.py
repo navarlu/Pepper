@@ -215,6 +215,7 @@ class UserAudioClient:
         healthy: bool,
         force: bool = False,
     ) -> None:
+        """Log component status locally (no longer POSTs to session manager)."""
         now = time.monotonic()
         if (
             not force
@@ -226,20 +227,7 @@ class UserAudioClient:
         self._component_state = state
         self._component_detail = detail
         self._last_component_status_monotonic = now
-        try:
-            async with self.http.post(
-                f"{SESSION_MANAGER_URL}/api/component-status",
-                json={
-                    "name": "user-client",
-                    "state": state,
-                    "detail": detail,
-                    "healthy": healthy,
-                },
-                timeout=aiohttp.ClientTimeout(total=1.0),
-            ) as resp:
-                await resp.read()
-        except Exception:
-            pass
+        print(f"[user-client] {state} - {detail} (healthy={healthy})")
 
     def _reset_runtime_state(self) -> None:
         self.source = rtc.AudioSource(

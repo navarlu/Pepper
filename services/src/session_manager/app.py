@@ -47,10 +47,8 @@ SESSION_SOURCE_USER = "user"
 SESSION_SOURCE_AGENT = "agent"
 SESSION_MANAGER_STATE_FILE = "session-manager-state.json"
 MAX_TRANSCRIPT_ITEMS = 40
-COMPONENT_STALE_AFTER_SEC = 12.0
 COMPONENT_PROBE_INTERVAL_SEC = 3.0
 WARM_AGENT_JOIN_TIMEOUT_SEC = float(os.getenv("WARM_AGENT_JOIN_TIMEOUT_SEC", "90"))
-VOICE_AGENT_READY_WAIT_SEC = float(os.getenv("VOICE_AGENT_READY_WAIT_SEC", "30"))
 DEFAULT_LOCAL_AUDIO_VOLUME = int(os.getenv("PEPPER_OUTPUT_VOLUME", "55"))
 WARM_ACTIVATION_MIN_LEVEL = float(os.getenv("WARM_ACTIVATION_MIN_LEVEL", "0.05"))
 DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
@@ -111,8 +109,8 @@ class SessionManager:
         self.local_llm_healthy = False
         self.session_state = "idle"
         self.agent_deployed = False
-        self.warm_agent_ready = False
-        self.warm_activation_pending = False
+        # Warm agent lifecycle: "none" → "deploying" → "standby" → "activating"
+        self._warm_phase = "none"
         self.conversation_id = ""
         self.active_dispatch_id = ""
         self.last_user_activity_monotonic = 0.0
@@ -148,81 +146,15 @@ class SessionManager:
         self._lock = asyncio.Lock()
         self._bg_tasks: list[asyncio.Task[Any]] = []
         self._bootstrap_complete = False
-        self._register_component(
-            "session-manager",
-            state="starting",
-            detail="initializing",
-            healthy=True,
-            source="internal",
-        )
-        self._register_component(
-            "listener",
-            state="unknown",
-            detail="waiting for heartbeat",
-            healthy=False,
-            source="service",
-        )
-        self._register_component(
-            "user-client",
-            state="unknown",
-            detail="waiting for heartbeat",
-            healthy=False,
-            source="service",
-        )
-        self._register_component(
-            "voice-agent",
-            state="unknown",
-            detail="waiting for heartbeat",
-            healthy=False,
-            source="service",
-        )
-        self._register_component(
-            "safe-startup",
-            state="unknown",
-            detail="waiting for watchdog",
-            healthy=False,
-            source="service",
-        )
-        self._register_component(
-            "bridge",
-            state="unknown",
-            detail="waiting for probe",
-            healthy=False,
-            source="probe",
-        )
-        self._register_component(
-            "livekit",
-            state="unknown",
-            detail="waiting for probe",
-            healthy=False,
-            source="probe",
-        )
-        self._register_component(
-            "redis",
-            state="unknown",
-            detail="waiting for probe",
-            healthy=False,
-            source="probe",
-        )
-        self._register_component(
-            "weaviate",
-            state="unknown",
-            detail="waiting for probe",
-            healthy=False,
-            source="probe",
-        )
-        self._register_component(
-            "local-llm",
-            state="unknown",
-            detail="waiting for probe",
-            healthy=False,
-            source="probe",
-        )
+        self._register_component("session-manager", state="starting", detail="initializing", healthy=True, source="internal")
+        self._register_component("safe-startup", state="unknown", detail="waiting for watchdog", healthy=False, source="service")
+        # Probe-based components (checked periodically in probe_components_loop)
+        for name in ("bridge", "livekit", "redis", "weaviate", "local-llm"):
+            self._register_component(name, state="unknown", detail="waiting for probe", healthy=False, source="probe")
 
     def _clear_agent_runtime_state(self) -> None:
         self.agent_deployed = False
-        self.warm_agent_ready = False
-        self.warm_activation_pending = False
+        self._warm_phase = "none"
         self.active_dispatch_id = ""
         self.dispatch_started_monotonic = 0.0
 
@@ -278,47 +210,58 @@ class SessionManager:
         except Exception as exc:
             return False, str(exc)
 
-    def _register_component(
-        self,
-        name: str,
-        *,
-        state: str,
-        detail: str,
-        healthy: bool,
-        source: str,
-    ) -> None:
-        self.components[name] = {
-            "name": name,
-            "state": state,
-            "detail": detail,
-            "healthy": healthy,
-            "source": source,
-            "updated_at": _utc_now_iso(),
-            "updated_monotonic": time.monotonic(),
-        }
+    async def _push_tablet(self, payload: dict) -> None:
+        """Push a payload to Pepper's tablet via the bridge (fire-and-forget)."""
+        url = self.bridge_url.rstrip("/") + "/tablet/text_inline"
+        timeout = aiohttp.ClientTimeout(total=1.0)
+        try:
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.post(url, json=payload) as resp:
+                    await resp.read()
+        except Exception:
+            pass
 
-    def _set_component_state(
-        self,
-        name: str,
-        *,
-        state: str,
-        detail: str = "",
-        healthy: bool = True,
-        source: str | None = None,
-    ) -> None:
+    async def _notify_tablet_status(self, status: str) -> None:
+        """Push a simple status message to Pepper's tablet."""
+        await self._push_tablet({
+            "text": status,
+            "size": 52,
+            "bg": "#101820",
+            "fg": "#D6F0FF",
+            "align": "center",
+        })
+
+    async def _notify_tablet_transcript(self) -> None:
+        """Push current transcript to Pepper's tablet (chat history view)."""
+        items = list(self.transcript_items)
+        # Drop everything before the last "Session ended" marker
+        last_ended = -1
+        for i, item in enumerate(items):
+            if item.get("kind") == "session" and "Session ended" in str(item.get("text", "")):
+                last_ended = i
+        if last_ended >= 0:
+            items = items[last_ended + 1:]
+        # Skip "New session" marker
+        if items and items[0].get("kind") == "session" and "New session" in str(items[0].get("text", "")):
+            items = items[1:]
+        # Keep last 10 messages
+        items = items[-10:]
+        await self._push_tablet({
+            "ui": "chat_history",
+            "transcript_items": items,
+            "session_state": self.session_state,
+        })
+
+    def _register_component(self, name: str, *, state: str, detail: str, healthy: bool, source: str) -> None:
+        self.components[name] = {"name": name, "state": state, "detail": detail, "healthy": healthy, "source": source}
+
+    def _set_component_state(self, name: str, *, state: str, detail: str = "", healthy: bool = True, source: str | None = None) -> None:
         item = self.components.get(name) or {"name": name}
-        item["name"] = name
-        item["state"] = state
-        item["detail"] = detail
-        item["healthy"] = bool(healthy)
+        item.update({"name": name, "state": state, "detail": detail, "healthy": bool(healthy)})
         if source is not None:
             item["source"] = source
-        else:
-            item["source"] = item.get("source", "service")
-        item["updated_at"] = _utc_now_iso()
-        item["updated_monotonic"] = time.monotonic()
         self.components[name] = item
-        self.updated_at = item["updated_at"]
+        self.updated_at = _utc_now_iso()
 
     async def _docker_get_json(
         self,
@@ -444,7 +387,6 @@ class SessionManager:
                 if self.agent_mode == "local":
                     self.local_llm_healthy = await self._probe_local_llm()
                     print(f"[session_manager] bootstrap vLLM probe: healthy={self.local_llm_healthy}")
-                await self._wait_for_voice_agent_ready()
                 await self._dispatch_warm_agent()
                 return
             except Exception as exc:
@@ -458,17 +400,6 @@ class SessionManager:
                 print(f"[session_manager] bootstrap failed err={exc}")
                 await asyncio.sleep(3)
 
-    async def _wait_for_voice_agent_ready(self) -> None:
-        deadline = time.monotonic() + VOICE_AGENT_READY_WAIT_SEC
-        while time.monotonic() < deadline:
-            item = self.components.get("voice-agent") or {}
-            if bool(item.get("healthy")) and str(item.get("state") or "") == "ready":
-                return
-            await asyncio.sleep(0.5)
-        print(
-            "[session_manager] voice-agent did not report ready before bootstrap "
-            f"dispatch timeout={VOICE_AGENT_READY_WAIT_SEC:.1f}s; dispatching anyway"
-        )
 
     async def probe_components_loop(self) -> None:
         livekit_host, livekit_port = self._host_port_from_url(self.livekit_http_url, 7880)
@@ -519,19 +450,6 @@ class SessionManager:
             if llm_ok and llm_was_down and not self.agent_deployed:
                 print("[session_manager] vLLM became reachable, triggering warm dispatch")
                 await self._dispatch_warm_agent()
-            now = time.monotonic()
-            for name, item in list(self.components.items()):
-                if item.get("source") != "service":
-                    continue
-                age = now - float(item.get("updated_monotonic") or 0.0)
-                if age > COMPONENT_STALE_AFTER_SEC:
-                    self._set_component_state(
-                        name,
-                        state="stale",
-                        detail="no heartbeat received recently",
-                        healthy=False,
-                        source="service",
-                    )
             await asyncio.sleep(COMPONENT_PROBE_INTERVAL_SEC)
 
     async def cleanup_stale_dispatches(self) -> None:
@@ -677,6 +595,7 @@ class SessionManager:
         await self.write_session_snapshot()
 
     async def _dispatch_warm_agent(self) -> None:
+        """Deploy a warm agent that pre-loads models and waits for activation."""
         async with self._lock:
             if self.agent_deployed or not self._bootstrap_complete:
                 return
@@ -684,14 +603,8 @@ class SessionManager:
                 print("[session_manager] skipping warm dispatch (local mode, vLLM not reachable)")
                 self.session_state = "idle"
                 self.updated_at = _utc_now_iso()
-                self._set_component_state(
-                    "session-manager",
-                    state="degraded",
-                    detail="local mode: vLLM not reachable (SSH tunnel down?)",
-                    healthy=False,
-                    source="internal",
-                )
                 return
+            self._warm_phase = "deploying"
             metadata = json.dumps({"warm": True, "agent_mode": self.agent_mode})
             lkapi = self._new_lkapi()
             try:
@@ -704,8 +617,6 @@ class SessionManager:
                 )
                 self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
                 self.agent_deployed = True
-                self.warm_agent_ready = False
-                self.warm_activation_pending = False
                 self.session_state = "warm"
                 self.dispatch_started_monotonic = time.monotonic()
                 self.updated_at = _utc_now_iso()
@@ -713,42 +624,35 @@ class SessionManager:
                     f"[session_manager] warm agent dispatched name={self.agent_name} "
                     f"room={self.room_name} dispatch_id={self.active_dispatch_id}"
                 )
-                self._set_component_state(
-                    "session-manager",
-                    state="ready",
-                    detail="warm agent standing by",
-                    healthy=True,
-                    source="internal",
-                )
+                await self._notify_tablet_status("Warming up...")
             except Exception as exc:
                 self.session_state = "idle"
-                self.agent_deployed = False
-                self.active_dispatch_id = ""
-                self._set_component_state(
-                    "session-manager",
-                    state="degraded",
-                    detail=f"warm dispatch failed: {exc}",
-                    healthy=False,
-                    source="internal",
-                )
+                self._clear_agent_runtime_state()
                 print(f"[session_manager] warm dispatch failed err={exc}")
             finally:
                 await lkapi.aclose()
 
+    async def _try_activate_warm(self) -> None:
+        """Activate the warm agent if it's in standby, or queue activation if still deploying."""
+        async with self._lock:
+            if self._warm_phase == "standby":
+                await self._activate_warm_agent()
+            elif self._warm_phase == "deploying":
+                self._warm_phase = "pending"
+                print("[session_manager] warm agent still deploying — activation queued")
+
     async def _activate_warm_agent(self) -> None:
+        """Send activation signal to warm agent. Must be called under self._lock."""
+        self._warm_phase = "activating"
         self.conversation_id = uuid.uuid4().hex[:10]
         self._reset_session_log()
         self.session_state = "active"
-        self.warm_activation_pending = False
         self.dispatch_started_monotonic = time.monotonic()
         self._append_session_marker(f"New session · {self.conversation_id}")
         self.updated_at = _utc_now_iso()
 
         payload = json.dumps(
-            {
-                "action": "activate",
-                "conversation_id": self.conversation_id,
-            }
+            {"action": "activate", "conversation_id": self.conversation_id}
         ).encode("utf-8")
         lkapi = self._new_lkapi()
         try:
@@ -759,31 +663,16 @@ class SessionManager:
                     topic="session-control",
                 )
             )
-            print(
-                f"[session_manager] activated warm agent "
-                f"conversation_id={self.conversation_id}"
-            )
+            print(f"[session_manager] activated warm agent conversation_id={self.conversation_id}")
         except Exception as exc:
             print(f"[session_manager] activate signal failed err={exc}")
         finally:
             await lkapi.aclose()
 
-    async def dispatch_agent(self) -> None:
+    async def dispatch_cold_agent(self) -> None:
+        """Cold-dispatch an agent (no warm preloading). Used as fallback."""
         async with self._lock:
-            if not self._bootstrap_complete:
-                return
-            if self.session_state == "warm" and self.agent_deployed:
-                if self.warm_agent_ready:
-                    await self._activate_warm_agent()
-                    return
-                print(
-                    "[session_manager] warm standby still connecting "
-                    "- queueing activation request"
-                )
-                self.warm_activation_pending = True
-                self.updated_at = _utc_now_iso()
-                return
-            if self.agent_deployed:
+            if not self._bootstrap_complete or self.agent_deployed:
                 return
             self.conversation_id = uuid.uuid4().hex[:10]
             self._reset_session_log()
@@ -801,33 +690,18 @@ class SessionManager:
                 )
                 self.active_dispatch_id = str(getattr(dispatch, "id", "") or "")
                 self.agent_deployed = True
-                self.warm_agent_ready = False
-                self.warm_activation_pending = False
+                self._warm_phase = "none"
                 self.session_state = "active"
                 self._append_session_marker(f"New session · {self.conversation_id}")
                 self.updated_at = _utc_now_iso()
                 print(
                     f"[session_manager] cold-dispatched agent name={self.agent_name} "
-                    f"room={self.room_name} conversation_id={self.conversation_id} dispatch_id={self.active_dispatch_id}"
-                )
-                self._set_component_state(
-                    "session-manager",
-                    state="ready",
-                    detail="agent dispatched",
-                    healthy=True,
-                    source="internal",
+                    f"room={self.room_name} conversation_id={self.conversation_id}"
                 )
             except Exception as exc:
                 self.session_state = "idle"
                 self.conversation_id = ""
                 self._clear_agent_runtime_state()
-                self._set_component_state(
-                    "session-manager",
-                    state="degraded",
-                    detail=f"dispatch failed: {exc}",
-                    healthy=False,
-                    source="internal",
-                )
                 print(f"[session_manager] dispatch failed err={exc}")
             finally:
                 await lkapi.aclose()
@@ -875,18 +749,12 @@ class SessionManager:
             self.last_user_activity_at = activity_at
             if level is not None:
                 self.mic_level = max(0.0, min(1.0, level))
-            # Only activate/dispatch on strong audio signal to avoid
-            # triggering on ambient noise or mic bleed.
             strong_signal = level is not None and level >= WARM_ACTIVATION_MIN_LEVEL
-            if self.session_state == "warm":
-                if strong_signal:
-                    if self.warm_agent_ready:
-                        await self.dispatch_agent()
-                    else:
-                        self.warm_activation_pending = True
-            elif not self.agent_deployed and self.session_state == "idle":
-                if strong_signal:
-                    await self.dispatch_agent()
+            if strong_signal:
+                if self.session_state == "warm":
+                    await self._try_activate_warm()
+                elif not self.agent_deployed and self.session_state == "idle":
+                    await self.dispatch_cold_agent()
         elif source == SESSION_SOURCE_AGENT:
             if now - self.last_agent_activity_monotonic < SESSION_ACTIVITY_DEBOUNCE_SEC:
                 return
@@ -911,6 +779,8 @@ class SessionManager:
                 self._append_session_log_event({"type": "user_speech", "text": clean})
             elif speaker == "Pepper":
                 self._append_session_log_event({"type": "agent_speech", "text": clean})
+            # Push transcript to Pepper's tablet
+            asyncio.create_task(self._notify_tablet_transcript())
 
     def _append_session_marker(self, text: str) -> None:
         self._append_transcript("System", text, kind="session")
@@ -987,7 +857,7 @@ class SessionManager:
         self._session_log = []
 
     def _idle_countdown_sec(self) -> float | None:
-        if not self.agent_deployed or self.session_state == "warm":
+        if not self.agent_deployed or self.session_state in ("warm", "idle"):
             return None
         if self.last_user_activity_monotonic <= 0:
             return float(SESSION_IDLE_TIMEOUT_SEC)
@@ -1016,7 +886,7 @@ class SessionManager:
                         await self.end_session(reason="no_activity_after_dispatch")
             if self.session_state == "warm" and self.agent_deployed:
                 if (
-                    not self.warm_agent_ready
+                    self._warm_phase in ("deploying", "pending")
                     and self.dispatch_started_monotonic > 0
                     and (now - self.dispatch_started_monotonic) >= WARM_AGENT_JOIN_TIMEOUT_SEC
                 ):

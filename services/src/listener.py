@@ -373,10 +373,10 @@ class ListenerPepperBridge:
         healthy: bool,
         force: bool = False,
     ) -> None:
+        """Log component status locally (no longer POSTs to session manager)."""
         now = time.monotonic()
         last_state, last_detail, last_ts = self._component_status_cache.get(
-            name,
-            ("", "", 0.0),
+            name, ("", "", 0.0),
         )
         if (
             not force
@@ -386,25 +386,7 @@ class ListenerPepperBridge:
         ):
             return
         self._component_status_cache[name] = (state, detail, now)
-        if not SESSION_MANAGER_URL:
-            return
-        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/component-status"
-        payload = {
-            "name": name,
-            "state": state,
-            "detail": detail,
-            "healthy": healthy,
-        }
-        req = Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        try:
-            await asyncio.to_thread(lambda: urlopen(req, timeout=0.5).read())
-        except Exception:
-            pass
+        print(f"[listener] {name}: {state} - {detail} (healthy={healthy})")
 
     async def _report_bridge_status(self, state: str, detail: str, healthy: bool, force: bool = False) -> None:
         await self._report_component_status("bridge", state, detail, healthy, force=force)
@@ -462,32 +444,8 @@ class ListenerPepperBridge:
             pass
 
     async def _poll_session_status(self) -> None:
-        if not SESSION_MANAGER_URL:
-            return
-        now = time.monotonic()
-        if (now - self._last_status_poll_monotonic) < 1.0:
-            return
-        self._last_status_poll_monotonic = now
-        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/status"
-        req = Request(url, method="GET")
-        try:
-            payload = await asyncio.to_thread(
-                lambda: json.loads(urlopen(req, timeout=0.35).read().decode("utf-8"))
-            )
-        except Exception:
-            return
-        state = str(payload.get("session_state") or "").strip() or "-"
-        idle_value = payload.get("idle_countdown_sec")
-        if idle_value is None:
-            idle_text = "-"
-        else:
-            try:
-                idle_text = "{:.1f}s".format(float(idle_value))
-            except Exception:
-                idle_text = "-"
-        transcript_items = payload.get("transcript_items") or []
-        self.panel.set_transcript_items(transcript_items)
-        self.panel.set_session_status(state, idle_text)
+        """No longer polls session manager — tablet state is pushed by session manager."""
+        pass
 
     def _connect_bridge_socket(self) -> None:
         if self.socket is not None:
