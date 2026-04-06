@@ -20,11 +20,6 @@ from livekit.agents import (
 )
 from livekit.plugins import openai, silero
 
-from livekit.agents.llm.chat_context import (
-    ChatMessage,
-    FunctionCall,
-    FunctionCallOutput,
-)
 from livekit.agents.llm import utils as _llm_utils
 
 from .config import (
@@ -293,78 +288,17 @@ def _on_llm_metrics_collected(metrics) -> None:
         pass
 
 
-def _strip_tool_history(chat_ctx: llm.ChatContext) -> llm.ChatContext:
-    """Remove FunctionCall + FunctionCallOutput items from chat history.
-
-    Qwen 2.5 7B confuses raw tool-call JSON in history with text generation.
-    We drop tool items entirely and rely on tool_choice=none (set in
-    _chat_with_stripped_history) to prevent repeated calls after a tool executes.
-    """
-    stripped: list = []
-    n_dropped = 0
-
-    for item in chat_ctx.items:
-        if isinstance(item, (FunctionCall, FunctionCallOutput)):
-            n_dropped += 1
-            continue
-        stripped.append(item)
-
-    if n_dropped:
-        logger.info(
-            "strip_tool_history dropped=%d, items %d→%d",
-            n_dropped, len(chat_ctx.items), len(stripped),
-        )
-    return llm.ChatContext(items=stripped)
-
-
 def _build_local_session() -> AgentSession:
     """Build an AgentSession using local STT (Whisper) + local LLM (vLLM) + local TTS (Piper)."""
     local_llm = openai.LLM(
         model=LOCAL_LLM_MODEL,
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
+        temperature=0.3,
         parallel_tool_calls=False,
-        # vLLM/Qwen in local mode is more reliable with permissive tool schemas.
         _strict_tool_schema=False,
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
-
-    # Wrap the LLM's chat method to strip tool history before every call.
-    # This prevents Qwen from seeing raw FunctionCall/FunctionCallOutput items
-    # in multi-turn conversations (see TOSTRIPORNOTTOSTRIP.md).
-    _original_chat = local_llm.chat
-
-    def _chat_with_stripped_history(*, chat_ctx, tools=None, **kwargs):
-        # Check if the context contains a just-completed tool call.
-        # If so, strip tools and force text-only response (tool_choice=none).
-        has_tool_output = any(
-            isinstance(it, FunctionCallOutput) for it in chat_ctx.items
-        )
-        item_types = {}
-        for it in chat_ctx.items:
-            t = type(it).__name__
-            item_types[t] = item_types.get(t, 0) + 1
-
-        stripped = _strip_tool_history(chat_ctx)
-
-        if has_tool_output:
-            # Tool already called this turn — force text-only response.
-            # Pass no tools so Qwen doesn't see tool definitions and
-            # won't generate <tool_call> tags as text.
-            logger.info(
-                "llm_chat_called items=%s tools=none (post-tool)",
-                item_types,
-            )
-            return _original_chat(chat_ctx=stripped, tools=None, **kwargs)
-
-        tool_names = [t.name if hasattr(t, 'name') else str(t) for t in (tools or [])]
-        logger.info(
-            "llm_chat_called items=%s tools=%s",
-            item_types, tool_names,
-        )
-        return _original_chat(chat_ctx=stripped, tools=tools, **kwargs)
-
-    local_llm.chat = _chat_with_stripped_history  # type: ignore[method-assign]
 
     return AgentSession(
         vad=_get_local_vad(),

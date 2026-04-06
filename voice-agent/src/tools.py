@@ -12,6 +12,7 @@ from urllib.request import Request, urlopen
 from livekit.agents import RunContext, function_tool
 
 from .config import (
+    AGENT_VERSION,
     ANIMATION_BRIDGE_URL,
     ANIMATION_GROUPS,
     ANIMATION_TOOL_ALIASES,
@@ -352,21 +353,8 @@ def build_tools(agent_mode: str) -> list[Any]:
                 ensure_ascii=False,
             )
 
-    @function_tool
-    async def play_animation(
-        context: RunContext,
-        animation: str,
-    ) -> str:
-        """Move Pepper's robot body. Call exactly once per reply.
-
-        animation must be one of: greeting, bow, explain, happy, thinking, dont_know
-
-        Use greeting when user says hello. Use explain when giving information.
-        Use bow for thanks or goodbye. Use happy for positive replies.
-        Use thinking when searching. Use dont_know when unsure.
-        """
-        del context
-
+    async def _play_animation_impl(animation: str) -> str:
+        """Shared implementation for play_animation (both modes)."""
         t0 = time.monotonic()
 
         if not ENABLE_ANIMATION_TOOL:
@@ -415,18 +403,55 @@ def build_tools(agent_mode: str) -> list[Any]:
 
         logger.info("play_animation_queued animation=%s resolved=%s", animation_name, resolved)
         asyncio.create_task(_dispatch_animation(resolved))
-        result_payload = {
-            "ok": True,
-            "status": "queued",
-            "animation": resolved,
-        }
+
         duration_ms = (time.monotonic() - t0) * 1000
+
+        if agent_mode == "local":
+            # Local mode: return body state so the model sees useful data back
+            result_payload = {
+                "body_state": "ready",
+                "posture": resolved,
+            }
+        else:
+            result_payload = {
+                "ok": True,
+                "status": "queued",
+                "animation": resolved,
+            }
+
         await asyncio.to_thread(
             _post_tool_event, "play_animation",
             {"animation": animation_name, "resolved": resolved},
             result_payload, duration_ms,
         )
         return json.dumps(result_payload, ensure_ascii=False)
+
+    # OpenAI mode: side-effect description (works with larger models)
+    @function_tool(name="play_animation")
+    async def play_animation_openai(
+        context: RunContext,
+        animation: str,
+    ) -> str:
+        """Move Pepper's robot body. Call exactly once per reply.
+
+        animation must be one of: greeting, bow, explain, happy, thinking, dont_know
+
+        Use greeting when user says hello. Use explain when giving information.
+        Use bow for thanks or goodbye. Use happy for positive replies.
+        Use thinking when searching. Use dont_know when unsure.
+        """
+        del context
+        return await _play_animation_impl(animation)
+
+    # Local mode: description framed as returning needed data (Qwen 7B needs this)
+    @function_tool(name="play_animation")
+    async def play_animation_local(
+        context: RunContext,
+        animation: str,
+    ) -> str:
+        """Check and set the robot body posture. Returns the current body state which you need before speaking. animation must be one of: greeting, bow, explain, happy, thinking, dont_know"""
+        del context
+        return await _play_animation_impl(animation)
 
     @function_tool
     async def get_directions_to_room(
@@ -503,5 +528,11 @@ def build_tools(agent_mode: str) -> list[Any]:
         )
         return json.dumps(result_payload, ensure_ascii=False)
 
+    play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
     tools: list[Any] = [query_search, get_directions_to_room, play_animation]
+    logger.info(
+        "build_tools version=%s agent_mode=%s play_animation_variant=%s",
+        AGENT_VERSION, agent_mode,
+        "local" if agent_mode == "local" else "openai",
+    )
     return tools
