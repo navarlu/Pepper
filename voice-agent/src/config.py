@@ -33,7 +33,7 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 LANG = "en"
-AGENT_VERSION = "0.4.5"
+AGENT_VERSION = "0.5.0"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
 LOCAL_STT_MODEL = _env_str("LOCAL_STT_MODEL", "tiny")
@@ -182,6 +182,7 @@ LOCAL_SYSTEM_PROMPT = (
     "You are Pepper, a robot receptionist at CTU FEE Prague. "
     "Speak briefly and politely in English. If the user prefers another language, switch to it. "
     "Use query_search to find information — do not guess. "
+    "query_search also knows room locations and walking directions. "
     "Call play_animation to check your body state before every reply. "
     "Never say tool names aloud."
 )

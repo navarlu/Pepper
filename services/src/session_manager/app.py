@@ -735,6 +735,14 @@ class SessionManager:
                 # OpenAI / non-persistent: tear down and re-dispatch as before
                 await self._remove_agent_participants()
                 self._clear_agent_runtime_state()
+                if force_teardown:
+                    # Agent worker may have died/restarted — rotate to a fresh room
+                    # so the next dispatch doesn't go to a dead room.
+                    lkapi = self._new_lkapi()
+                    try:
+                        await self._rotate_room(lkapi)
+                    finally:
+                        await lkapi.aclose()
 
             self.conversation_id = ""
             self.last_user_activity_monotonic = 0.0

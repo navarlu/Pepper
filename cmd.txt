@@ -1,0 +1,1 @@
+scp -J navarlu2@ptak.felk.cvut.cz   voice-agent/src/{agent.py,tools.py,config.py}   navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/

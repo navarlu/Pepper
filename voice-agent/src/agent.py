@@ -331,7 +331,7 @@ def _build_local_session() -> AgentSession:
         model=LOCAL_LLM_MODEL,
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
-        temperature=0.3,
+        temperature=0.01,
         parallel_tool_calls=False,
         _strict_tool_schema=False,
     )
@@ -540,5 +540,6 @@ if __name__ == "__main__":
             initialize_process_timeout=120.0,
             num_idle_processes=1,
             agent_name=AGENT_NAME,
+            job_memory_warn_mb=2000,
         )
     )

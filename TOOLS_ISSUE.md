@@ -110,8 +110,92 @@ Step 3: "Thank you, goodbye!"  → play_animation(bow) → PASS
 No leakage in any step.
 ```
 
-## Potential Next Steps
+### Attempt 8 (2026-04-06): Integration into real agent — partial success
 
-1. **Integrate into agent.py** — Replace the stripping logic with vanilla tool-calling flow, update system prompt and play_animation description.
-2. **Larger model**: Qwen 2.5 14B or 32B handles tool calling much more reliably. If woska has enough VRAM, upgrading would eliminate most of these issues.
-3. **Fine-tuning**: Fine-tune Qwen 7B on examples of single-tool-call-then-speech to reinforce the pattern.
+Integrated the Attempt 7 findings into the real LiveKit agent pipeline. Discovered several new problems that don't appear in the test script but do in the live system.
+
+**What was done:**
+- Removed all stripping logic from agent.py
+- Created separate `play_animation_local` / `play_animation_openai` tool variants with `@function_tool(name="play_animation")` (the SDK uses `func.__name__` as tool name — without explicit name, it registered as `play_animation_local` which the model couldn't match)
+- Local variant returns `{"body_state": "ready", "posture": ...}`, OpenAI variant unchanged
+- Added `temperature=0.3` to `openai.LLM()` constructor
+- Single-line `LOCAL_SYSTEM_PROMPT` in config.py
+- Split `listener` service into `room-monitor` + `audio-bridge` (transcript forwarding was blocked by robot bridge TCP connection)
+
+**New Problem 1: vLLM 0.19 crashes on malformed tool args in history (400 Bad Request)**
+Qwen sometimes generates malformed tool call arguments like `{"animation": "greeting"}}\nHello!` (extra brace + text appended). The existing monkey-patch on `prepare_function_arguments` cleans this for local execution, but when the LiveKit SDK sends the conversation history back to vLLM on the next turn, vLLM 0.19's `_postprocess_messages` (chat_utils.py:1576) does `json.loads()` on the raw arguments string and crashes.
+
+**Fix:** Added `_sanitize_chat_ctx()` — before every LLM call, scan the chat context and fix any `FunctionCall.arguments` that have trailing garbage. Extracts the first balanced JSON object. This is a lightweight chat wrapper, not history stripping.
+
+**New Problem 2: Double responses (LiveKit SDK re-calls LLM after tool execution)**
+After `play_animation` returns a result, the SDK calls the LLM again because `reply_required=True` (set when tool returns non-None). Since Qwen generates text + tool_call in the same streaming response, the text is already going to TTS — the second LLM call produces an unwanted duplicate response. This is a known SDK bug: livekit/agents#4554.
+
+**Fix:** `play_animation` in local mode returns `None` instead of body state data. From LiveKit docs: "Return None to complete the tool silently without requiring a reply from the LLM." The tool description still says "returns body state" so Qwen still calls it, but the actual return is silent.
+
+**New Problem 3: `play_animation` only called ~60% of the time (non-deterministic)**
+Even with all fixes applied, streaming consistency tests show `play_animation` is called only 3-4 out of 5 times at temp=0.3. The model sometimes just generates text without calling the tool. This is the fundamental Qwen 7B limitation — it doesn't reliably call side-effect tools. `query_search` works reliably because the model needs the data to answer; `play_animation` is optional from the model's perspective.
+
+**New Problem 4: Competing agents**
+The RPi Docker setup had `voice-agent` running alongside the woska agent. Both registered with LiveKit and competed for dispatches. The RPi agent had old code without the tool fixes. Fixed by removing voice-agent from the main docker-compose.yml and creating a separate `docker-compose.rpi.yml`.
+
+**Current state (v0.4.9):**
+- `query_search` — works reliably, correct results, no leakage
+- `play_animation` — works sometimes (~60%), non-deterministic at temp=0.3
+- `get_directions_to_room` — not called by model (same "optional tool" problem as play_animation)
+- No 400 errors (sanitization working)
+- No double responses (None return working)
+- Transcripts appear in UI via room-monitor service
+
+### Attempt 9 (2026-04-06): SOLVED — Qwen 7B has a hard 2-tool limit
+
+**Root cause: Qwen 2.5 7B cannot reliably handle 3+ tools.**
+
+Systematic A/B testing (`voice-agent/tests/test_tool_count.py`) proved this definitively:
+
+| Config | pass rate | leakage |
+|--------|-----------|---------|
+| 2 tools (query_search + play_animation) | **5/5 (100%)** | 0 |
+| 3 tools (+ get_directions_to_room) | **0/5 (0%)** | 5/5 |
+| 3 tools (+ get_time, no params) | **5/5 (100%)** initially, then inconsistent |
+
+When a 3rd tool with parameters is present, Qwen generates `<tool_call>` blocks interleaved with raw `<|im_start|>` tokens:
+```
+Hello! How can I assist you today? <tool_call>
+<|im_start|>assistant {"name": "play_animation", "arg...
+```
+
+vLLM's hermes parser (`hermes_tool_parser.py:110`) regex-matches `<tool_call>...</tool_call>` and runs `json.loads()` on the content. The `<|im_start|>` garbage causes `JSONDecodeError: Expecting value: line 2 column 1`. The parser catches the error and falls back to returning everything as text content — the user hears tool syntax aloud.
+
+**Further testing showed:**
+- The description length/content of the 3rd tool does not matter (5 variants tested, all 0%)
+- Renaming the tool does not help
+- Changing parameter type (string → int, enum) does not help
+- Even a 3rd tool with zero parameters becomes inconsistent
+- The issue is purely about the number of tool schemas in the hermes chat template overwhelming Qwen 7B's attention
+
+**Fix: merge `get_directions_to_room` into `query_search`.**
+
+The LLM naturally calls `query_search("location of room 230")` for room questions. The tool implementation detects room number patterns in the query string and routes to the building map data instead of Weaviate.
+
+Test results with merged approach (`voice-agent/tests/test_merged_tools.py`):
+```
+4-step scenario (greeting → dean query → room directions → goodbye):
+  pass=5/5 (100%)  leakage=0
+```
+
+All steps pass including directions, with only 2 tools registered.
+
+**Changes applied:**
+- `tools.py`: `query_search` now detects room queries via regex and routes to `_load_room_data()`
+- `tools.py`: `get_directions_to_room` removed from the tools list (code kept for OpenAI mode)
+- `config.py`: system prompts updated — mention that `query_search` handles room directions
+- Agent stays at exactly 2 tools: `query_search` + `play_animation`
+
+## Ideas for Next Steps (not yet validated)
+
+> **Note:** The 2-tool limit is a fundamental Qwen 7B constraint. These ideas address remaining gaps.
+
+1. **Parse animation from text** — If the model doesn't call `play_animation` as a tool, detect the intent from the response text (sentiment analysis or keyword matching) and trigger the animation in code. This is a fallback, not a fix, but would guarantee animation on every reply.
+2. **Larger model** — Qwen 2.5 14B or 32B would handle 3+ tools reliably. Needs VRAM check on woska. This would remove the 2-tool constraint entirely.
+3. **Fine-tuning** — Fine-tune Qwen 7B on examples of always-call-animation-then-speak. Time-consuming but would solve the root cause for this specific model.
+4. **Lower temperature** — Try temp=0.0 or 0.1 for more deterministic tool calling. Trade-off: less natural speech variation.
