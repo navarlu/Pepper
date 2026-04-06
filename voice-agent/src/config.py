@@ -33,7 +33,7 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 LANG = "en"
-AGENT_VERSION = "0.4.3"
+AGENT_VERSION = "0.4.5"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
 LOCAL_STT_MODEL = _env_str("LOCAL_STT_MODEL", "tiny")

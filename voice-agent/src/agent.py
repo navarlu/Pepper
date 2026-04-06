@@ -422,22 +422,6 @@ async def entrypoint(ctx: JobContext) -> None:
         session = _build_openai_session(openai_api_key)
     logger.info("timing build_session=%.3fs agent_mode=%s", time.monotonic() - t0, agent_mode)
 
-    async def _text_input_cb(
-        sess: AgentSession,
-        event: room_io.TextInputEvent,
-    ) -> None:
-        message = str(event.text or "").strip()
-        if not message:
-            return
-        logger.info(
-            "text_input_received participant_identity=%s text=%s",
-            getattr(event.participant, "identity", ""),
-            message[:120],
-        )
-        await sess.interrupt()
-        reply = sess.generate_reply(user_input=message)
-        await reply.wait_for_playout()
-
     agent_tools = build_tools(agent_mode)
     logger.info(
         "agent_tools_registered count=%d names=%s",
@@ -462,7 +446,7 @@ async def entrypoint(ctx: JobContext) -> None:
         room_options=room_io.RoomOptions(
             close_on_disconnect=True,
             participant_identity=str(getattr(participant, "identity", "") or ""),
-            text_input=room_io.TextInputOptions(text_input_cb=_text_input_cb),
+            text_input=room_io.TextInputOptions(),
         ),
     )
     logger.info("timing session.start=%.3fs agent_mode=%s", time.monotonic() - t0, agent_mode)

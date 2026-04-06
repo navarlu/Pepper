@@ -408,24 +408,29 @@ def build_tools(agent_mode: str) -> list[Any]:
         duration_ms = (time.monotonic() - t0) * 1000
 
         if agent_mode == "local":
-            # Local mode: return body state so the model sees useful data back
-            result_payload = {
-                "body_state": "ready",
-                "posture": resolved,
-            }
+            # Local mode: return None so the LiveKit SDK does NOT re-call the LLM.
+            # Qwen generates text + tool_call in the same response, so text is
+            # already being sent to TTS. Returning data here would trigger a
+            # second LLM call (livekit/agents#4554).
+            result_payload = {"body_state": "ready", "posture": resolved}
+            await asyncio.to_thread(
+                _post_tool_event, "play_animation",
+                {"animation": animation_name, "resolved": resolved},
+                result_payload, duration_ms,
+            )
+            return None
         else:
             result_payload = {
                 "ok": True,
                 "status": "queued",
                 "animation": resolved,
             }
-
-        await asyncio.to_thread(
-            _post_tool_event, "play_animation",
-            {"animation": animation_name, "resolved": resolved},
-            result_payload, duration_ms,
-        )
-        return json.dumps(result_payload, ensure_ascii=False)
+            await asyncio.to_thread(
+                _post_tool_event, "play_animation",
+                {"animation": animation_name, "resolved": resolved},
+                result_payload, duration_ms,
+            )
+            return json.dumps(result_payload, ensure_ascii=False)
 
     # OpenAI mode: side-effect description (works with larger models)
     @function_tool(name="play_animation")
