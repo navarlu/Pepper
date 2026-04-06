@@ -20,6 +20,7 @@ from livekit.agents import (
 )
 from livekit.plugins import openai, silero
 
+from livekit.agents.llm.chat_context import FunctionCall
 from livekit.agents.llm import utils as _llm_utils
 
 from .config import (
@@ -27,6 +28,7 @@ from .config import (
     AGENT_VERSION,
     LANG,
     LISTENER_IDENTITY,
+    MONITOR_IDENTITY,
     LIVEKIT_URL,
     LOCAL_LLM_BASE_URL,
     LOCAL_LLM_MODEL,
@@ -143,7 +145,7 @@ def _post_pipeline_metric(metric: dict) -> None:
 
 def _is_bridge_listener(participant) -> bool:
     identity = str(getattr(participant, "identity", "") or "")
-    return identity == LISTENER_IDENTITY
+    return identity in (LISTENER_IDENTITY, MONITOR_IDENTITY)
 
 
 def _iter_remote_participants(ctx: JobContext):
@@ -288,6 +290,41 @@ def _on_llm_metrics_collected(metrics) -> None:
         pass
 
 
+def _sanitize_json(raw: str) -> str:
+    """Extract the first balanced JSON object from a string.
+
+    Qwen 2.5 7B sometimes appends extra braces or text after the JSON,
+    e.g. '{"animation": "greeting"}}\nHello!'. vLLM 0.19 crashes on
+    json.loads() of such strings when they appear in chat history.
+    """
+    stripped = raw.strip()
+    if not stripped.startswith("{"):
+        return raw
+    depth = 0
+    for i, ch in enumerate(stripped):
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                cleaned = stripped[: i + 1]
+                if cleaned != raw:
+                    logger.info("sanitize_json original=%r cleaned=%r", raw[:120], cleaned)
+                return cleaned
+    return raw
+
+
+def _sanitize_chat_ctx(chat_ctx: llm.ChatContext) -> None:
+    """In-place sanitize FunctionCall arguments in chat history.
+
+    This prevents vLLM 0.19 from crashing with 400 Bad Request when
+    it re-parses malformed tool call arguments from conversation history.
+    """
+    for item in chat_ctx.items:
+        if isinstance(item, FunctionCall):
+            item.arguments = _sanitize_json(item.arguments)
+
+
 def _build_local_session() -> AgentSession:
     """Build an AgentSession using local STT (Whisper) + local LLM (vLLM) + local TTS (Piper)."""
     local_llm = openai.LLM(
@@ -299,6 +336,15 @@ def _build_local_session() -> AgentSession:
         _strict_tool_schema=False,
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
+
+    # Wrap chat to sanitize malformed tool call arguments before sending to vLLM.
+    _original_chat = local_llm.chat
+
+    def _chat_with_sanitized_history(*, chat_ctx, **kwargs):
+        _sanitize_chat_ctx(chat_ctx)
+        return _original_chat(chat_ctx=chat_ctx, **kwargs)
+
+    local_llm.chat = _chat_with_sanitized_history  # type: ignore[method-assign]
 
     return AgentSession(
         vad=_get_local_vad(),

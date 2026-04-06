@@ -33,7 +33,7 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 LANG = "en"
-AGENT_VERSION = "0.4.1"
+AGENT_VERSION = "0.4.3"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
 LOCAL_STT_MODEL = _env_str("LOCAL_STT_MODEL", "tiny")
@@ -54,6 +54,7 @@ LOCAL_TTS_LENGTH_SCALE = _env_float("LOCAL_TTS_LENGTH_SCALE", 1.0)
 LOCAL_TTS_NOISE_SCALE = _env_float("LOCAL_TTS_NOISE_SCALE", 0.667)
 LOCAL_TTS_NOISE_W_SCALE = _env_float("LOCAL_TTS_NOISE_W_SCALE", 0.8)
 LISTENER_IDENTITY = _env_str("LISTENER_IDENTITY", "listener-python")
+MONITOR_IDENTITY = _env_str("MONITOR_IDENTITY", "monitor-python")
 LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
 SESSION_MANAGER_URL = _env_str("SESSION_MANAGER_URL", "http://127.0.0.1:8787")
 DEV_CONSOLE_URL = _env_str("DEV_CONSOLE_URL", "http://127.0.0.1:8788")

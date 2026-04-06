@@ -17,6 +17,7 @@ from livekit import api
 from ..config import (
     BRIDGE_URL,
     LISTENER_IDENTITY,
+    MONITOR_IDENTITY,
     LIVEKIT_HOST_WS_URL,
     LIVEKIT_HTTP_URL,
     LIVEKIT_SESSION_FILE,
@@ -47,7 +48,7 @@ SESSION_SOURCE_USER = "user"
 SESSION_SOURCE_AGENT = "agent"
 SESSION_MANAGER_STATE_FILE = "session-manager-state.json"
 MAX_TRANSCRIPT_ITEMS = 40
-COMPONENT_PROBE_INTERVAL_SEC = 3.0
+COMPONENT_PROBE_INTERVAL_SEC = 60.0
 WARM_AGENT_JOIN_TIMEOUT_SEC = float(os.getenv("WARM_AGENT_JOIN_TIMEOUT_SEC", "90"))
 DEFAULT_LOCAL_AUDIO_VOLUME = int(os.getenv("PEPPER_OUTPUT_VOLUME", "55"))
 WARM_ACTIVATION_MIN_LEVEL = float(os.getenv("WARM_ACTIVATION_MIN_LEVEL", "0.05"))
@@ -55,7 +56,8 @@ DOCKER_SOCKET_PATH = os.getenv("DOCKER_SOCKET_PATH", "/var/run/docker.sock")
 DOCKER_LOG_TAIL_LINES = int(os.getenv("DOCKER_LOG_TAIL_LINES", "160"))
 KNOWN_DOCKER_SERVICES = (
     "bridge",
-    "listener",
+    "audio-bridge",
+    "room-monitor",
     "livekit",
     "redis",
     "safe-startup",
@@ -487,6 +489,14 @@ class SessionManager:
                 "identity": LISTENER_IDENTITY,
                 "token": self._build_token(
                     identity=LISTENER_IDENTITY,
+                    can_publish=False,
+                    can_subscribe=True,
+                ),
+            },
+            "monitor": {
+                "identity": MONITOR_IDENTITY,
+                "token": self._build_token(
+                    identity=MONITOR_IDENTITY,
                     can_publish=False,
                     can_subscribe=True,
                 ),

@@ -307,6 +307,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         rt_limit = int(rt.get("limit", QUERY_SEARCH_DEFAULT_LIMIT))
         safe_limit = max(1, min(rt_limit, QUERY_SEARCH_MAX_LIMIT))
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
+        await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
         t0 = time.monotonic()
         try:
@@ -467,6 +468,7 @@ def build_tools(agent_mode: str) -> list[Any]:
 
         room_number = str(room_number or "").strip()
         logger.info("get_directions_to_room room=%s", room_number)
+        await asyncio.to_thread(_push_tool_transcript, "get_directions_to_room({})".format(room_number))
 
         t0 = time.monotonic()
         try:

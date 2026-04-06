@@ -57,3 +57,7 @@ Log system
 Finetune the local agent
 
 Quick autostart for openai
+
+
+when restart agent it will not dispatch automaticly
+remove memory warning from agent
