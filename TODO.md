@@ -61,3 +61,6 @@ Quick autostart for openai
 
 when restart agent it will not dispatch automaticly
 remove memory warning from agent
+
+
+and do you remember the test we did, can you try complelty sepearatly from the project try to use Qwe with 3 simple dummy tool I wanted if its realy hard limit for 2 tools, check with documentation.

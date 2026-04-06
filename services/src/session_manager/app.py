@@ -377,6 +377,9 @@ class SessionManager:
                 await self.ensure_room()
                 await self.cleanup_stale_dispatches()
                 await self._remove_agent_participants()
+                # Give old agent processes time to exit after their rooms were
+                # deleted, so their idle worker slots free up for the new dispatch.
+                await asyncio.sleep(5)
                 await self.write_session_snapshot()
                 self._bootstrap_complete = True
                 self._set_component_state(
@@ -810,6 +813,16 @@ class SessionManager:
         clean = " ".join(str(text).strip().split())
         if not clean:
             return
+        # Deduplicate: if the agent already pushed this text early (kind=llm),
+        # skip the later duplicate from room-monitor (arrives as kind=message).
+        if speaker == "Pepper" and kind != "llm" and self.transcript_items:
+            for recent in reversed(list(self.transcript_items)[-5:]):
+                if (
+                    recent.get("speaker") == "Pepper"
+                    and recent.get("kind") == "llm"
+                    and recent.get("text") == clean
+                ):
+                    return
         item = {"speaker": speaker, "text": clean, "at": _utc_now_iso(), "kind": kind}
         self.transcript_items.append(item)
         if speaker == "Pepper":
@@ -817,7 +830,7 @@ class SessionManager:
         elif speaker == "User":
             self.last_user_text = clean
         # Feed session log (skip tool kind — tools post their own structured events).
-        if kind == "message":
+        if kind in ("message", "llm"):
             if speaker == "User":
                 self._append_session_log_event({"type": "user_speech", "text": clean})
             elif speaker == "Pepper":
