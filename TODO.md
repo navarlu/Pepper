@@ -64,3 +64,27 @@ remove memory warning from agent
 
 
 and do you remember the test we did, can you try complelty sepearatly from the project try to use Qwe with 3 simple dummy tool I wanted if its realy hard limit for 2 tools, check with documentation.
+
+Try
+vllm serve Qwen/Qwen3-8B-FP8 \
+  --host 127.0.0.1 --port 8000 \
+  --enable-auto-tool-choice --tool-call-parser hermes \
+  --max-model-len 8192
+
+
+vllm serve Qwen/Qwen3.5-9B \
+  --host 127.0.0.1 --port 8000 \
+  --enable-auto-tool-choice --tool-call-parser qwen3_coder \
+  --max-model-len 8192 \
+  --quantization fp8 \
+  --gpu-memory-utilization 0.9
+
+DeepSeek-R1 7B distilled
+Google Gemma 3 9B
+
+
+Text Input appearing twice
+add animation to while waiting for query
+Bigger TTS and STT?
+
+Live behaviour

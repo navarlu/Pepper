@@ -189,11 +189,12 @@ def _parse_dispatch_metadata(ctx: JobContext) -> dict:
 
 
 class _SessionControl:
-    """Handles session-control signals (activate / reset) from the session manager."""
+    """Handles session-control signals (activate / reset / shutdown) from the session manager."""
 
     def __init__(self) -> None:
         self.activate_event = asyncio.Event()
         self.reset_event = asyncio.Event()
+        self.shutdown_event = asyncio.Event()
         self.payload: dict = {}
 
     def register(self, ctx: JobContext) -> None:
@@ -206,9 +207,10 @@ class _SessionControl:
             try:
                 data = json.loads(raw)
             except Exception:
+                logger.warning("session_control_invalid_json raw=%r", raw[:120])
                 return
             action = data.get("action")
-            logger.info("session_control_received action=%s payload=%s", action, data)
+            logger.info("[PERSIST] session_control_received action=%s payload=%s", action, data)
             if action == "activate":
                 self.payload.update(data)
                 self.reset_event.clear()
@@ -216,6 +218,13 @@ class _SessionControl:
             elif action == "reset":
                 self.activate_event.clear()
                 self.reset_event.set()
+            elif action == "shutdown":
+                logger.info("[PERSIST] shutdown_signal_received — agent will exit cleanly")
+                self.activate_event.clear()
+                self.reset_event.clear()
+                self.shutdown_event.set()
+            else:
+                logger.warning("session_control_unknown_action action=%s", action)
 
     def clear_activate(self) -> None:
         self.activate_event.clear()
@@ -377,7 +386,10 @@ async def entrypoint(ctx: JobContext) -> None:
     if agent_mode not in ("openai", "local"):
         agent_mode = "openai"
     is_warm = bool(dispatch_meta.get("warm"))
-    is_persistent = is_warm and agent_mode == "local"
+    # All warm agents are persistent now: they stay in the room across conversations
+    # and only reset chat history on idle. Only mode switch (shutdown signal) tears
+    # the worker down. Symmetric for local & openai modes.
+    is_persistent = is_warm
 
     logger.info(
         "agent version=%s agent_mode=%s model=%s warm=%s persistent=%s",
@@ -401,6 +413,21 @@ async def entrypoint(ctx: JobContext) -> None:
     sc = _SessionControl()
     if is_warm:
         sc.register(ctx)
+
+    # Debug visibility into participant churn (so we can confirm the persistent
+    # session survives user disconnects/reconnects without tearing down).
+    @ctx.room.on("participant_connected")
+    def _on_participant_connected(participant):
+        identity = str(getattr(participant, "identity", "") or "")
+        logger.info("[PERSIST] participant_connected identity=%s", identity)
+
+    @ctx.room.on("participant_disconnected")
+    def _on_participant_disconnected(participant):
+        identity = str(getattr(participant, "identity", "") or "")
+        logger.info(
+            "[PERSIST] participant_disconnected identity=%s (session stays alive)",
+            identity,
+        )
 
     t0 = time.monotonic()
     participant = await _wait_for_user_participant(ctx)
@@ -437,7 +464,13 @@ async def entrypoint(ctx: JobContext) -> None:
 
     @session.on("close")
     def _on_close(_) -> None:
+        # With close_on_disconnect=False, this only fires when the room itself
+        # dies (session-manager deleted/recreated it on restart) or the framework
+        # is tearing the worker down. Treat as shutdown so the persistent loop
+        # exits and the worker becomes free for the next dispatch.
+        logger.info("[PERSIST] session.on(close) fired — treating as shutdown (room likely deleted)")
         session_closed.set()
+        sc.shutdown_event.set()
 
     @session.on("conversation_item_added")
     def _on_item_added(event) -> None:
@@ -460,10 +493,16 @@ async def entrypoint(ctx: JobContext) -> None:
         agent=agent,
         room=ctx.room,
         room_options=room_io.RoomOptions(
-            close_on_disconnect=True,
+            # Persistent agent: do NOT tear down when the user briefly disconnects.
+            # The session must keep its STT pipeline and lk.chat text handler alive
+            # so the next reconnect (audio or UI text) is handled immediately.
+            close_on_disconnect=False,
             participant_identity=str(getattr(participant, "identity", "") or ""),
             text_input=room_io.TextInputOptions(),
         ),
+    )
+    logger.info(
+        "[PERSIST] session.start complete close_on_disconnect=False text_input=lk.chat",
     )
     logger.info("timing session.start=%.3fs agent_mode=%s", time.monotonic() - t0, agent_mode)
 
@@ -485,41 +524,58 @@ async def entrypoint(ctx: JobContext) -> None:
     )
 
     if not is_persistent:
-        # OpenAI / non-persistent: single session, exit when done.
+        # Non-warm dispatch (e.g. cold-only flow): single session, exit when done.
+        logger.info("[PERSIST] non-persistent path — awaiting session_closed")
         await session_closed.wait()
         return
 
-    # --- Persistent local agent loop ---
-    # Agent responds to user speech immediately.
-    # On reset signal from session manager, clear history for a fresh conversation.
+    # --- Persistent warm agent loop (both local & openai) ---
+    # The agent stays in the room forever. On `reset` (from session-manager idle
+    # timeout) it clears its chat history in-place. On `shutdown` (mode switch
+    # only) it exits cleanly so the worker can be redispatched with new config.
+    # Participant disconnects do NOT close the session (close_on_disconnect=False).
+    logger.info(
+        "[PERSIST] entering persistent loop agent_mode=%s — only `shutdown` ends this loop",
+        agent_mode,
+    )
     session_num = 0
     while True:
         reset_task = asyncio.ensure_future(sc.reset_event.wait())
-        close_task = asyncio.ensure_future(session_closed.wait())
+        shutdown_task = asyncio.ensure_future(sc.shutdown_event.wait())
         done, pending = await asyncio.wait(
-            [reset_task, close_task],
+            [reset_task, shutdown_task],
             return_when=asyncio.FIRST_COMPLETED,
         )
         for t in pending:
             t.cancel()
 
-        if session_closed.is_set():
-            logger.info("persistent_agent_exiting sessions_served=%d", session_num)
+        if sc.shutdown_event.is_set():
+            logger.info(
+                "[PERSIST] shutdown received — exiting loop sessions_served=%d agent_mode=%s",
+                session_num,
+                agent_mode,
+            )
             return
 
         session_num += 1
-        logger.info("persistent_agent_reset clearing_history session_num=%d", session_num)
+        logger.info(
+            "[PERSIST] reset signal received — clearing chat history session_num=%d",
+            session_num,
+        )
         try:
             await session.interrupt()
             session.clear_user_turn()
             await agent.update_chat_ctx(llm.ChatContext.empty())
-            logger.info("persistent_agent_history_cleared session_num=%d", session_num)
+            logger.info(
+                "[PERSIST] history cleared, agent ready for next user session_num=%d",
+                session_num,
+            )
         except Exception as exc:
-            logger.error("persistent_agent_reset_failed error=%s", exc)
+            logger.error("[PERSIST] reset failed error=%s", exc)
 
         sc.reset_event.clear()
         _post_debug_event({"event": "warm_ready", "active": True})
-        logger.info("persistent_agent_ready session_num=%d", session_num)
+        logger.info("[PERSIST] persistent_agent_ready session_num=%d", session_num)
 
 
 def _prewarm_process(_) -> None:

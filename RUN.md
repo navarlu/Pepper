@@ -64,8 +64,7 @@ SSH into woska and start in tmux:
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
 
 # Attach or create tmux session
-tmux attach -t pepper-agent 2>/dev/null || \
-  tmux new-session -s pepper-agent
+tmux attach -t pepper-agent 2>/dev/null || tmux new-session -s pepper-agent
 
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper

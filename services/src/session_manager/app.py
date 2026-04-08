@@ -695,12 +695,16 @@ class SessionManager:
 
     @property
     def _is_persistent_agent(self) -> bool:
-        """A persistent agent stays in the room across sessions (local mode only)."""
-        return self.agent_deployed and self.agent_mode == "local"
+        """A persistent agent stays in the room across conversations.
 
-    async def _send_reset_signal(self) -> None:
-        """Tell the persistent agent to clear its history and wait for next activation."""
-        payload = json.dumps({"action": "reset"}).encode("utf-8")
+        Both local and openai warm dispatches are persistent now: they survive
+        idle resets and only get torn down on explicit mode switch (shutdown).
+        """
+        return self.agent_deployed
+
+    async def _send_session_control(self, action: str) -> None:
+        """Send a session-control data message (reset / shutdown) to the warm agent."""
+        payload = json.dumps({"action": action}).encode("utf-8")
         lkapi = self._new_lkapi()
         try:
             await lkapi.room.send_data(
@@ -710,42 +714,55 @@ class SessionManager:
                     topic="session-control",
                 )
             )
-            print("[session_manager] sent reset signal to persistent agent")
+            print(f"[session_manager][PERSIST] sent session-control action={action} room={self.room_name}")
         except Exception as exc:
-            print(f"[session_manager] reset signal failed err={exc}")
+            print(f"[session_manager][PERSIST] session-control send failed action={action} err={exc}")
         finally:
             await lkapi.aclose()
 
+    async def _send_reset_signal(self) -> None:
+        """Tell the persistent agent to clear its history and wait for next user."""
+        await self._send_session_control("reset")
+
+    async def _send_shutdown_signal(self) -> None:
+        """Tell the persistent agent to exit cleanly (used on mode switch)."""
+        await self._send_session_control("shutdown")
+
     async def end_session(self, reason: str, *, force_teardown: bool = False) -> None:
+        """Idle / end-of-conversation path.
+
+        With the persistent-room redesign, this NEVER tears down the agent and
+        NEVER rotates the room. It only sends a `reset` signal so the warm agent
+        clears its chat history in place. The `force_teardown` kwarg is kept for
+        backwards-compat call sites but is no longer honored — mode switches go
+        through `switch_agent_mode` instead.
+        """
         async with self._lock:
             if not self.agent_deployed and self.session_state == "idle":
                 return
             self.session_state = "ending"
-            print(f"[session_manager] ending session reason={reason} force_teardown={force_teardown}")
+            print(
+                f"[session_manager][PERSIST] end_session reason={reason} "
+                f"agent_deployed={self.agent_deployed} agent_mode={self.agent_mode} "
+                f"room={self.room_name}"
+            )
+            if force_teardown:
+                print(
+                    "[session_manager][PERSIST] WARNING: force_teardown=True is no longer honored "
+                    "in end_session — use switch_agent_mode for mode changes"
+                )
             ended_conversation_id = self.conversation_id
             if ended_conversation_id:
                 self._write_session_log(ended_conversation_id, reason)
 
-            use_persistent_reset = self._is_persistent_agent and not force_teardown
-
-            if use_persistent_reset:
-                # Persistent local agent: send reset, keep agent alive in room
+            if self._is_persistent_agent:
+                # Persistent agent (local OR openai warm): send reset, keep agent alive.
                 await self._send_reset_signal()
-                # Agent stays deployed — just reset session-level state
                 self._warm_phase = "deploying"  # will become "ready" on warm_ready
-                self.dispatch_started_monotonic = time.monotonic()  # reset timeout window
+                self.dispatch_started_monotonic = time.monotonic()
             else:
-                # OpenAI / non-persistent: tear down and re-dispatch as before
-                await self._remove_agent_participants()
-                self._clear_agent_runtime_state()
-                if force_teardown:
-                    # Agent worker may have died/restarted — rotate to a fresh room
-                    # so the next dispatch doesn't go to a dead room.
-                    lkapi = self._new_lkapi()
-                    try:
-                        await self._rotate_room(lkapi)
-                    finally:
-                        await lkapi.aclose()
+                # No warm agent currently deployed — nothing to reset, just clear state.
+                print("[session_manager][PERSIST] no warm agent deployed, skipping reset signal")
 
             self.conversation_id = ""
             self.last_user_activity_monotonic = 0.0
@@ -756,34 +773,91 @@ class SessionManager:
                 )
             self.updated_at = _utc_now_iso()
 
-        if use_persistent_reset:
-            # No cooldown needed — agent resets instantly.
-            # warm_ready event from agent will set _warm_phase = "standby"
-            async with self._lock:
-                self.session_state = "warm"
-                self.updated_at = _utc_now_iso()
-                self._set_component_state(
-                    "session-manager",
-                    state="ready",
-                    detail="persistent agent resetting",
-                    healthy=True,
-                    source="internal",
+        async with self._lock:
+            self.session_state = "warm"
+            self.updated_at = _utc_now_iso()
+            self._set_component_state(
+                "session-manager",
+                state="ready",
+                detail="persistent agent resetting",
+                healthy=True,
+                source="internal",
+            )
+        print("[session_manager][PERSIST] end_session done — waiting for warm_ready event from agent")
+
+    async def _redispatch_warm_agent(self, reason: str, *, send_shutdown: bool = True) -> None:
+        """Tear down current warm agent (if any) and dispatch a fresh one in the SAME room.
+
+        Used by:
+          - switch_agent_mode (after updating self.agent_mode)
+          - watchdog when warm agent never reaches "ready"
+          - zombie detector when agent participant disappears unexpectedly
+
+        Never rotates the room. Listener / monitor / user-client stay put.
+        """
+        print(
+            f"[session_manager][REDISPATCH] reason={reason} room={self.room_name} "
+            f"agent_mode={self.agent_mode} send_shutdown={send_shutdown}"
+        )
+
+        # 1. Best-effort: tell the current warm agent to exit cleanly.
+        if send_shutdown and self.agent_deployed:
+            await self._send_shutdown_signal()
+            await asyncio.sleep(0.5)
+
+        # 2. Evict any agent participants from the room (no rotation!)
+        await self._remove_agent_participants()
+
+        async with self._lock:
+            self._clear_agent_runtime_state()
+            self.last_user_activity_monotonic = 0.0
+            self.last_agent_activity_monotonic = 0.0
+            self.session_state = "idle"
+            self.updated_at = _utc_now_iso()
+            self._set_component_state(
+                "session-manager",
+                state="ready",
+                detail=f"redispatching ({reason})",
+                healthy=True,
+                source="internal",
+            )
+
+        print(
+            f"[session_manager][REDISPATCH] dispatching fresh warm agent mode={self.agent_mode} "
+            f"into existing room={self.room_name}"
+        )
+        # 3. Bring up a fresh warm agent in the SAME room.
+        await self._dispatch_warm_agent()
+
+    async def switch_agent_mode(self, new_mode: str) -> None:
+        """Mode switch (local↔openai). The ONLY path that changes self.agent_mode.
+
+        Delegates the teardown+dispatch dance to `_redispatch_warm_agent`. The
+        room is NOT rotated; listener / monitor / user-client stay in place.
+        """
+        new_mode = (new_mode or "").strip().lower()
+        if new_mode not in ("openai", "local"):
+            raise ValueError(f"invalid agent_mode: {new_mode!r}")
+
+        old_mode = self.agent_mode
+        print(
+            f"[session_manager][MODE-SWITCH] {old_mode} -> {new_mode} "
+            f"room={self.room_name} (room will NOT rotate)"
+        )
+
+        async with self._lock:
+            if self.conversation_id:
+                self._write_session_log(self.conversation_id, f"agent_mode_changed_to_{new_mode}")
+                self._append_session_marker(
+                    f"Session ended · {self.conversation_id} · mode_switch_to_{new_mode}"
                 )
-            print("[session_manager] persistent agent reset — waiting for warm_ready")
-        else:
-            self.session_state = "cooldown"
-            await asyncio.sleep(SESSION_COOLDOWN_SEC)
-            async with self._lock:
-                self.session_state = "idle"
-                self.updated_at = _utc_now_iso()
-                self._set_component_state(
-                    "session-manager",
-                    state="ready",
-                    detail="idle",
-                    healthy=True,
-                    source="internal",
-                )
-            await self._dispatch_warm_agent()
+                self.conversation_id = ""
+            self.agent_mode = new_mode
+            self._persist_state()
+
+        await self._redispatch_warm_agent(
+            reason=f"mode_switch_to_{new_mode}", send_shutdown=True
+        )
 
     async def record_activity(self, source: str, level: float | None = None) -> None:
         now = time.monotonic()
@@ -813,15 +887,21 @@ class SessionManager:
         clean = " ".join(str(text).strip().split())
         if not clean:
             return
-        # Deduplicate: if the agent already pushed this text early (kind=llm),
-        # skip the later duplicate from room-monitor (arrives as kind=message).
-        if speaker == "Pepper" and kind != "llm" and self.transcript_items:
-            for recent in reversed(list(self.transcript_items)[-5:]):
-                if (
-                    recent.get("speaker") == "Pepper"
-                    and recent.get("kind") == "llm"
-                    and recent.get("text") == clean
-                ):
+        # Deduplicate Pepper turns. Both the agent (kind=llm, early) and the
+        # room-monitor (kind=message, after TTS) push the same text. Tool calls
+        # can push transcript items in between, so a small window misses the
+        # match — scan a wider window and ignore kind, only matching by text.
+        if speaker == "Pepper" and self.transcript_items:
+            for recent in reversed(list(self.transcript_items)[-20:]):
+                if recent.get("speaker") != "Pepper":
+                    continue
+                if recent.get("kind") not in ("message", "llm"):
+                    continue
+                if recent.get("text") == clean:
+                    print(
+                        f"[session_manager] dedup_pepper_transcript skipped duplicate "
+                        f"new_kind={kind} prev_kind={recent.get('kind')} text={clean[:60]!r}"
+                    )
                     return
         item = {"speaker": speaker, "text": clean, "at": _utc_now_iso(), "kind": kind}
         self.transcript_items.append(item)
@@ -946,8 +1026,32 @@ class SessionManager:
                     and self.dispatch_started_monotonic > 0
                     and (now - self.dispatch_started_monotonic) >= WARM_AGENT_JOIN_TIMEOUT_SEC
                 ):
-                    print("[session_manager] warm agent never became ready - re-dispatching")
-                    await self.end_session(reason="warm_agent_timeout", force_teardown=True)
+                    print("[session_manager][WATCHDOG] warm agent never became ready - re-dispatching")
+                    await self._redispatch_warm_agent(
+                        reason="warm_agent_timeout", send_shutdown=False
+                    )
+            # Zombie detector: if we think a warm agent is deployed and ready, but
+            # no agent participant is actually present in the room, the worker
+            # process has died (e.g. tmux agent restart). Redispatch into the same
+            # room so a fresh worker picks it up.
+            if (
+                self._bootstrap_complete
+                and self.agent_deployed
+                and self._warm_phase == "ready"
+                and self.participants
+            ):
+                has_agent = any(
+                    _identity_is_agent(p.get("identity", ""), p.get("kind", ""))
+                    for p in self.participants
+                )
+                if not has_agent:
+                    print(
+                        "[session_manager][ZOMBIE] warm agent reported ready but no agent "
+                        f"participant in room={self.room_name} — redispatching"
+                    )
+                    await self._redispatch_warm_agent(
+                        reason="agent_participant_missing", send_shutdown=False
+                    )
             await asyncio.sleep(LIVEKIT_STATUS_POLL_INTERVAL_SEC)
 
     async def token_refresh_loop(self) -> None:

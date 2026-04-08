@@ -237,11 +237,8 @@ class SessionManagerHttp:
             new_mode = "local" if self.manager.agent_mode == "openai" else "openai"
         old_mode = self.manager.agent_mode
         if old_mode != new_mode:
-            # Force teardown: mode switch always kills the current agent fully.
-            print(f"[session_manager] agent_mode changing {old_mode} -> {new_mode}")
-            await self.manager.end_session(reason=f"agent_mode_changed_to_{new_mode}", force_teardown=True)
-            self.manager.agent_mode = new_mode
-            self.manager._persist_state()
+            print(f"[session_manager][MODE-SWITCH] HTTP request {old_mode} -> {new_mode}")
+            await self.manager.switch_agent_mode(new_mode)
             self.manager._append_session_marker(f"Agent mode: {new_mode}")
         else:
             self.manager._persist_state()

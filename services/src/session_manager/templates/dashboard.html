@@ -551,10 +551,9 @@ function warmStateLabel(data) {
   if (data.session_state === "active") return "activated into live session";
   if (!data.agent_deployed) return "not deployed";
   const wp = data.warm_phase || "none";
-  if (wp === "standby") return "ready";
-  if (wp === "pending") return "warming, user waiting";
-  if (wp === "activating") return "activating";
-  return "warming";
+  if (wp === "ready") return "ready";
+  if (wp === "deploying") return "warming";
+  return wp;
 }
 function speakingLabel(data) {
   const level = Number(data.agent_audio_level || 0);
@@ -564,9 +563,9 @@ function sessionStateLabel(data) {
   if (data.session_state === "active") return "active conversation";
   if (data.session_state === "warm") {
     const wp = data.warm_phase || "none";
-    if (wp === "standby") return "idle, warm standby ready";
-    if (wp === "pending") return "starting session, waiting for standby";
-    return "warming standby";
+    if (wp === "ready") return "idle, agent ready";
+    if (wp === "deploying") return "warming agent";
+    return "warming agent";
   }
   if (data.session_state === "idle") {
     if (data.agent_mode === "local" && !data.local_llm_healthy) return "idle (vLLM down)";
@@ -635,12 +634,12 @@ async function refresh() {
     } else if (data.agent_mode === "local" && !data.local_llm_healthy) {
       pillClass = "pill hot";
       pillText = "vLLM offline";
-    } else if (data.agent_deployed && data.warm_phase === "standby") {
+    } else if (data.agent_deployed && data.warm_phase === "ready") {
       pillClass = "pill good";
       pillText = "Agent ready";
     } else if (data.agent_deployed) {
       pillClass = "pill";
-      pillText = data.warm_phase === "pending" ? "Starting session" : "Warming agent";
+      pillText = "Warming agent";
     }
     chatLivePill.className = pillClass;
     chatLivePill.textContent = pillText;

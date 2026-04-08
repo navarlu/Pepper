@@ -199,3 +199,24 @@ All steps pass including directions, with only 2 tools registered.
 2. **Larger model** — Qwen 2.5 14B or 32B would handle 3+ tools reliably. Needs VRAM check on woska. This would remove the 2-tool constraint entirely.
 3. **Fine-tuning** — Fine-tune Qwen 7B on examples of always-call-animation-then-speak. Time-consuming but would solve the root cause for this specific model.
 4. **Lower temperature** — Try temp=0.0 or 0.1 for more deterministic tool calling. Trade-off: less natural speech variation.
+
+### Attempt 10 (2026-04-06): 2-tool limit DISPROVED — it's the tool definitions, not the count
+
+**Test:** `voice-agent/tests/test_dummy_tool_limit.py` — standalone A/B test with completely generic dummy tools (get_weather, get_time, translate_text, calculate). No Pepper context, no project-specific prompts. Plain "helpful assistant" system prompt.
+
+**Results:**
+```
+2_tools   pass=5/5 (100%)  leakage=0/5
+3_tools   pass=5/5 (100%)  leakage=0/5
+4_tools   pass=5/5 (100%)  leakage=0/5
+```
+
+All configs pass perfectly — even 4 tools with parameters work fine.
+
+**Conclusion:** The "2-tool hard limit" from Attempt 9 was wrong. Qwen 2.5 7B handles 3+ tools reliably when the tool schemas are clean and simple. The failure with `get_directions_to_room` was caused by something specific to our tool definitions (description length, parameter naming, interaction with the Pepper system prompt, or schema complexity) — not a fundamental model constraint.
+
+**What this means:**
+- The `get_directions_to_room` merge into `query_search` still works and is fine, but it was not strictly necessary
+- Re-adding a 3rd tool is possible if the schema is kept simple and clean
+- The "Next Steps" ideas about larger models or fine-tuning for tool count are no longer relevant — focus should be on tool schema quality instead
+- The PA-Tool paper's recommendation still applies: adapt schemas to the model, don't blame the model for bad schemas
