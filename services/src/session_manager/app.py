@@ -118,6 +118,9 @@ class SessionManager:
         self.last_user_activity_monotonic = 0.0
         self.last_agent_activity_monotonic = 0.0
         self.dispatch_started_monotonic = 0.0
+        # Zombie detector hysteresis: track since when the agent participant
+        # has been absent from self.participants. None = currently present.
+        self._agent_missing_since: float | None = None
         self.last_user_activity_at = ""
         self.last_agent_activity_at = ""
         self.updated_at = ""
@@ -159,6 +162,7 @@ class SessionManager:
         self._warm_phase = "none"
         self.active_dispatch_id = ""
         self.dispatch_started_monotonic = 0.0
+        self._agent_missing_since = None
 
     def _load_persisted_state(self) -> None:
         try:
@@ -809,6 +813,15 @@ class SessionManager:
         await self._remove_agent_participants()
 
         async with self._lock:
+            # Any in-flight conversation is dead — finalize its log and clear it
+            # so the next user utterance can _start_conversation cleanly.
+            abandoned = self.conversation_id
+            if abandoned:
+                self._write_session_log(abandoned, f"abandoned_{reason}")
+                self._append_session_marker(
+                    f"Session ended · {abandoned} · abandoned ({reason})"
+                )
+                self.conversation_id = ""
             self._clear_agent_runtime_state()
             self.last_user_activity_monotonic = 0.0
             self.last_agent_activity_monotonic = 0.0
@@ -891,18 +904,36 @@ class SessionManager:
         # room-monitor (kind=message, after TTS) push the same text. Tool calls
         # can push transcript items in between, so a small window misses the
         # match — scan a wider window and ignore kind, only matching by text.
+        # IMPORTANT: only dedup within a short time window so the same canned
+        # greeting in two different conversations isn't suppressed.
+        DEDUP_WINDOW_SEC = 15.0
         if speaker == "Pepper" and self.transcript_items:
+            now_iso = _utc_now_iso()
             for recent in reversed(list(self.transcript_items)[-20:]):
                 if recent.get("speaker") != "Pepper":
                     continue
                 if recent.get("kind") not in ("message", "llm"):
                     continue
-                if recent.get("text") == clean:
+                if recent.get("text") != clean:
+                    continue
+                # Same text — check if within the dedup window.
+                try:
+                    prev_at = datetime.datetime.fromisoformat(
+                        str(recent.get("at", "")).replace("Z", "+00:00")
+                    )
+                    now_at = datetime.datetime.fromisoformat(now_iso.replace("Z", "+00:00"))
+                    age = (now_at - prev_at).total_seconds()
+                except Exception:
+                    age = 0.0
+                if age <= DEDUP_WINDOW_SEC:
                     print(
                         f"[session_manager] dedup_pepper_transcript skipped duplicate "
-                        f"new_kind={kind} prev_kind={recent.get('kind')} text={clean[:60]!r}"
+                        f"age={age:.1f}s new_kind={kind} prev_kind={recent.get('kind')} "
+                        f"text={clean[:60]!r}"
                     )
                     return
+                # Same text but stale (different conversation) — keep it.
+                break
         item = {"speaker": speaker, "text": clean, "at": _utc_now_iso(), "kind": kind}
         self.transcript_items.append(item)
         if speaker == "Pepper":
@@ -1030,28 +1061,59 @@ class SessionManager:
                     await self._redispatch_warm_agent(
                         reason="warm_agent_timeout", send_shutdown=False
                     )
-            # Zombie detector: if we think a warm agent is deployed and ready, but
-            # no agent participant is actually present in the room, the worker
-            # process has died (e.g. tmux agent restart). Redispatch into the same
-            # room so a fresh worker picks it up.
+            # Zombie detector with hysteresis. A naive single-tick check kills
+            # live conversations because list_participants is eventually
+            # consistent and a freshly-dispatched agent isn't in the list yet.
+            # Rules:
+            #   - Only check after bootstrap, when we think a warm agent is
+            #     deployed AND has been alive for > ZOMBIE_DISPATCH_COOLDOWN_SEC
+            #     (gives it time to actually join after dispatch).
+            #   - Track when the agent first appeared missing; only act if it
+            #     stays missing for ≥ ZOMBIE_GRACE_SEC.
+            #   - Reset the missing timer the moment we see the agent.
+            ZOMBIE_GRACE_SEC = 10.0
+            ZOMBIE_DISPATCH_COOLDOWN_SEC = 15.0
             if (
                 self._bootstrap_complete
                 and self.agent_deployed
                 and self._warm_phase == "ready"
+                and self.dispatch_started_monotonic > 0
+                and (now - self.dispatch_started_monotonic) >= ZOMBIE_DISPATCH_COOLDOWN_SEC
                 and self.participants
             ):
                 has_agent = any(
                     _identity_is_agent(p.get("identity", ""), p.get("kind", ""))
                     for p in self.participants
                 )
-                if not has_agent:
-                    print(
-                        "[session_manager][ZOMBIE] warm agent reported ready but no agent "
-                        f"participant in room={self.room_name} — redispatching"
-                    )
-                    await self._redispatch_warm_agent(
-                        reason="agent_participant_missing", send_shutdown=False
-                    )
+                if has_agent:
+                    if self._agent_missing_since is not None:
+                        print(
+                            "[session_manager][ZOMBIE] agent reappeared after "
+                            f"{now - self._agent_missing_since:.1f}s — clearing missing marker"
+                        )
+                        self._agent_missing_since = None
+                else:
+                    if self._agent_missing_since is None:
+                        self._agent_missing_since = now
+                        print(
+                            "[session_manager][ZOMBIE] agent participant not in roster — "
+                            f"starting grace timer ({ZOMBIE_GRACE_SEC}s) room={self.room_name}"
+                        )
+                    elif (now - self._agent_missing_since) >= ZOMBIE_GRACE_SEC:
+                        missing_for = now - self._agent_missing_since
+                        print(
+                            f"[session_manager][ZOMBIE] agent missing for {missing_for:.1f}s "
+                            f"(>= {ZOMBIE_GRACE_SEC}s grace) room={self.room_name} — redispatching"
+                        )
+                        self._agent_missing_since = None
+                        await self._redispatch_warm_agent(
+                            reason="agent_participant_missing", send_shutdown=False
+                        )
+            else:
+                # Conditions for zombie check not met (e.g. cooldown not elapsed,
+                # warm phase not ready, no agent deployed). Drop any stale marker.
+                if self._agent_missing_since is not None:
+                    self._agent_missing_since = None
             await asyncio.sleep(LIVEKIT_STATUS_POLL_INTERVAL_SEC)
 
     async def token_refresh_loop(self) -> None:

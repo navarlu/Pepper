@@ -88,3 +88,4 @@ add animation to while waiting for query
 Bigger TTS and STT?
 
 Live behaviour
+openAI slow 

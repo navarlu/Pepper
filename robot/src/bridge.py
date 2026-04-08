@@ -508,6 +508,12 @@ class TabletOverlayHttpServer(threading.Thread):
                         self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
                 if path_only.startswith("/animation/"):
+                    # Validate quickly, then dispatch the actual playback in a
+                    # background thread and ack 200 immediately. This keeps the
+                    # agent's HTTP call latency in the millisecond range so the
+                    # WebRTC heartbeat between woska and the LiveKit server is
+                    # never starved by Pepper's animation runtime.
+                    # See CONNECTION_ISSUE.md for the full story.
                     if bm is None and anim is None:
                         self._write_json(
                             500,
@@ -531,51 +537,60 @@ class TabletOverlayHttpServer(threading.Thread):
                             {"ok": False, "error": "unknown animation", "name": name},
                         )
                         return
-                    try:
-                        if life is not None and TOUCH_AUTONOMOUS_LIFE:
-                            try:
-                                state = to_text(life.getState())
-                                print("[life] state before animation:", state)
-                                if state.lower() == "disabled":
-                                    print("[life] state is disabled, switching to solitary")
-                                    life.setState("solitary")
-                            except Exception as life_exc:
-                                print("[life] warning:", to_text(life_exc))
 
-                        # Mute ALAudioPlayer so animation sounds don't overlap
-                        # with the streamed TTS audio (sent via ALAudioDevice).
-                        if audio_player is not None:
-                            try:
-                                audio_player.setMasterVolume(0.0)
-                                print("[animation] muted ALAudioPlayer")
-                            except Exception as mute_exc:
-                                print("[animation] mute warning:", to_text(mute_exc))
-
-                        print("[animation] running:", behavior)
-                        # Prefer ALAnimationPlayer to keep AutonomousLife behavior model intact.
+                    def _run_animation_bg(behavior_local, name_local):
                         try:
-                            if anim is not None and behavior.startswith("animations/"):
-                                fut = anim.run(behavior)
-                                # Wait for completion to keep API semantics of "play now".
+                            if life is not None and TOUCH_AUTONOMOUS_LIFE:
                                 try:
-                                    fut.value()
-                                except Exception:
-                                    pass
-                            else:
-                                bm.runBehavior(behavior)
-                        finally:
+                                    state = to_text(life.getState())
+                                    print("[life] state before animation:", state)
+                                    if state.lower() == "disabled":
+                                        print("[life] state is disabled, switching to solitary")
+                                        life.setState("solitary")
+                                except Exception as life_exc:
+                                    print("[life] warning:", to_text(life_exc))
+
+                            # Mute ALAudioPlayer so animation sounds don't
+                            # overlap with the streamed TTS audio.
                             if audio_player is not None:
                                 try:
-                                    audio_player.setMasterVolume(1.0)
-                                    print("[animation] restored ALAudioPlayer volume")
-                                except Exception as unmute_exc:
-                                    print("[animation] unmute warning:", to_text(unmute_exc))
-                        self._write_json(
-                            200,
-                            {"ok": True, "name": name, "behavior": behavior},
-                        )
-                    except Exception as exc:
-                        self._write_json(500, {"ok": False, "error": to_text(exc), "behavior": behavior})
+                                    audio_player.setMasterVolume(0.0)
+                                    print("[animation] muted ALAudioPlayer")
+                                except Exception as mute_exc:
+                                    print("[animation] mute warning:", to_text(mute_exc))
+
+                            print("[animation] running:", behavior_local)
+                            try:
+                                if anim is not None and behavior_local.startswith("animations/"):
+                                    fut = anim.run(behavior_local)
+                                    try:
+                                        fut.value()
+                                    except Exception:
+                                        pass
+                                else:
+                                    bm.runBehavior(behavior_local)
+                                print("[animation] done:", behavior_local)
+                            finally:
+                                if audio_player is not None:
+                                    try:
+                                        audio_player.setMasterVolume(1.0)
+                                        print("[animation] restored ALAudioPlayer volume")
+                                    except Exception as unmute_exc:
+                                        print("[animation] unmute warning:", to_text(unmute_exc))
+                        except Exception as bg_exc:
+                            print("[animation] failed:", name_local, to_text(bg_exc))
+
+                    worker = threading.Thread(
+                        target=_run_animation_bg,
+                        args=(behavior, name),
+                    )
+                    worker.daemon = True
+                    worker.start()
+                    print("[animation] queued behavior=%s name=%s" % (behavior, name))
+                    self._write_json(
+                        200,
+                        {"ok": True, "name": name, "behavior": behavior, "queued": True},
+                    )
                     return
 
                 if self.path != "/tablet/text_inline":
