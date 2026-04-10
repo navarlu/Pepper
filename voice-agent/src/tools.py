@@ -4,7 +4,6 @@ import logging
 import random
 import re
 import time
-from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
@@ -311,19 +310,6 @@ BUILDING_ROOMS: dict[str, dict[str, dict]] = {
 }
 
 
-def _load_room_data() -> dict:
-    """Load FLOORS dict from map.py at runtime (re-read on every call, no restart needed).
-
-    Used by get_directions_to_room tool in OpenAI mode (3-tool capable).
-    """
-    import importlib.util
-    map_path = Path(__file__).resolve().parents[2] / "dev-console" / "data" / "map" / "map.py"
-    spec = importlib.util.spec_from_file_location("building_map", map_path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.FLOORS
-
-
 _ROOM_NUMBER_RE = re.compile(r'\b(\d{2,4}[a-zA-Z]?)\b')
 _ROOM_KEYWORDS = [
     "room", "direction", "where", "how to get", "find", "navigate",
@@ -569,83 +555,6 @@ def build_tools(agent_mode: str) -> list[Any]:
         """Check and set the robot body posture. Returns the current body state which you need before speaking. animation must be one of: greeting, bow, explain, happy, thinking, dont_know"""
         del context
         return await _play_animation_impl(animation)
-
-    @function_tool
-    async def get_directions_to_room(
-        context: RunContext,
-        room_number: str,
-    ) -> str:
-        """Get directions on how to walk to a specific room in Building E.
-
-        Call this whenever a visitor asks where a room is or how to get there.
-        Returns step-by-step walking directions from the main entrance.
-        Returns step-by-step walking directions from the main entrance.
-        """
-        del context
-
-        room_number = str(room_number or "").strip()
-        logger.info("get_directions_to_room room=%s", room_number)
-        await asyncio.to_thread(_push_tool_transcript, "get_directions_to_room({})".format(room_number))
-
-        t0 = time.monotonic()
-        try:
-            floors = await asyncio.to_thread(_load_room_data)
-        except Exception as exc:
-            duration_ms = (time.monotonic() - t0) * 1000
-            logger.error("get_directions_to_room map_load_failed error=%s", exc)
-            await asyncio.to_thread(
-                _post_tool_event, "get_directions_to_room",
-                {"room_number": room_number}, None, duration_ms,
-                error=f"map_unavailable: {exc}",
-            )
-            return json.dumps({"error": "map_unavailable"}, ensure_ascii=False)
-
-        for floor_id, rooms_on_floor in floors.items():
-            if room_number in rooms_on_floor:
-                room = rooms_on_floor[room_number]
-                directions = (room.get("directions") or "").strip()
-                name = (room.get("name") or "").strip()
-
-                if not directions:
-                    duration_ms = (time.monotonic() - t0) * 1000
-                    logger.warning("get_directions_to_room room=%s directions_empty", room_number)
-                    result_payload = {
-                        "error": "no_directions",
-                        "message": f"Room {room_number} is known but directions are not filled in yet.",
-                    }
-                    await asyncio.to_thread(
-                        _post_tool_event, "get_directions_to_room",
-                        {"room_number": room_number}, result_payload, duration_ms,
-                    )
-                    return json.dumps(result_payload, ensure_ascii=False)
-
-                logger.info("get_directions_to_room room=%s floor=%s found=true", room_number, floor_id)
-                result_payload = {
-                    "room": room_number,
-                    "floor": floor_id,
-                    "directions": directions,
-                }
-                if name:
-                    result_payload["name"] = name
-                duration_ms = (time.monotonic() - t0) * 1000
-                await asyncio.to_thread(
-                    _post_tool_event, "get_directions_to_room",
-                    {"room_number": room_number}, result_payload, duration_ms,
-                )
-                return json.dumps(result_payload, ensure_ascii=False)
-
-        duration_ms = (time.monotonic() - t0) * 1000
-        logger.warning("get_directions_to_room room=%s not_found", room_number)
-        result_payload = {
-            "error": "room_not_found",
-            "message": f"Room {room_number} is not in my map. I only know Building E rooms.",
-        }
-        await asyncio.to_thread(
-            _post_tool_event, "get_directions_to_room",
-            {"room_number": room_number}, result_payload, duration_ms,
-            error="room_not_found",
-        )
-        return json.dumps(result_payload, ensure_ascii=False)
 
     play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
 

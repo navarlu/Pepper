@@ -45,7 +45,7 @@ AGENT_TRACK_IDENTITY = _env_str("AGENT_TRACK_IDENTITY", "")
 TOKEN_POLL_INTERVAL = _env_float("TOKEN_POLL_INTERVAL", 0.5)
 LIVEKIT_SESSION_FILE = _env_str(
     "LIVEKIT_SESSION_FILE",
-    os.path.join(REPO_ROOT, "data", "token-latest.json"),
+    os.path.join(REPO_ROOT, "services", "src", "session_manager", "data", "token-latest.json"),
 )
 LIVEKIT_STATUS_POLL_INTERVAL_SEC = _env_float("LIVEKIT_STATUS_POLL_INTERVAL_SEC", 2.0)
 

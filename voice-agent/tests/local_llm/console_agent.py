@@ -196,7 +196,7 @@ def _search_weaviate(query, limit=5):
 
 def _load_room_data():
     """Load building map from map.py."""
-    map_path = PROJECT_ROOT / "dev-console" / "data" / "map" / "map.py"
+    map_path = PROJECT_ROOT / "services" / "src" / "dev_console" / "data" / "map" / "map.py"
     spec = importlib.util.spec_from_file_location("building_map", map_path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)

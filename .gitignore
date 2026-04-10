@@ -59,7 +59,8 @@ latexmkrc
 .vscode/.latex-workshop/
 
 
-dev-console/data/
+services/src/dev_console/data/
+services/src/session_manager/data/
 voice-agent/models/
 notes.txt
 run*.txt
