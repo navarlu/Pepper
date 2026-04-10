@@ -1,5 +1,7 @@
 # Tool History Stripping for Qwen 2.5 7B + vLLM
 
+> **Resolved (2026-04-06):** History stripping turned out to be unnecessary. The real fix (documented in [tools-issue.md](tools-issue.md), Attempt 7) was: clean tool descriptions that frame tools as returning needed data + single-line system prompt + standard OpenAI tool-calling flow with no stripping. The stripping approach below actually caused more problems (removed query_search results, causing hallucinated answers). Kept for historical reference.
+
 Investigation into multi-turn tool call issues with the local LLM pipeline.
 Date: 2025-04-05
 
@@ -79,3 +81,7 @@ This gives the model enough context to know what already happened, without expos
 ## Key Takeaway
 
 Qwen 2.5 7B is too small to reliably maintain proper tool-calling format across multi-turn conversations when it sees its own prior tool call outputs. The fix is on the application side: never feed raw tool history back to the model.
+
+
+
+

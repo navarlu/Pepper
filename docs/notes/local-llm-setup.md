@@ -71,11 +71,11 @@ See `tests/local_llm/test_qwen.py` for a minimal OpenAI-compatible client test.
 
 Start infra first:
 ```bash
-cd docker && docker compose up -d livekit redis weaviate
+docker compose -f docker/docker-compose.yml up -d livekit redis weaviate
 ```
 
-The unified agent (`voice-agent/src/agent.py`) handles both modes. The mode is
-controlled by the **session manager** — toggle via the Operator UI button or:
+The local mode agent (`pepper-local`) typically runs on the GPU server (woska).
+See [gpu-setup.md](gpu-setup.md) for the full setup. Toggle mode via the Operator UI or:
 ```bash
 curl -X POST http://localhost:8787/api/control/agent-mode -H 'Content-Type: application/json' -d '{"mode":"local"}'
 ```
@@ -88,20 +88,20 @@ and `LOCAL_TTS_NOISE_W_SCALE`.
 
 ## 5. Docker integration
 
-In `docker/docker-compose.yml` under `voice-agent`, set these env vars:
-```yaml
-environment:
-  LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
-  LOCAL_LLM_MODEL: Qwen/Qwen2.5-7B-Instruct
-  LOCAL_TTS_MODEL_PATH: /workspace/voice-agent/models/piper/en_US-hfc_female-medium.onnx
-  LOCAL_TTS_SPEAKER_ID: ""
-  LOCAL_TTS_LENGTH_SCALE: 1.0
-  LOCAL_TTS_NOISE_SCALE: 0.667
-  LOCAL_TTS_NOISE_W_SCALE: 0.8
-  PEPPER_AGENT_MODE: local   # set to `local` to prewarm Whisper/Piper; default is `openai`
+The local mode agent is configured via `docker-compose.rpi.yml` (for running on RPi) or environment variables on woska. Key env vars:
+
+```bash
+PEPPER_AGENT_NAME=pepper-local          # registers with LiveKit under this name
+PEPPER_AGENT_MODE=local                 # preloads Whisper STT + Piper TTS
+LOCAL_LLM_BASE_URL=http://localhost:8000/v1
+LOCAL_LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
+LOCAL_TTS_MODEL_PATH=/workspace/voice-agent/models/piper/en_US-hfc_female-medium.onnx
 ```
 
-Then: `docker compose up -d voice-agent`
+For running on RPi with the compose override:
+```bash
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.rpi.yml up -d
+```
 
 ## Troubleshooting
 

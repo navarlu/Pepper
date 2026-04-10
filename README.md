@@ -1,136 +1,194 @@
-# Pepper — The FEE CTU Receptionist
+# Pepper — LLM-Driven Receptionist Robot
 
 ![Pepper](docs/assets/pepper.jpeg)
 
-This project turns Pepper into a spoken receptionist assistant using:
-1) a **Python 3 LiveKit/OpenAI realtime agent** (`voice-agent/`),
-2) a **session manager** that orchestrates rooms, tokens, and component lifecycle,
-3) an optional **Weaviate-backed retrieval tool** for FEL documents,
-4) optional **Pepper audio playback bridge** (Python 2.7 receiver + Python 3 listener).
+**Design of an LLM-Driven Receptionist Robot for Social Interaction**
 
-Current setup does **not** use Letta.
+Master's thesis project at CTU FEE Prague. Pepper conducts fluent spoken dialogue with visitors, answers questions about the faculty using RAG over internal documents, and accompanies speech with gestures and animations.
 
-## Current Architecture
+| | |
+|---|---|
+| **Author** | Bc. Lukas Navara |
+| **Supervisor** | doc. Mgr. Matej Hoffmann, Ph.D. |
+| **Department** | Dept. of Cybernetics, FEL CVUT |
+| **Platform** | Raspberry Pi 5 + SoftBank Pepper |
 
-1. **Voice agent (primary runtime, Python 3)**  
-   File: `voice-agent/src/agent.py`  
-   Runs the LiveKit agent session and OpenAI realtime model.
+---
 
-2. **RAG tooling (optional)**  
-   Files: `voice-agent/src/tools.py`, `voice-agent/src/utils.py`  
-   Exposes `query_search` over Weaviate for grounded answers.
+## Architecture
 
-3. **Session manager**
-   File: `services/src/session_manager/`
-   Orchestrates session lifecycle, creates LiveKit rooms/tokens, serves the Operator Panel on `:8787`.
+```
++============================== RPi (192.168.210.78) ==============================+
+|                                                                                  |
+|  User (browser / RPi mic)                                                        |
+|         |                                                                        |
+|         | WebRTC                                                                 |
+|         v                                                                        |
+|  +-- LiveKit Server (:7880) -------+                                             |
+|  |                                 |                                             |
+|  |   +--- pepper-openai --------+  |   ws://host.docker.internal:7880            |
+|  |   | OpenAI Realtime API      |  |   (local Docker network — no tunnel)        |
+|  |   | gpt-realtime-mini        |  |                                             |
+|  |   +-----+-------------------++  |                                             |
+|  |         |                       |                                             |
+|  +---------+-----------------------+                                             |
+|            |                                                                     |
+|            | tool calls                                                          |
+|            v                                                                     |
+|  +---------+---+  +------------------+  +-----------+                            |
+|  |  Weaviate   |  | Session Manager  |  |  Bridge   |     +----------+           |
+|  |  (RAG)      |  | (:8787)          |  | (:5000)   |     |  Pepper  |           |
+|  |  :8080      |  | dispatches agent |  | qi + HTTP +---->|  robot   |           |
+|  +-------------+  | by mode          |  +-----------+     |  :9559   |           |
+|                    +------------------+                    +----------+           |
+|                                                                                  |
+|  reverse-tunnel (autossh) ----+                                                  |
+|                               |                                                  |
++===============================|==================================================+
+                                |
+                                | SSH tunnel (RPi --> woska via ptak)
+                                | forwards :7880, :7443, :8787, :5000, :8080
+                                |
++============================== | ====== GPU server (woska) =======================+
+|                               v                                                  |
+|  +--- pepper-local --------+      +--- vLLM ----------------------+              |
+|  | Faster Whisper STT      |      | Qwen 2.5 7B                  |              |
+|  | Piper TTS               |      | :8000                        |              |
+|  +-----------+-------------+      +-------------------------------+              |
+|              |                                                                   |
+|              | ws://127.0.0.1:7880 (via tunnel)                                  |
+|              | connects to LiveKit on RPi                                        |
+|              +--------> (LiveKit on RPi, through SSH tunnel)                     |
+|                                                                                  |
++=================================================================================+
+```
 
-4. **LiveKit -> Pepper audio bridge (optional)**  
-   - `robot/src/listener_pepper_bridge.py` (Python 3): joins LiveKit as listener and forwards PCM via TCP  
-   - `robot/src/bridge.py` (Python 2.7): receives PCM and plays on Pepper
+**Two voice agents**, each registered with LiveKit under a unique name:
 
-5. **Infrastructure via Docker**  
-   File: `docker/docker-compose.yml`  
-   Starts LiveKit, Redis, Session Manager, and Weaviate.
+| Agent | Runs on | Connects to LiveKit via | Backend | Use case |
+|-------|---------|------------------------|---------|----------|
+| `pepper-openai` | RPi (Docker) | `ws://host.docker.internal:7880` (local) | OpenAI Realtime API | Default — low latency, no tunnel needed |
+| `pepper-local` | GPU server (tmux) | `ws://127.0.0.1:7880` (SSH tunnel) | Whisper + Qwen 2.5 7B (vLLM) + Piper | Offline-capable, research comparison |
 
-## How To Run
+The **session manager** dispatches to the correct agent based on the selected mode. Both agents share a unified tool set: `query_search` (RAG + room directions) and `play_animation` (Pepper gestures).
 
-### Agent
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Raspberry Pi 5 (8 GB) with Docker installed
+- `.env` file in project root with `OPENAI_API_KEY` and `LIVEKIT_KEYS`
+- Pepper robot on the same network (or reachable via TCP)
+
+### Start
+
 ```bash
-cd voice-agent && uv run python -m src.agent dev
+# All RPi services (includes OpenAI voice agent):
+docker compose -f docker/docker-compose.yml up -d
+
+# With RPi microphone:
+docker compose -f docker/docker-compose.yml --profile audio up -d
+
+# With GPU server for local mode:
+docker compose -f docker/docker-compose.yml --profile audio --profile remote-agent up -d
 ```
 
-### Full desired flow
+### Operator Panel
 
-1. Start infra:
+Open `http://<rpi-ip>:8787` to monitor sessions, switch agent mode, view transcripts, and control Pepper.
+
+### Switch Mode
+
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env up -d
+# Switch to local LLM:
+curl -X POST http://localhost:8787/api/control/agent-mode \
+  -H 'Content-Type: application/json' -d '{"mode":"local"}'
+
+# Switch back to OpenAI:
+curl -X POST http://localhost:8787/api/control/agent-mode \
+  -H 'Content-Type: application/json' -d '{"mode":"openai"}'
 ```
 
-2. Start agent in dev mode:
-```bash
-cd voice-agent && uv run python -m src.agent dev
+---
+
+## Services
+
+| Service | Description | Port |
+|---------|-------------|------|
+| `livekit` | WebRTC signaling + TURN relay | 7880, 7443 |
+| `voice-agent` | OpenAI mode agent (`pepper-openai`) | — |
+| `session-manager` | Orchestration, operator panel, agent dispatch | 8787 |
+| `bridge` | Pepper control — animations, tablet, audio playback via qi | 5000 |
+| `audio-bridge` | Captures agent audio from LiveKit, forwards PCM to bridge | — |
+| `room-monitor` | Monitors LiveKit room state, forwards transcripts | — |
+| `safe-startup` | Watchdog — waits for Pepper to be reachable | — |
+| `weaviate` | Vector DB for RAG (FEE documents) | 8080 |
+| `redis` | LiveKit backend | 6379 |
+| `user-client` | RPi microphone input (profile: `audio`) | — |
+| `reverse-tunnel` | SSH tunnel to GPU server (profile: `remote-agent`) | — |
+
+---
+
+## Project Structure
+
+```
+voice-agent/
+  src/
+    agent.py          # Main entry point — LiveKit agent, warm dispatch, session loop
+    config.py          # All configuration, system prompts, animation groups
+    tools.py           # query_search + play_animation tool definitions
+    local_speech.py    # Faster Whisper STT + Piper TTS for local mode
+    utils.py           # Weaviate connection, hybrid search
+  data/FEL/            # RAG source documents (FEE statutes, codes)
+  models/piper/        # Piper TTS ONNX model
+
+robot/
+  src/bridge.py        # Pepper HTTP bridge (animations, tablet, audio)
+  utils/               # safe_startup_watchdog, discovery
+
+services/
+  src/
+    session_manager/   # Session lifecycle, agent dispatch, operator panel
+    audio_bridge.py    # LiveKit audio → TCP PCM
+    room_monitor.py    # Room state monitoring
+    user_client.py     # RPi mic → LiveKit
+
+docker/
+  docker-compose.yml   # All service definitions
+  docker-compose.rpi.yml  # Override for running local agent on RPi
+  Dockerfile.runtime   # Shared Python 3.12 + uv base image
+  livekit/             # LiveKit config + TURN certs
 ```
 
-3. Start Pepper audio receiver (Python 2.7):
-```bash
-cd robot/src
-python2 bridge.py
-```
+---
 
-4. Start listener bridge (Python 3):
-```bash
-cd robot/src
-python3 listener_pepper_bridge.py
-```
+## Documentation
 
-5. The session manager automatically creates rooms and tokens.
-- Session snapshots are written to `data/token-latest.json`.
-- The listener bridge follows the new listener token automatically.
+See [PROJECT.md](PROJECT.md) for the full project overview, component details, and thesis checklist.
 
-## Notes
+| Topic | Doc |
+|-------|-----|
+| Running / deploying | [docs/notes/running.md](docs/notes/running.md) |
+| GPU server setup | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) |
+| Local LLM (vLLM) | [docs/notes/local-llm-setup.md](docs/notes/local-llm-setup.md) |
+| RPi dev differences | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) |
+| Tool-calling investigation | [docs/notes/tools-issue.md](docs/notes/tools-issue.md) |
+| Debugging notes | [docs/notes/](docs/notes/) |
 
-- Session snapshot path: `data/token-latest.json`
-- To stop infra:
-```bash
-docker compose -f docker/docker-compose.yml --env-file .env down
-```
+---
 
-## Resource Tracker
+## Tech Stack
 
-Use this section to track papers/books/repos and keep reading notes in one place.
-
-| ID | Resource | Type | Link | Physical Copy | PDF | Read | Priority | Notes Ref |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| R-001 | Does ChatGPT and Whisper Make Humanoid Robots More Relatable? | Paper | https://arxiv.org/abs/2402.07095 | No | Yes | No | High | Note-R001 |
-| R-002 | ChatGPT for Robotics: Design Principles and Model Abilities | Paper | https://arxiv.org/abs/2306.17582 | No | Yes | In Progress | High | Note-R002 |
-| R-003 | ROS-LLM: A ROS framework for embodied AI with task feedback and structured reasoning | Paper | https://arxiv.org/abs/2406.19741 | No | Yes | No | High | Note-R003 |
-| R-004 | Do As I Can, Not As I Say: Grounding Language in Robotic Affordances | Paper | https://arxiv.org/abs/2204.01691 | No | Yes | No | High | Note-R004 |
-| R-005 | Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks | Paper | https://arxiv.org/abs/2005.11401 | No | Yes | No | High | Note-R005 |
-| R-006 | Godspeed Questionnaire paper (Bartneck et al., 2009) | Paper | https://link.springer.com/article/10.1007/s12369-008-0001-3 | No | Yes | No | High | Note-R006 |
-| R-007 | Almere Model (Heerink et al., 2010) | Paper | https://link.springer.com/article/10.1007/s12369-010-0068-5 | No | Yes | No | High | Note-R007 |
-| R-008 | LiveKit Agents | GitHub Repo | https://github.com/livekit/agents | No | N/A | No | High | Note-R008 |
-| R-009 | Pepper-GPT | GitHub Repo | https://github.com/UoA-CARES/Pepper-GPT | No | N/A | No | High | Note-R009 |
-| R-010 | Weaviate | GitHub Repo | https://github.com/weaviate/weaviate | No | N/A | In Progress | High | Note-R010 |
-| R-011 | vLLM | GitHub Repo | https://github.com/vllm-project/vllm | No | N/A | No | Medium | Note-R011 |
-| R-012 | Human-Robot Interaction: An Introduction (2nd ed., 2024) | Book | https://www.cambridge.org/ag/universitypress/subjects/computer-science/computer-graphics-image-processing-and-robotics/human-robot-interaction-introduction-2nd-edition?format=PB&isbn=9781009424233 | Yes | Yes | No | High | Note-R012 |
-| R-013 | Speech and Language Processing (3rd ed. draft) | Book | https://web.stanford.edu/~jurafsky/slp3/ | No | Yes | In Progress | Medium | Note-R013 |
-| R-014 | Designing Voice User Interfaces | Book | https://www.cathypearl.com/book | No | No | No | Medium | Note-R014 |
-
-### Notes Template
-
-Copy this block and replace values for each real resource.
-
-```text
-[Note-RESOURCE_ID]
-Title:
-Why relevant to this thesis:
-Main ideas:
-What I can reuse in implementation:
-What I can cite in thesis:
-Limitations / concerns:
-Action items:
-```
-
-### Notes
-
-```text
-[Note-R001]
-Title: Dummy Paper: Conversational Robots in Reception
-Why relevant to this thesis: Discusses receptionist dialogue flow and social constraints.
-Main ideas: Turn-taking, fallback answers, concise system prompts.
-What I can reuse in implementation: Dialogue policy and fallback behavior design.
-What I can cite in thesis: Motivation for structured spoken interaction in public spaces.
-Limitations / concerns: Dummy entry, replace with real source.
-Action items: Find real equivalent paper and add BibTeX entry.
-```
-
-```text
-[Note-R002]
-Title: Dummy Book: Practical HRI Systems
-Why relevant to this thesis: Covers evaluation methods and deployment concerns.
-Main ideas: User-study planning, questionnaire-based evaluation, reliability metrics.
-What I can reuse in implementation: Experiment checklist and latency logging plan.
-What I can cite in thesis: Evaluation rationale for HRI questionnaires.
-Limitations / concerns: Dummy entry, replace with real source.
-Action items: Select real HRI book chapter and map to experiment section.
-```
+| Layer | Technology |
+|-------|-----------|
+| WebRTC / Rooms | [LiveKit](https://livekit.io) + LiveKit Agents SDK |
+| LLM (cloud) | OpenAI Realtime API (`gpt-realtime-mini`) |
+| LLM (local) | [vLLM](https://github.com/vllm-project/vllm) + Qwen 2.5 7B |
+| STT (local) | [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) |
+| TTS (local) | [Piper](https://github.com/rhasspy/piper) |
+| RAG | [Weaviate](https://weaviate.io) + OpenAI embeddings |
+| Robot SDK | libqi / NAOqi (SoftBank Pepper) |
+| Deployment | Docker Compose on Raspberry Pi 5 |
+| Language | Python 3.12 |

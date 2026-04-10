@@ -45,10 +45,39 @@ services:
       DEV_CONSOLE_URL: http://dev-console:8788
       LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
       SESSION_IDLE_TIMEOUT_SEC: 60
+      PEPPER_AGENT_NAME_OPENAI: pepper-openai
+      PEPPER_AGENT_NAME_LOCAL: pepper-local
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
       - "8787:8787"
+    depends_on:
+      - livekit
+      - redis
+      - weaviate
+    restart: unless-stopped
+
+  voice-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "-m", "voice-agent.src.agent", "dev"]
+    env_file: ../.env
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://host.docker.internal:7880
+      SESSION_MANAGER_URL: http://session-manager:8787
+      WEAVIATE_HOST: weaviate
+      WEAVIATE_HTTP_PORT: 8080
+      WEAVIATE_GRPC_PORT: 50051
+      ANIMATION_BRIDGE_URL: http://host.docker.internal:5000
+      PEPPER_AGENT_NAME: pepper-openai
+      PEPPER_AGENT_MODE: openai
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    stop_grace_period: 15s
     depends_on:
       - livekit
       - redis

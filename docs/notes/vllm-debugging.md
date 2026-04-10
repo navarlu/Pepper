@@ -37,10 +37,18 @@ ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux list-panes -t LLM -F '#{p
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -p -S -500"
 ```
 
-### Pepper agent logs
+### Pepper local agent logs (woska)
 
-The LiveKit voice agent also runs in a tmux session on woska:
+The local mode voice agent (`pepper-local`) runs in a tmux session on woska:
 
 ```bash
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-agent -p -S -100"
+```
+
+### Pepper OpenAI agent logs (RPi)
+
+The OpenAI mode voice agent (`pepper-openai`) runs as a Docker container on the RPi:
+
+```bash
+docker compose -f docker/docker-compose.yml logs --tail=50 voice-agent
 ```

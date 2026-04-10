@@ -1,23 +1,34 @@
 # Running Voice Agent on GPU Server (woska)
 
-The voice agent runs on woska (GPU server) for fast STT/TTS, while all other services run on the RPi. Communication happens via SSH reverse tunnel + LiveKit TURN relay.
+The **local mode** voice agent (STT/LLM/TTS) runs on woska (GPU server), while the **OpenAI mode** agent runs directly on the RPi (co-located with LiveKit for minimal latency). The session manager dispatches to the correct agent based on the selected mode.
 
 ## Architecture
 
 ```
 RPi (192.168.210.78)                    woska (GPU server)
-├── livekit (host network, :7880)       ├── voice-agent (tmux, STT+TTS+LLM)
+├── livekit (host network, :7880)       ├── voice-agent "pepper-local" (tmux)
 │   └── TURN server (:7443 TLS)        │   └── connects via ws://127.0.0.1:7880
 ├── redis (:6379)                       └── vLLM (Qwen 2.5 7B, :8000)
 ├── session-manager (:8787)
-├── bridge (:5000, Pepper control)      Reverse SSH tunnel (RPi → woska):
-├── listener (audio forwarding)           7880  → LiveKit WS + signaling
-├── weaviate (:8080, RAG)                 7443  → LiveKit TURN (TLS relay)
-├── user-client (RPi mic)                 8787  → session-manager API
-├── safe-startup (Pepper watchdog)        5000  → bridge (animations)
-└── reverse-tunnel container              8080  → weaviate HTTP
-                                          50051 → weaviate gRPC
+│   └── dispatches to pepper-openai     Reverse SSH tunnel (RPi → woska):
+│       or pepper-local by mode           7880  → LiveKit WS + signaling
+├── voice-agent "pepper-openai" (Docker)  7443  → LiveKit TURN (TLS relay)
+├── bridge (:5000, Pepper control)        8787  → session-manager API
+├── listener (audio forwarding)           5000  → bridge (animations)
+├── weaviate (:8080, RAG)                 8080  → weaviate HTTP
+├── user-client (RPi mic)                 50051 → weaviate gRPC
+├── safe-startup (Pepper watchdog)
+└── reverse-tunnel container
 ```
+
+## Agent naming
+
+Each agent registers with LiveKit under a unique name so the session manager can dispatch to the right one:
+
+| Mode | Agent name | Runs on | Env vars |
+|------|-----------|---------|----------|
+| OpenAI | `pepper-openai` | RPi (Docker) | `PEPPER_AGENT_NAME=pepper-openai PEPPER_AGENT_MODE=openai` |
+| Local | `pepper-local` | woska (tmux) | `PEPPER_AGENT_NAME=pepper-local PEPPER_AGENT_MODE=local` |
 
 ## Why TURN is needed
 
@@ -40,8 +51,8 @@ The SSH tunnel only forwards TCP. WebRTC needs UDP for media, which can't go thr
 # From project root:
 docker compose -f docker/docker-compose.yml --profile remote-agent --profile audio up -d
 
-# Make sure local voice-agent is NOT running (we use woska's):
-docker compose -f docker/docker-compose.yml stop voice-agent
+# The RPi voice-agent (pepper-openai) runs alongside the woska agent (pepper-local).
+# No need to stop it — they have different agent names.
 ```
 
 ### 2. Verify tunnel is up
@@ -65,6 +76,8 @@ tmux attach -t pepper-agent 2>/dev/null || tmux new-session -s pepper-agent
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper
 source .venv3/bin/activate
+export PEPPER_AGENT_NAME=pepper-local
+export PEPPER_AGENT_MODE=local
 python -m voice-agent.src.agent dev
 ```
 
@@ -138,6 +151,7 @@ Then restart LiveKit: `docker compose -f docker/docker-compose.yml restart livek
 - Agent wasn't registered when dispatch was sent
 - Start the agent on woska first, then restart session-manager
 
-**Local Docker voice-agent competing with woska agent:**
-- Stop local: `docker compose -f docker/docker-compose.yml stop voice-agent`
-- Only one agent named "Pepper" should be registered at a time
+**Both agents can run simultaneously:**
+- `pepper-openai` (RPi Docker) and `pepper-local` (woska tmux) use different agent names
+- The session manager dispatches to the correct one based on the current mode
+- No need to stop one when the other is running

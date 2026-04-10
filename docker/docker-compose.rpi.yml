@@ -23,6 +23,7 @@ services:
       LOCAL_TTS_NOISE_SCALE: ${LOCAL_TTS_NOISE_SCALE:-0.667}
       LOCAL_TTS_NOISE_W_SCALE: ${LOCAL_TTS_NOISE_W_SCALE:-0.8}
       PEPPER_AGENT_MODE: ${PEPPER_AGENT_MODE:-openai}
+      PEPPER_AGENT_NAME: ${PEPPER_AGENT_NAME:-pepper-openai}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     stop_grace_period: 15s

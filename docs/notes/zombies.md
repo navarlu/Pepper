@@ -77,30 +77,16 @@ docker compose -f docker/docker-compose.yml --env-file .env exec redis redis-cli
 docker compose -f docker/docker-compose.yml --env-file .env restart livekit voice-agent listener
 ```
 
-## Prevention ideas (TODO)
+## Prevention ideas
 
-1. **Room rotation** -- Instead of reusing a fixed room name (`pepper-main`),
-   generate a new room name per session (e.g. `pepper-<timestamp>`).  When
-   zombies appear, just create a new room and let the old one expire via
-   `empty_timeout`.  This sidesteps the problem entirely.
+1. **Room rotation** — ✅ **Implemented.** Room names are now `pepper-<timestamp>`, created fresh on each session-manager startup. Old rooms are deleted. Zombies in old rooms expire via `empty_timeout`.
 
-2. **`empty_timeout` / `max_participants`** -- Set `empty_timeout` on room
-   creation so rooms with only zombie agents auto-delete after N seconds of no
-   real participants.
+2. **`empty_timeout`** — ✅ **Implemented.** Rooms created with `empty_timeout=300s`.
 
-3. **Graceful shutdown in voice-agent** -- Ensure the agent process handles
-   `SIGTERM` and calls `room.disconnect()` before exiting.  Check that the
-   Docker stop signal propagates correctly to the Python process inside the
-   container.
+3. **Graceful shutdown in voice-agent** — ✅ **Implemented.** Persistent warm agents handle `shutdown` signal via data channel, `stop_grace_period: 15s` in Docker.
 
-4. **Agent dispatch guard** -- Before dispatching a new agent, check if one
-   with the same role is already present.  If so, remove the old one first or
-   skip the dispatch.
+4. **Agent dispatch guard** — ✅ **Implemented.** Session manager removes stale agent participants before dispatching, tracks `active_dispatch_id`.
 
-5. **Periodic participant cleanup** -- A lightweight cron/background task in
-   `session-manager` that lists participants, pings agent identities, and
-   deletes the room + recreates if zombies are detected.
+5. **Periodic participant cleanup (zombie detector)** — ✅ **Implemented.** `monitor_loop()` runs every 2s, detects missing agent participants with 10s grace period, triggers `_redispatch_warm_agent()`.
 
-6. **LiveKit participant timeout config** -- Investigate whether `--dev` mode
-   disables participant timeouts and whether setting an explicit
-   `departure_timeout` in the room config would auto-evict dead agents.
+6. **LiveKit participant timeout config** — Not investigated further; the above mitigations have resolved the zombie problem in practice.

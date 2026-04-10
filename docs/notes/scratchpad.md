@@ -32,15 +32,18 @@ http://100.111.97.63:8787/
 
 ## run on GPU server
 
-```bash
-ssh navarlu2@ptak.felk.cvut.cz
-ssh lie
-tmux attach -t lie
+See [gpu-setup.md](gpu-setup.md) for the full setup with agent naming (`pepper-local`).
 
-vllm serve Qwen/Qwen2.5-7B-Instruct \
-  --host 127.0.0.1 --port 8000 \
-  --enable-auto-tool-choice \
-  --tool-call-parser hermes
+Quick start on woska:
+```bash
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+tmux attach -t pepper-agent
+
+cd /mnt/data_personal/navarlu2/work/Pepper
+source .venv3/bin/activate
+export PEPPER_AGENT_NAME=pepper-local
+export PEPPER_AGENT_MODE=local
+python -m voice-agent.src.agent dev
 ```
 
 ## safe_startup_example:

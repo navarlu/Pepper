@@ -136,6 +136,10 @@ def _post_debug_event(payload: dict[str, object]) -> None:
 
 def _post_pipeline_metric(metric: dict) -> None:
     """Fire-and-forget pipeline timing metric (STT/LLM/TTS) to the session manager."""
+    # Log locally so bottlenecks are visible without tailing the session-manager.
+    stage = metric.get("stage", "?")
+    parts = [f"{k}={v}" for k, v in metric.items() if k != "stage"]
+    logger.info("[PIPE] stage=%s %s", stage, " ".join(parts))
     threading.Thread(
         target=_post_debug_event,
         args=({"event": "pipeline_metric", **metric},),
@@ -286,17 +290,21 @@ def _get_local_tts():
 
 def _on_llm_metrics_collected(metrics) -> None:
     """Handle LLM metrics_collected event from the openai.LLM plugin."""
-    try:
-        _post_pipeline_metric({
-            "stage": "llm",
-            "duration_ms": round(metrics.duration * 1000, 1),
-            "ttft_ms": round(metrics.ttft * 1000, 1),
-            "completion_tokens": metrics.completion_tokens,
-            "prompt_tokens": metrics.prompt_tokens,
-            "tokens_per_second": round(metrics.tokens_per_second, 1),
-        })
-    except Exception:
-        pass
+    payload = {"stage": "llm"}
+    for src, dst, scale in (
+        ("duration", "duration_ms", 1000),
+        ("ttft", "ttft_ms", 1000),
+        ("completion_tokens", "completion_tokens", 1),
+        ("prompt_tokens", "prompt_tokens", 1),
+        ("tokens_per_second", "tokens_per_second", 1),
+    ):
+        try:
+            v = getattr(metrics, src, None)
+            if v is not None:
+                payload[dst] = round(v * scale, 1) if scale != 1 else v
+        except Exception as e:
+            logger.debug("llm metric field %s failed: %s", src, e)
+    _post_pipeline_metric(payload)
 
 
 def _sanitize_json(raw: str) -> str:
@@ -340,9 +348,10 @@ def _build_local_session() -> AgentSession:
         model=LOCAL_LLM_MODEL,
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
-        temperature=0.01,
+        temperature=0.1,
         parallel_tool_calls=False,
         _strict_tool_schema=False,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
 
@@ -428,6 +437,97 @@ async def entrypoint(ctx: JobContext) -> None:
             "[PERSIST] participant_disconnected identity=%s (session stays alive)",
             identity,
         )
+
+    # --- WebRTC / ICE diagnostics --------------------------------------------------
+    # These listeners surface exactly what the underlying RTC engine is doing so we
+    # can tell whether failures are signaling vs media, and which path ICE picked.
+    _rtc_t0 = time.monotonic()
+
+    @ctx.room.on("connection_state_changed")
+    def _on_conn_state(state):
+        logger.info(
+            "[RTC] connection_state=%s elapsed=%.3fs",
+            state, time.monotonic() - _rtc_t0,
+        )
+
+    @ctx.room.on("connection_quality_changed")
+    def _on_conn_quality(participant, quality):
+        identity = str(getattr(participant, "identity", "") or "")
+        logger.info("[RTC] quality identity=%s quality=%s", identity, quality)
+
+    @ctx.room.on("reconnecting")
+    def _on_reconnecting():
+        logger.warning("[RTC] reconnecting elapsed=%.3fs", time.monotonic() - _rtc_t0)
+
+    @ctx.room.on("reconnected")
+    def _on_reconnected():
+        logger.info("[RTC] reconnected elapsed=%.3fs", time.monotonic() - _rtc_t0)
+
+    @ctx.room.on("disconnected")
+    def _on_disconnected(reason=None):
+        logger.warning(
+            "[RTC] disconnected reason=%s elapsed=%.3fs",
+            reason, time.monotonic() - _rtc_t0,
+        )
+
+    @ctx.room.on("track_published")
+    def _on_track_published(publication, participant):
+        identity = str(getattr(participant, "identity", "") or "")
+        sid = getattr(publication, "sid", "?")
+        kind = getattr(publication, "kind", "?")
+        logger.info("[RTC] track_published identity=%s sid=%s kind=%s", identity, sid, kind)
+
+    @ctx.room.on("track_subscribed")
+    def _on_track_subscribed(track, publication, participant):
+        identity = str(getattr(participant, "identity", "") or "")
+        sid = getattr(publication, "sid", "?")
+        kind = getattr(track, "kind", "?")
+        logger.info(
+            "[RTC] track_subscribed identity=%s sid=%s kind=%s elapsed=%.3fs",
+            identity, sid, kind, time.monotonic() - _rtc_t0,
+        )
+
+    @ctx.room.on("track_unsubscribed")
+    def _on_track_unsubscribed(track, publication, participant):
+        identity = str(getattr(participant, "identity", "") or "")
+        sid = getattr(publication, "sid", "?")
+        logger.info("[RTC] track_unsubscribed identity=%s sid=%s", identity, sid)
+
+    # Periodic RTT sampler — reads per-participant connection_quality_info, which
+    # exposes the actual WebRTC RTT in seconds (loopback latency over the media
+    # path). This number is the real network cost between the agent and each
+    # remote peer, including the SSH-tunneled signaling and the direct/relayed
+    # media path.
+    async def _rtc_rtt_sampler():
+        await asyncio.sleep(3.0)
+        while not session_closed_for_sampler.is_set():
+            try:
+                room = ctx.room
+                participants = list(getattr(room, "remote_participants", {}).values())
+                for p in participants:
+                    identity = str(getattr(p, "identity", "") or "")
+                    # livekit-rtc exposes ConnectionQualityInfo on the participant
+                    info = getattr(p, "connection_quality_info", None) or getattr(p, "_connection_quality_info", None)
+                    if info is not None:
+                        rtt = getattr(info, "rtt_ms", None) or getattr(info, "rtt", None)
+                        score = getattr(info, "score", None)
+                        loss = getattr(info, "packet_loss", None) or getattr(info, "packets_lost", None)
+                        logger.info(
+                            "[RTT] identity=%s rtt_ms=%s score=%s loss=%s",
+                            identity, rtt, score, loss,
+                        )
+                    else:
+                        # Fallback: just log that the participant is alive
+                        logger.info("[RTT] identity=%s no_quality_info", identity)
+            except Exception as e:
+                logger.warning("[RTT] sampler error: %s", e)
+            await asyncio.sleep(5.0)
+
+    # Sentinel so the sampler stops cleanly when the session ends
+    session_closed_for_sampler = asyncio.Event()
+
+    asyncio.create_task(_rtc_rtt_sampler())
+    # ------------------------------------------------------------------------------
 
     t0 = time.monotonic()
     participant = await _wait_for_user_participant(ctx)

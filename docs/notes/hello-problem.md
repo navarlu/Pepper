@@ -1,5 +1,7 @@
 # Hello Interaction Problem
 
+> **Resolved (2026-04-10):** The separate prompt/tool behavior per mode described below has been unified. Both OpenAI and local modes now use the same 2-tool set (`query_search` + `play_animation`) with the same tool definitions. The animation tool is enabled in both modes. The double-greeting issue was mitigated via grace-window suppression and persistent warm agents. Kept for historical reference of debugging process.
+
 ## Goal
 
 Stabilize the very first interaction after session activation so Pepper:

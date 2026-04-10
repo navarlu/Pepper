@@ -95,3 +95,11 @@ After deploying the new bridge to Pepper:
 If the WebRTC drops continue happening even with the bridge fix, the next
 thing to investigate is the woska ↔ ptak ↔ RPi link itself, or move LiveKit
 onto woska as suggested above.
+
+## Update (2026-04-10): Partially mitigated by agent split
+
+The voice agent is now split into two workers:
+- **`pepper-openai`** runs directly on the RPi (Docker) — co-located with LiveKit, no SSH tunnel needed for WebRTC media. This eliminates the connection instability for OpenAI mode entirely.
+- **`pepper-local`** still runs on woska via SSH tunnel — the connection issues described above still apply to local mode.
+
+The session manager dispatches to the correct agent by name based on the selected mode. See [gpu-setup.md](gpu-setup.md) for the full architecture.

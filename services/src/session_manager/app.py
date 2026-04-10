@@ -105,7 +105,10 @@ class SessionManager:
         self.state_file = self.session_file.with_name(SESSION_MANAGER_STATE_FILE)
         self.api_key = _get_required_env("LIVEKIT_API_KEY")
         self.api_secret = _get_required_env("LIVEKIT_API_SECRET")
-        self.agent_name = (os.getenv("PEPPER_AGENT_NAME") or AGENT_NAME_DEFAULT).strip() or AGENT_NAME_DEFAULT
+        self._agent_names = {
+            "openai": (os.getenv("PEPPER_AGENT_NAME_OPENAI") or "pepper-openai").strip(),
+            "local": (os.getenv("PEPPER_AGENT_NAME_LOCAL") or "pepper-local").strip(),
+        }
         self.agent_mode = "openai"
         self.local_llm_base_url = os.getenv("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1").rstrip("/")
         self.local_llm_healthy = False
@@ -696,6 +699,11 @@ class SessionManager:
                 print(f"[session_manager] dispatch failed err={exc}")
             finally:
                 await lkapi.aclose()
+
+    @property
+    def agent_name(self) -> str:
+        """Return the LiveKit agent name for the current mode."""
+        return self._agent_names.get(self.agent_mode, self._agent_names["openai"])
 
     @property
     def _is_persistent_agent(self) -> bool:

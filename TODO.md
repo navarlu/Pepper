@@ -89,3 +89,4 @@ Bigger TTS and STT?
 
 Live behaviour
 openAI slow 
+turn off thinking for the 3.5

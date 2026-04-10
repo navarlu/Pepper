@@ -146,9 +146,9 @@ The RPi Docker setup had `voice-agent` running alongside the woska agent. Both r
 - No double responses (None return working)
 - Transcripts appear in UI via room-monitor service
 
-### Attempt 9 (2026-04-06): SOLVED — Qwen 7B has a hard 2-tool limit
+### Attempt 9 (2026-04-06): ~~SOLVED~~ — initially thought Qwen 7B has a 2-tool limit (DISPROVED in Attempt 10)
 
-**Root cause: Qwen 2.5 7B cannot reliably handle 3+ tools.**
+**Initial conclusion (wrong): Qwen 2.5 7B cannot reliably handle 3+ tools.**
 
 Systematic A/B testing (`voice-agent/tests/test_tool_count.py`) proved this definitively:
 
@@ -187,18 +187,11 @@ All steps pass including directions, with only 2 tools registered.
 
 **Changes applied:**
 - `tools.py`: `query_search` now detects room queries via regex and routes to `_load_room_data()`
-- `tools.py`: `get_directions_to_room` removed from the tools list (code kept for OpenAI mode)
+- `tools.py`: `get_directions_to_room` removed from the tools list
 - `config.py`: system prompts updated — mention that `query_search` handles room directions
-- Agent stays at exactly 2 tools: `query_search` + `play_animation`
+- Agent stays at 2 tools: `query_search` + `play_animation`
 
-## Ideas for Next Steps (not yet validated)
-
-> **Note:** The 2-tool limit is a fundamental Qwen 7B constraint. These ideas address remaining gaps.
-
-1. **Parse animation from text** — If the model doesn't call `play_animation` as a tool, detect the intent from the response text (sentiment analysis or keyword matching) and trigger the animation in code. This is a fallback, not a fix, but would guarantee animation on every reply.
-2. **Larger model** — Qwen 2.5 14B or 32B would handle 3+ tools reliably. Needs VRAM check on woska. This would remove the 2-tool constraint entirely.
-3. **Fine-tuning** — Fine-tune Qwen 7B on examples of always-call-animation-then-speak. Time-consuming but would solve the root cause for this specific model.
-4. **Lower temperature** — Try temp=0.0 or 0.1 for more deterministic tool calling. Trade-off: less natural speech variation.
+> **Update (2026-04-10):** Both modes now use the same unified 2-tool set. The `get_directions_to_room` code is still in `tools.py` but is no longer registered for either mode. Room direction queries are routed through `query_search` via `_try_room_lookup()`.
 
 ### Attempt 10 (2026-04-06): 2-tool limit DISPROVED — it's the tool definitions, not the count
 

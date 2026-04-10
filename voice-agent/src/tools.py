@@ -649,13 +649,9 @@ def build_tools(agent_mode: str) -> list[Any]:
 
     play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
 
-    if agent_mode == "local":
-        # Qwen 7B has a hard 2-tool limit — room directions are merged into
-        # query_search via _try_room_lookup() so we stay at 2 tools.
-        tools: list[Any] = [query_search, play_animation]
-    else:
-        # OpenAI Realtime handles 3+ tools fine.
-        tools = [query_search, get_directions_to_room, play_animation]
+    # Unified 2-tool set for both modes. Room directions are handled inside
+    # query_search via _try_room_lookup(), so a dedicated tool is not needed.
+    tools: list[Any] = [query_search, play_animation]
 
     logger.info(
         "build_tools version=%s agent_mode=%s tool_count=%d names=%s",
