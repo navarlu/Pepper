@@ -357,6 +357,10 @@ class SessionManager:
                         await lkapi.room.delete_room(api.DeleteRoomRequest(room=old_name))
                         print(f"[session_manager] deleted old room={old_name}")
                     except Exception as exc:
+                        # LiveKit may GC empty rooms between list_rooms and delete_room.
+                        # Treat "could not find object" as success — the room is already gone.
+                        if "could not find object" in str(exc):
+                            continue
                         print(f"[session_manager] delete old room failed room={old_name} err={exc}")
             # Create fresh room with empty_timeout so it auto-deletes when abandoned.
             await lkapi.room.create_room(

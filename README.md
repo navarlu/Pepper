@@ -85,14 +85,11 @@ The **session manager** dispatches to the correct agent based on the selected mo
 ### Start
 
 ```bash
-# All RPi services (includes OpenAI voice agent):
+# Start all RPi services (includes OpenAI voice agent, RPi mic, dev console, tunnels):
 docker compose -f docker/docker-compose.yml up -d
 
-# With RPi microphone:
-docker compose -f docker/docker-compose.yml --profile audio up -d
-
-# With GPU server for local mode:
-docker compose -f docker/docker-compose.yml --profile audio --profile remote-agent up -d
+# Rebuild and recreate all services:
+docker compose -f docker/docker-compose.yml up -d --force-recreate --build
 ```
 
 ### Operator Panel

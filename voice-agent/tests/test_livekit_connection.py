@@ -10,7 +10,8 @@ Connects to LiveKit as a regular participant (not an agent) and reports:
 Usage (on woska or any remote machine):
     python -m voice-agent.tests.test_livekit_connection
 
-Reads token from data/token-latest.json (written by session-manager).
+Reads token from services/src/session_manager/data/token-latest.json
+(written by session-manager).
 Override with env vars:
     LIVEKIT_URL=ws://127.0.0.1:7880
     LIVEKIT_TOKEN=<jwt>
@@ -36,7 +37,10 @@ log = logging.getLogger("lk-test")
 # Suppress noisy loggers
 logging.getLogger("livekit").setLevel(logging.INFO)
 
-SNAPSHOT_PATH = Path(__file__).resolve().parents[2] / "data" / "token-latest.json"
+SNAPSHOT_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "services" / "src" / "session_manager" / "data" / "token-latest.json"
+)
 CONNECT_TIMEOUT = 30  # seconds
 
 

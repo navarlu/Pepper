@@ -38,13 +38,17 @@ ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@lie "tmux ls"
 ## 2. SSH tunnel (automatic via Docker)
 
 The tunnel runs as a Docker Compose service (`ssh-tunnel`) using `autossh`, which
-auto-reconnects on drops and restarts with the stack. Enable it with the `local-llm` profile:
+auto-reconnects on drops and restarts with the stack. It starts automatically with the full stack:
 
 ```bash
-docker compose -f docker/docker-compose.yml --env-file .env --profile local-llm up -d ssh-tunnel
+docker compose -f docker/docker-compose.yml --env-file .env up -d
 ```
 
-Or add `--profile local-llm` to your full `docker compose up` command.
+Or to (re)start just the tunnel:
+
+```bash
+docker compose -f docker/docker-compose.yml --env-file .env up -d ssh-tunnel
+```
 
 The tunnel binds `0.0.0.0:8000` so both the host and Docker containers can reach vLLM.
 

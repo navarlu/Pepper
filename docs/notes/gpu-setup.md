@@ -48,8 +48,8 @@ The SSH tunnel only forwards TCP. WebRTC needs UDP for media, which can't go thr
 ### 1. Start RPi services
 
 ```bash
-# From project root:
-docker compose -f docker/docker-compose.yml --profile remote-agent --profile audio up -d
+# From project root (starts all services, including reverse-tunnel and user-client):
+docker compose -f docker/docker-compose.yml up -d
 
 # The RPi voice-agent (pepper-openai) runs alongside the woska agent (pepper-local).
 # No need to stop it — they have different agent names.
@@ -145,7 +145,7 @@ Then restart LiveKit: `docker compose -f docker/docker-compose.yml restart livek
 - Check tunnel is up: `ss -tlnp | grep 7443` on woska
 - Check TURN cert exists: `docker/livekit/turn.crt`
 - Verify LiveKit is on host network: `docker inspect docker-livekit-1 | grep NetworkMode`
-- Restart tunnel: `docker compose -f docker/docker-compose.yml --profile remote-agent restart reverse-tunnel`
+- Restart tunnel: `docker compose -f docker/docker-compose.yml restart reverse-tunnel`
 
 **Session-manager says `no worker is available`:**
 - Agent wasn't registered when dispatch was sent

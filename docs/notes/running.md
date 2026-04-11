@@ -26,17 +26,11 @@ The **OpenAI mode** agent runs directly on the RPi (co-located with LiveKit for 
 From the project root:
 
 ```bash
-# Base services (includes pepper-openai voice agent):
+# Start everything (all services — no profiles anymore):
 docker compose -f docker/docker-compose.yml up -d
 
-# With RPi microphone:
-docker compose -f docker/docker-compose.yml --profile audio up -d
-
-# With reverse tunnel to woska (required for local mode):
-docker compose -f docker/docker-compose.yml --profile remote-agent up -d
-
-# All profiles:
-docker compose -f docker/docker-compose.yml --profile audio --profile remote-agent up -d
+# Rebuild and recreate all services:
+docker compose -f docker/docker-compose.yml up -d --force-recreate --build
 ```
 
 ## 2. Start local voice agent on woska (optional, for local mode)

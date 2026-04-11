@@ -184,6 +184,7 @@ async def api_insert_bulk(body: dict[str, Any]):
 async def api_upload(
     files: list[UploadFile] = File(...),
     collection: str | None = Form(default=None),
+    chunking: str = Form(default="page"),
 ):
     """Upload one or more .pdf/.txt files, parse and insert into Weaviate."""
     all_ids = []
@@ -200,7 +201,7 @@ async def api_upload(
         dest.write_bytes(content_bytes)
 
         try:
-            chunks = parse_file(dest)
+            chunks = parse_file(dest, chunking=chunking)
         except Exception as exc:
             errors.append({"file": filename, "error": str(exc)})
             continue
@@ -529,6 +530,13 @@ input[type="checkbox"] { width: auto; }
         <input type="file" id="fileInput" multiple accept=".pdf,.txt,.md,.csv" onchange="handleUpload(event)">
         <p>Drop .pdf or .txt files here, or click to browse</p>
         <p style="font-size:12px;color:var(--muted);margin-top:4px">Uploads to: <strong id="uploadCollectionLabel"></strong></p>
+      </div>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;">
+        <label for="chunkStrategy" style="font-size:13px;color:var(--muted);">PDF chunking:</label>
+        <select id="chunkStrategy" style="font-size:13px;padding:4px 8px;border-radius:var(--radius);border:1px solid var(--line);background:var(--bg);">
+          <option value="page">Page-by-page</option>
+          <option value="smart">Smart (overlap)</option>
+        </select>
       </div>
       <div id="uploadStatus"></div>
     </div>
@@ -943,6 +951,7 @@ async function doUpload(files) {
   const form = new FormData();
   for (const f of files) form.append('files', f);
   form.append('collection', currentCollection);
+  form.append('chunking', document.getElementById('chunkStrategy').value);
   try {
     const res = await fetch(API + '/api/upload', { method: 'POST', body: form });
     const data = await res.json();

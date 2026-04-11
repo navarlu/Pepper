@@ -182,8 +182,6 @@ services:
       SESSION_MANAGER_URL: http://127.0.0.1:8787
       LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
     network_mode: host
-    profiles:
-      - audio
     restart: unless-stopped
 
   dev-console:
@@ -204,8 +202,6 @@ services:
       - "8788:8788"
     depends_on:
       - weaviate
-    profiles:
-      - debug
     restart: unless-stopped
 
   # Reverse tunnel: exposes RPi services on woska:localhost so the remote voice-agent can reach them.
@@ -232,8 +228,6 @@ services:
     volumes:
       - /home/lucas/.ssh:/root/.ssh
     network_mode: host
-    profiles:
-      - remote-agent
     restart: unless-stopped
 
   # Forward tunnel: woska:8000 → RPi:8000 (for running voice-agent locally with remote vLLM)
@@ -254,8 +248,6 @@ services:
     volumes:
       - /home/lucas/.ssh:/root/.ssh:ro
     network_mode: host
-    profiles:
-      - local-llm
     restart: unless-stopped
 
   weaviate:

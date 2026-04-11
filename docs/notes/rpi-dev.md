@@ -42,11 +42,12 @@ Container env: `PYTHONPATH=/opt/qi`, `LD_LIBRARY_PATH=/opt/boost-lib:/opt/qi-nat
 ### Startup command
 
 ```bash
+# Start everything (no profiles — every service runs by default):
 docker compose -f docker/docker-compose.yml --env-file .env up -d
-# For user-client (optional audio profile):
-docker compose -f docker/docker-compose.yml --env-file .env --profile audio up -d user-client
+
+# Rebuild and recreate all services:
+docker compose -f docker/docker-compose.yml --env-file .env up -d --force-recreate --build
 ```
-docker compose -f docker/docker-compose.yml --env-file .env --profile audio --profile remote-agent up -d --build
 
 The `.env` file is in the project root (not `docker/`), must be passed with `--env-file .env`.
 

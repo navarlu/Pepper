@@ -41,5 +41,9 @@ HISTORY_DB_PATH = BASE_DIR / "data" / "query_history.db"
 # Upload temp dir
 UPLOAD_DIR = BASE_DIR / "data" / "uploads"
 
+# Smart chunking defaults (for PDF ingestion with overlap)
+CHUNK_MAX_CHARS = 3000
+CHUNK_OVERLAP_CHARS = 300
+
 # Runtime settings file (shared with voice-agent)
 RUNTIME_SETTINGS_PATH = BASE_DIR / "data" / "runtime_settings.json"

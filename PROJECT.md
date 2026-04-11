@@ -68,24 +68,7 @@ RAG documents in `voice-agent/data/FEL/`: CTU/FEE statutes, scholarship code, ac
 
 ## Architecture Diagram
 
-```
-  Browser / Playground          RPi / Host machine           Pepper
-  +----------------+         +----------------------+     +----------+
-  |  Next.js UI    |<--ws-->|     LiveKit Server    |     |          |
-  |  (mic+spkr)    |         |                      |     |  qi API  |
-  +----------------+         +---+----------+-------+     |  :9559   |
-                                 |          |              +----^-----+
-                      +----------v--+  +----v-----------+       |
-                      | Voice Agent |  | Audio Bridge   |  TCP  | HTTP
-                      | (LLM+RAG)  |  | (audio track)  +--pcm->|
-                      +------+------+  +----------------+  +----+-----+
-                             |                             |  Bridge  |
-                        tool call                          | (qi+HTTP)|
-                      +------v------+                      +----------+
-                      |  Weaviate   |                      animations
-                      |  (vectors)  |                      tablet UI
-                      +-------------+                      audio play
-```
+See [README.md](README.md#architecture) for the full architecture diagram showing the RPi/GPU server split and how both agents connect to LiveKit.
 
 ## Detailed Documentation
 
@@ -103,6 +86,8 @@ RAG documents in `voice-agent/data/FEL/`: CTU/FEE statutes, scholarship code, ac
 | [connection-issue.md](docs/notes/connection-issue.md) | WebRTC instability over SSH tunnel (mitigated by RPi agent split) |
 | [zombies.md](docs/notes/zombies.md) | Zombie LiveKit agent participants (resolved — room rotation + cleanup) |
 | [vllm-debugging.md](docs/notes/vllm-debugging.md) | How to read vLLM and agent logs on woska |
+| **Thesis** | |
+| [EXPERIMENT.md](docs/thesis/EXPERIMENT.md) | Experiment design — within-subjects study, Godspeed + Almere questionnaires, procedure, metrics |
 | **Other** | |
 | [knowledge-sources.md](docs/notes/knowledge-sources.md) | Planned knowledge base sources |
 | [scratchpad.md](docs/notes/scratchpad.md) | Miscellaneous notes, AI policy, git/overleaf workflow |

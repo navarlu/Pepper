@@ -33,7 +33,7 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
     return int(value)
 
 LANG = "en"
-AGENT_VERSION = "0.5.0"
+AGENT_VERSION = "0.5.1"
 MODEL_NAME = "gpt-realtime-mini"
 TTS_VOICE = "marin"
 LOCAL_STT_MODEL = _env_str("LOCAL_STT_MODEL", "tiny")
@@ -41,7 +41,7 @@ LOCAL_STT_DEVICE = _env_str("LOCAL_STT_DEVICE", "cpu")
 LOCAL_STT_COMPUTE_TYPE = _env_str("LOCAL_STT_COMPUTE_TYPE", "int8")
 LOCAL_STT_CPU_THREADS = _env_int("LOCAL_STT_CPU_THREADS", 0)
 LOCAL_LLM_BASE_URL = _env_str("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1")
-LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct-AWQ")
+LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
 #LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen3.5-9B")
 LOCAL_TTS_MODEL_PATH = Path(
     _env_str(
@@ -60,7 +60,7 @@ LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
 SESSION_MANAGER_URL = _env_str("SESSION_MANAGER_URL", "http://127.0.0.1:8787")
 DEV_CONSOLE_URL = _env_str("DEV_CONSOLE_URL", "http://127.0.0.1:8788")
 
-AGENT_NAME = _env_str("PEPPER_AGENT_NAME", "Pepper")
+AGENT_NAME = _env_str("PEPPER_AGENT_NAME", "pepper-local")
 ORGANIZATION = "CTU Faculty of Electrical Engineering"
 PLACE = "Charles Square"
 
