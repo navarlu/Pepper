@@ -57,6 +57,7 @@ AGENT_NAMES = {
 USER_IDENTITY = "user"
 LISTENER_IDENTITY = "listener-python"
 MONITOR_IDENTITY = "monitor-python"
+DEBUG_CLI_IDENTITY = "debug-cli"
 TOKEN_REFRESH_SEC = 4 * 3600  # 4 hours
 
 
@@ -170,6 +171,10 @@ class Orchestrator:
             "monitor": {
                 "identity": MONITOR_IDENTITY,
                 "token": self._build_token(MONITOR_IDENTITY, can_publish=False, can_subscribe=True),
+            },
+            "debugCli": {
+                "identity": DEBUG_CLI_IDENTITY,
+                "token": self._build_token(DEBUG_CLI_IDENTITY, can_publish=False, can_subscribe=True),
             },
             "agent": {"name": self.agent_name},
         }

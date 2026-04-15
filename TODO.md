@@ -89,4 +89,7 @@ Bigger TTS and STT?
 
 Live behaviour
 openAI slow 
-turn off thinking for the 3.5
+
+
+CLEAN SESSION MANAGER DEV CONSOLE LIVEKIT SETTINGS
+

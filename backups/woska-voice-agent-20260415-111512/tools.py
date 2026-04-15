@@ -118,15 +118,6 @@ def _push_tool_transcript(text: str) -> None:
     logger.info("tool_transcript text=%s", text[:120])
 
 
-_external_tool_listener: Any = None
-
-
-def set_tool_event_listener(listener) -> None:
-    """Register a callback invoked on every tool call (used by debug bridge)."""
-    global _external_tool_listener
-    _external_tool_listener = listener
-
-
 def _post_tool_event(
     tool_name: str,
     args: dict[str, Any],
@@ -134,7 +125,7 @@ def _post_tool_event(
     duration_ms: float,
     error: str | None = None,
 ) -> None:
-    """Log a structured tool-call event to terminal and notify external listener."""
+    """Log a structured tool-call event to terminal."""
     logger.info(
         "tool_call tool=%s args=%s duration_ms=%.0f error=%s",
         tool_name,
@@ -142,11 +133,6 @@ def _post_tool_event(
         duration_ms,
         error,
     )
-    if _external_tool_listener is not None:
-        try:
-            _external_tool_listener(tool_name, args, result, duration_ms, error)
-        except Exception as exc:
-            logger.debug("tool_event_listener_failed err=%s", exc)
 
 
 async def _dispatch_animation(animation_name: str) -> None:

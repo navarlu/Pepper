@@ -1,133 +1,282 @@
 """
-Text Chat CLI — send text messages to the voice-agent via LiveKit room.
+Text Chat CLI — debug Pepper from the terminal alongside the live mic path.
 
-Generates its own token with a unique identity (text-cli) so it doesn't
-conflict with the user-client mic publisher. Joins the room and sends
-text on the `lk.chat` topic so the agent receives it through its
-text_input handler.
+Connects as identity "debug-cli" (subscribe-only), so it coexists with
+user-client (which stays connected as "user"). Text input is published on
+the `pepper.text` topic; the agent feeds it into the session as if it
+came from the user — the LLM sees only "user input", never knows about
+debug-cli. Mic mute is a soft-mute via `pepper.control` — user-client
+keeps its room presence and just sends silent frames.
 
-Usage:
-    uv run python tools/text_chat.py
-    uv run python tools/text_chat.py --mode local   # switch orchestrator to local mode
-    uv run python tools/text_chat.py --mode openai   # switch orchestrator to openai mode
+Slash commands (type / followed by command):
+    /help              show this list
+    /status            snapshot of room, mode, participants, mic state
+    /mode <m>          switch agent mode (openai | local)
+    /mic <on|off>      mute/unmute user-client's mic (soft, no disconnect)
+    /reset             clear agent's chat history
+    /quit              exit (also: Ctrl-D)
 """
 
 import asyncio
-import datetime
 import json
-import os
+import shlex
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
-from dotenv import load_dotenv
-from livekit import api, rtc
+from livekit import rtc
 
-# ── Config ──
+# ── Paths & topics ──────────────────────────────────────────────────────────
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
-ENV_PATH = ROOT_DIR / ".env"
 TOKEN_FILE = ROOT_DIR / "services" / "src" / "session_manager" / "data" / "token-latest.json"
 CONFIG_FILE = ROOT_DIR / "services" / "src" / "orchestrator_config.json"
+
 TOPIC_CHAT = "lk.chat"
-CLI_IDENTITY = "text-cli"
+TOPIC_DEBUG = "pepper.debug"
+TOPIC_CONTROL = "pepper.control"
+TOPIC_TEXT = "pepper.text"
+
+TRUNC = 200
+PROMPT = "You> "
 
 
-def _load_env():
-    if ENV_PATH.exists():
-        load_dotenv(dotenv_path=ENV_PATH, override=True)
+# ── Helpers ──────────────────────────────────────────────────────────────────
 
-_load_env()
+def _truncate(text: str, limit: int = TRUNC) -> str:
+    text = str(text)
+    return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
-def _read_token_file() -> dict:
+def _print(msg: str = "") -> None:
+    """Print a line, clearing the current input line first.
+
+    The next prompt is drawn by the main input loop (or by the next print).
+    Async events that fire while the user is typing will appear on a fresh
+    line — we don't try to redraw partial input (no readline integration).
+    """
+    sys.stdout.write(f"\r\033[K{msg}\n")
+    sys.stdout.flush()
+
+
+def _read_json(path: Path) -> dict:
     try:
-        data = json.loads(TOKEN_FILE.read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        print(f"Token file not found: {TOKEN_FILE}")
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def _read_token_snapshot() -> dict:
+    snap = _read_json(TOKEN_FILE)
+    if not snap:
+        print(f"Token file missing or invalid: {TOKEN_FILE}")
         print("Make sure the orchestrator is running.")
         sys.exit(1)
-    except json.JSONDecodeError:
-        print(f"Invalid JSON in token file: {TOKEN_FILE}")
+    return snap
+
+
+def _extract_debug_cli_credentials(snapshot: dict) -> tuple[str, str, str, str]:
+    entry = snapshot.get("debugCli") or {}
+    token = str(entry.get("token") or "").strip()
+    identity = str(entry.get("identity") or "debug-cli").strip()
+    ws_url = str(
+        snapshot.get("hostWsUrl")
+        or snapshot.get("wsUrl")
+        or snapshot.get("internalWsUrl")
+        or ""
+    ).strip()
+    room_name = str(snapshot.get("roomName") or "").strip()
+    if not token:
+        print("Token snapshot missing debugCli.token — restart the orchestrator so it provisions one.")
         sys.exit(1)
-    return data
-
-
-def _generate_token(room_name: str) -> str:
-    """Generate a fresh token for the text-cli identity."""
-    api_key = os.getenv("LIVEKIT_API_KEY", "").strip()
-    api_secret = os.getenv("LIVEKIT_API_SECRET", "").strip()
-    if not api_key or not api_secret:
-        print("Missing LIVEKIT_API_KEY or LIVEKIT_API_SECRET in .env")
+    if not (ws_url and room_name):
+        print("Token snapshot missing wsUrl or roomName.")
         sys.exit(1)
-    return (
-        api.AccessToken(api_key, api_secret)
-        .with_ttl(datetime.timedelta(hours=12))
-        .with_identity(CLI_IDENTITY)
-        .with_name(CLI_IDENTITY)
-        .with_grants(api.VideoGrants(
-            room_join=True,
-            room=room_name,
-            can_publish=False,
-            can_subscribe=True,
-            can_publish_data=True,
-        ))
-        .to_jwt()
-    )
+    return token, ws_url, room_name, identity
 
 
-def _switch_mode(mode: str):
-    """Write new mode to orchestrator config file."""
-    if mode not in ("openai", "local"):
-        print(f"Invalid mode '{mode}'. Use 'openai' or 'local'.")
-        sys.exit(1)
+def _read_mode() -> str:
+    return str(_read_json(CONFIG_FILE).get("agent_mode", "?")).strip() or "?"
+
+
+def _write_mode(mode: str) -> None:
     CONFIG_FILE.write_text(json.dumps({"agent_mode": mode}, indent=2), encoding="utf-8")
-    print(f"Switched orchestrator to '{mode}' mode.")
-    print(f"The orchestrator will detect the change within a few seconds.")
 
 
-async def main():
-    # Handle --mode flag
-    args = sys.argv[1:]
-    if "--mode" in args:
-        idx = args.index("--mode")
-        if idx + 1 >= len(args):
-            print("Usage: --mode <openai|local>")
-            sys.exit(1)
-        _switch_mode(args[idx + 1])
-        return
+def _format_age(iso_ts: str) -> str:
+    if not iso_ts:
+        return "?"
+    try:
+        ts = datetime.fromisoformat(iso_ts.replace("Z", "+00:00"))
+    except ValueError:
+        return iso_ts
+    delta = datetime.now(timezone.utc) - ts.astimezone(timezone.utc)
+    secs = int(delta.total_seconds())
+    if secs < 60:
+        return f"{secs}s ago"
+    if secs < 3600:
+        return f"{secs // 60}m{secs % 60}s ago"
+    return f"{secs // 3600}h{(secs % 3600) // 60}m ago"
 
-    snapshot = _read_token_file()
-    room_name = snapshot.get("roomName", "")
-    ws_url = snapshot.get("hostWsUrl") or snapshot.get("wsUrl") or ""
 
-    if not room_name or not ws_url:
-        print("Token file missing roomName or wsUrl")
-        sys.exit(1)
+# ── Command handlers ────────────────────────────────────────────────────────
 
-    token = _generate_token(room_name)
-    print(f"Connecting to room '{room_name}' at {ws_url}...")
+class ChatSession:
+    def __init__(self, room: rtc.Room, identity: str) -> None:
+        self.room = room
+        self.identity = identity
+        self.snapshot = _read_token_snapshot()
+        self._stop = asyncio.Event()
+        # Track last mic state we asked for; "?" until /mic is used.
+        self.mic_state = "?"
 
-    room = rtc.Room()
+    # --- commands -----------------------------------------------------------
 
-    # Print agent responses
+    async def cmd_help(self, _args: list[str]) -> None:
+        _print("Commands:")
+        for name, (_fn, helptext) in COMMANDS.items():
+            _print(f"  /{name:<8} {helptext}")
+
+    async def cmd_status(self, _args: list[str]) -> None:
+        snap = _read_token_snapshot()
+        room = self.room
+        remotes = list(getattr(room, "remote_participants", {}).values())
+        participants = ", ".join(
+            sorted([str(p.identity) for p in remotes] + [self.identity])
+        ) or "<none>"
+        user_present = any(str(p.identity) == "user" for p in remotes)
+        _print("─── status ───")
+        _print(f"  room         {room.name}")
+        _print(f"  mode         {_read_mode()}")
+        _print(f"  identity     {self.identity}")
+        _print(f"  participants {participants}")
+        _print(f"  user-client  {'connected' if user_present else 'absent'}")
+        _print(f"  mic          {self.mic_state}")
+        _print(f"  session      generated {_format_age(snap.get('generatedAt', ''))}")
+        _print("──────────────")
+
+    async def cmd_mode(self, args: list[str]) -> None:
+        if not args or args[0] not in ("openai", "local"):
+            _print("Usage: /mode <openai|local>")
+            return
+        new_mode = args[0]
+        current = _read_mode()
+        if current == new_mode:
+            _print(f"Already in '{new_mode}' mode.")
+            return
+        _write_mode(new_mode)
+        _print(f"Mode change requested: {current} -> {new_mode} (orchestrator picks up within ~3s)")
+
+    async def cmd_mic(self, args: list[str]) -> None:
+        if not args or args[0] not in ("on", "off"):
+            _print("Usage: /mic <on|off>")
+            return
+        muted = args[0] == "off"
+        payload = json.dumps({"cmd": "mic", "muted": muted}).encode("utf-8")
+        try:
+            await self.room.local_participant.publish_data(payload, topic=TOPIC_CONTROL)
+            self.mic_state = "muted" if muted else "live"
+            _print(f"  mic {self.mic_state} (signal sent to user-client)")
+        except Exception as exc:
+            _print(f"  failed to send: {exc}")
+
+    async def cmd_reset(self, _args: list[str]) -> None:
+        payload = json.dumps({"cmd": "reset"}).encode("utf-8")
+        try:
+            await self.room.local_participant.publish_data(payload, topic=TOPIC_CONTROL)
+            _print("Reset signal sent — agent will clear chat history shortly.")
+        except Exception as exc:
+            _print(f"  failed to send reset: {exc}")
+
+    async def cmd_quit(self, _args: list[str]) -> None:
+        self._stop.set()
+
+    # --- main loop ----------------------------------------------------------
+
+    async def send_text(self, text: str) -> None:
+        payload = json.dumps({"text": text}).encode("utf-8")
+        try:
+            await self.room.local_participant.publish_data(payload, topic=TOPIC_TEXT)
+        except Exception as exc:
+            _print(f"  [error] failed to send: {exc}")
+
+    async def dispatch(self, line: str) -> None:
+        if not line.startswith("/"):
+            await self.send_text(line)
+            return
+        parts = shlex.split(line[1:])
+        if not parts:
+            return
+        name, args = parts[0].lower(), parts[1:]
+        entry = COMMANDS.get(name)
+        if not entry:
+            _print(f"Unknown command: /{name}. Type /help.")
+            return
+        await entry[0](self, args)
+
+    async def run(self) -> None:
+        loop = asyncio.get_running_loop()
+        # Background mode-change watcher
+        watcher = asyncio.create_task(self._mode_watcher())
+        try:
+            while not self._stop.is_set():
+                sys.stdout.write(PROMPT)
+                sys.stdout.flush()
+                line = await loop.run_in_executor(None, sys.stdin.readline)
+                if not line:
+                    break
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                await self.dispatch(stripped)
+        except (KeyboardInterrupt, EOFError):
+            pass
+        finally:
+            watcher.cancel()
+            try:
+                await watcher
+            except asyncio.CancelledError:
+                pass
+
+    async def _mode_watcher(self) -> None:
+        last = _read_mode()
+        while not self._stop.is_set():
+            await asyncio.sleep(2.0)
+            current = _read_mode()
+            if current != last:
+                _print(f"  [mode] {last} -> {current}")
+                last = current
+
+
+COMMANDS: dict[str, tuple] = {
+    "help":   (ChatSession.cmd_help,   "show this list"),
+    "status": (ChatSession.cmd_status, "snapshot: room, mode, participants, session age"),
+    "mode":   (ChatSession.cmd_mode,   "<openai|local> — switch agent mode"),
+    "mic":    (ChatSession.cmd_mic,    "<on|off> — start/stop user-client container"),
+    "reset":  (ChatSession.cmd_reset,  "clear agent's chat history"),
+    "quit":   (ChatSession.cmd_quit,   "exit"),
+}
+
+
+# ── Room event handlers ─────────────────────────────────────────────────────
+
+def _install_room_handlers(room: rtc.Room, cli_identity: str) -> None:
     @room.on("transcription_received")
-    def _on_transcription(participant, segments):
+    def _on_transcription(segments, participant, _publication):
         identity = str(getattr(participant, "identity", "") or "")
         for seg in segments:
             text = str(getattr(seg, "text", "") or "").strip()
-            is_final = getattr(seg, "final", True)
-            if text and is_final:
-                print(f"\n  [{identity}]: {text}")
-                print("You> ", end="", flush=True)
+            if text and getattr(seg, "final", True):
+                _print(f"  [{identity}]: {text}")
 
     @room.on("data_received")
     def _on_data(packet):
         topic = str(getattr(packet, "topic", "") or "")
         participant = getattr(packet, "participant", None)
         identity = str(getattr(participant, "identity", "") or "") if participant else ""
-        # Skip our own messages
-        if identity == CLI_IDENTITY:
+        if identity == cli_identity:
             return
+
         if topic == TOPIC_CHAT:
             raw = getattr(packet, "data", b"") or b""
             try:
@@ -136,46 +285,62 @@ async def main():
             except (json.JSONDecodeError, UnicodeDecodeError):
                 text = raw.decode("utf-8", "ignore")
             if text.strip():
-                print(f"\n  [{identity}]: {text.strip()}")
-                print("You> ", end="", flush=True)
+                _print(f"  [{identity}]: {text.strip()}")
+            return
+
+        if topic == TOPIC_DEBUG:
+            raw = getattr(packet, "data", b"") or b""
+            try:
+                payload = json.loads(raw)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return
+            if payload.get("kind") == "tool_call":
+                name = payload.get("name", "?")
+                args = payload.get("args", "")
+                if not isinstance(args, str):
+                    args = json.dumps(args, ensure_ascii=False, default=str)
+                result = payload.get("result", "")
+                if not isinstance(result, str):
+                    result = json.dumps(result, ensure_ascii=False, default=str)
+                dur = payload.get("duration_ms", 0) or 0
+                err = payload.get("error")
+                marker = "✗" if err else "✓"
+                _print(f"  [tool {marker}] {name}({_truncate(args)}) -> {_truncate(result)} [{dur:.0f}ms]")
+                if err:
+                    _print(f"  [tool err] {_truncate(err)}")
+
+    @room.on("participant_connected")
+    def _on_join(participant):
+        _print(f"  [room] + {participant.identity}")
+
+    @room.on("participant_disconnected")
+    def _on_leave(participant):
+        _print(f"  [room] - {participant.identity}")
+
+
+# ── Entrypoint ──────────────────────────────────────────────────────────────
+
+async def main() -> None:
+    snapshot = _read_token_snapshot()
+    token, ws_url, room_name, cli_identity = _extract_debug_cli_credentials(snapshot)
+    print(f"Connecting to room '{room_name}' at {ws_url} as '{cli_identity}'…")
+
+    room = rtc.Room()
+    _install_room_handlers(room, cli_identity)
 
     try:
-        options = rtc.RoomOptions(auto_subscribe=True)
-        await room.connect(ws_url, token, options)
+        await room.connect(ws_url, token, rtc.RoomOptions(auto_subscribe=True))
     except Exception as exc:
         print(f"Failed to connect: {exc}")
         sys.exit(1)
 
-    print(f"Connected as '{CLI_IDENTITY}'. Type messages and press Enter.")
-    print("Commands: 'quit' to exit, 'mode openai' or 'mode local' to switch agent mode.\n")
+    print(f"Connected as '{cli_identity}'. Type /help for commands.\n")
 
-    loop = asyncio.get_running_loop()
+    session = ChatSession(room, cli_identity)
     try:
-        while True:
-            print("You> ", end="", flush=True)
-            line = await loop.run_in_executor(None, sys.stdin.readline)
-            if not line:  # EOF
-                break
-            text = line.strip()
-            if not text:
-                continue
-            if text.lower() in ("quit", "exit", "q"):
-                break
-
-            # Mode switching command
-            if text.lower().startswith("mode "):
-                mode = text.split(None, 1)[1].strip().lower()
-                _switch_mode(mode)
-                continue
-
-            try:
-                await room.local_participant.send_text(text, topic=TOPIC_CHAT)
-            except Exception as exc:
-                print(f"  [error] Failed to send: {exc}")
-    except (KeyboardInterrupt, EOFError):
-        pass
+        await session.run()
     finally:
-        print("\nDisconnecting...")
+        print("\nDisconnecting…")
         await room.disconnect()
         print("Bye!")
 

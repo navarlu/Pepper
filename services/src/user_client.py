@@ -192,6 +192,21 @@ class UserAudioClient:
             print("[user_client] room event disconnected reason={}".format(reason))
             self._request_reconnect("livekit disconnected reason={}".format(reason))
 
+        @room.on("data_received")
+        def _on_data(packet) -> None:
+            if str(getattr(packet, "topic", "") or "") != "pepper.control":
+                return
+            try:
+                msg = json.loads(getattr(packet, "data", b"") or b"")
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return
+            if str(msg.get("cmd", "")).strip().lower() != "mic":
+                return
+            new_muted = bool(msg.get("muted", False))
+            if new_muted != self.mic_muted:
+                self.mic_muted = new_muted
+                print(f"[user_client] mic_muted={new_muted} (via pepper.control)")
+
     def _agent_ready_for_text(self) -> bool:
         if not self.room:
             return False
