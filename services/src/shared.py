@@ -1,24 +1,21 @@
-"""Shared utilities for room-monitor and audio-bridge services."""
+"""Shared utilities for audio-bridge and user-client services."""
 
 import asyncio
 import json
 import time
 from pathlib import Path
 from typing import Awaitable, Callable, Optional
-from urllib.request import Request, urlopen
 
 try:
     from .config import (
         LIVEKIT_SESSION_FILE,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
-        SESSION_MANAGER_URL,
         TOKEN_POLL_INTERVAL,
     )
 except ImportError:
     from config import (
         LIVEKIT_SESSION_FILE,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
-        SESSION_MANAGER_URL,
         TOKEN_POLL_INTERVAL,
     )
 
@@ -94,27 +91,13 @@ class SessionWatcher:
 
 
 def post_debug_event(event: str, **payload) -> None:
-    """POST a debug event to the session manager (best-effort)."""
-    if not SESSION_MANAGER_URL:
-        return
-    url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/debug-event"
-    body = {"event": event}
-    body.update(payload)
-    req = Request(
-        url,
-        data=json.dumps(body).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        resp = urlopen(req, timeout=0.35)
-        resp.read()
-    except Exception:
-        pass
+    """Log a debug event to terminal (no longer POSTs to session-manager)."""
+    details = " ".join(f"{k}={v}" for k, v in payload.items())
+    print(f"[debug-event] {event} {details}"[:200])
 
 
 class AgentActivityReporter:
-    """Debounced reporter for agent speaking activity."""
+    """Debounced activity logger (no longer POSTs to session-manager)."""
 
     def __init__(self):
         self._last_post_monotonic = 0.0
@@ -124,13 +107,3 @@ class AgentActivityReporter:
         if now - self._last_post_monotonic < SESSION_ACTIVITY_DEBOUNCE_SEC:
             return
         self._last_post_monotonic = now
-        if not SESSION_MANAGER_URL:
-            return
-        url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/activity"
-        payload = json.dumps({"source": "agent"}).encode("utf-8")
-        req = Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-        try:
-            resp = urlopen(req, timeout=0.35)
-            resp.read()
-        except Exception:
-            pass

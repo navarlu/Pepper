@@ -1,0 +1,16 @@
+port: 7880
+bind_addresses:
+  - "0.0.0.0"
+rtc:
+  udp_port: 7882
+  tcp_port: 7881
+  use_external_ip: true
+turn:
+  enabled: true
+  domain: 127.0.0.1
+  udp_port: 3478
+  tls_port: 7443
+  cert_file: /home/lucas/Projects/FEL/Pepper/docker/livekit/turn.crt
+  key_file: /home/lucas/Projects/FEL/Pepper/docker/livekit/turn.key
+redis:
+  address: 127.0.0.1:6379

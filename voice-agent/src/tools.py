@@ -7,7 +7,7 @@ import time
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.request import Request, urlopen  # still used by _post_animation
 
 from livekit.agents import RunContext, function_tool
 
@@ -19,12 +19,10 @@ from .config import (
     ANIMATION_TOOL_ALLOWED,
     ANIMATION_TOOL_HTTP_TIMEOUT_SEC,
     ANIMATION_TOOL_MAX_NAME_CHARS,
-    DEV_CONSOLE_URL,
     ENABLE_ANIMATION_TOOL,
     ENABLE_QUERY_SEARCH,
     QUERY_SEARCH_DEFAULT_LIMIT,
     QUERY_SEARCH_MAX_LIMIT,
-    SESSION_MANAGER_URL,
     WEAVIATE_HYBRID_ALPHA,
 )
 from .utils import search_vectors
@@ -39,48 +37,6 @@ OPENAI_ANIMATION_KEYS = (
     "Thinking_1",
     "IDontKnow_1",
 )
-
-
-def _get_runtime_settings() -> dict[str, Any]:
-    """Fetch runtime query settings from dev-console. Falls back to config defaults."""
-    console_url = str(DEV_CONSOLE_URL or "").rstrip("/")
-    if not console_url:
-        return {}
-    try:
-        req = Request(f"{console_url}/api/settings", method="GET")
-        with urlopen(req, timeout=2.0) as resp:
-            return json.loads(resp.read().decode())
-    except Exception as exc:
-        logger.debug("runtime_settings_fetch_failed error=%s", exc)
-        return {}
-
-
-def _post_query_log(query: str, limit: int, result_count: int, results: list,
-                    duration_ms: float, alpha: float = 0.0, mode: str = "hybrid") -> None:
-    """Best-effort POST to dev-console to log a live query."""
-    console_url = str(DEV_CONSOLE_URL or "").rstrip("/")
-    if not console_url:
-        return
-    try:
-        payload = json.dumps({
-            "query": query,
-            "source": "live",
-            "mode": mode,
-            "alpha": alpha,
-            "limit": limit,
-            "result_count": result_count,
-            "results": results,
-            "duration_ms": duration_ms,
-        }).encode()
-        req = Request(
-            f"{console_url}/api/log-query",
-            data=payload,
-            method="POST",
-            headers={"Content-Type": "application/json"},
-        )
-        urlopen(req, timeout=2.0)
-    except Exception as exc:
-        logger.warning("dev_console_log_failed error=%s", exc)
 
 
 def _agent_result(item: dict[str, Any]) -> dict[str, Any]:
@@ -158,24 +114,8 @@ def _normalize_animation_name(raw_name: str) -> str:
 
 
 def _push_tool_transcript(text: str) -> None:
-    """Push a tool-call entry into the session manager transcript (best-effort)."""
-    sm_url = str(SESSION_MANAGER_URL or "").rstrip("/")
-    if not sm_url:
-        return
-    payload = json.dumps(
-        {"event": "transcript", "speaker": "Pepper", "text": text, "kind": "tool"}
-    ).encode("utf-8")
-    req = Request(
-        "{}/api/debug-event".format(sm_url),
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        with urlopen(req, timeout=0.5) as resp:
-            resp.read()
-    except Exception:
-        pass
+    """Log a tool-call transcript entry to terminal."""
+    logger.info("tool_transcript text=%s", text[:120])
 
 
 def _post_tool_event(
@@ -185,29 +125,14 @@ def _post_tool_event(
     duration_ms: float,
     error: str | None = None,
 ) -> None:
-    """Post a structured tool-call event to the session manager (best-effort)."""
-    sm_url = str(SESSION_MANAGER_URL or "").rstrip("/")
-    if not sm_url:
-        return
-    payload = json.dumps({
-        "event": "tool_call",
-        "tool": tool_name,
-        "args": args,
-        "result": result,
-        "duration_ms": round(duration_ms, 1),
-        "error": error,
-    }).encode("utf-8")
-    req = Request(
-        "{}/api/debug-event".format(sm_url),
-        data=payload,
-        headers={"Content-Type": "application/json"},
-        method="POST",
+    """Log a structured tool-call event to terminal."""
+    logger.info(
+        "tool_call tool=%s args=%s duration_ms=%.0f error=%s",
+        tool_name,
+        json.dumps(args, default=str)[:150],
+        duration_ms,
+        error,
     )
-    try:
-        with urlopen(req, timeout=0.5) as resp:
-            resp.read()
-    except Exception:
-        pass
 
 
 async def _dispatch_animation(animation_name: str) -> None:
@@ -398,11 +323,8 @@ def build_tools(agent_mode: str) -> list[Any]:
             )
             return json.dumps(room_result, ensure_ascii=False)
 
-        # Fetch runtime settings from dev-console (alpha, limit, mode).
-        rt = await asyncio.to_thread(_get_runtime_settings)
-        rt_alpha = float(rt.get("alpha", WEAVIATE_HYBRID_ALPHA))
-        rt_limit = int(rt.get("limit", QUERY_SEARCH_DEFAULT_LIMIT))
-        safe_limit = max(1, min(rt_limit, QUERY_SEARCH_MAX_LIMIT))
+        rt_alpha = WEAVIATE_HYBRID_ALPHA
+        safe_limit = QUERY_SEARCH_DEFAULT_LIMIT
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
         await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
@@ -420,15 +342,6 @@ def build_tools(agent_mode: str) -> list[Any]:
                 "query_search_done query=%s results=%d duration_ms=%.1f",
                 query_text, len(results), duration_ms,
             )
-            # Best-effort log to dev-console (full results for inspection).
-            try:
-                await asyncio.to_thread(
-                    _post_query_log, query_text, safe_limit, len(results), results,
-                    duration_ms, rt_alpha, rt.get("mode", "hybrid"),
-                )
-            except Exception as log_exc:
-                logger.warning("dev_console_post_failed error=%s", log_exc)
-            # Post structured tool event to session logger.
             await asyncio.to_thread(
                 _post_tool_event, "query_search",
                 {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},

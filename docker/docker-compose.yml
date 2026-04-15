@@ -1,13 +1,19 @@
 services:
   livekit:
-    image: livekit/livekit-server:v1.9.11
+    image: livekit/livekit-server:v1.10.1
     env_file: ../.env
     command:
       - --config=/livekit/livekit.yaml
       - --keys=${LIVEKIT_KEYS}
     volumes:
       - ./livekit:/livekit:ro
-    network_mode: host
+    # Bridge networking (NOT host) so the container sees only eth0+lo.
+    # With node_ip=127.0.0.1 this makes loopback the only advertised ICE
+    # candidate — matches the proven connection_test setup that worked
+    # over the SSH reverse tunnel from woska.
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "127.0.0.1:7881:7881"
     restart: unless-stopped
 
   redis:
@@ -19,42 +25,27 @@ services:
       - ./redis-data:/data
     restart: unless-stopped
 
-  session-manager:
+  orchestrator:
     build:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "-m", "services.src.session_manager"]
+    command: ["uv", "run", "python", "services/src/orchestrator.py"]
     volumes:
       - ..:/workspace
-      - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
-      LIVEKIT_URL: ws://host.docker.internal:7880
-      LIVEKIT_HTTP_URL: http://host.docker.internal:7880
-      BRIDGE_URL: http://host.docker.internal:5000
-      SESSION_MANAGER_HOST: 0.0.0.0
-      SESSION_MANAGER_PORT: 8787
+      LIVEKIT_HTTP_URL: http://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
-      REDIS_HOST: host.docker.internal
-      REDIS_PORT: 6379
-      WEAVIATE_HOST: weaviate
-      WEAVIATE_HTTP_PORT: 8080
-      BRIDGE_TCP_URL: tcp://host.docker.internal:55555
-      DOCKER_SOCKET_PATH: /var/run/docker.sock
-      DEV_CONSOLE_URL: http://dev-console:8788
-      LOCAL_LLM_BASE_URL: http://host.docker.internal:8000/v1
-      SESSION_IDLE_TIMEOUT_SEC: 60
+      PEPPER_AGENT_MODE: openai
       PEPPER_AGENT_NAME_OPENAI: pepper-openai
       PEPPER_AGENT_NAME_LOCAL: pepper-local
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8787:8787"
+      SESSION_IDLE_TIMEOUT_SEC: 60
+    network_mode: host
     depends_on:
       - livekit
       - redis
-      - weaviate
     restart: unless-stopped
 
   voice-agent:
@@ -67,21 +58,16 @@ services:
     volumes:
       - ..:/workspace
     environment:
-      LIVEKIT_URL: ws://host.docker.internal:7880
-      SESSION_MANAGER_URL: http://session-manager:8787
-      WEAVIATE_HOST: weaviate
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      WEAVIATE_HOST: 127.0.0.1
       WEAVIATE_HTTP_PORT: 8080
       WEAVIATE_GRPC_PORT: 50051
-      ANIMATION_BRIDGE_URL: http://host.docker.internal:5000
+      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
       PEPPER_AGENT_NAME: pepper-openai
       PEPPER_AGENT_MODE: openai
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      SESSION_IDLE_TIMEOUT_SEC: 60
+    network_mode: host
     stop_grace_period: 15s
-    depends_on:
-      - livekit
-      - redis
-      - weaviate
     restart: unless-stopped
 
   bridge:
@@ -120,28 +106,7 @@ services:
       PYTHONPATH: /opt/qi
       LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
       PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
-      SESSION_MANAGER_URL: http://127.0.0.1:8787
     network_mode: host
-    restart: unless-stopped
-
-  room-monitor:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/room_monitor.py"]
-    volumes:
-      - ..:/workspace
-    environment:
-      LIVEKIT_URL: ws://host.docker.internal:7880
-      SESSION_MANAGER_URL: http://session-manager:8787
-      LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
-      BRIDGE_URL: http://host.docker.internal:5000
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      - session-manager
-      - livekit
     restart: unless-stopped
 
   audio-bridge:
@@ -153,16 +118,11 @@ services:
     volumes:
       - ..:/workspace
     environment:
-      LIVEKIT_URL: ws://host.docker.internal:7880
-      SESSION_MANAGER_URL: http://session-manager:8787
+      LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
-      TCP_HOST: host.docker.internal
+      TCP_HOST: 127.0.0.1
       TCP_PORT: 55555
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    depends_on:
-      - session-manager
-      - livekit
+    network_mode: host
     restart: unless-stopped
 
   user-client:
@@ -179,29 +139,8 @@ services:
       - audio
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
-      SESSION_MANAGER_URL: http://127.0.0.1:8787
       LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
     network_mode: host
-    restart: unless-stopped
-
-  dev-console:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "-m", "services.src.dev_console.src.app"]
-    volumes:
-      - ..:/workspace
-    environment:
-      WEAVIATE_HOST: weaviate
-      WEAVIATE_HTTP_PORT: 8080
-      WEAVIATE_GRPC_PORT: 50051
-      DEV_CONSOLE_HOST: "0.0.0.0"
-      DEV_CONSOLE_PORT: 8788
-    ports:
-      - "8788:8788"
-    depends_on:
-      - weaviate
     restart: unless-stopped
 
   # Reverse tunnel: exposes RPi services on woska:localhost so the remote voice-agent can reach them.
@@ -219,8 +158,8 @@ services:
           -o ExitOnForwardFailure=yes \
           -J navarlu2@ptak.felk.cvut.cz \
           -R 7880:127.0.0.1:7880 \
+          -R 7881:127.0.0.1:7881 \
           -R 7443:127.0.0.1:7443 \
-          -R 8787:127.0.0.1:8787 \
           -R 5000:127.0.0.1:5000 \
           -R 8080:127.0.0.1:8080 \
           -R 50051:127.0.0.1:50051 \

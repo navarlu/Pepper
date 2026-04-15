@@ -1,7 +1,7 @@
 choregraphe
 .env
 Pepper_env
-
+.claude
 __pycache__/
 *.pyc
 *.pyo

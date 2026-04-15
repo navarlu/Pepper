@@ -38,9 +38,9 @@ docker compose -f docker/docker-compose.yml up -d --force-recreate --build
 SSH into woska and start in tmux:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
 
-tmux attach -t pepper-agent 2>/dev/null || tmux new-session -s pepper-agent
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
 
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper

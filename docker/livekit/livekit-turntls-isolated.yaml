@@ -1,0 +1,17 @@
+port: 7880
+bind_addresses:
+  - "0.0.0.0"
+rtc:
+  udp_port: 7882
+  tcp_port: 7881
+  use_external_ip: false
+  node_ip: 127.0.0.1
+turn:
+  enabled: true
+  domain: 127.0.0.1
+  udp_port: 3478
+  tls_port: 7443
+  cert_file: /livekit/turntls-exp/server.crt
+  key_file: /livekit/turntls-exp/server.key
+redis:
+  address: 127.0.0.1:6379

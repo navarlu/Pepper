@@ -5,7 +5,6 @@ import threading
 import time
 import json
 from pathlib import Path
-from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv
 from livekit.agents import (
@@ -45,7 +44,7 @@ from .config import (
     LOCAL_SYSTEM_PROMPT,
     MODEL_NAME,
     OPENAI_SYSTEM_PROMPT,
-    SESSION_MANAGER_URL,
+    SESSION_IDLE_TIMEOUT_SEC,
     TTS_VOICE,
 )
 from .local_speech import FasterWhisperSTT, PiperTTS
@@ -118,33 +117,19 @@ _load_root_env()
 _set_runtime_defaults()
 
 
-def _post_debug_event(payload: dict[str, object]) -> None:
-    if not SESSION_MANAGER_URL:
-        return
-    url = f"{SESSION_MANAGER_URL.rstrip('/')}/api/debug-event"
-    req = Request(
-        url,
-        data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
-        method="POST",
-    )
-    try:
-        urlopen(req, timeout=0.5).read()
-    except Exception:
-        pass
+def _log_event(payload: dict[str, object]) -> None:
+    """Log a structured event to terminal (replaces HTTP POST to session-manager)."""
+    event = payload.get("event", "unknown")
+    details = {k: v for k, v in payload.items() if k != "event"}
+    detail_str = " ".join(f"{k}={v}" for k, v in details.items())
+    logger.info("[event] %s %s", event, detail_str[:200])
 
 
 def _post_pipeline_metric(metric: dict) -> None:
-    """Fire-and-forget pipeline timing metric (STT/LLM/TTS) to the session manager."""
-    # Log locally so bottlenecks are visible without tailing the session-manager.
+    """Log pipeline timing metric (STT/LLM/TTS) to terminal."""
     stage = metric.get("stage", "?")
     parts = [f"{k}={v}" for k, v in metric.items() if k != "stage"]
     logger.info("[PIPE] stage=%s %s", stage, " ".join(parts))
-    threading.Thread(
-        target=_post_debug_event,
-        args=({"event": "pipeline_metric", **metric},),
-        daemon=True,
-    ).start()
 
 
 def _is_bridge_listener(participant) -> bool:
@@ -582,11 +567,6 @@ async def entrypoint(ctx: JobContext) -> None:
         if not text:
             return
         logger.info("early_transcript speaker=Pepper text=%s", text[:120])
-        threading.Thread(
-            target=_post_debug_event,
-            args=({"event": "transcript", "speaker": "Pepper", "text": text, "kind": "llm"},),
-            daemon=True,
-        ).start()
 
     t0 = time.monotonic()
     await session.start(
@@ -608,6 +588,19 @@ async def entrypoint(ctx: JobContext) -> None:
 
     await weaviate_task
 
+    # --- Idle timeout tracking ---
+    # The agent itself tracks speech activity and clears chat context after
+    # SESSION_IDLE_TIMEOUT_SEC of silence (replaces session-manager idle logic).
+    last_user_activity = time.monotonic()
+
+    @session.on("user_input_transcribed")
+    def _on_user_speech(event) -> None:
+        nonlocal last_user_activity
+        last_user_activity = time.monotonic()
+        text = getattr(event, "text", "") or ""
+        if text.strip():
+            logger.info("user_speech text=%s", text.strip()[:120])
+
     if is_warm:
         logger.info(
             "warm_agent_ready agent_mode=%s persistent=%s total_warm_setup=%.3fs",
@@ -615,7 +608,6 @@ async def entrypoint(ctx: JobContext) -> None:
             is_persistent,
             time.monotonic() - t_entry,
         )
-        _post_debug_event({"event": "warm_ready", "active": True})
 
     logger.info(
         "agent_listening agent_mode=%s total_setup=%.3fs",
@@ -630,52 +622,75 @@ async def entrypoint(ctx: JobContext) -> None:
         return
 
     # --- Persistent warm agent loop (both local & openai) ---
-    # The agent stays in the room forever. On `reset` (from session-manager idle
-    # timeout) it clears its chat history in-place. On `shutdown` (mode switch
-    # only) it exits cleanly so the worker can be redispatched with new config.
-    # Participant disconnects do NOT close the session (close_on_disconnect=False).
+    # The agent stays in the room forever. When idle for SESSION_IDLE_TIMEOUT_SEC
+    # it clears its chat history in-place. On `shutdown` (mode switch / external
+    # signal) it exits cleanly so the worker can be redispatched with new config.
     logger.info(
-        "[PERSIST] entering persistent loop agent_mode=%s — only `shutdown` ends this loop",
+        "[PERSIST] entering persistent loop agent_mode=%s idle_timeout=%ss",
         agent_mode,
+        SESSION_IDLE_TIMEOUT_SEC,
     )
+
+    async def _idle_monitor() -> None:
+        """Check for idle timeout every 2s and set the reset event when triggered."""
+        nonlocal last_user_activity
+        while not sc.shutdown_event.is_set():
+            await asyncio.sleep(2)
+            idle_sec = time.monotonic() - last_user_activity
+            if idle_sec >= SESSION_IDLE_TIMEOUT_SEC:
+                logger.info(
+                    "[idle] %.0fs silence — clearing conversation history",
+                    idle_sec,
+                )
+                sc.reset_event.set()
+                # Wait until the reset is processed before resuming monitoring
+                while sc.reset_event.is_set() and not sc.shutdown_event.is_set():
+                    await asyncio.sleep(0.5)
+
+    idle_task = asyncio.create_task(_idle_monitor())
+
     session_num = 0
-    while True:
-        reset_task = asyncio.ensure_future(sc.reset_event.wait())
-        shutdown_task = asyncio.ensure_future(sc.shutdown_event.wait())
-        done, pending = await asyncio.wait(
-            [reset_task, shutdown_task],
-            return_when=asyncio.FIRST_COMPLETED,
-        )
-        for t in pending:
-            t.cancel()
-
-        if sc.shutdown_event.is_set():
-            logger.info(
-                "[PERSIST] shutdown received — exiting loop sessions_served=%d agent_mode=%s",
-                session_num,
-                agent_mode,
+    try:
+        while True:
+            reset_task = asyncio.ensure_future(sc.reset_event.wait())
+            shutdown_task = asyncio.ensure_future(sc.shutdown_event.wait())
+            done, pending = await asyncio.wait(
+                [reset_task, shutdown_task],
+                return_when=asyncio.FIRST_COMPLETED,
             )
-            return
+            for t in pending:
+                t.cancel()
 
-        session_num += 1
-        logger.info(
-            "[PERSIST] reset signal received — clearing chat history session_num=%d",
-            session_num,
-        )
-        try:
-            await session.interrupt()
-            session.clear_user_turn()
-            await agent.update_chat_ctx(llm.ChatContext.empty())
+            if sc.shutdown_event.is_set():
+                logger.info(
+                    "[PERSIST] shutdown received — exiting loop sessions_served=%d agent_mode=%s",
+                    session_num,
+                    agent_mode,
+                )
+                return
+
+            session_num += 1
             logger.info(
-                "[PERSIST] history cleared, agent ready for next user session_num=%d",
+                "[PERSIST] resetting chat history session_num=%d",
                 session_num,
             )
-        except Exception as exc:
-            logger.error("[PERSIST] reset failed error=%s", exc)
+            try:
+                await session.interrupt()
+                session.clear_user_turn()
+                await agent.update_chat_ctx(llm.ChatContext.empty())
+                logger.info(
+                    "[PERSIST] history cleared, agent ready for next user session_num=%d",
+                    session_num,
+                )
+            except Exception as exc:
+                logger.error("[PERSIST] reset failed error=%s", exc)
 
-        sc.reset_event.clear()
-        _post_debug_event({"event": "warm_ready", "active": True})
-        logger.info("[PERSIST] persistent_agent_ready session_num=%d", session_num)
+            # Reset the activity timer so the next idle window starts now
+            last_user_activity = time.monotonic()
+            sc.reset_event.clear()
+            logger.info("[PERSIST] persistent_agent_ready session_num=%d", session_num)
+    finally:
+        idle_task.cancel()
 
 
 def _prewarm_process(_) -> None:

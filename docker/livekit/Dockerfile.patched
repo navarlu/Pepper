@@ -1,0 +1,11 @@
+FROM golang:1.25-alpine AS builder
+RUN apk add --no-cache git
+WORKDIR /build
+RUN git clone --depth 1 --branch v1.10.1 https://github.com/livekit/livekit.git .
+# Patch: use configured TLS port instead of hardcoded 443
+RUN sed -i 's|"turns:%s:443?transport=tcp", r.config.TURN.Domain|"turns:%s:%d?transport=tcp", r.config.TURN.Domain, r.config.TURN.TLSPort|' pkg/service/roommanager.go
+RUN CGO_ENABLED=0 go build -o /livekit-server ./cmd/server
+
+FROM alpine:3.21
+COPY --from=builder /livekit-server /livekit-server
+ENTRYPOINT ["/livekit-server"]

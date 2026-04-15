@@ -6,7 +6,6 @@ import time
 from pathlib import Path
 from typing import Optional
 
-import aiohttp
 import numpy as np
 from dotenv import load_dotenv
 from livekit import rtc
@@ -15,7 +14,6 @@ try:
     from .config import (
         LIVEKIT_SESSION_FILE,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
-        SESSION_MANAGER_URL,
         USER_IDENTITY,
         USER_CLIENT_TEST_MODE,
         USER_MIC_BLOCKSIZE,
@@ -28,7 +26,6 @@ except ImportError:
     from config import (
         LIVEKIT_SESSION_FILE,
         SESSION_ACTIVITY_DEBOUNCE_SEC,
-        SESSION_MANAGER_URL,
         USER_IDENTITY,
         USER_CLIENT_TEST_MODE,
         USER_MIC_BLOCKSIZE,
@@ -108,7 +105,6 @@ class SessionSnapshot:
 class UserAudioClient:
     def __init__(self) -> None:
         _load_root_env()
-        self.http = aiohttp.ClientSession()
         self.source: Optional[rtc.AudioSource] = None
         self.room: Optional[rtc.Room] = None
         self.audio_queue: Optional[asyncio.Queue[tuple[bytes, int, float]]] = None
@@ -258,29 +254,10 @@ class UserAudioClient:
             return
         self._last_activity_post_monotonic = now
         print("[user_client] speech activity detected rms={:.4f}".format(level))
-        try:
-            async with self.http.post(
-                f"{SESSION_MANAGER_URL}/api/activity",
-                json={"source": "user", "level": level},
-                timeout=aiohttp.ClientTimeout(total=1.0),
-            ) as resp:
-                await resp.read()
-                print("[user_client] activity POST status={}".format(resp.status))
-        except Exception:
-            print("[user_client] activity POST failed")
 
     async def _report_debug_event(self, event: str, **payload) -> None:
-        body = {"event": event}
-        body.update(payload)
-        try:
-            async with self.http.post(
-                f"{SESSION_MANAGER_URL}/api/debug-event",
-                json=body,
-                timeout=aiohttp.ClientTimeout(total=1.0),
-            ) as resp:
-                await resp.read()
-        except Exception:
-            pass
+        details = " ".join(f"{k}={v}" for k, v in payload.items())
+        print(f"[user_client] {event} {details}"[:200])
 
     async def _audio_sender_loop(self) -> None:
         while True:
@@ -330,33 +307,10 @@ class UserAudioClient:
                 await self._report_activity(rms)
 
     async def _control_loop(self) -> None:
+        # No longer polls session-manager for mic state or pending texts.
+        # Kept as a no-op coroutine so the task structure stays intact.
         while True:
-            try:
-                async with self.http.get(
-                    f"{SESSION_MANAGER_URL}/api/user-client/state",
-                    timeout=aiohttp.ClientTimeout(total=1.0),
-                ) as resp:
-                    data = await resp.json()
-                self.mic_muted = bool(data.get("mic_muted"))
-                for item in data.get("pending_texts", []) or []:
-                    text = " ".join(str(item.get("text") or "").strip().split())
-                    command_id = str(item.get("id") or "").strip()
-                    if not text or not command_id or not self.room:
-                        continue
-                    if not self._agent_ready_for_text():
-                        continue
-                    print("[user_client] sending text input via room topic={} text={}".format(TOPIC_CHAT, text))
-                    await self.room.local_participant.send_text(text, topic=TOPIC_CHAT)
-                    await self._report_debug_event("transcript", speaker="User", text=text)
-                    async with self.http.post(
-                        f"{SESSION_MANAGER_URL}/api/user-client/ack",
-                        json={"id": command_id},
-                        timeout=aiohttp.ClientTimeout(total=1.0),
-                    ) as resp:
-                        await resp.read()
-            except Exception:
-                pass
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(60)
 
     def _log_devices(self, sd) -> None:
         try:
@@ -581,7 +535,6 @@ class UserAudioClient:
                 print("[user_client] disconnecting room")
                 await self.room.disconnect()
                 self.room = None
-            print("[user_client] closing http session")
             if self.audio_queue is not None:
                 self.audio_queue = None
             self.source = None
@@ -621,7 +574,6 @@ async def main() -> None:
         await client.run()
     finally:
         await client._report_component_status("stopping", "user client stopped", healthy=False, force=True)
-        await client.http.close()
 
 
 if __name__ == "__main__":

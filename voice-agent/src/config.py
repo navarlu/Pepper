@@ -57,8 +57,7 @@ LOCAL_TTS_NOISE_W_SCALE = _env_float("LOCAL_TTS_NOISE_W_SCALE", 0.8)
 LISTENER_IDENTITY = _env_str("LISTENER_IDENTITY", "listener-python")
 MONITOR_IDENTITY = _env_str("MONITOR_IDENTITY", "monitor-python")
 LIVEKIT_URL = _env_str("LIVEKIT_URL", "ws://127.0.0.1:7880")
-SESSION_MANAGER_URL = _env_str("SESSION_MANAGER_URL", "http://127.0.0.1:8787")
-DEV_CONSOLE_URL = _env_str("DEV_CONSOLE_URL", "http://127.0.0.1:8788")
+SESSION_IDLE_TIMEOUT_SEC = _env_float("SESSION_IDLE_TIMEOUT_SEC", 60.0)
 
 AGENT_NAME = _env_str("PEPPER_AGENT_NAME", "pepper-local")
 ORGANIZATION = "CTU Faculty of Electrical Engineering"
