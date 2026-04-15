@@ -67,6 +67,7 @@ which mode (`openai` / `local`) is active.
 ## Starting the CLI
 
 ```bash
+tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
 uv run python services/src/text_chat.py
 ```
 

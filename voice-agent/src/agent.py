@@ -731,6 +731,17 @@ async def entrypoint(ctx: JobContext) -> None:
                     session_num,
                     agent_mode,
                 )
+                # Per LiveKit docs: returning from entrypoint is NOT enough —
+                # the job stays alive as long as other non-agent participants
+                # (user-client, debug-cli) are in the room. Must explicitly
+                # call ctx.shutdown() + session.aclose() so the framework
+                # disconnects us from the room and the participant record is
+                # gone. Without this, mode-switch leaves a zombie.
+                try:
+                    await session.aclose()
+                except Exception as exc:
+                    logger.debug("session.aclose failed err=%s", exc)
+                ctx.shutdown(reason="mode_switch_requested")
                 return
 
             session_num += 1

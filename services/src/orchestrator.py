@@ -195,9 +195,33 @@ class Orchestrator:
 
     # ── Agent dispatch & mode switching ──
 
-    async def _dispatch_warm_agent(self) -> None:
+    # Timing constants. JOIN_TIMEOUT is generous because prewarm on first boot
+    # can take 30-60s (VAD load + weaviate seed + ICE negotiation). EXIT_TIMEOUT
+    # is tight — a warm agent that receives the shutdown signal should leave
+    # within a few seconds; if it doesn't, we fall through to forced cleanup.
+    JOIN_TIMEOUT_SEC = 45.0
+    EXIT_TIMEOUT_SEC = 15.0
+    POLL_INTERVAL_SEC = 1.0
+
+    async def _list_agent_participants(self, lkapi: api.LiveKitAPI) -> list[str]:
+        """Return identities of all agent-kind participants currently in the room."""
+        try:
+            resp = await lkapi.room.list_participants(
+                api.ListParticipantsRequest(room=self.room_name)
+            )
+        except Exception:
+            return []
+        out: list[str] = []
+        for p in getattr(resp, "participants", []) or []:
+            identity = str(getattr(p, "identity", "") or "")
+            kind = str(getattr(p, "kind", "") or "").upper()
+            if identity.startswith("agent-") or "AGENT" in kind:
+                out.append(identity)
+        return out
+
+    async def _dispatch_agent(self, lkapi: api.LiveKitAPI) -> str:
+        """Create an agent dispatch; return dispatch_id or '' on failure."""
         metadata = json.dumps({"warm": True, "agent_mode": self.agent_mode})
-        lkapi = self._lkapi()
         try:
             dispatch = await lkapi.agent_dispatch.create_dispatch(
                 api.CreateAgentDispatchRequest(
@@ -207,16 +231,52 @@ class Orchestrator:
                 )
             )
             dispatch_id = str(getattr(dispatch, "id", "") or "")
-            print(f"[orchestrator] warm agent dispatched name={self.agent_name} mode={self.agent_mode} dispatch_id={dispatch_id}")
+            print(f"[orchestrator] dispatched agent={self.agent_name} mode={self.agent_mode} dispatch_id={dispatch_id}")
+            return dispatch_id
         except Exception as exc:
             print(f"[orchestrator] dispatch failed err={exc}")
-        finally:
-            await lkapi.aclose()
+            return ""
 
-    async def _send_shutdown_signal(self) -> None:
+    async def _wait_for_agent_join(self, lkapi: api.LiveKitAPI, timeout: float) -> bool:
+        """Poll until at least one agent-kind participant is in the room."""
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
+            if await self._list_agent_participants(lkapi):
+                return True
+            await asyncio.sleep(self.POLL_INTERVAL_SEC)
+        return False
+
+    async def _wait_for_agents_gone(self, lkapi: api.LiveKitAPI, timeout: float) -> bool:
+        """Poll until no agent-kind participants remain in the room."""
+        deadline = asyncio.get_running_loop().time() + timeout
+        while asyncio.get_running_loop().time() < deadline:
+            if not await self._list_agent_participants(lkapi):
+                return True
+            await asyncio.sleep(self.POLL_INTERVAL_SEC)
+        return False
+
+    async def _force_remove_agents(self, lkapi: api.LiveKitAPI) -> None:
+        """Fallback: force-remove all agent participants + delete all dispatches.
+
+        RemoveParticipant signals the participant via their own connection and
+        may fail for true zombies (their signaling path is dead). We log and
+        continue — `empty_timeout` on the room will eventually GC them, or
+        deleting the room is the nuclear option.
+        """
+        identities = await self._list_agent_participants(lkapi)
+        for identity in identities:
+            try:
+                await lkapi.room.remove_participant(
+                    api.RoomParticipantIdentity(room=self.room_name, identity=identity)
+                )
+                print(f"[orchestrator] force-removed agent={identity}")
+            except Exception as exc:
+                print(f"[orchestrator] force-remove failed agent={identity} err={exc}")
+        await self._cleanup_stale_dispatches(lkapi)
+
+    async def _send_shutdown_signal(self, lkapi: api.LiveKitAPI) -> None:
         """Tell the current agent to exit cleanly via LiveKit data channel."""
         payload = json.dumps({"action": "shutdown"}).encode("utf-8")
-        lkapi = self._lkapi()
         try:
             await lkapi.room.send_data(
                 api.SendDataRequest(
@@ -228,24 +288,59 @@ class Orchestrator:
             print(f"[orchestrator] sent shutdown signal to room={self.room_name}")
         except Exception as exc:
             print(f"[orchestrator] shutdown signal failed err={exc}")
+
+    async def _dispatch_and_confirm(self) -> None:
+        """Dispatch a single agent and wait for it to join.
+
+        If it doesn't join within JOIN_TIMEOUT, force-clean the room (remove
+        any stale participants + dispatches) and retry exactly once. This
+        prevents the old multi-dispatch behavior that caused zombie stacking.
+        """
+        lkapi = self._lkapi()
+        try:
+            for attempt in (1, 2):
+                await self._dispatch_agent(lkapi)
+                if await self._wait_for_agent_join(lkapi, self.JOIN_TIMEOUT_SEC):
+                    print("[orchestrator] agent confirmed in room")
+                    return
+                print(
+                    f"[orchestrator] agent did not join within {self.JOIN_TIMEOUT_SEC:.0f}s "
+                    f"(attempt {attempt}/2) — forcing cleanup"
+                )
+                await self._force_remove_agents(lkapi)
+            print("[orchestrator] WARNING: agent failed to join after 2 attempts — giving up")
         finally:
             await lkapi.aclose()
 
     async def _switch_mode(self, new_mode: str) -> None:
-        """Switch the agent mode: shutdown current agent, dispatch new one."""
+        """Switch the agent mode: shutdown current, wait for it to leave, dispatch new.
+
+        The key improvement over the old design: we poll `list_participants`
+        to confirm the old agent actually left before dispatching the new one.
+        If it doesn't leave within EXIT_TIMEOUT, we force-remove it. This is
+        what prevents zombie stacking across rapid mode toggles.
+        """
         print(f"[orchestrator] mode switch {self.agent_mode} -> {new_mode}")
 
-        # Tell the current agent to exit
-        await self._send_shutdown_signal()
-        # Give it time to exit and free the worker slot
-        await asyncio.sleep(5)
+        lkapi = self._lkapi()
+        try:
+            await self._send_shutdown_signal(lkapi)
+            if not await self._wait_for_agents_gone(lkapi, self.EXIT_TIMEOUT_SEC):
+                print(
+                    f"[orchestrator] old agent still present after {self.EXIT_TIMEOUT_SEC:.0f}s "
+                    "— forcing removal"
+                )
+                await self._force_remove_agents(lkapi)
+            else:
+                # Graceful exit succeeded; still clean up any lingering dispatch records.
+                await self._cleanup_stale_dispatches(lkapi)
+        finally:
+            await lkapi.aclose()
 
-        # Update state
         self.agent_mode = new_mode
         self.agent_name = AGENT_NAMES.get(new_mode, AGENT_NAMES["openai"])
 
-        # Dispatch new agent with retry
-        await self._dispatch_with_retry()
+        await self._dispatch_and_confirm()
         print(f"[orchestrator] mode switch complete, now running {new_mode}")
 
     async def _config_watcher(self) -> None:
@@ -264,37 +359,6 @@ class Orchestrator:
 
     # ── Startup helpers ──
 
-    async def _is_agent_in_room(self) -> bool:
-        """Check if an agent participant is present in the room."""
-        lkapi = self._lkapi()
-        try:
-            resp = await lkapi.room.list_participants(
-                api.ListParticipantsRequest(room=self.room_name)
-            )
-            for p in getattr(resp, "participants", []) or []:
-                identity = str(getattr(p, "identity", "") or "")
-                kind = str(getattr(p, "kind", "") or "").upper()
-                if identity.startswith("agent-") or "AGENT" in kind:
-                    return True
-            return False
-        except Exception:
-            return False
-        finally:
-            await lkapi.aclose()
-
-    async def _dispatch_with_retry(self) -> None:
-        """Dispatch agent and verify it joined, retrying if needed."""
-        for attempt in range(6):
-            if attempt > 0:
-                print(f"[orchestrator] re-dispatching (attempt {attempt + 1})...")
-            await self._dispatch_warm_agent()
-            await asyncio.sleep(15)
-            if await self._is_agent_in_room():
-                print("[orchestrator] agent confirmed in room")
-                return
-            print("[orchestrator] agent not in room yet — will retry")
-        print("[orchestrator] WARNING: agent did not join after retries")
-
     # ── Main ──
 
     async def run(self) -> None:
@@ -308,7 +372,7 @@ class Orchestrator:
                 await asyncio.sleep(3)
 
         await self._write_tokens()
-        await self._dispatch_with_retry()
+        await self._dispatch_and_confirm()
 
         print(f"[orchestrator] running mode={self.agent_mode} (watching {CONFIG_FILE})")
         await asyncio.gather(
