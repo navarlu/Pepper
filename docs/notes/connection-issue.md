@@ -229,16 +229,58 @@ The intermittency tracks with how "cold" the NAT state is at connect time. Fresh
 5. **Useful commands reference**:
    ```bash
    # Current state of the woska agent
-   ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'tmux capture-pane -t pepper-agent -p -S -80'
+   ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'tmux capture-pane -t pepper-agent2 -p -S -80'
 
    # LiveKit startup / node IP detection
    docker compose -f docker/docker-compose.yml logs livekit 2>&1 | head -60
 
-   # Session-manager dispatch / watchdog activity
-   docker compose -f docker/docker-compose.yml logs --tail=60 session-manager
+   # Orchestrator dispatch activity
+   docker compose -f docker/docker-compose.yml logs --tail=60 orchestrator
 
    # Push fresh token to woska (if running the standalone test)
    scp -J navarlu2@ptak.felk.cvut.cz \
-     services/src/session_manager/data/token-latest.json \
-     navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/data/token-latest.json
+     services/data/token-latest.json \
+     navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/services/data/token-latest.json
    ```
+
+---
+
+## Update (2026-04-15): RESOLVED — single-tunnel ICE/TCP setup
+
+**The intermittent flapping is gone.** A standalone investigation
+([docs/logs/connection-test-journal.md](../logs/connection-test-journal.md))
+proved that the working configuration is:
+
+- LiveKit on RPi with `node_ip=127.0.0.1`, `tcp_port=7881`, `use_ice_lite=true`,
+  `use_external_ip=false`. Server only advertises the loopback ICE candidate.
+- Single SSH tunnel from RPi → woska (via ptak) forwarding both `7880`
+  (signaling WS) and `7881` (RTC TCP). No UDP, no TURN, no Tailscale.
+- Woska connects to `ws://localhost:7880` — both signaling and media ride the
+  same loopback port, which the tunnel maps end-to-end.
+
+The whole "symmetric NAT srflx" failure mode in the earlier sections of this
+doc was caused by `use_external_ip=true` letting LiveKit pick the CTU public
+IP `147.32.87.248`. With `node_ip=127.0.0.1` that path is never advertised, so
+ICE never tries it.
+
+This is now baked into the Pepper compose stack: see [docker/livekit/livekit.yaml](../../docker/livekit/livekit.yaml)
+and the `reverse-tunnel` service in [docker/docker-compose.yml](../../docker/docker-compose.yml).
+
+### Latent items from the older sections — fixed since:
+
+1. ~~`host.docker.internal:7880` fails in session-manager~~ — session-manager
+   was deleted and replaced by the orchestrator, which uses `127.0.0.1`
+   directly (no docker host gateway dance).
+2. ~~Stale room delete spam~~ — orchestrator's `_cleanup_old_rooms` filters
+   out 404 errors silently.
+3. ~~Two `token-latest.json` files~~ — consolidated. The single canonical
+   path is now [services/data/token-latest.json](../../services/data/token-latest.json).
+   The repo-root one was orphaned and is gone.
+
+### Stale references in earlier sections of this doc
+
+The 2026-04-11 "deep diagnosis" section above references files and services
+that no longer exist (`services/src/session_manager/app.py`,
+`services/src/session_manager/data/token-latest.json`, `session-manager`
+container). Those references are kept as historical record — for current
+paths/services see [running.md](running.md) and [gpu-setup.md](gpu-setup.md).

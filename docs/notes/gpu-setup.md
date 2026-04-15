@@ -1,77 +1,89 @@
 # Running Voice Agent on GPU Server (woska)
 
-The **local mode** voice agent (STT/LLM/TTS) runs on woska (GPU server), while the **OpenAI mode** agent runs directly on the RPi (co-located with LiveKit for minimal latency). The session manager dispatches to the correct agent based on the selected mode.
+The **local mode** voice agent (Whisper STT + Qwen LLM + Piper TTS) runs on woska,
+while the **OpenAI mode** agent runs directly on the RPi (Docker, co-located
+with LiveKit for minimal latency). The `orchestrator` service dispatches to the
+correct agent by name, based on the mode in [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json).
 
 ## Architecture
 
 ```
-RPi (192.168.210.78)                    woska (GPU server)
-├── livekit (host network, :7880)       ├── voice-agent "pepper-local" (tmux)
-│   └── TURN server (:7443 TLS)        │   └── connects via ws://127.0.0.1:7880
-├── redis (:6379)                       └── vLLM (Qwen 2.5 7B, :8000)
-├── session-manager (:8787)
-│   └── dispatches to pepper-openai     Reverse SSH tunnel (RPi → woska):
-│       or pepper-local by mode           7880  → LiveKit WS + signaling
-├── voice-agent "pepper-openai" (Docker)  7443  → LiveKit TURN (TLS relay)
-├── bridge (:5000, Pepper control)        8787  → session-manager API
-├── listener (audio forwarding)           5000  → bridge (animations)
-├── weaviate (:8080, RAG)                 8080  → weaviate HTTP
-├── user-client (RPi mic)                 50051 → weaviate gRPC
-├── safe-startup (Pepper watchdog)
-└── reverse-tunnel container
+RPi (192.168.210.78)                       woska (GPU server)
+├── livekit (loopback :7880, :7881)        ├── voice-agent "pepper-local" (tmux: pepper-agent2)
+│   └── node_ip=127.0.0.1, ICE/TCP only    │   └── connects via ws://localhost:7880
+├── redis (LiveKit state)                  └── vLLM (Qwen 2.5 7B, :8000)
+├── orchestrator (room + tokens + dispatch)
+│   └── reads orchestrator_config.json     Reverse SSH tunnel (RPi → woska, via ptak):
+│       and dispatches pepper-openai          7880 → LiveKit signaling (WS)
+│       or pepper-local by mode               7881 → LiveKit RTC TCP
+├── voice-agent "pepper-openai" (Docker)      5000 → bridge (animations)
+├── bridge (:5000, Pepper QI)                 8080 → weaviate HTTP
+├── audio-bridge (LiveKit → TCP to robot)     50051 → weaviate gRPC
+├── weaviate (:8080, RAG)
+├── user-client (RPi mic + speakers)
+├── safe-startup (Pepper QI watchdog)
+├── reverse-tunnel (autossh to woska)
+└── ssh-tunnel (RPi:8000 → woska:8000 vLLM)
 ```
+
+## Connection topology — TLDR
+
+A single SSH tunnel through `ptak.felk.cvut.cz` carries both **signaling (7880)**
+and **WebRTC media (7881 TCP)**. LiveKit is configured with `node_ip=127.0.0.1`
+and `use_ice_lite=true` so it only advertises the loopback candidate — which
+matches what woska sees on its end of the tunnel. **No UDP, no TURN, no
+Tailscale.** This is the proven setup; see
+[docs/logs/connection-test-journal.md](../logs/connection-test-journal.md) for
+the full investigation.
 
 ## Agent naming
 
-Each agent registers with LiveKit under a unique name so the session manager can dispatch to the right one:
+Each agent registers with LiveKit under a unique name so the orchestrator can
+dispatch to the right one:
 
-| Mode | Agent name | Runs on | Env vars |
-|------|-----------|---------|----------|
-| OpenAI | `pepper-openai` | RPi (Docker) | `PEPPER_AGENT_NAME=pepper-openai PEPPER_AGENT_MODE=openai` |
-| Local | `pepper-local` | woska (tmux) | `PEPPER_AGENT_NAME=pepper-local PEPPER_AGENT_MODE=local` |
+| Mode   | Agent name      | Runs on        | Env vars                                                                 |
+|--------|-----------------|----------------|--------------------------------------------------------------------------|
+| OpenAI | `pepper-openai` | RPi (Docker)   | `PEPPER_AGENT_NAME=pepper-openai PEPPER_AGENT_MODE=openai` (set in compose) |
+| Local  | `pepper-local`  | woska (tmux)   | `PEPPER_AGENT_NAME=pepper-local PEPPER_AGENT_MODE=local` (set in tmux)   |
 
-## Why TURN is needed
-
-The SSH tunnel only forwards TCP. WebRTC needs UDP for media, which can't go through SSH. LiveKit's built-in TURN server relays media over TLS/TCP on port 7443, which IS forwarded through the tunnel. The TURN domain is set to `127.0.0.1` so the agent on woska reaches it via the tunnel.
+Both agents can be running simultaneously — the orchestrator only ever
+dispatches one of them at a time, based on the configured mode.
 
 ## Key config files
 
 | File | Purpose |
 |------|---------|
-| `docker/livekit/livekit.yaml` | LiveKit server config (TURN enabled, domain=127.0.0.1, tls_port=7443) |
-| `docker/livekit/turn.crt` / `turn.key` | Self-signed TLS cert for TURN (CN=127.0.0.1) |
-| `docker/docker-compose.yml` | All RPi services, LiveKit on host network |
-| `.env` | API keys (OPENAI, LIVEKIT_KEYS) |
+| [docker/livekit/livekit.yaml](../../docker/livekit/livekit.yaml) | LiveKit server config: `node_ip=127.0.0.1`, `tcp_port=7881`, `use_ice_lite=true` |
+| [docker/docker-compose.yml](../../docker/docker-compose.yml) | All RPi services, LiveKit on bridge network with loopback port maps |
+| [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) | Current agent mode (`openai` or `local`) |
+| `.env` | API keys (OPENAI_API_KEY, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_KEYS) |
 
 ## Setup steps
 
 ### 1. Start RPi services
 
 ```bash
-# From project root (starts all services, including reverse-tunnel and user-client):
 docker compose -f docker/docker-compose.yml up -d
-
-# The RPi voice-agent (pepper-openai) runs alongside the woska agent (pepper-local).
-# No need to stop it — they have different agent names.
 ```
 
-### 2. Verify tunnel is up
+Both voice-agents (pepper-openai on RPi, and the spot for pepper-local on woska)
+register with LiveKit. The orchestrator picks the right one based on mode.
 
-The `reverse-tunnel` container (profile: remote-agent) auto-establishes the SSH tunnel. Check on woska:
+### 2. Verify the reverse tunnel is up
+
+The `reverse-tunnel` container auto-establishes the SSH tunnel. From woska:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep -E "7880|7443|8787|5000|8080"'
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep -E "7880|7881|5000|8080"'
 ```
 
-Expected: all five ports listening on 127.0.0.1.
+Expected: all four ports listening on `127.0.0.1`.
 
-### 3. Start voice agent on woska
+### 3. Start voice agent on woska (local mode only)
 
 ```bash
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
-
-# Attach or create tmux session
-tmux attach -t pepper-agent 2>/dev/null || tmux new-session -s pepper-agent
+tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
 
 # Inside tmux:
 cd /mnt/data_personal/navarlu2/work/Pepper
@@ -81,9 +93,9 @@ export PEPPER_AGENT_MODE=local
 python -m voice-agent.src.agent dev
 ```
 
-Detach without stopping: `Ctrl+B` then `D`
+Detach without stopping: `Ctrl+B` then `D`.
 
-### 4. Start vLLM on woska (if not running)
+### 4. Start vLLM on woska (local mode only)
 
 ```bash
 tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
@@ -96,62 +108,60 @@ vllm serve Qwen/Qwen2.5-7B-Instruct \
   --max-model-len 8192
 ```
 
-### 5. Restart session-manager AFTER agent is registered
+### 5. Switch mode (no service restart needed)
 
-The agent must register before the session-manager dispatches. If the agent wasn't running when the session-manager started, restart it:
+The orchestrator polls [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json)
+every 3 seconds. Change the mode either from the chat CLI or directly:
 
 ```bash
-docker compose -f docker/docker-compose.yml restart session-manager
+# From the chat CLI:
+uv run python services/src/text_chat.py
+# Then: /mode openai  or  /mode local
+
+# Or directly:
+echo '{"agent_mode": "local"}' > services/src/orchestrator_config.json
 ```
+
+The orchestrator handles the rest: shuts down the current agent, deletes the
+room, creates a new room, dispatches a warm agent of the new mode, writes
+fresh tokens to [services/data/token-latest.json](../../services/data/token-latest.json).
 
 ## Deploy code changes to woska
 
 ```bash
-# From project root on RPi:
-tar czf /tmp/pepper-agent.tar.gz voice-agent/src/ voice-agent/models/piper/ dev-console/data/map/ requirements.txt .env
+# Quick path (just the agent source files):
+scp -J navarlu2@ptak.felk.cvut.cz \
+  voice-agent/src/{agent.py,tools.py,config.py} \
+  navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/
 
-scp -o ProxyJump=navarlu2@ptak.felk.cvut.cz /tmp/pepper-agent.tar.gz navarlu2@woska:/tmp/pepper-agent.tar.gz
-
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska \
-  'cd /mnt/data_personal/navarlu2/work/Pepper && tar xzf /tmp/pepper-agent.tar.gz && rm /tmp/pepper-agent.tar.gz'
+# Then restart agent in tmux on woska:
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-agent2'
+# Ctrl+C, then re-run: python -m voice-agent.src.agent dev
 ```
 
-Then Ctrl+C the agent in tmux and re-run `python -m voice-agent.src.agent dev`.
+The RPi voice-agent (Docker) auto-reloads via watchfiles — no manual restart.
 
 ## Connection test
 
-Run from woska to verify TURN relay works:
+Run from the RPi to verify a fresh agent can join the room over the tunnel:
 
 ```bash
-cd /mnt/data_personal/navarlu2/work/Pepper
-.venv3/bin/python -m voice-agent.tests.test_livekit_connection
+uv run python voice-agent/tests/test_livekit_connection.py
 ```
-
-## Regenerating the TURN certificate
-
-The self-signed cert expires after 10 years. To regenerate:
-
-```bash
-cd docker/livekit
-openssl req -x509 -newkey rsa:2048 -keyout turn.key -out turn.crt \
-  -days 3650 -nodes -subj '/CN=127.0.0.1' -addext 'subjectAltName=IP:127.0.0.1'
-```
-
-Then restart LiveKit: `docker compose -f docker/docker-compose.yml restart livekit`
 
 ## Troubleshooting
 
-**Agent shows `wait_pc_connection timed out`:**
-- Check tunnel is up: `ss -tlnp | grep 7443` on woska
-- Check TURN cert exists: `docker/livekit/turn.crt`
-- Verify LiveKit is on host network: `docker inspect docker-livekit-1 | grep NetworkMode`
-- Restart tunnel: `docker compose -f docker/docker-compose.yml restart reverse-tunnel`
+**Agent shows `wait_pc_connection timed out` in the woska tmux:**
+- Check tunnel is up: `ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep 7881'`
+- Check LiveKit advertises `nodeIP=127.0.0.1`: `docker compose -f docker/docker-compose.yml logs livekit | head -30`
+- Restart the tunnel: `docker compose -f docker/docker-compose.yml restart reverse-tunnel`
 
-**Session-manager says `no worker is available`:**
-- Agent wasn't registered when dispatch was sent
-- Start the agent on woska first, then restart session-manager
+**Orchestrator says `agent not in room yet — will retry`:**
+- The dispatched warm agent isn't joining. For openai mode, check
+  `docker compose logs voice-agent`. For local mode, check the woska tmux
+  agent is running and registered.
 
-**Both agents can run simultaneously:**
-- `pepper-openai` (RPi Docker) and `pepper-local` (woska tmux) use different agent names
-- The session manager dispatches to the correct one based on the current mode
-- No need to stop one when the other is running
+**Both agents seem to reply at once / multiple agent participants:**
+- Stale dispatches accumulated across mode toggles. Restart the voice-agent:
+  `docker compose -f docker/docker-compose.yml restart voice-agent`. See
+  the "two agents" note in [text-chat-cli.md](text-chat-cli.md).

@@ -28,8 +28,8 @@ from livekit import rtc
 
 # ── Paths & topics ──────────────────────────────────────────────────────────
 
-ROOT_DIR = Path(__file__).resolve().parents[1]
-TOKEN_FILE = ROOT_DIR / "services" / "src" / "session_manager" / "data" / "token-latest.json"
+ROOT_DIR = Path(__file__).resolve().parents[2]
+TOKEN_FILE = ROOT_DIR / "services" / "data" / "token-latest.json"
 CONFIG_FILE = ROOT_DIR / "services" / "src" / "orchestrator_config.json"
 
 TOPIC_CHAT = "lk.chat"

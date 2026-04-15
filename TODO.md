@@ -1,6 +1,4 @@
-## Operator panel:
-- Add clear button for the conv hisory
-- resrart session takes ages
+
 ## Agent:
 
 - Knowladge
@@ -18,7 +16,7 @@
 - eyes indicating search
 
 ## Tablet
-
+- make tablet work again
 - Flash the imporant stuff
 - Clear history on session end
 
@@ -45,12 +43,10 @@
 
 ## Repo:
 
-- create main from RPI branch
+- master -> main
 
 ## Bugs:
 
-- Pepper says hello on the startup
-- Pepper is loud on startup
 
 Log system
 
@@ -83,13 +79,6 @@ DeepSeek-R1 7B distilled
 Google Gemma 3 9B
 
 
-Text Input appearing twice
 add animation to while waiting for query
 Bigger TTS and STT?
-
-Live behaviour
-openAI slow 
-
-
-CLEAN SESSION MANAGER DEV CONSOLE LIVEKIT SETTINGS
-
+REMOVING of the agents

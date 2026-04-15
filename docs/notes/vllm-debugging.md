@@ -1,4 +1,10 @@
-# Voice Agent — Operational Notes
+# vLLM / Voice Agent — Operational Notes
+
+> **Note (2026-04-15):** tmux session for the local mode agent on woska is
+> `pepper-agent2` (was `pepper-agent` in older notes). The `LLM` session for
+> vLLM is unchanged.
+
+
 
 ## How to get vLLM logs from woska
 
@@ -42,7 +48,7 @@ ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -
 The local mode voice agent (`pepper-local`) runs in a tmux session on woska:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-agent -p -S -100"
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-agent2 -p -S -100"
 ```
 
 ### Pepper OpenAI agent logs (RPi)

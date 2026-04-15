@@ -90,3 +90,44 @@ docker compose -f docker/docker-compose.yml --env-file .env restart livekit voic
 5. **Periodic participant cleanup (zombie detector)** — ✅ **Implemented.** `monitor_loop()` runs every 2s, detects missing agent participants with 10s grace period, triggers `_redispatch_warm_agent()`.
 
 6. **LiveKit participant timeout config** — Not investigated further; the above mitigations have resolved the zombie problem in practice.
+
+---
+
+## Update (2026-04-15): Mostly resolved — still a residual after `/mode` toggling
+
+The room-rotation + `empty_timeout` + warm-agent shutdown design eliminated
+the original "stale agents survive across LiveKit restarts" problem. Today a
+clean restart of the docker stack always comes up with exactly one agent in
+the room.
+
+What still happens occasionally: rapid `/mode` toggles via the chat CLI
+(see [text-chat-cli.md](text-chat-cli.md)) or repeated `voice-agent` restarts
+during a live session can leave 1-2 stale agent participants attached.
+They're zombies in the same sense as before — their backing process is gone
+but the LiveKit room still lists them. Symptom: `/status` in the chat CLI
+shows multiple `agent-AJ_*` entries, and Pepper may "reply twice" because
+the new dispatch joins alongside the not-yet-cleaned-up old one.
+
+**Quickest cleanup:** restart the voice-agent container. That kills every
+agent process; the orchestrator dispatches one fresh agent into the room.
+
+```bash
+docker compose -f docker/docker-compose.yml restart voice-agent
+```
+
+Then trigger a fresh dispatch by toggling mode once
+(e.g. `/mode local` then `/mode openai`).
+
+### What's gone since the original write-up
+
+- The `listener` service no longer exists — its job was absorbed into
+  `audio-bridge` ([services/src/audio_bridge.py](../../services/src/audio_bridge.py)),
+  which connects under the same `listener-python` identity. The
+  `restart listener` command in Option A above should now read
+  `restart audio-bridge`.
+- Room name is no longer `pepper-main`; it's `pepper-<unix-timestamp>` per
+  orchestrator startup. Substitute the current room name (visible in
+  `/status` from the chat CLI, or in `services/data/token-latest.json`).
+- `session-manager` was replaced by `orchestrator`. The "session manager"
+  references in the original prevention list still describe the right
+  *behavior*, just under a different service name.

@@ -79,9 +79,13 @@ docker compose -f docker/docker-compose.yml up -d livekit redis weaviate
 ```
 
 The local mode agent (`pepper-local`) typically runs on the GPU server (woska).
-See [gpu-setup.md](gpu-setup.md) for the full setup. Toggle mode via the Operator UI or:
+See [gpu-setup.md](gpu-setup.md) for the full setup. Toggle mode via the chat CLI:
+```
+/mode local      # or /mode openai
+```
+Or directly:
 ```bash
-curl -X POST http://localhost:8787/api/control/agent-mode -H 'Content-Type: application/json' -d '{"mode":"local"}'
+echo '{"agent_mode": "local"}' > services/src/orchestrator_config.json
 ```
 
 The agent reads `LOCAL_LLM_BASE_URL` (default `http://localhost:8000/v1`) and
@@ -92,19 +96,16 @@ and `LOCAL_TTS_NOISE_W_SCALE`.
 
 ## 5. Docker integration
 
-The local mode agent is configured via `docker-compose.rpi.yml` (for running on RPi) or environment variables on woska. Key env vars:
+The local mode agent runs on woska, not RPi (Whisper + Piper need significant
+CPU; vLLM needs GPU). The agent is started manually in tmux there — see
+[gpu-setup.md](gpu-setup.md) section 3. Key env vars set by the tmux runner:
 
 ```bash
 PEPPER_AGENT_NAME=pepper-local          # registers with LiveKit under this name
 PEPPER_AGENT_MODE=local                 # preloads Whisper STT + Piper TTS
 LOCAL_LLM_BASE_URL=http://localhost:8000/v1
 LOCAL_LLM_MODEL=Qwen/Qwen2.5-7B-Instruct
-LOCAL_TTS_MODEL_PATH=/workspace/voice-agent/models/piper/en_US-hfc_female-medium.onnx
-```
-
-For running on RPi with the compose override:
-```bash
-docker compose -f docker/docker-compose.yml -f docker/docker-compose.rpi.yml up -d
+LOCAL_TTS_MODEL_PATH=/mnt/data_personal/navarlu2/work/Pepper/voice-agent/models/piper/en_US-hfc_female-medium.onnx
 ```
 
 ## Troubleshooting

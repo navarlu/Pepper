@@ -49,7 +49,7 @@ if _snapshot_override:
 else:
     SNAPSHOT_PATH = (
         Path(__file__).resolve().parents[2]
-        / "services" / "src" / "session_manager" / "data" / "token-latest.json"
+        / "services" / "data" / "token-latest.json"
     )
 CONNECT_TIMEOUT = 30  # seconds
 ICE_TRANSPORT = os.getenv("LIVEKIT_ICE_TRANSPORT", "all").strip().lower()

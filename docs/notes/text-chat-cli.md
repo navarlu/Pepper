@@ -5,44 +5,56 @@ in-room user — without having to speak. Useful when iterating on agent
 behavior, tools, or prompts and you want a fast loop without the audio
 pipeline in the way.
 
-Source: [tools/text_chat.py](../../tools/text_chat.py)
+Source: [services/src/text_chat.py](../../services/src/text_chat.py)
 
 ---
 
 ## How it works
 
-The CLI joins the active LiveKit room **as the same identity that
-`user-client` normally uses** (`"user"`). It does this by reading the
-token the orchestrator already wrote to disk:
-[services/src/session_manager/data/token-latest.json](../../services/src/session_manager/data/token-latest.json).
+The CLI joins the active LiveKit room as a **separate identity**
+(`"debug-cli"`), subscribe-only. It coexists with `user-client` (which
+stays connected as `"user"` for the audio path) — no need to stop the
+voice path to chat.
 
-The voice-agent's session is bound to that one specific identity (see
-[voice-agent/src/agent.py](../../voice-agent/src/agent.py) — the
-`participant_identity=` argument to `session.start()`). Text from any
-other identity is silently dropped. That's why the CLI must impersonate
-`user` rather than join with a separate identity like `text-cli`.
+The token for `debug-cli` is provisioned by the orchestrator alongside
+the existing `user` / `listener` / `monitor` tokens, all written to
+[services/data/token-latest.json](../../services/data/token-latest.json).
 
-Because LiveKit doesn't allow two simultaneous connections with the same
-identity, you must stop `user-client` before starting the CLI (or use
-`/mic off` from inside the CLI — see below).
+To keep the agent's view consistent ("text always looks like user
+input"), text from `debug-cli` is sent on a custom topic `pepper.text`
+rather than `lk.chat`. The agent has a handler that calls
+`session.generate_reply(user_input=text)` directly — the LLM only sees
+"user input", never knows the LiveKit identity of the sender. So
+whether you speak via mic or type via CLI, the agent's chat context
+looks identical.
 
 ```
-┌──────────────┐    lk.chat (text)        ┌────────────────┐
-│ text_chat.py │ ───────────────────────► │  voice-agent   │
-│  identity:   │                          │ (same session  │
-│   "user"     │ ◄─── transcription ────  │  as voice path)│
-│              │ ◄─── pepper.debug ────   │                │
-│              │ ─── pepper.control ────► │                │
+┌──────────────┐                          ┌────────────────┐
+│ user-client  │ ──── audio (mic) ──────► │                │
+│ identity:    │                          │  voice-agent   │
+│   "user"     │ ◄── pepper.control ────  │ (one session,  │
+│              │     (mic mute/unmute)    │  bound to user)│
+└──────────────┘                          │                │
+                                          │                │
+┌──────────────┐                          │                │
+│ text_chat.py │ ─── pepper.text ───────► │                │
+│ identity:    │ ─── pepper.control ────► │                │
+│  "debug-cli" │     (reset)              │                │
+│ subscribe-   │ ◄── lk.chat ───────────  │                │
+│  only        │     (transcriptions)     │                │
+│              │ ◄── pepper.debug ──────  │                │
+│              │     (tool calls)         │                │
 └──────────────┘                          └────────────────┘
 ```
 
-Three LiveKit topics are in play:
+LiveKit topics in play:
 
-| Topic            | Direction       | Purpose                                       |
-|------------------|-----------------|-----------------------------------------------|
-| `lk.chat`        | CLI → agent     | Text input (replaces voice).                  |
-| `pepper.debug`   | agent → CLI     | Tool calls (name, args, result, duration).    |
-| `pepper.control` | CLI → agent     | Out-of-band commands (currently: `reset`).    |
+| Topic            | Direction                     | Purpose                                                     |
+|------------------|-------------------------------|-------------------------------------------------------------|
+| `pepper.text`    | debug-cli → agent             | Text input. Agent feeds it to the session as user input.    |
+| `pepper.control` | debug-cli → agent / user-client | `{"cmd":"reset"}` → agent clears chat ctx. `{"cmd":"mic","muted":bool}` → user-client toggles its `mic_muted` flag. |
+| `pepper.debug`   | agent → all                   | Tool calls (name, args, result, duration).                  |
+| `lk.chat`        | agent → all                   | Agent transcriptions (also accepts text input from `user`). |
 
 Tool-call broadcasting is hooked at the central `_post_tool_event` in
 [voice-agent/src/tools.py](../../voice-agent/src/tools.py) — the agent
@@ -55,18 +67,15 @@ which mode (`openai` / `local`) is active.
 ## Starting the CLI
 
 ```bash
-# 1. Free the "user" identity (kills the mic path):
-docker compose -f docker/docker-compose.yml stop user-client
-
-# 2. Run the CLI:
-uv run python tools/text_chat.py
-
-# 3. When done, restart the mic path (or use /mic on inside the CLI):
-docker compose -f docker/docker-compose.yml start user-client
+uv run python services/src/text_chat.py
 ```
 
-Connection details (room name, ws URL) are read automatically from the
-orchestrator's token file — no flags needed.
+That's it. No need to stop user-client first. Room name, ws URL, and
+the `debug-cli` token are all read from the orchestrator's session file.
+
+If you don't want the mic to pick up ambient sound while you're
+debugging via text, run `/mic off` after connecting — that sends silent
+frames from user-client, no disconnect.
 
 ---
 
@@ -77,9 +86,9 @@ Type `/help` inside the CLI to see this list at any time.
 | Command            | What it does                                                                   |
 |--------------------|--------------------------------------------------------------------------------|
 | `/help`            | Show the list of commands.                                                     |
-| `/status`          | Snapshot of room id, current mode, your identity, all participants, user-client docker state, and how old the orchestrator's token is. |
+| `/status`          | Snapshot of room id, current mode, your identity, all participants, whether `user` is connected, current mic state, and how old the orchestrator's token is. |
 | `/mode <openai\|local>` | Switch the agent mode by writing `services/src/orchestrator_config.json`. The orchestrator picks this up within ~3s, deletes the current room, creates a new one, and dispatches a warm agent of the new mode. **Note:** the room name changes — you'll need to `/quit` and re-launch the CLI to pick up the new tokens. |
-| `/mic <on\|off>`   | Start or stop the `user-client` docker container. Use `/mic off` to free the identity for the CLI; `/mic on` to bring the voice path back. |
+| `/mic <on\|off>`   | Soft mute/unmute of `user-client`'s mic. `off` makes it send silent frames; `on` re-enables mic capture. user-client stays connected to the room either way — no docker restart. |
 | `/reset`           | Tell the agent to clear its chat history. Same effect as the 60s idle timeout, but on demand. The agent stays warm — only the conversation context is wiped. |
 | `/quit`            | Disconnect and exit. `Ctrl-D` works too.                                       |
 
@@ -103,9 +112,10 @@ You> /status
   room        pepper-1776244635
   mode        openai
   identity    user
-  participants agent-AJ_xxx, listener-python, user
-  user-client exited
-  session     generated 2m4s ago
+  participants agent-AJ_xxx, debug-cli, listener-python, user
+  user-client  connected
+  mic          live
+  session      generated 2m4s ago
 ──────────────
 ```
 

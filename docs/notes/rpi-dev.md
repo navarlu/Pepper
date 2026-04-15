@@ -51,10 +51,10 @@ docker compose -f docker/docker-compose.yml --env-file .env up -d --force-recrea
 
 The `.env` file is in the project root (not `docker/`), must be passed with `--env-file .env`.
 
-## Session Manager
+## Orchestrator (formerly Session Manager)
 
-- **Ubuntu**: has agent dispatch failure detection (15s timeout, resets to idle if agent never joins room)
-- **RPi**: that logic removed
+- **Ubuntu (main)**: still has the older `session_manager` HTTP service with operator dashboard.
+- **RPi**: replaced by the lightweight `orchestrator` ([services/src/orchestrator.py](../../services/src/orchestrator.py)) — no HTTP server, no dashboard, no health probing. Mode switching is driven by [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) (polled every 3s). Re-dispatch on failure is handled via a simple retry loop.
 
 ## Pepper IP / Network
 

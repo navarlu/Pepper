@@ -4,7 +4,10 @@
 
 **Design of an LLM-Driven Receptionist Robot for Social Interaction**
 
-Master's thesis project at CTU FEE Prague. Pepper conducts fluent spoken dialogue with visitors, answers questions about the faculty using RAG over internal documents, and accompanies speech with gestures and animations.
+Master's thesis project at CTU FEE Prague. Pepper greets visitors, holds
+fluent spoken dialogue, answers questions about the faculty using
+retrieval-augmented generation over internal documents, and accompanies its
+speech with gestures and animations.
 
 | | |
 |---|---|
@@ -15,62 +18,67 @@ Master's thesis project at CTU FEE Prague. Pepper conducts fluent spoken dialogu
 
 ---
 
+## What it does
+
+A visitor walks up to Pepper. Pepper:
+
+1. **Listens** — captures audio over the RPi microphone (or any LiveKit
+   client), streams it to a voice agent.
+2. **Understands** — speech-to-text (Whisper for local mode, OpenAI Realtime
+   for cloud mode) feeds an LLM that decides what to say and what to do.
+3. **Looks things up** — when the visitor asks a faculty question (room,
+   contact, deadline, etc.), the agent calls a `query_search` tool that hits
+   a Weaviate vector DB seeded with FEE documents.
+4. **Responds** — generates a reply, plays it back through Pepper's speakers,
+   and triggers a matching gesture (`play_animation`) on Pepper's body.
+
+Two interchangeable backends share the same pipeline:
+
+- **OpenAI mode** — `gpt-realtime-mini` running directly on the RPi for
+  minimal latency.
+- **Local mode** — Whisper STT + Qwen 2.5 7B (vLLM on the GPU server) +
+  Piper TTS, connected via a single SSH reverse tunnel.
+
+You can switch between them at runtime — the orchestrator handles the
+hand-off.
+
+---
+
 ## Architecture
 
 ```
-+============================== RPi (192.168.210.78) ==============================+
-|                                                                                  |
-|  User (browser / RPi mic)                                                        |
-|         |                                                                        |
-|         | WebRTC                                                                 |
-|         v                                                                        |
-|  +-- LiveKit Server (:7880) -------+                                             |
-|  |                                 |                                             |
-|  |   +--- pepper-openai --------+  |   ws://host.docker.internal:7880            |
-|  |   | OpenAI Realtime API      |  |   (local Docker network — no tunnel)        |
-|  |   | gpt-realtime-mini        |  |                                             |
-|  |   +-----+-------------------++  |                                             |
-|  |         |                       |                                             |
-|  +---------+-----------------------+                                             |
-|            |                                                                     |
-|            | tool calls                                                          |
-|            v                                                                     |
-|  +---------+---+  +------------------+  +-----------+                            |
-|  |  Weaviate   |  | Session Manager  |  |  Bridge   |     +----------+           |
-|  |  (RAG)      |  | (:8787)          |  | (:5000)   |     |  Pepper  |           |
-|  |  :8080      |  | dispatches agent |  | qi + HTTP +---->|  robot   |           |
-|  +-------------+  | by mode          |  +-----------+     |  :9559   |           |
-|                    +------------------+                    +----------+           |
-|                                                                                  |
-|  reverse-tunnel (autossh) ----+                                                  |
-|                               |                                                  |
-+===============================|==================================================+
-                                |
-                                | SSH tunnel (RPi --> woska via ptak)
-                                | forwards :7880, :7443, :8787, :5000, :8080
-                                |
-+============================== | ====== GPU server (woska) =======================+
-|                               v                                                  |
-|  +--- pepper-local --------+      +--- vLLM ----------------------+              |
-|  | Faster Whisper STT      |      | Qwen 2.5 7B                  |              |
-|  | Piper TTS               |      | :8000                        |              |
-|  +-----------+-------------+      +-------------------------------+              |
-|              |                                                                   |
-|              | ws://127.0.0.1:7880 (via tunnel)                                  |
-|              | connects to LiveKit on RPi                                        |
-|              +--------> (LiveKit on RPi, through SSH tunnel)                     |
-|                                                                                  |
-+=================================================================================+
++---------------- RPi (Raspberry Pi 5) ------------------+      +-- woska (GPU server) --+
+|                                                        |      |                        |
+|  Visitor / mic                                         |      |  pepper-local agent    |
+|       |                                                |      |  (Whisper + Piper)     |
+|       v                                                |      |          |             |
+|  +------------+        +-----------------+             |      |          |             |
+|  |  LiveKit   |<-----> | voice-agent     |             |      |   +-----------+        |
+|  |  server    |        | "pepper-openai" |             |      |   |   vLLM    |        |
+|  +-----+------+        | (OpenAI         |  SSH tunnel |      |   | Qwen 2.5  |        |
+|        |               |  Realtime API)  |  <======>   |      |   |   7B      |        |
+|        |               +-----------------+             |      |   +-----------+        |
+|        |                                               |      |                        |
+|  +-----+------+   +--------------+   +-----------+     |      +------------------------+
+|  | weaviate   |   | orchestrator |   |  bridge   |
+|  | (RAG over  |   | (room +      |   | (qi -> Pepper)
+|  |  FEE docs) |   |  tokens +    |   +-----+-----+     +----------+
+|  +------------+   |  dispatch)   |         |           |  Pepper  |
+|                   +--------------+         +---------->|  robot   |
+|                                                        |  :9559   |
++--------------------------------------------------------+----------+
 ```
 
-**Two voice agents**, each registered with LiveKit under a unique name:
+The **orchestrator** creates the LiveKit room, hands out tokens to all
+participants (`user`, `agent`, `listener-python`, `debug-cli`), and
+dispatches the warm voice-agent that matches the currently selected mode.
+Mode switching is a simple file write — no HTTP API needed.
 
-| Agent | Runs on | Connects to LiveKit via | Backend | Use case |
-|-------|---------|------------------------|---------|----------|
-| `pepper-openai` | RPi (Docker) | `ws://host.docker.internal:7880` (local) | OpenAI Realtime API | Default — low latency, no tunnel needed |
-| `pepper-local` | GPU server (tmux) | `ws://127.0.0.1:7880` (SSH tunnel) | Whisper + Qwen 2.5 7B (vLLM) + Piper | Offline-capable, research comparison |
-
-The **session manager** dispatches to the correct agent based on the selected mode. Both agents share a unified tool set: `query_search` (RAG + room directions) and `play_animation` (Pepper gestures).
+**Connection topology** for local mode: a single SSH reverse tunnel from
+RPi → woska (via the `ptak.felk.cvut.cz` jump host) carries both LiveKit
+signaling (port 7880) and WebRTC media (port 7881 TCP). No UDP, no TURN, no
+VPN. The full investigation is at
+[docs/logs/connection-test-journal.md](docs/logs/connection-test-journal.md).
 
 ---
 
@@ -78,53 +86,48 @@ The **session manager** dispatches to the correct agent based on the selected mo
 
 ### Prerequisites
 
-- Raspberry Pi 5 (8 GB) with Docker installed
-- `.env` file in project root with `OPENAI_API_KEY` and `LIVEKIT_KEYS`
+- Raspberry Pi 5 (8 GB) with Docker + Docker Compose
+- `.env` file in the project root with `OPENAI_API_KEY`, `LIVEKIT_API_KEY`,
+  `LIVEKIT_API_SECRET`, `LIVEKIT_KEYS`
 - Pepper robot on the same network (or reachable via TCP)
+- For local mode only: SSH access to `woska` via `ptak.felk.cvut.cz`
 
-### Start
+### Bring it up
 
 ```bash
-# Start all RPi services (includes OpenAI voice agent, RPi mic, dev console, tunnels):
+# All RPi services (one command starts everything — no profiles, no flags):
 docker compose -f docker/docker-compose.yml up -d
-
-# Rebuild and recreate all services:
-docker compose -f docker/docker-compose.yml up -d --force-recreate --build
 ```
 
-### Operator Panel
+That brings up LiveKit, the orchestrator, the OpenAI voice-agent, the
+robot bridge, the audio bridge, the user-client (RPi mic), the safe-startup
+watchdog, Weaviate (RAG), and the SSH tunnels to woska.
 
-Open `http://<rpi-ip>:8787` to monitor sessions, switch agent mode, view transcripts, and control Pepper.
+### Talk to Pepper
 
-### Switch Mode
+- **Voice** — once user-client is up, just speak into the RPi mic. Pepper
+  replies through her speakers.
+- **Text (debug)** — open a CLI in the same room and type:
+  ```bash
+  uv run python services/src/text_chat.py
+  ```
+  Slash commands available: `/help`, `/status`, `/mode openai|local`,
+  `/mic on|off`, `/reset`, `/quit`. Tool calls and agent transcripts stream
+  inline. See [docs/notes/text-chat-cli.md](docs/notes/text-chat-cli.md).
 
+### Switch backend
+
+From inside the chat CLI:
+```
+/mode local       # use Qwen 2.5 7B on woska
+/mode openai      # back to OpenAI Realtime
+```
+Or write the file directly:
 ```bash
-# Switch to local LLM:
-curl -X POST http://localhost:8787/api/control/agent-mode \
-  -H 'Content-Type: application/json' -d '{"mode":"local"}'
-
-# Switch back to OpenAI:
-curl -X POST http://localhost:8787/api/control/agent-mode \
-  -H 'Content-Type: application/json' -d '{"mode":"openai"}'
+echo '{"agent_mode": "local"}' > services/src/orchestrator_config.json
 ```
 
----
-
-## Services
-
-| Service | Description | Port |
-|---------|-------------|------|
-| `livekit` | WebRTC signaling + TURN relay | 7880, 7443 |
-| `voice-agent` | OpenAI mode agent (`pepper-openai`) | — |
-| `session-manager` | Orchestration, operator panel, agent dispatch | 8787 |
-| `bridge` | Pepper control — animations, tablet, audio playback via qi | 5000 |
-| `audio-bridge` | Captures agent audio from LiveKit, forwards PCM to bridge | — |
-| `room-monitor` | Monitors LiveKit room state, forwards transcripts | — |
-| `safe-startup` | Watchdog — waits for Pepper to be reachable | — |
-| `weaviate` | Vector DB for RAG (FEE documents) | 8080 |
-| `redis` | LiveKit backend | 6379 |
-| `user-client` | RPi microphone input (profile: `audio`) | — |
-| `reverse-tunnel` | SSH tunnel to GPU server (profile: `remote-agent`) | — |
+The orchestrator picks up the change within 3 seconds.
 
 ---
 
@@ -133,46 +136,49 @@ curl -X POST http://localhost:8787/api/control/agent-mode \
 ```
 voice-agent/
   src/
-    agent.py          # Main entry point — LiveKit agent, warm dispatch, session loop
-    config.py          # All configuration, system prompts, animation groups
-    tools.py           # query_search + play_animation tool definitions
-    local_speech.py    # Faster Whisper STT + Piper TTS for local mode
-    utils.py           # Weaviate connection, hybrid search
-  data/FEL/            # RAG source documents (FEE statutes, codes)
-  models/piper/        # Piper TTS ONNX model
+    agent.py            # LiveKit agent — warm dispatch, persistent session loop
+    config.py           # Configuration, system prompts, animation groups
+    tools.py            # query_search + play_animation tool definitions
+    local_speech.py     # Faster Whisper STT + Piper TTS (local mode)
+    utils.py            # Weaviate connection, hybrid search
+  data/FEL/             # RAG source documents (FEE statutes, codes)
+  models/piper/         # Piper TTS ONNX model
 
 robot/
-  src/bridge.py        # Pepper HTTP bridge (animations, tablet, audio)
-  utils/               # safe_startup_watchdog, discovery
+  src/bridge.py         # Pepper HTTP bridge (animations, tablet, audio)
+  utils/                # safe_startup_watchdog, discovery
 
 services/
   src/
-    session_manager/   # Session lifecycle, agent dispatch, operator panel
-    audio_bridge.py    # LiveKit audio → TCP PCM
-    room_monitor.py    # Room state monitoring
-    user_client.py     # RPi mic → LiveKit
+    orchestrator.py     # Room + token + dispatch (replaces old session-manager)
+    audio_bridge.py     # Agent audio (LiveKit) -> TCP -> Pepper speakers
+    user_client.py      # RPi mic -> LiveKit
+    text_chat.py        # Debug CLI (joins as debug-cli, prints tool calls)
+  data/
+    token-latest.json   # Current LiveKit tokens (written by orchestrator)
 
 docker/
-  docker-compose.yml   # All service definitions
-  docker-compose.rpi.yml  # Override for running local agent on RPi
-  Dockerfile.runtime   # Shared Python 3.12 + uv base image
-  livekit/             # LiveKit config + TURN certs
+  docker-compose.yml    # All service definitions
+  Dockerfile.runtime    # Shared Python 3.12 + uv base image
+  livekit/livekit.yaml  # LiveKit server config (node_ip=127.0.0.1, ICE/TCP)
 ```
 
 ---
 
 ## Documentation
 
-See [PROJECT.md](PROJECT.md) for the full project overview, component details, and thesis checklist.
+See [PROJECT.md](PROJECT.md) for the full project overview, components,
+and thesis checklist.
 
 | Topic | Doc |
 |-------|-----|
-| Running / deploying | [docs/notes/running.md](docs/notes/running.md) |
-| GPU server setup | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) |
+| Running and deploying | [docs/notes/running.md](docs/notes/running.md) |
+| GPU server (woska) setup | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) |
 | Local LLM (vLLM) | [docs/notes/local-llm-setup.md](docs/notes/local-llm-setup.md) |
-| RPi dev differences | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) |
-| Tool-calling investigation | [docs/notes/tools-issue.md](docs/notes/tools-issue.md) |
-| Debugging notes | [docs/notes/](docs/notes/) |
+| RPi vs Ubuntu dev differences | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) |
+| Debug chat CLI | [docs/notes/text-chat-cli.md](docs/notes/text-chat-cli.md) |
+| All debugging/investigation notes | [docs/notes/](docs/notes/) |
+| Connection test journal (the "how we made WebRTC stable" log) | [docs/logs/connection-test-journal.md](docs/logs/connection-test-journal.md) |
 
 ---
 

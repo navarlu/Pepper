@@ -37,7 +37,7 @@ services:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
       LIVEKIT_HTTP_URL: http://127.0.0.1:7880
-      LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
       PEPPER_AGENT_MODE: openai
       PEPPER_AGENT_NAME_OPENAI: pepper-openai
       PEPPER_AGENT_NAME_LOCAL: pepper-local
@@ -119,7 +119,7 @@ services:
       - ..:/workspace
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
-      LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
       TCP_HOST: 127.0.0.1
       TCP_PORT: 55555
     network_mode: host
@@ -139,7 +139,7 @@ services:
       - audio
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
-      LIVEKIT_SESSION_FILE: /workspace/services/src/session_manager/data/token-latest.json
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
     network_mode: host
     restart: unless-stopped
 

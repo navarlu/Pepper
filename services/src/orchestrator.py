@@ -48,7 +48,7 @@ LIVEKIT_HOST_WS_URL = _env("LIVEKIT_HOST_WS_URL", LIVEKIT_URL)
 LIVEKIT_HTTP_URL = _env("LIVEKIT_HTTP_URL", "http://127.0.0.1:7880")
 SESSION_FILE = Path(_env(
     "LIVEKIT_SESSION_FILE",
-    str(Path(__file__).resolve().parent / "session_manager" / "data" / "token-latest.json"),
+    str(Path(__file__).resolve().parents[1] / "data" / "token-latest.json"),
 ))
 AGENT_NAMES = {
     "openai": _env("PEPPER_AGENT_NAME_OPENAI", "pepper-openai"),

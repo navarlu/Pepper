@@ -73,3 +73,7 @@ docker/.env
 docker/livekit/turn.key
 docker/livekit/turn.crt
 docs/thesis/overleaf/
+
+.claude
+.venv
+backups/**
