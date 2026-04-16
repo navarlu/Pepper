@@ -194,18 +194,19 @@ class UserAudioClient:
 
         @room.on("data_received")
         def _on_data(packet) -> None:
-            if str(getattr(packet, "topic", "") or "") != "pepper.control":
+            # Listen for runtime state broadcasts from the orchestrator.
+            # The orchestrator is the single source of truth; we just reflect
+            # the latest mic_muted it announces.
+            if str(getattr(packet, "topic", "") or "") != "pepper.state":
                 return
             try:
                 msg = json.loads(getattr(packet, "data", b"") or b"")
             except (json.JSONDecodeError, UnicodeDecodeError):
                 return
-            if str(msg.get("cmd", "")).strip().lower() != "mic":
-                return
-            new_muted = bool(msg.get("muted", False))
+            new_muted = bool(msg.get("mic_muted", False))
             if new_muted != self.mic_muted:
                 self.mic_muted = new_muted
-                print(f"[user_client] mic_muted={new_muted} (via pepper.control)")
+                print(f"[user_client] mic_muted={new_muted} (via pepper.state)")
 
     def _agent_ready_for_text(self) -> bool:
         if not self.room:

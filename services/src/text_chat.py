@@ -30,12 +30,13 @@ from livekit import rtc
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 TOKEN_FILE = ROOT_DIR / "services" / "data" / "token-latest.json"
-CONFIG_FILE = ROOT_DIR / "services" / "src" / "orchestrator_config.json"
+STATE_FILE = ROOT_DIR / "services" / "data" / "state.json"
 
 TOPIC_CHAT = "lk.chat"
 TOPIC_DEBUG = "pepper.debug"
 TOPIC_CONTROL = "pepper.control"
 TOPIC_TEXT = "pepper.text"
+TOPIC_STATE = "pepper.state"
 
 TRUNC = 200
 PROMPT = "You> "
@@ -95,12 +96,17 @@ def _extract_debug_cli_credentials(snapshot: dict) -> tuple[str, str, str, str]:
     return token, ws_url, room_name, identity
 
 
-def _read_mode() -> str:
-    return str(_read_json(CONFIG_FILE).get("agent_mode", "?")).strip() or "?"
+def _read_state_file() -> dict:
+    return _read_json(STATE_FILE) or {}
 
 
-def _write_mode(mode: str) -> None:
-    CONFIG_FILE.write_text(json.dumps({"agent_mode": mode}, indent=2), encoding="utf-8")
+def _write_state_file(**patch) -> None:
+    """Merge patch into state.json (preserves other fields). Orchestrator
+    picks up the change within STATE_POLL_SEC (~3s)."""
+    current = _read_state_file()
+    current.update(patch)
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    STATE_FILE.write_text(json.dumps(current, indent=2), encoding="utf-8")
 
 
 def _format_age(iso_ts: str) -> str:
@@ -127,8 +133,19 @@ class ChatSession:
         self.identity = identity
         self.snapshot = _read_token_snapshot()
         self._stop = asyncio.Event()
-        # Track last mic state we asked for; "?" until /mic is used.
-        self.mic_state = "?"
+        # Live runtime state, updated from pepper.state broadcasts. The file
+        # is our fallback until the first broadcast arrives (~10s).
+        file_state = _read_state_file()
+        self.runtime_state: dict = {
+            "agent_mode": str(file_state.get("agent_mode") or "?"),
+            "mic_muted": bool(file_state.get("mic_muted", False)),
+        }
+
+    def update_state(self, payload: dict) -> None:
+        """Merge a pepper.state broadcast into our local cache."""
+        for key in ("agent_mode", "agent_name", "mic_muted", "roomName"):
+            if key in payload:
+                self.runtime_state[key] = payload[key]
 
     # --- commands -----------------------------------------------------------
 
@@ -145,13 +162,15 @@ class ChatSession:
             sorted([str(p.identity) for p in remotes] + [self.identity])
         ) or "<none>"
         user_present = any(str(p.identity) == "user" for p in remotes)
+        mode = str(self.runtime_state.get("agent_mode") or "?")
+        mic = "muted" if self.runtime_state.get("mic_muted") else "live"
         _print("─── status ───")
         _print(f"  room         {room.name}")
-        _print(f"  mode         {_read_mode()}")
+        _print(f"  mode         {mode}")
         _print(f"  identity     {self.identity}")
         _print(f"  participants {participants}")
         _print(f"  user-client  {'connected' if user_present else 'absent'}")
-        _print(f"  mic          {self.mic_state}")
+        _print(f"  mic          {mic}")
         _print(f"  session      generated {_format_age(snap.get('generatedAt', ''))}")
         _print("──────────────")
 
@@ -160,25 +179,20 @@ class ChatSession:
             _print("Usage: /mode <openai|local>")
             return
         new_mode = args[0]
-        current = _read_mode()
+        current = str(self.runtime_state.get("agent_mode") or "")
         if current == new_mode:
             _print(f"Already in '{new_mode}' mode.")
             return
-        _write_mode(new_mode)
-        _print(f"Mode change requested: {current} -> {new_mode} (orchestrator picks up within ~3s)")
+        _write_state_file(agent_mode=new_mode)
+        _print(f"Mode change requested: {current or '?'} -> {new_mode} (orchestrator picks up within ~3s)")
 
     async def cmd_mic(self, args: list[str]) -> None:
         if not args or args[0] not in ("on", "off"):
             _print("Usage: /mic <on|off>")
             return
         muted = args[0] == "off"
-        payload = json.dumps({"cmd": "mic", "muted": muted}).encode("utf-8")
-        try:
-            await self.room.local_participant.publish_data(payload, topic=TOPIC_CONTROL)
-            self.mic_state = "muted" if muted else "live"
-            _print(f"  mic {self.mic_state} (signal sent to user-client)")
-        except Exception as exc:
-            _print(f"  failed to send: {exc}")
+        _write_state_file(mic_muted=muted)
+        _print(f"  mic request {'off' if muted else 'on'} — waiting for orchestrator to broadcast…")
 
     async def cmd_reset(self, _args: list[str]) -> None:
         payload = json.dumps({"cmd": "reset"}).encode("utf-8")
@@ -239,20 +253,26 @@ class ChatSession:
                 pass
 
     async def _mode_watcher(self) -> None:
-        last = _read_mode()
+        """Print a line when runtime state changes (mode flip, mic toggle)."""
+        last_mode = str(self.runtime_state.get("agent_mode") or "")
+        last_mic = bool(self.runtime_state.get("mic_muted", False))
         while not self._stop.is_set():
-            await asyncio.sleep(2.0)
-            current = _read_mode()
-            if current != last:
-                _print(f"  [mode] {last} -> {current}")
-                last = current
+            await asyncio.sleep(1.0)
+            current_mode = str(self.runtime_state.get("agent_mode") or "")
+            current_mic = bool(self.runtime_state.get("mic_muted", False))
+            if current_mode != last_mode and current_mode:
+                _print(f"  [state] mode: {last_mode or '?'} -> {current_mode}")
+                last_mode = current_mode
+            if current_mic != last_mic:
+                _print(f"  [state] mic: {'live' if not current_mic else 'muted'}")
+                last_mic = current_mic
 
 
 COMMANDS: dict[str, tuple] = {
     "help":   (ChatSession.cmd_help,   "show this list"),
     "status": (ChatSession.cmd_status, "snapshot: room, mode, participants, session age"),
     "mode":   (ChatSession.cmd_mode,   "<openai|local> — switch agent mode"),
-    "mic":    (ChatSession.cmd_mic,    "<on|off> — start/stop user-client container"),
+    "mic":    (ChatSession.cmd_mic,    "<on|off> — soft mute/unmute user-client's mic"),
     "reset":  (ChatSession.cmd_reset,  "clear agent's chat history"),
     "quit":   (ChatSession.cmd_quit,   "exit"),
 }
@@ -260,7 +280,7 @@ COMMANDS: dict[str, tuple] = {
 
 # ── Room event handlers ─────────────────────────────────────────────────────
 
-def _install_room_handlers(room: rtc.Room, cli_identity: str) -> None:
+def _install_room_handlers(room: rtc.Room, cli_identity: str, session: "ChatSession") -> None:
     @room.on("transcription_received")
     def _on_transcription(segments, participant, _publication):
         identity = str(getattr(participant, "identity", "") or "")
@@ -275,6 +295,15 @@ def _install_room_handlers(room: rtc.Room, cli_identity: str) -> None:
         participant = getattr(packet, "participant", None)
         identity = str(getattr(participant, "identity", "") or "") if participant else ""
         if identity == cli_identity:
+            return
+
+        if topic == TOPIC_STATE:
+            raw = getattr(packet, "data", b"") or b""
+            try:
+                payload = json.loads(raw)
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return
+            session.update_state(payload)
             return
 
         if topic == TOPIC_CHAT:
@@ -293,6 +322,11 @@ def _install_room_handlers(room: rtc.Room, cli_identity: str) -> None:
             try:
                 payload = json.loads(raw)
             except (json.JSONDecodeError, UnicodeDecodeError):
+                return
+            if payload.get("kind") == "session_reset":
+                reason = str(payload.get("reason") or "?")
+                session_num = payload.get("session_num", "?")
+                _print(f"  [session] chat history cleared (reason={reason}, session_num={session_num})")
                 return
             if payload.get("kind") == "tool_call":
                 name = payload.get("name", "?")
@@ -326,7 +360,8 @@ async def main() -> None:
     print(f"Connecting to room '{room_name}' at {ws_url} as '{cli_identity}'…")
 
     room = rtc.Room()
-    _install_room_handlers(room, cli_identity)
+    session = ChatSession(room, cli_identity)
+    _install_room_handlers(room, cli_identity, session)
 
     try:
         await room.connect(ws_url, token, rtc.RoomOptions(auto_subscribe=True))
@@ -336,7 +371,6 @@ async def main() -> None:
 
     print(f"Connected as '{cli_identity}'. Type /help for commands.\n")
 
-    session = ChatSession(room, cli_identity)
     try:
         await session.run()
     finally:

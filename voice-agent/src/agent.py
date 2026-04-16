@@ -185,6 +185,10 @@ class _SessionControl:
         self.reset_event = asyncio.Event()
         self.shutdown_event = asyncio.Event()
         self.payload: dict = {}
+        # Who triggered the most recent reset: "idle" (timeout) or "manual"
+        # (external /reset via pepper.control). Used for observability so the
+        # chat CLI can show WHY the history was wiped.
+        self.reset_reason: str = ""
 
     def register(self, ctx: JobContext) -> None:
         @ctx.room.on("data_received")
@@ -206,6 +210,7 @@ class _SessionControl:
                 self.activate_event.set()
             elif action == "reset":
                 self.activate_event.clear()
+                self.reset_reason = "manual"
                 self.reset_event.set()
             elif action == "shutdown":
                 logger.info("[PERSIST] shutdown_signal_received — agent will exit cleanly")
@@ -615,6 +620,11 @@ async def entrypoint(ctx: JobContext) -> None:
             return
         sender = str(getattr(getattr(packet, "participant", None), "identity", "") or "?")
         logger.info("[pepper.text] from=%s text=%s", sender, text[:120])
+        # Text input counts as conversation activity — without this the idle
+        # timer keeps firing while the user is chatting via text only.
+        nonlocal last_user_activity, had_activity_since_reset
+        last_user_activity = time.monotonic()
+        had_activity_since_reset = True
         try:
             session.interrupt()
             session.generate_reply(user_input=text)
@@ -653,14 +663,19 @@ async def entrypoint(ctx: JobContext) -> None:
     await weaviate_task
 
     # --- Idle timeout tracking ---
-    # The agent itself tracks speech activity and clears chat context after
-    # SESSION_IDLE_TIMEOUT_SEC of silence (replaces session-manager idle logic).
+    # The agent clears chat context after SESSION_IDLE_TIMEOUT_SEC of silence,
+    # but ONLY if a real conversation has happened since the last reset. The
+    # `had_activity_since_reset` flag prevents the noisy "clear empty history
+    # every 60s" loop. Activity = user speech (transcribed) or text input via
+    # pepper.text — anything that would put something in the chat context.
     last_user_activity = time.monotonic()
+    had_activity_since_reset = False
 
     @session.on("user_input_transcribed")
     def _on_user_speech(event) -> None:
-        nonlocal last_user_activity
+        nonlocal last_user_activity, had_activity_since_reset
         last_user_activity = time.monotonic()
+        had_activity_since_reset = True
         text = getattr(event, "text", "") or ""
         if text.strip():
             logger.info("user_speech text=%s", text.strip()[:120])
@@ -696,16 +711,22 @@ async def entrypoint(ctx: JobContext) -> None:
     )
 
     async def _idle_monitor() -> None:
-        """Check for idle timeout every 2s and set the reset event when triggered."""
+        """Check for idle timeout every 2s. Only fires reset when there is
+        something to reset — i.e. real conversation activity has happened
+        since the last reset. Otherwise we'd clear an already-empty history
+        every 60s forever."""
         nonlocal last_user_activity
         while not sc.shutdown_event.is_set():
             await asyncio.sleep(2)
+            if not had_activity_since_reset:
+                continue
             idle_sec = time.monotonic() - last_user_activity
             if idle_sec >= SESSION_IDLE_TIMEOUT_SEC:
                 logger.info(
                     "[idle] %.0fs silence — clearing conversation history",
                     idle_sec,
                 )
+                sc.reset_reason = "idle"
                 sc.reset_event.set()
                 # Wait until the reset is processed before resuming monitoring
                 while sc.reset_event.is_set() and not sc.shutdown_event.is_set():
@@ -745,9 +766,11 @@ async def entrypoint(ctx: JobContext) -> None:
                 return
 
             session_num += 1
+            reason = sc.reset_reason or "unknown"
             logger.info(
-                "[PERSIST] resetting chat history session_num=%d",
+                "[PERSIST] resetting chat history session_num=%d reason=%s",
                 session_num,
+                reason,
             )
             try:
                 await session.interrupt()
@@ -760,8 +783,18 @@ async def entrypoint(ctx: JobContext) -> None:
             except Exception as exc:
                 logger.error("[PERSIST] reset failed error=%s", exc)
 
-            # Reset the activity timer so the next idle window starts now
+            # Broadcast the event so observers (chat CLI) can show it inline.
+            asyncio.create_task(_publish_debug_async({
+                "kind": "session_reset",
+                "reason": reason,
+                "session_num": session_num,
+            }))
+
+            # Reset the activity timer + dirty flag so the next idle window
+            # starts now and won't fire again until there's real activity.
             last_user_activity = time.monotonic()
+            had_activity_since_reset = False
+            sc.reset_reason = ""
             sc.reset_event.clear()
             logger.info("[PERSIST] persistent_agent_ready session_num=%d", session_num)
     finally:

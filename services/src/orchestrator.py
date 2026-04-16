@@ -4,10 +4,17 @@ Orchestrator — lightweight replacement for session-manager.
 Creates a LiveKit room, writes access tokens for all services,
 dispatches the warm voice-agent, and refreshes tokens periodically.
 
-Mode switching: reads `agent_mode` from a JSON config file
-(services/src/orchestrator_config.json). Change the file while running
-and the orchestrator will shut down the current agent and dispatch
-a new one in the new mode.
+Single source of truth for runtime state: `services/data/state.json`.
+Schema: {"agent_mode": "openai|local", "mic_muted": bool, "updatedAt": "..."}
+
+External writers (text_chat CLI, manual edits) change the file; the
+orchestrator polls it every few seconds and actuates changes:
+- Mode change → shutdown current agent, dispatch new warm agent.
+- Mic change → broadcast state on `pepper.state` so user-client toggles.
+
+On any state change the orchestrator also publishes the full state to
+the LiveKit `pepper.state` topic so observers (text_chat, operator UI,
+user-client) see live updates without polling the file.
 
 No HTTP server, no dashboard, no health probing.
 """
@@ -25,8 +32,10 @@ from livekit import api
 # ── Config ──────────────────────────────────────────────────────────────────
 
 ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
-CONFIG_FILE = Path(__file__).resolve().parent / "orchestrator_config.json"
-CONFIG_POLL_SEC = 3  # how often to check for config changes
+STATE_FILE = Path(__file__).resolve().parents[1] / "data" / "state.json"
+LEGACY_CONFIG_FILE = Path(__file__).resolve().parent / "orchestrator_config.json"
+STATE_POLL_SEC = 3  # how often to check state.json for external changes
+TOPIC_STATE = "pepper.state"
 
 def _load_root_env() -> None:
     if ROOT_ENV_PATH.exists():
@@ -61,18 +70,55 @@ DEBUG_CLI_IDENTITY = "debug-cli"
 TOKEN_REFRESH_SEC = 4 * 3600  # 4 hours
 
 
-def _read_config() -> dict:
-    """Read orchestrator config file. Creates default if missing."""
-    if not CONFIG_FILE.exists():
-        default = {"agent_mode": _env("PEPPER_AGENT_MODE", "openai")}
-        CONFIG_FILE.write_text(json.dumps(default, indent=2), encoding="utf-8")
-        print(f"[orchestrator] created config file {CONFIG_FILE}")
-        return default
+def _default_state() -> dict:
+    return {
+        "agent_mode": _env("PEPPER_AGENT_MODE", "openai"),
+        "mic_muted": False,
+    }
+
+
+def _read_state() -> dict:
+    """Read state.json, creating defaults if missing. Migrates from the old
+    `orchestrator_config.json` if that still exists."""
+    if not STATE_FILE.exists():
+        state = _default_state()
+        # One-shot migration from the old file if present
+        if LEGACY_CONFIG_FILE.exists():
+            try:
+                legacy = json.loads(LEGACY_CONFIG_FILE.read_text(encoding="utf-8"))
+                if legacy.get("agent_mode") in ("openai", "local"):
+                    state["agent_mode"] = legacy["agent_mode"]
+                    print(f"[orchestrator] migrated agent_mode from {LEGACY_CONFIG_FILE}")
+            except Exception as exc:
+                print(f"[orchestrator] legacy config read failed err={exc}")
+        _write_state(state)
+        print(f"[orchestrator] created state file {STATE_FILE}")
+        return state
     try:
-        return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        return json.loads(STATE_FILE.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, OSError) as exc:
-        print(f"[orchestrator] config read failed err={exc}, using defaults")
-        return {"agent_mode": "openai"}
+        print(f"[orchestrator] state read failed err={exc}, using defaults")
+        return _default_state()
+
+
+def _write_state(state: dict) -> None:
+    """Write state.json atomically, stamping updatedAt.
+
+    Chmods to 0o666 so the host-side text_chat CLI (running as the user,
+    not root) can also write it. The orchestrator is the only writer from
+    inside the container; shared writability is only needed because the
+    Docker container runs as root while the host edits are from the user.
+    """
+    payload = dict(state)
+    payload["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = STATE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    tmp.replace(STATE_FILE)
+    try:
+        os.chmod(STATE_FILE, 0o666)
+    except OSError:
+        pass
 
 
 # ── Orchestrator ────────────────────────────────────────────────────────────
@@ -82,12 +128,16 @@ class Orchestrator:
         self.api_key = _required_env("LIVEKIT_API_KEY")
         self.api_secret = _required_env("LIVEKIT_API_SECRET")
         self.room_name = f"pepper-{int(time.time())}"
-        config = _read_config()
-        self.agent_mode = config.get("agent_mode", "openai")
+        state = _read_state()
+        self.agent_mode = state.get("agent_mode", "openai")
         if self.agent_mode not in ("openai", "local"):
             self.agent_mode = "openai"
+        self.mic_muted = bool(state.get("mic_muted", False))
         self.agent_name = AGENT_NAMES.get(self.agent_mode, AGENT_NAMES["openai"])
-        print(f"[orchestrator] mode={self.agent_mode} agent={self.agent_name} room={self.room_name}")
+        print(
+            f"[orchestrator] mode={self.agent_mode} agent={self.agent_name} "
+            f"mic_muted={self.mic_muted} room={self.room_name}"
+        )
 
     def _lkapi(self) -> api.LiveKitAPI:
         return api.LiveKitAPI(LIVEKIT_HTTP_URL, self.api_key, self.api_secret)
@@ -343,19 +393,65 @@ class Orchestrator:
         await self._dispatch_and_confirm()
         print(f"[orchestrator] mode switch complete, now running {new_mode}")
 
-    async def _config_watcher(self) -> None:
-        """Poll the config file for mode changes."""
+    async def _broadcast_state(self) -> None:
+        """Publish the current runtime state on the pepper.state LiveKit topic.
+
+        Called after any state change AND periodically so late-joining
+        subscribers (text_chat, user-client) always see fresh state without
+        a request/response dance.
+        """
+        payload = json.dumps({
+            "agent_mode": self.agent_mode,
+            "agent_name": self.agent_name,
+            "mic_muted": self.mic_muted,
+            "roomName": self.room_name,
+            "updatedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }).encode("utf-8")
+        lkapi = self._lkapi()
+        try:
+            await lkapi.room.send_data(
+                api.SendDataRequest(
+                    room=self.room_name,
+                    data=payload,
+                    topic=TOPIC_STATE,
+                )
+            )
+        except Exception as exc:
+            print(f"[orchestrator] state broadcast failed err={exc}")
+        finally:
+            await lkapi.aclose()
+
+    async def _state_watcher(self) -> None:
+        """Poll state.json for external changes and actuate them.
+
+        Mode changes trigger a full agent shutdown + re-dispatch.
+        Mic changes are just broadcast via pepper.state (user-client subscribes).
+        """
         while True:
-            await asyncio.sleep(CONFIG_POLL_SEC)
+            await asyncio.sleep(STATE_POLL_SEC)
             try:
-                config = _read_config()
-                new_mode = config.get("agent_mode", "openai")
+                state = _read_state()
+                new_mode = state.get("agent_mode", "openai")
                 if new_mode not in ("openai", "local"):
-                    continue
+                    new_mode = "openai"
+                new_mic = bool(state.get("mic_muted", False))
+
                 if new_mode != self.agent_mode:
                     await self._switch_mode(new_mode)
+                    await self._broadcast_state()
+
+                if new_mic != self.mic_muted:
+                    self.mic_muted = new_mic
+                    print(f"[orchestrator] mic_muted change -> {self.mic_muted}")
+                    await self._broadcast_state()
             except Exception as exc:
-                print(f"[orchestrator] config watcher error err={exc}")
+                print(f"[orchestrator] state watcher error err={exc}")
+
+    async def _state_heartbeat(self) -> None:
+        """Re-broadcast current state every 10s so late subscribers catch up."""
+        while True:
+            await asyncio.sleep(10)
+            await self._broadcast_state()
 
     # ── Startup helpers ──
 
@@ -373,11 +469,13 @@ class Orchestrator:
 
         await self._write_tokens()
         await self._dispatch_and_confirm()
+        await self._broadcast_state()
 
-        print(f"[orchestrator] running mode={self.agent_mode} (watching {CONFIG_FILE})")
+        print(f"[orchestrator] running mode={self.agent_mode} mic_muted={self.mic_muted} (watching {STATE_FILE})")
         await asyncio.gather(
             self._token_refresh_loop(),
-            self._config_watcher(),
+            self._state_watcher(),
+            self._state_heartbeat(),
         )
 
 
