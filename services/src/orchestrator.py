@@ -67,6 +67,7 @@ USER_IDENTITY = "user"
 LISTENER_IDENTITY = "listener-python"
 MONITOR_IDENTITY = "monitor-python"
 DEBUG_CLI_IDENTITY = "debug-cli"
+TABLET_IDENTITY = "tablet"
 TOKEN_REFRESH_SEC = 4 * 3600  # 4 hours
 
 
@@ -134,6 +135,9 @@ class Orchestrator:
             self.agent_mode = "openai"
         self.mic_muted = bool(state.get("mic_muted", False))
         self.agent_name = AGENT_NAMES.get(self.agent_mode, AGENT_NAMES["openai"])
+        # Initialize nonce to the current file value so orchestrator startup
+        # doesn't self-trigger a re-dispatch (the file's nonce predates this run).
+        self._last_dispatch_nonce = state.get("dispatch_nonce")
         print(
             f"[orchestrator] mode={self.agent_mode} agent={self.agent_name} "
             f"mic_muted={self.mic_muted} room={self.room_name}"
@@ -225,6 +229,10 @@ class Orchestrator:
             "debugCli": {
                 "identity": DEBUG_CLI_IDENTITY,
                 "token": self._build_token(DEBUG_CLI_IDENTITY, can_publish=False, can_subscribe=True),
+            },
+            "tablet": {
+                "identity": TABLET_IDENTITY,
+                "token": self._build_token(TABLET_IDENTITY, can_publish=True, can_subscribe=True),
             },
             "agent": {"name": self.agent_name},
         }
@@ -393,6 +401,27 @@ class Orchestrator:
         await self._dispatch_and_confirm()
         print(f"[orchestrator] mode switch complete, now running {new_mode}")
 
+    async def _force_redispatch(self) -> None:
+        """Manual re-dispatch of the current mode. Useful when voice-agent
+        crashed / hot-reloaded and the orchestrator's view of the room is stale
+        (agent left but we never noticed). Keeps the same room."""
+        print(f"[orchestrator] force re-dispatch mode={self.agent_mode}")
+        lkapi = self._lkapi()
+        try:
+            await self._send_shutdown_signal(lkapi)
+            if not await self._wait_for_agents_gone(lkapi, self.EXIT_TIMEOUT_SEC):
+                print(
+                    f"[orchestrator] stale agent still present after {self.EXIT_TIMEOUT_SEC:.0f}s "
+                    "— forcing removal"
+                )
+                await self._force_remove_agents(lkapi)
+            else:
+                await self._cleanup_stale_dispatches(lkapi)
+        finally:
+            await lkapi.aclose()
+        await self._dispatch_and_confirm()
+        print(f"[orchestrator] force re-dispatch complete mode={self.agent_mode}")
+
     async def _broadcast_state(self) -> None:
         """Publish the current runtime state on the pepper.state LiveKit topic.
 
@@ -438,6 +467,12 @@ class Orchestrator:
 
                 if new_mode != self.agent_mode:
                     await self._switch_mode(new_mode)
+                    await self._broadcast_state()
+
+                new_nonce = state.get("dispatch_nonce")
+                if new_nonce is not None and new_nonce != self._last_dispatch_nonce:
+                    self._last_dispatch_nonce = new_nonce
+                    await self._force_redispatch()
                     await self._broadcast_state()
 
                 if new_mic != self.mic_muted:

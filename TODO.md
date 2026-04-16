@@ -82,3 +82,4 @@ Google Gemma 3 9B
 add animation to while waiting for query
 Bigger TTS and STT?
 REMOVING of the agents
+ADD 3 more animations

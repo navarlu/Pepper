@@ -172,6 +172,8 @@ PEPPER_MAX_BUFFER_FRAMES = _env_int("PEPPER_MAX_BUFFER_FRAMES", 19200)
 PEPPER_CHUNK_LIMIT_FRAMES = _env_int("PEPPER_CHUNK_LIMIT_FRAMES", 16384)
 
 # Local tablet overlay API served by `robot/src/bridge.py`.
+# The tablet-display service (services/src/tablet_server.py) owns the tablet
+# screen and POSTs rendered HTML to `BRIDGE_URL/tablet/url`.
 BRIDGE_URL = _env_str("BRIDGE_URL", "http://127.0.0.1:5000")
 TABLET_DEBUG_AUDIO_ENABLED = _env_bool("TABLET_DEBUG_AUDIO_ENABLED", False)
 TABLET_DEBUG_LISTENER_ENABLED = _env_bool("TABLET_DEBUG_LISTENER_ENABLED", True)

@@ -143,6 +143,23 @@ services:
     network_mode: host
     restart: unless-stopped
 
+  tablet-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/tablet_server.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      BRIDGE_URL: http://127.0.0.1:5000
+    network_mode: host
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
   # Reverse tunnel: exposes RPi services on woska:localhost so the remote voice-agent can reach them.
   # Also keeps the forward tunnel for vLLM (woska:8000 → RPi:8000) for local-mode fallback.
   reverse-tunnel:

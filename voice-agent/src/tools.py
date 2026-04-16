@@ -29,16 +29,6 @@ from .utils import search_vectors
 
 logger = logging.getLogger("voice-agent")
 
-OPENAI_ANIMATION_KEYS = (
-    "Hey_1",
-    "BowShort_1",
-    "Explain_1",
-    "Happy_1",
-    "Thinking_1",
-    "IDontKnow_1",
-)
-
-
 def _agent_result(item: dict[str, Any]) -> dict[str, Any]:
     """Fields returned to the LLM agent."""
     return {
@@ -175,37 +165,6 @@ async def trigger_animation(animation_name: str) -> bool:
     logger.info("trigger_animation animation=%s resolved=%s", animation_name, resolved)
     await _dispatch_animation(resolved)
     return True
-
-
-def _normalize_openai_animation_name(raw_name: str) -> str:
-    clean = str(raw_name or "").strip()
-    if not clean:
-        return ""
-
-    if clean in OPENAI_ANIMATION_KEYS:
-        return clean
-
-    normalized = clean.lower().replace("-", "_").replace(" ", "_")
-    normalized = "".join(ch for ch in normalized if ch.isalnum() or ch == "_")
-    mapped_group = ANIMATION_TOOL_ALIASES.get(normalized)
-    if mapped_group == "greeting":
-        return "Hey_1"
-    if mapped_group == "bow":
-        return "BowShort_1"
-    if mapped_group == "explain":
-        return "Explain_1"
-    if mapped_group == "happy":
-        return "Happy_1"
-    if mapped_group == "thinking":
-        return "Thinking_1"
-    if mapped_group == "dont_know":
-        return "IDontKnow_1"
-
-    for key in OPENAI_ANIMATION_KEYS:
-        if key.lower() == clean.lower():
-            return key
-
-    return ""
 
 
 # Building E — FEL ČVUT, Karlovo náměstí
@@ -403,14 +362,9 @@ def build_tools(agent_mode: str) -> list[Any]:
                 ensure_ascii=False,
             )
 
-        if agent_mode == "openai":
-            resolved = _normalize_openai_animation_name(animation_name)
-            allowed = list(OPENAI_ANIMATION_KEYS)
-            error_message = "Use one of the supported concrete animation keys."
-        else:
-            resolved = _normalize_animation_name(animation_name)
-            allowed = list(ANIMATION_GROUPS.keys())
-            error_message = "Use one of the allowed animation group names."
+        resolved = _normalize_animation_name(animation_name)
+        allowed = list(ANIMATION_GROUPS.keys())
+        error_message = "Use one of the allowed animation group names."
 
         if not resolved:
             result_payload = {

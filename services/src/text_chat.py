@@ -202,6 +202,17 @@ class ChatSession:
         except Exception as exc:
             _print(f"  failed to send reset: {exc}")
 
+    async def cmd_dispatch(self, _args: list[str]) -> None:
+        """Ask the orchestrator to re-dispatch the current agent mode.
+
+        Useful when the voice-agent has crashed or hot-reloaded and the
+        orchestrator's view of the room is stale (no agent present but
+        orchestrator thinks there is one). Writes a fresh nonce to state.json
+        which the orchestrator picks up within STATE_POLL_SEC (~3s)."""
+        nonce = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        _write_state_file(dispatch_nonce=nonce)
+        _print(f"  re-dispatch requested (nonce={nonce}) — orchestrator acts in ≤3s")
+
     async def cmd_quit(self, _args: list[str]) -> None:
         self._stop.set()
 
@@ -269,12 +280,13 @@ class ChatSession:
 
 
 COMMANDS: dict[str, tuple] = {
-    "help":   (ChatSession.cmd_help,   "show this list"),
-    "status": (ChatSession.cmd_status, "snapshot: room, mode, participants, session age"),
-    "mode":   (ChatSession.cmd_mode,   "<openai|local> — switch agent mode"),
-    "mic":    (ChatSession.cmd_mic,    "<on|off> — soft mute/unmute user-client's mic"),
-    "reset":  (ChatSession.cmd_reset,  "clear agent's chat history"),
-    "quit":   (ChatSession.cmd_quit,   "exit"),
+    "help":     (ChatSession.cmd_help,     "show this list"),
+    "status":   (ChatSession.cmd_status,   "snapshot: room, mode, participants, session age"),
+    "mode":     (ChatSession.cmd_mode,     "<openai|local> — switch agent mode"),
+    "mic":      (ChatSession.cmd_mic,      "<on|off> — soft mute/unmute user-client's mic"),
+    "reset":    (ChatSession.cmd_reset,    "clear agent's chat history"),
+    "dispatch": (ChatSession.cmd_dispatch, "re-dispatch the current mode's agent (fixes stale agent)"),
+    "quit":     (ChatSession.cmd_quit,     "exit"),
 }
 
 

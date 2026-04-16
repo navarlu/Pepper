@@ -249,7 +249,7 @@ class TabletDebugReporter(object):
                 pass
     
     def publish_payload(self, payload, force=False):
-        if self._tablet is None:
+        if not self.enabled or self._tablet is None:
             return
         now = time.time()
         if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL:
@@ -410,6 +410,7 @@ class TabletOverlayHttpServer(threading.Thread):
         audio_player=None,
         tts=None,
         audio_device=None,
+        tablet_service=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -421,6 +422,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._audio_player = audio_player
         self._tts = tts
         self._audio_device = audio_device
+        self._tablet_service = tablet_service
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -438,6 +440,7 @@ class TabletOverlayHttpServer(threading.Thread):
         audio_player = self._audio_player
         tts = self._tts
         audio_device = self._audio_device
+        tablet_service = self._tablet_service
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -591,6 +594,29 @@ class TabletOverlayHttpServer(threading.Thread):
                         200,
                         {"ok": True, "name": name, "behavior": behavior, "queued": True},
                     )
+                    return
+
+                if path_only == "/tablet/url":
+                    if tablet_service is None:
+                        self._write_json(503, {"ok": False, "error": "tablet service unavailable"})
+                        return
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw)
+                        url = to_text(payload.get("url", u"")).strip()
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "invalid json"})
+                        return
+                    if not url:
+                        self._write_json(400, {"ok": False, "error": "missing url"})
+                        return
+                    try:
+                        tablet_service.showWebview(url)
+                        print("[bridge] tablet navigated via /tablet/url:", url)
+                        self._write_json(200, {"ok": True, "url": url})
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
 
                 if self.path != "/tablet/text_inline":
@@ -783,7 +809,10 @@ def main():
     except Exception:
         tablet_service = None
 
-    tablet = TabletDebugReporter(TABLET_DEBUG_AUDIO_ENABLED, tablet_service)
+    # The tablet-display service (services/src/tablet_server.py) owns the
+    # tablet screen via POST /tablet/url. We silence TabletDebugReporter so
+    # this bridge's legacy data-URL publishes don't fight over showWebview().
+    tablet = TabletDebugReporter(False, tablet_service)
     tablet.start()
     tablet_http = TabletOverlayHttpServer(
         BRIDGE_URL,
@@ -795,6 +824,7 @@ def main():
         audio_player=audio_player_service,
         tts=tts_service,
         audio_device=audio,
+        tablet_service=tablet_service,
     )
     tablet_http.start()
     tablet.publish(
