@@ -82,6 +82,24 @@ ENABLE_QUERY_SEARCH = True
 QUERY_SEARCH_DEFAULT_LIMIT = 5
 QUERY_SEARCH_MAX_LIMIT = 8
 
+# Look-around vision tool — grabs a camera snapshot via the bridge and has a
+# dedicated small VL model describe it, returning plain text to the main LLM.
+# This avoids the chat-template tool-calling issues seen on Qwen2.5-VL main
+# models and works uniformly for local + openai modes.
+ENABLE_LOOK_AROUND_TOOL = False
+LOOK_AROUND_HTTP_TIMEOUT_SEC = _env_float("LOOK_AROUND_HTTP_TIMEOUT_SEC", 3.0)
+LOOK_AROUND_VISION_BASE_URL = _env_str("LOOK_AROUND_VISION_BASE_URL", "http://localhost:8001/v1")
+LOOK_AROUND_VISION_MODEL = _env_str("LOOK_AROUND_VISION_MODEL", "Qwen/Qwen2.5-VL-3B-Instruct")
+LOOK_AROUND_VISION_TIMEOUT_SEC = _env_float("LOOK_AROUND_VISION_TIMEOUT_SEC", 12.0)
+LOOK_AROUND_VISION_MAX_TOKENS = _env_int("LOOK_AROUND_VISION_MAX_TOKENS", 150)
+LOOK_AROUND_VISION_TEMPERATURE = _env_float("LOOK_AROUND_VISION_TEMPERATURE", 0.2)
+LOOK_AROUND_VISION_PROMPT = _env_str(
+    "LOOK_AROUND_VISION_PROMPT",
+    "You are Pepper's visual describer. Describe what is in the camera frame in "
+    "one or two short sentences. Focus on people (if any), objects, text/signs, "
+    "and the general environment. Be concrete, do not speculate.",
+)
+
 # Pepper animation tool (voice-agent -> robot bridge).
 ENABLE_ANIMATION_TOOL = True
 ANIMATION_BRIDGE_URL = _env_str("ANIMATION_BRIDGE_URL", "http://127.0.0.1:5000")
@@ -155,6 +173,29 @@ What you do:
 - Do not mention internal implementation details or library names.
 """.strip()
 
+_OPENAI_LOOK_AROUND_BLOCK = """
+
+## Vision (look_around)
+
+You have a top camera. Call the `look_around` tool whenever the user asks
+about visible surroundings, objects, people, colours, signs, the room you
+are in, or anything that needs visual context. The tool returns a short
+text description of what is currently visible — use that description to
+answer the user naturally. Do NOT announce that you are taking a photo,
+and do NOT mention the describer or the tool itself."""
+
+_LOCAL_LOOK_AROUND_BLOCK = (
+    "When the user asks about what you see, who is in front of you, your "
+    "surroundings, or any visual detail, call look_around first — it will "
+    "return a short text description of the camera view (prefixed with "
+    "'CAMERA VIEW:'). When you receive a CAMERA VIEW description you MUST "
+    "restate concrete details from it in your spoken reply (people, "
+    "objects, colours, text on signs, etc.). Do NOT ignore the description "
+    "and fall back to generic answers about Pepper's location or job. "
+    "If the description does not answer the user's question, say what you "
+    "actually see and then offer to help further. "
+)
+
 OPENAI_SYSTEM_PROMPT = """
 {base}
 
@@ -175,8 +216,11 @@ Rules:
   positive or cheerful answer -> `happy`
   searching or considering -> `thinking`
   uncertainty or missing information -> `dont_know`
-- NEVER say tool names, tool arguments, bracketed action text, or stage directions aloud.
-""".strip().format(base=BASE_SYSTEM_PROMPT)
+- NEVER say tool names, tool arguments, bracketed action text, or stage directions aloud.{vision}
+""".strip().format(
+    base=BASE_SYSTEM_PROMPT,
+    vision=_OPENAI_LOOK_AROUND_BLOCK if ENABLE_LOOK_AROUND_TOOL else "",
+)
 
 LOCAL_SYSTEM_PROMPT = (
     "You are Pepper, a robot receptionist at CTU FEE Prague. "
@@ -184,6 +228,7 @@ LOCAL_SYSTEM_PROMPT = (
     "Use query_search to find information — do not guess. "
     "query_search also knows room locations and walking directions. "
     "Call play_animation to check your body state before every reply. "
-    "Never say tool names aloud."
+    + (_LOCAL_LOOK_AROUND_BLOCK if ENABLE_LOOK_AROUND_TOOL else "")
+    + "Never say tool names aloud."
 )
 

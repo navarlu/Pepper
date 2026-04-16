@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import logging
 import random
@@ -20,7 +21,15 @@ from .config import (
     ANIMATION_TOOL_HTTP_TIMEOUT_SEC,
     ANIMATION_TOOL_MAX_NAME_CHARS,
     ENABLE_ANIMATION_TOOL,
+    ENABLE_LOOK_AROUND_TOOL,
     ENABLE_QUERY_SEARCH,
+    LOOK_AROUND_HTTP_TIMEOUT_SEC,
+    LOOK_AROUND_VISION_BASE_URL,
+    LOOK_AROUND_VISION_MAX_TOKENS,
+    LOOK_AROUND_VISION_MODEL,
+    LOOK_AROUND_VISION_PROMPT,
+    LOOK_AROUND_VISION_TEMPERATURE,
+    LOOK_AROUND_VISION_TIMEOUT_SEC,
     QUERY_SEARCH_DEFAULT_LIMIT,
     QUERY_SEARCH_MAX_LIMIT,
     WEAVIATE_HYBRID_ALPHA,
@@ -37,6 +46,85 @@ def _agent_result(item: dict[str, Any]) -> dict[str, Any]:
         "source": item.get("source"),
         "score": item.get("score"),
     }
+
+
+def _fetch_camera_snapshot() -> bytes:
+    """Blocking POST to bridge /camera/snapshot. Returns JPEG bytes or raises."""
+    bridge_url = str(ANIMATION_BRIDGE_URL or "").rstrip("/")
+    if not bridge_url:
+        raise RuntimeError("animation_bridge_url_missing")
+    endpoint = "{}/camera/snapshot".format(bridge_url)
+    body = b'{"pause_awareness": true}'
+    req = Request(endpoint, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    with urlopen(req, timeout=float(LOOK_AROUND_HTTP_TIMEOUT_SEC)) as response:
+        status = int(getattr(response, "status", response.getcode()))
+        content_type = response.headers.get("Content-Type", "")
+        data = response.read()
+    if status != 200:
+        raise RuntimeError("snapshot_http_{}: {}".format(status, data[:200]))
+    if not content_type.startswith("image/"):
+        raise RuntimeError("snapshot_bad_content_type: {}".format(content_type))
+    return data
+
+
+def _describe_image_with_vl(jpeg_bytes: bytes, extra_purpose: str = "") -> str:
+    """POST the JPEG to the side VL captioner and return a short text description.
+
+    This isolates vision reasoning from the main LLM so the main chat model can
+    stay text-only (avoids Qwen2.5-VL tool-calling chat-template issues).
+    """
+    base = str(LOOK_AROUND_VISION_BASE_URL or "").rstrip("/")
+    if not base:
+        raise RuntimeError("look_around_vision_base_url_missing")
+    endpoint = "{}/chat/completions".format(base)
+
+    b64 = base64.b64encode(jpeg_bytes).decode("ascii")
+    data_url = "data:image/jpeg;base64," + b64
+
+    user_text = LOOK_AROUND_VISION_PROMPT
+    if extra_purpose:
+        user_text = user_text + "\nFocus hint: " + extra_purpose
+
+    payload = {
+        "model": LOOK_AROUND_VISION_MODEL,
+        "messages": [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image_url", "image_url": {"url": data_url}},
+                    {"type": "text", "text": user_text},
+                ],
+            }
+        ],
+        "max_tokens": int(LOOK_AROUND_VISION_MAX_TOKENS),
+        "temperature": float(LOOK_AROUND_VISION_TEMPERATURE),
+    }
+    req = Request(endpoint, data=json.dumps(payload).encode("utf-8"), method="POST")
+    req.add_header("Content-Type", "application/json")
+    with urlopen(req, timeout=float(LOOK_AROUND_VISION_TIMEOUT_SEC)) as response:
+        raw = response.read()
+    data = json.loads(raw)
+    try:
+        return str(data["choices"][0]["message"]["content"]).strip()
+    except Exception as exc:
+        raise RuntimeError("vl_unparsable_response: {}".format(str(data)[:300])) from exc
+
+
+def _post_led_state(mode: str) -> None:
+    """Best-effort POST /leds/state. Logs on failure, never raises."""
+    bridge_url = str(ANIMATION_BRIDGE_URL or "").rstrip("/")
+    if not bridge_url:
+        return
+    endpoint = "{}/leds/state".format(bridge_url)
+    body = json.dumps({"mode": mode}).encode("utf-8")
+    req = Request(endpoint, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=1.5) as response:
+            _ = response.read()
+    except Exception as exc:
+        logger.debug("led_state_post_failed mode=%s error=%s", mode, exc)
 
 
 def _post_animation(animation_name: str) -> tuple[int, str]:
@@ -301,41 +389,45 @@ def build_tools(agent_mode: str) -> list[Any]:
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
         await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
+        await asyncio.to_thread(_post_led_state, "search_pulse")
         t0 = time.monotonic()
         try:
-            results = await asyncio.to_thread(search_vectors, query_text, safe_limit, rt_alpha)
-            duration_ms = (time.monotonic() - t0) * 1000
-            agent_results = [_agent_result(item) for item in results]
-            payload = {
-                "query": query_text,
-                "count": len(results),
-                "results": agent_results,
-            }
-            logger.info(
-                "query_search_done query=%s results=%d duration_ms=%.1f",
-                query_text, len(results), duration_ms,
-            )
-            await asyncio.to_thread(
-                _post_tool_event, "query_search",
-                {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
-                payload, duration_ms,
-            )
-            return json.dumps(payload, ensure_ascii=False)
-        except Exception as exc:
-            duration_ms = (time.monotonic() - t0) * 1000
-            logger.exception("query_search_failed error=%s", str(exc))
-            await asyncio.to_thread(
-                _post_tool_event, "query_search",
-                {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
-                None, duration_ms, error=str(exc),
-            )
-            return json.dumps(
-                {
-                    "error": "query_search_failed",
-                    "message": str(exc),
-                },
-                ensure_ascii=False,
-            )
+            try:
+                results = await asyncio.to_thread(search_vectors, query_text, safe_limit, rt_alpha)
+                duration_ms = (time.monotonic() - t0) * 1000
+                agent_results = [_agent_result(item) for item in results]
+                payload = {
+                    "query": query_text,
+                    "count": len(results),
+                    "results": agent_results,
+                }
+                logger.info(
+                    "query_search_done query=%s results=%d duration_ms=%.1f",
+                    query_text, len(results), duration_ms,
+                )
+                await asyncio.to_thread(
+                    _post_tool_event, "query_search",
+                    {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
+                    payload, duration_ms,
+                )
+                return json.dumps(payload, ensure_ascii=False)
+            except Exception as exc:
+                duration_ms = (time.monotonic() - t0) * 1000
+                logger.exception("query_search_failed error=%s", str(exc))
+                await asyncio.to_thread(
+                    _post_tool_event, "query_search",
+                    {"query": query_text, "limit": safe_limit, "alpha": rt_alpha},
+                    None, duration_ms, error=str(exc),
+                )
+                return json.dumps(
+                    {
+                        "error": "query_search_failed",
+                        "message": str(exc),
+                    },
+                    ensure_ascii=False,
+                )
+        finally:
+            await asyncio.to_thread(_post_led_state, "idle")
 
     async def _play_animation_impl(animation: str) -> str:
         """Shared implementation for play_animation (both modes)."""
@@ -439,9 +531,95 @@ def build_tools(agent_mode: str) -> list[Any]:
 
     play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
 
+    @function_tool
+    async def look_around(
+        context: RunContext,
+        purpose: str = "",
+    ) -> str:
+        """Check what Pepper's camera currently sees. Returns a short text
+        description of the scene which you need before speaking a reply
+        that mentions the surroundings, people, objects, colours, or signs.
+
+        After receiving the description, you MUST produce a spoken reply
+        to the user in the same turn — never end a turn with only this
+        tool call and no words.
+
+        purpose: short free-text describing WHY you are looking (e.g.
+            "identify the person in front of me", "count the chairs",
+            "read the sign"). Forwarded to the describer as a focus hint.
+        """
+        del context
+        if not ENABLE_LOOK_AROUND_TOOL:
+            return json.dumps({"error": "look_around_disabled"}, ensure_ascii=False)
+
+        reason = str(purpose or "").strip()
+        t0 = time.monotonic()
+        await asyncio.to_thread(_push_tool_transcript, "look_around({})".format(reason or "-"))
+
+        try:
+            jpeg_bytes = await asyncio.to_thread(_fetch_camera_snapshot)
+        except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
+            logger.warning("look_around_fetch_failed error=%s", exc)
+            await asyncio.to_thread(
+                _post_tool_event, "look_around",
+                {"purpose": reason}, None, duration_ms, error=str(exc),
+            )
+            return json.dumps(
+                {"error": "camera_unavailable", "message": str(exc)},
+                ensure_ascii=False,
+            )
+
+        image_kb = len(jpeg_bytes) // 1024
+        snapshot_ms = (time.monotonic() - t0) * 1000
+
+        try:
+            description = await asyncio.to_thread(_describe_image_with_vl, jpeg_bytes, reason)
+        except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
+            logger.warning("look_around_describe_failed error=%s", exc)
+            await asyncio.to_thread(
+                _post_tool_event, "look_around",
+                {"purpose": reason, "snapshot_ms": round(snapshot_ms, 1)},
+                None, duration_ms, error=str(exc),
+            )
+            return json.dumps(
+                {"error": "describer_failed", "message": str(exc)},
+                ensure_ascii=False,
+            )
+
+        total_ms = (time.monotonic() - t0) * 1000
+        describe_ms = total_ms - snapshot_ms
+        logger.info(
+            "look_around_done purpose=%s bytes=%dKB snapshot_ms=%.0f describe_ms=%.0f total_ms=%.0f",
+            reason, image_kb, snapshot_ms, describe_ms, total_ms,
+        )
+        result_payload = {
+            "ok": True,
+            "description": description,
+            "image_size_kb": image_kb,
+            "snapshot_ms": round(snapshot_ms, 1),
+            "describe_ms": round(describe_ms, 1),
+        }
+        await asyncio.to_thread(
+            _post_tool_event, "look_around",
+            {"purpose": reason}, result_payload, total_ms,
+        )
+
+        # Return plain text, not JSON. Qwen 7B skims JSON keys but reads
+        # flat text aggressively — this makes the model actually use the
+        # description in its spoken reply.
+        return (
+            "CAMERA VIEW: " + description + "\n\n"
+            "Reply to the user now in this same turn. Mention specific "
+            "details from the CAMERA VIEW above. Do not end the turn silent."
+        )
+
     # Unified 2-tool set for both modes. Room directions are handled inside
     # query_search via _try_room_lookup(), so a dedicated tool is not needed.
     tools: list[Any] = [query_search, play_animation]
+    if ENABLE_LOOK_AROUND_TOOL:
+        tools.append(look_around)
 
     logger.info(
         "build_tools version=%s agent_mode=%s tool_count=%d names=%s",

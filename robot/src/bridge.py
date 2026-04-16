@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 from collections import deque
+import io
 import os
 import socket
 import struct
@@ -398,6 +399,161 @@ class TabletDebugReporter(object):
                 pass
 
 
+CAMERA_SNAPSHOT_NAME = "kampion_look_around"
+CAMERA_SNAPSHOT_CAMERA_INDEX = 0     # 0=top, 1=bottom
+CAMERA_SNAPSHOT_RESOLUTION = 2       # kVGA = 640x480
+CAMERA_SNAPSHOT_COLOR_SPACE = 11     # kRGB (RGB888)
+CAMERA_SNAPSHOT_FPS = 10
+CAMERA_SNAPSHOT_MAX_SIDE = 768
+CAMERA_SNAPSHOT_QUALITY = 82
+
+
+def capture_camera_snapshot(video, awareness=None, pause_awareness=True):
+    """Grab one RGB frame from Pepper's top camera and return JPEG bytes.
+
+    If awareness is provided and pause_awareness is True, pauseAwareness()
+    is called around the capture and resumeAwareness() restores it. This
+    prevents motion-blur from the head drift during face tracking.
+    """
+    from PIL import Image  # lazy import so bridge can boot without Pillow
+
+    if video is None:
+        raise RuntimeError("ALVideoDevice unavailable")
+
+    paused = False
+    if awareness is not None and pause_awareness:
+        try:
+            awareness.pauseAwareness()
+            paused = True
+        except Exception as exc:
+            print("[camera] pauseAwareness warning:", to_text(exc))
+
+    handle = None
+    try:
+        handle = video.subscribeCamera(
+            CAMERA_SNAPSHOT_NAME,
+            CAMERA_SNAPSHOT_CAMERA_INDEX,
+            CAMERA_SNAPSHOT_RESOLUTION,
+            CAMERA_SNAPSHOT_COLOR_SPACE,
+            CAMERA_SNAPSHOT_FPS,
+        )
+        img = video.getImageRemote(handle)
+        if img is None:
+            raise RuntimeError("getImageRemote returned None")
+
+        width, height = img[0], img[1]
+        pil = Image.frombytes("RGB", (width, height), bytes(img[6]))
+        video.releaseImage(handle)
+
+        if CAMERA_SNAPSHOT_MAX_SIDE and max(width, height) > CAMERA_SNAPSHOT_MAX_SIDE:
+            pil.thumbnail(
+                (CAMERA_SNAPSHOT_MAX_SIDE, CAMERA_SNAPSHOT_MAX_SIDE),
+                Image.LANCZOS,
+            )
+
+        buf = io.BytesIO()
+        pil.save(buf, format="JPEG", quality=CAMERA_SNAPSHOT_QUALITY, optimize=True)
+        return buf.getvalue()
+    finally:
+        if handle is not None:
+            try:
+                video.unsubscribe(handle)
+            except Exception as exc:
+                print("[camera] unsubscribe warning:", to_text(exc))
+        if paused:
+            try:
+                awareness.resumeAwareness()
+            except Exception as exc:
+                print("[camera] resumeAwareness warning:", to_text(exc))
+
+
+class LedEffectManager(object):
+    """Background thread that continuously asserts the preferred eye-LED
+    state so the NAOqi mood painter (active during interactive life state)
+    can't hold the eyes pink.
+
+    Modes:
+      - "idle"         solid white, refreshed at ~3 Hz
+      - "search_pulse" dim-blue <-> bright-blue loop (~0.5 s each)
+      - "off"          LEDs off, refreshed at ~1 Hz
+    """
+
+    GROUP = "FaceLeds"
+    IDLE_COLOR = 0x00FFFFFF
+    PULSE_DIM = 0x00001133
+    PULSE_BRIGHT = 0x0040A0FF
+    IDLE_FADE = 0.2
+    IDLE_TICK = 0.3
+    PULSE_FADE = 0.5
+    OFF_TICK = 1.0
+    VALID_MODES = ("idle", "search_pulse", "off")
+
+    def __init__(self, leds):
+        self._leds = leds
+        self._mode = "idle"
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._worker = None
+
+    def start(self):
+        if self._leds is None or self._worker is not None:
+            return
+        self._worker = threading.Thread(target=self._run, name="led-effects")
+        self._worker.daemon = True
+        self._worker.start()
+        print("[leds] effect manager started mode={}".format(self._mode))
+
+    def stop(self):
+        self._stop.set()
+        if self._worker is not None:
+            self._worker.join(timeout=2.0)
+            self._worker = None
+        if self._leds is not None:
+            try:
+                self._leds.reset(self.GROUP)
+            except Exception as exc:
+                print("[leds] reset on stop warning:", to_text(exc))
+
+    def set_mode(self, mode):
+        mode = to_text(mode).strip().lower()
+        if mode not in self.VALID_MODES:
+            raise ValueError("unknown mode: {} (valid: {})".format(mode, self.VALID_MODES))
+        with self._lock:
+            prev = self._mode
+            self._mode = mode
+        if prev != mode:
+            print("[leds] mode {} -> {}".format(prev, mode))
+
+    def get_mode(self):
+        with self._lock:
+            return self._mode
+
+    def _run(self):
+        pulse_phase = 0
+        while not self._stop.is_set():
+            mode = self.get_mode()
+            try:
+                if mode == "idle":
+                    self._leds.fadeRGB(self.GROUP, self.IDLE_COLOR, self.IDLE_FADE)
+                    if self._stop.wait(self.IDLE_TICK):
+                        break
+                elif mode == "search_pulse":
+                    color = self.PULSE_BRIGHT if pulse_phase else self.PULSE_DIM
+                    pulse_phase ^= 1
+                    self._leds.fadeRGB(self.GROUP, color, self.PULSE_FADE)
+                elif mode == "off":
+                    self._leds.off(self.GROUP)
+                    if self._stop.wait(self.OFF_TICK):
+                        break
+                else:
+                    if self._stop.wait(0.2):
+                        break
+            except Exception as exc:
+                print("[leds] tick failed mode={} err={}".format(mode, to_text(exc)))
+                if self._stop.wait(0.5):
+                    break
+
+
 class TabletOverlayHttpServer(threading.Thread):
     def __init__(
         self,
@@ -411,6 +567,9 @@ class TabletOverlayHttpServer(threading.Thread):
         tts=None,
         audio_device=None,
         tablet_service=None,
+        led_manager=None,
+        video_device=None,
+        awareness=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -423,6 +582,9 @@ class TabletOverlayHttpServer(threading.Thread):
         self._tts = tts
         self._audio_device = audio_device
         self._tablet_service = tablet_service
+        self._led_manager = led_manager
+        self._video_device = video_device
+        self._awareness = awareness
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -441,6 +603,10 @@ class TabletOverlayHttpServer(threading.Thread):
         tts = self._tts
         audio_device = self._audio_device
         tablet_service = self._tablet_service
+        led_manager = self._led_manager
+        video_device = self._video_device
+        awareness = self._awareness
+        camera_lock = threading.Lock()
 
         class Handler(BaseHTTPRequestHandler):
             def log_message(self, fmt, *args):
@@ -484,8 +650,86 @@ class TabletOverlayHttpServer(threading.Thread):
                         return
                     raise
 
+            def _write_bytes(self, status_code, content_type, body):
+                try:
+                    self.send_response(status_code)
+                    self.send_header("Content-Type", content_type)
+                    self.send_header("Content-Length", str(len(body)))
+                    self.send_header("Cache-Control", "no-store")
+                    self.end_headers()
+                    self.wfile.write(body)
+                    return True
+                except socket.error as exc:
+                    if self._is_disconnect_error(exc):
+                        return False
+                    return False
+                except Exception:
+                    return False
+
             def do_POST(self):
                 path_only = self.path.split("?", 1)[0]
+                if path_only == "/camera/snapshot":
+                    if video_device is None:
+                        self._write_json(503, {"ok": False, "error": "video device unavailable"})
+                        return
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw) if raw else {}
+                        if not isinstance(payload, dict):
+                            payload = {}
+                    except Exception:
+                        payload = {}
+                    pause_awareness = bool(payload.get("pause_awareness", True))
+                    t0 = time.time()
+                    # Serialize camera access — ALVideoDevice ring buffer gets
+                    # unhappy with concurrent subscribeCamera calls from the
+                    # same client name.
+                    acquired = camera_lock.acquire(False)
+                    if not acquired:
+                        self._write_json(429, {"ok": False, "error": "camera busy"})
+                        return
+                    try:
+                        jpeg = capture_camera_snapshot(
+                            video_device,
+                            awareness=awareness if pause_awareness else None,
+                            pause_awareness=pause_awareness,
+                        )
+                        took_ms = int((time.time() - t0) * 1000)
+                        print("[camera] snapshot ok bytes=%d took=%dms pause=%s"
+                              % (len(jpeg), took_ms, pause_awareness))
+                        self._write_bytes(200, "image/jpeg", jpeg)
+                    except Exception as exc:
+                        print("[camera] snapshot failed:", to_text(exc))
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                    finally:
+                        camera_lock.release()
+                    return
+
+                if path_only == "/leds/state":
+                    if led_manager is None:
+                        self._write_json(503, {"ok": False, "error": "led manager unavailable"})
+                        return
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw)
+                        mode = to_text(payload.get("mode", u"")).strip()
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "invalid json"})
+                        return
+                    if not mode:
+                        self._write_json(400, {"ok": False, "error": "missing mode"})
+                        return
+                    try:
+                        led_manager.set_mode(mode)
+                        self._write_json(200, {"ok": True, "mode": led_manager.get_mode()})
+                    except ValueError as exc:
+                        self._write_json(400, {"ok": False, "error": to_text(exc)})
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                    return
+
                 if path_only == "/audio/volume":
                     if audio_device is None:
                         self._write_json(500, {"ok": False, "error": "audio device unavailable"})
@@ -802,6 +1046,32 @@ def main():
         print("[bridge] ALTextToSpeech not available")
         tts_service = None
 
+    leds_service = None
+    try:
+        leds_service = wait_for_service(sess, "ALLeds", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALLeds available — LED effect manager will run")
+    except Exception:
+        print("[bridge] ALLeds not available — LED effects disabled")
+        leds_service = None
+
+    led_manager = LedEffectManager(leds_service) if leds_service is not None else None
+
+    video_device = None
+    try:
+        video_device = wait_for_service(sess, "ALVideoDevice", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALVideoDevice available — /camera/snapshot enabled")
+    except Exception:
+        print("[bridge] ALVideoDevice not available — /camera/snapshot disabled")
+        video_device = None
+
+    awareness_service = None
+    try:
+        awareness_service = wait_for_service(sess, "ALBasicAwareness", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALBasicAwareness available — snapshots will pause tracking")
+    except Exception:
+        print("[bridge] ALBasicAwareness not available — snapshots will skip pauseAwareness")
+        awareness_service = None
+
     animations_map = load_animations_map(ANIMATIONS_FILE)
     tablet_service = None
     try:
@@ -825,8 +1095,14 @@ def main():
         tts=tts_service,
         audio_device=audio,
         tablet_service=tablet_service,
+        led_manager=led_manager,
+        video_device=video_device,
+        awareness=awareness_service,
     )
     tablet_http.start()
+
+    if led_manager is not None:
+        led_manager.start()
     tablet.publish(
         "Pepper audio server starting",
         "qi={}\nrate={}".format(qi_url, TARGET_RATE),
@@ -1080,6 +1356,8 @@ def main():
                 )
     finally:
         server.close()
+        if led_manager is not None:
+            led_manager.stop()
         tablet_http.stop()
         tablet.publish("Pepper audio server stopped", force=True)
         tablet.stop()
