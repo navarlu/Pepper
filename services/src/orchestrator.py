@@ -29,51 +29,48 @@ from pathlib import Path
 from dotenv import load_dotenv
 from livekit import api
 
-# ── Config ──────────────────────────────────────────────────────────────────
+from config import (
+    AGENT_NAMES,
+    DEBUG_CLI_IDENTITY,
+    LIVEKIT_HOST_WS_URL,
+    LIVEKIT_HTTP_URL,
+    LIVEKIT_SESSION_FILE,
+    LIVEKIT_URL,
+    LISTENER_IDENTITY,
+    MONITOR_IDENTITY,
+    PEPPER_AGENT_MODE_DEFAULT,
+    STATE_FILE,
+    STATE_POLL_SEC,
+    TABLET_IDENTITY,
+    TOKEN_REFRESH_SEC,
+    USER_IDENTITY,
+)
 
 ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
-STATE_FILE = Path(__file__).resolve().parents[1] / "data" / "state.json"
+SESSION_FILE = Path(LIVEKIT_SESSION_FILE)
+STATE_FILE = Path(STATE_FILE)
 LEGACY_CONFIG_FILE = Path(__file__).resolve().parent / "orchestrator_config.json"
-STATE_POLL_SEC = 3  # how often to check state.json for external changes
 TOPIC_STATE = "pepper.state"
+
 
 def _load_root_env() -> None:
     if ROOT_ENV_PATH.exists():
         load_dotenv(dotenv_path=ROOT_ENV_PATH, override=True)
 
+
 _load_root_env()
 
-def _env(name: str, default: str = "") -> str:
-    return (os.getenv(name) or default).strip()
 
 def _required_env(name: str) -> str:
-    value = _env(name)
+    value = (os.getenv(name) or "").strip()
     if not value:
         raise RuntimeError(f"Missing required env: {name}")
     return value
 
-LIVEKIT_URL = _env("LIVEKIT_URL", "ws://127.0.0.1:7880")
-LIVEKIT_HOST_WS_URL = _env("LIVEKIT_HOST_WS_URL", LIVEKIT_URL)
-LIVEKIT_HTTP_URL = _env("LIVEKIT_HTTP_URL", "http://127.0.0.1:7880")
-SESSION_FILE = Path(_env(
-    "LIVEKIT_SESSION_FILE",
-    str(Path(__file__).resolve().parents[1] / "data" / "token-latest.json"),
-))
-AGENT_NAMES = {
-    "openai": _env("PEPPER_AGENT_NAME_OPENAI", "pepper-openai"),
-    "local": _env("PEPPER_AGENT_NAME_LOCAL", "pepper-local"),
-}
-USER_IDENTITY = "user"
-LISTENER_IDENTITY = "listener-python"
-MONITOR_IDENTITY = "monitor-python"
-DEBUG_CLI_IDENTITY = "debug-cli"
-TABLET_IDENTITY = "tablet"
-TOKEN_REFRESH_SEC = 4 * 3600  # 4 hours
-
 
 def _default_state() -> dict:
     return {
-        "agent_mode": _env("PEPPER_AGENT_MODE", "openai"),
+        "agent_mode": PEPPER_AGENT_MODE_DEFAULT,
         "mic_muted": False,
     }
 
@@ -125,6 +122,24 @@ def _write_state(state: dict) -> None:
 # ── Orchestrator ────────────────────────────────────────────────────────────
 
 class Orchestrator:
+    """Owns the LiveKit room lifecycle and the voice-agent dispatch.
+
+    Responsibilities:
+      - Create one fresh room per process lifetime, with a unique
+        `pepper-<ts>` name, and GC any older `pepper-*` rooms that
+        survived a previous run.
+      - Mint per-role JWTs (`user`, `listener`, `monitor`, `debugCli`,
+        `tablet`, `agent`) and write them to the token file.
+      - Dispatch the warm voice-agent worker and confirm it joined
+        the room (with force-cleanup retries to prevent zombie
+        stacking — see `_dispatch_and_confirm`).
+      - Watch `state.json` for runtime changes (mode switch, mic
+        mute, manual re-dispatch) and actuate them.
+      - Broadcast current state on `pepper.state` so late-joining
+        observers (text_chat, tablet_server, user_client) see it
+        without request/response.
+    """
+
     def __init__(self) -> None:
         self.api_key = _required_env("LIVEKIT_API_KEY")
         self.api_secret = _required_env("LIVEKIT_API_SECRET")

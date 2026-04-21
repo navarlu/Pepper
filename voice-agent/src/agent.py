@@ -19,15 +19,13 @@ from livekit.agents import (
 )
 from livekit.plugins import openai, silero
 
-from livekit.agents.llm.chat_context import FunctionCall
-from livekit.agents.llm import utils as _llm_utils
-
 from .config import (
     AGENT_NAME,
     AGENT_VERSION,
     LANG,
     LISTENER_IDENTITY,
     MONITOR_IDENTITY,
+    USER_IDENTITY,
     LIVEKIT_URL,
     LOCAL_LLM_BASE_URL,
     LOCAL_LLM_MODEL,
@@ -48,43 +46,15 @@ from .config import (
     TTS_VOICE,
 )
 from .local_speech import FasterWhisperSTT, PiperTTS
+from .qwen_compat import install_function_args_patch, wrap_llm_chat_with_history_sanitizer
+from .rag import connect_weaviate, seed_collection
 from .tools import build_tools
-from .utils import connect_weaviate, seed_collection
 
 logger = logging.getLogger("voice-agent")
 
-# --- Monkey-patch: fix Qwen's malformed tool call JSON ---
-# Qwen 2.5 7B sometimes emits extra trailing braces, e.g. {"animation": "greeting"}}
-# which causes `from_json` to fail with "trailing characters".
-# We intercept prepare_function_arguments to sanitize the JSON before parsing.
-_original_prepare_fn_args = _llm_utils.prepare_function_arguments
-
-
-def _sanitized_prepare_fn_args(*, fnc, json_arguments, call_ctx=None):
-    try:
-        return _original_prepare_fn_args(fnc=fnc, json_arguments=json_arguments, call_ctx=call_ctx)
-    except ValueError as exc:
-        if "trailing" not in str(exc).lower():
-            raise
-        # Find the matching closing brace for the first '{' and discard the rest
-        cleaned = json_arguments.strip()
-        depth = 0
-        for i, ch in enumerate(cleaned):
-            if ch == "{":
-                depth += 1
-            elif ch == "}":
-                depth -= 1
-                if depth == 0:
-                    cleaned = cleaned[: i + 1]
-                    break
-        logger.warning(
-            "sanitized_tool_args original=%r cleaned=%r", json_arguments, cleaned
-        )
-        return _original_prepare_fn_args(fnc=fnc, json_arguments=cleaned, call_ctx=call_ctx)
-
-
-_llm_utils.prepare_function_arguments = _sanitized_prepare_fn_args
-# --- End monkey-patch ---
+# Install the Qwen 2.5 tool-args sanitizer as early as possible — before any
+# LLM call builds its request pipeline. See `qwen_compat.py` for the why.
+install_function_args_patch()
 
 ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 _PREWARMED_VAD = None
@@ -144,13 +114,17 @@ def _iter_remote_participants(ctx: JobContext):
     return list(participants)
 
 
+# region: wait_for_user_participant
 async def _wait_for_user_participant(ctx: JobContext):
+    # Must bind specifically to USER_IDENTITY — binding to any non-listener
+    # (e.g. tablet, debug-cli) leaves AgentSession subscribed to a silent
+    # track and the LLM never hears the human.
     last_logged_identity = None
     while True:
         for participant in _iter_remote_participants(ctx):
-            if not _is_bridge_listener(participant):
-                return participant
             identity = str(getattr(participant, "identity", "") or "")
+            if identity == USER_IDENTITY:
+                return participant
             if identity and identity != last_logged_identity:
                 logger.info(
                     "waiting_for_user_participant skipping_identity=%s",
@@ -158,6 +132,7 @@ async def _wait_for_user_participant(ctx: JobContext):
                 )
                 last_logged_identity = identity
         await asyncio.sleep(0.2)
+# endregion
 
 
 def _parse_dispatch_metadata(ctx: JobContext) -> dict:
@@ -297,43 +272,12 @@ def _on_llm_metrics_collected(metrics) -> None:
     _post_pipeline_metric(payload)
 
 
-def _sanitize_json(raw: str) -> str:
-    """Extract the first balanced JSON object from a string.
-
-    Qwen 2.5 7B sometimes appends extra braces or text after the JSON,
-    e.g. '{"animation": "greeting"}}\nHello!'. vLLM 0.19 crashes on
-    json.loads() of such strings when they appear in chat history.
-    """
-    stripped = raw.strip()
-    if not stripped.startswith("{"):
-        return raw
-    depth = 0
-    for i, ch in enumerate(stripped):
-        if ch == "{":
-            depth += 1
-        elif ch == "}":
-            depth -= 1
-            if depth == 0:
-                cleaned = stripped[: i + 1]
-                if cleaned != raw:
-                    logger.info("sanitize_json original=%r cleaned=%r", raw[:120], cleaned)
-                return cleaned
-    return raw
-
-
-def _sanitize_chat_ctx(chat_ctx: llm.ChatContext) -> None:
-    """In-place sanitize FunctionCall arguments in chat history.
-
-    This prevents vLLM 0.19 from crashing with 400 Bad Request when
-    it re-parses malformed tool call arguments from conversation history.
-    """
-    for item in chat_ctx.items:
-        if isinstance(item, FunctionCall):
-            item.arguments = _sanitize_json(item.arguments)
-
-
 def _build_local_session() -> AgentSession:
-    """Build an AgentSession using local STT (Whisper) + local LLM (vLLM) + local TTS (Piper)."""
+    """Build an `AgentSession` using local STT (Whisper) + local LLM
+    (vLLM) + local TTS (Piper). Wraps the LLM's `chat()` call so chat
+    history is sanitized before each request to vLLM — see
+    `qwen_compat.py`.
+    """
     local_llm = openai.LLM(
         model=LOCAL_LLM_MODEL,
         base_url=LOCAL_LLM_BASE_URL,
@@ -344,15 +288,7 @@ def _build_local_session() -> AgentSession:
         extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
-
-    # Wrap chat to sanitize malformed tool call arguments before sending to vLLM.
-    _original_chat = local_llm.chat
-
-    def _chat_with_sanitized_history(*, chat_ctx, **kwargs):
-        _sanitize_chat_ctx(chat_ctx)
-        return _original_chat(chat_ctx=chat_ctx, **kwargs)
-
-    local_llm.chat = _chat_with_sanitized_history  # type: ignore[method-assign]
+    wrap_llm_chat_with_history_sanitizer(local_llm)
 
     return AgentSession(
         vad=_get_local_vad(),
@@ -710,6 +646,7 @@ async def entrypoint(ctx: JobContext) -> None:
         SESSION_IDLE_TIMEOUT_SEC,
     )
 
+    # region: idle_monitor
     async def _idle_monitor() -> None:
         """Check for idle timeout every 2s. Only fires reset when there is
         something to reset — i.e. real conversation activity has happened
@@ -731,11 +668,13 @@ async def entrypoint(ctx: JobContext) -> None:
                 # Wait until the reset is processed before resuming monitoring
                 while sc.reset_event.is_set() and not sc.shutdown_event.is_set():
                     await asyncio.sleep(0.5)
+    # endregion
 
     idle_task = asyncio.create_task(_idle_monitor())
 
     session_num = 0
     try:
+        # region: persistent_loop
         while True:
             reset_task = asyncio.ensure_future(sc.reset_event.wait())
             shutdown_task = asyncio.ensure_future(sc.shutdown_event.wait())
@@ -797,6 +736,7 @@ async def entrypoint(ctx: JobContext) -> None:
             sc.reset_reason = ""
             sc.reset_event.clear()
             logger.info("[PERSIST] persistent_agent_ready session_num=%d", session_num)
+        # endregion
     finally:
         idle_task.cancel()
 

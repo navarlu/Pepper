@@ -77,3 +77,6 @@ docs/thesis/overleaf/
 .claude
 .venv
 backups/**
+
+# Teaching materials — tracked in their own separate repo.
+teaching/

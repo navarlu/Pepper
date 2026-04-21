@@ -16,7 +16,12 @@ Restart a service after compose env changes (formerly session-manager — now or
 ```bash
 docker compose -f docker/docker-compose.yml restart orchestrator
 ```
+## Starting the CLI
 
+```bash
+tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
+uv run python services/src/text_chat.py
+```
 Switch agent mode (from inside the chat CLI):
 ```
 /mode openai

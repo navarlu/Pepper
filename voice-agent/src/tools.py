@@ -1,152 +1,64 @@
+"""Tool definitions exposed to the LLM.
+
+Three tools, all built by `build_tools(agent_mode)`:
+
+  - `query_search(query)` — RAG over the FEL knowledge base in
+    Weaviate, with a deterministic fast path for room-number
+    questions (`rooms.try_room_lookup`).
+  - `play_animation(animation)` — pick a Pepper gesture and POST it to
+    the robot bridge. Two thin wrappers with different docstrings for
+    the OpenAI vs local (Qwen) model quirks, sharing one
+    implementation.
+  - `look_around(purpose)` — grab a JPEG snapshot from Pepper's top
+    camera, caption it with a side VL model, return text. Gated by
+    `ENABLE_LOOK_AROUND_TOOL`.
+
+All HTTP plumbing lives in `bridge_client`; this module is purely
+tool logic + a tool-event hook used by the debug CLI.
+"""
+
+from __future__ import annotations
+
 import asyncio
-import base64
 import json
 import logging
 import random
-import re
 import time
 from typing import Any
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote
-from urllib.request import Request, urlopen  # still used by _post_animation
 
 from livekit.agents import RunContext, function_tool
 
+from .bridge_client import (
+    describe_image_with_vl,
+    fetch_camera_snapshot,
+    post_animation,
+    post_led_state,
+)
 from .config import (
     AGENT_VERSION,
-    ANIMATION_BRIDGE_URL,
     ANIMATION_GROUPS,
     ANIMATION_TOOL_ALIASES,
     ANIMATION_TOOL_ALLOWED,
-    ANIMATION_TOOL_HTTP_TIMEOUT_SEC,
     ANIMATION_TOOL_MAX_NAME_CHARS,
     ENABLE_ANIMATION_TOOL,
     ENABLE_LOOK_AROUND_TOOL,
     ENABLE_QUERY_SEARCH,
-    LOOK_AROUND_HTTP_TIMEOUT_SEC,
-    LOOK_AROUND_VISION_BASE_URL,
-    LOOK_AROUND_VISION_MAX_TOKENS,
-    LOOK_AROUND_VISION_MODEL,
-    LOOK_AROUND_VISION_PROMPT,
-    LOOK_AROUND_VISION_TEMPERATURE,
-    LOOK_AROUND_VISION_TIMEOUT_SEC,
     QUERY_SEARCH_DEFAULT_LIMIT,
-    QUERY_SEARCH_MAX_LIMIT,
     WEAVIATE_HYBRID_ALPHA,
 )
-from .utils import search_vectors
+from .rag import search_vectors
+from .rooms import try_room_lookup
 
 logger = logging.getLogger("voice-agent")
 
 def _agent_result(item: dict[str, Any]) -> dict[str, Any]:
-    """Fields returned to the LLM agent."""
+    """Shrink a Weaviate search hit to the fields the LLM actually reads."""
     return {
         "title": item.get("title"),
         "content": item.get("content"),
         "source": item.get("source"),
         "score": item.get("score"),
     }
-
-
-def _fetch_camera_snapshot() -> bytes:
-    """Blocking POST to bridge /camera/snapshot. Returns JPEG bytes or raises."""
-    bridge_url = str(ANIMATION_BRIDGE_URL or "").rstrip("/")
-    if not bridge_url:
-        raise RuntimeError("animation_bridge_url_missing")
-    endpoint = "{}/camera/snapshot".format(bridge_url)
-    body = b'{"pause_awareness": true}'
-    req = Request(endpoint, data=body, method="POST")
-    req.add_header("Content-Type", "application/json")
-    with urlopen(req, timeout=float(LOOK_AROUND_HTTP_TIMEOUT_SEC)) as response:
-        status = int(getattr(response, "status", response.getcode()))
-        content_type = response.headers.get("Content-Type", "")
-        data = response.read()
-    if status != 200:
-        raise RuntimeError("snapshot_http_{}: {}".format(status, data[:200]))
-    if not content_type.startswith("image/"):
-        raise RuntimeError("snapshot_bad_content_type: {}".format(content_type))
-    return data
-
-
-def _describe_image_with_vl(jpeg_bytes: bytes, extra_purpose: str = "") -> str:
-    """POST the JPEG to the side VL captioner and return a short text description.
-
-    This isolates vision reasoning from the main LLM so the main chat model can
-    stay text-only (avoids Qwen2.5-VL tool-calling chat-template issues).
-    """
-    base = str(LOOK_AROUND_VISION_BASE_URL or "").rstrip("/")
-    if not base:
-        raise RuntimeError("look_around_vision_base_url_missing")
-    endpoint = "{}/chat/completions".format(base)
-
-    b64 = base64.b64encode(jpeg_bytes).decode("ascii")
-    data_url = "data:image/jpeg;base64," + b64
-
-    user_text = LOOK_AROUND_VISION_PROMPT
-    if extra_purpose:
-        user_text = user_text + "\nFocus hint: " + extra_purpose
-
-    payload = {
-        "model": LOOK_AROUND_VISION_MODEL,
-        "messages": [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "image_url", "image_url": {"url": data_url}},
-                    {"type": "text", "text": user_text},
-                ],
-            }
-        ],
-        "max_tokens": int(LOOK_AROUND_VISION_MAX_TOKENS),
-        "temperature": float(LOOK_AROUND_VISION_TEMPERATURE),
-    }
-    req = Request(endpoint, data=json.dumps(payload).encode("utf-8"), method="POST")
-    req.add_header("Content-Type", "application/json")
-    with urlopen(req, timeout=float(LOOK_AROUND_VISION_TIMEOUT_SEC)) as response:
-        raw = response.read()
-    data = json.loads(raw)
-    try:
-        return str(data["choices"][0]["message"]["content"]).strip()
-    except Exception as exc:
-        raise RuntimeError("vl_unparsable_response: {}".format(str(data)[:300])) from exc
-
-
-def _post_led_state(mode: str) -> None:
-    """Best-effort POST /leds/state. Logs on failure, never raises."""
-    bridge_url = str(ANIMATION_BRIDGE_URL or "").rstrip("/")
-    if not bridge_url:
-        return
-    endpoint = "{}/leds/state".format(bridge_url)
-    body = json.dumps({"mode": mode}).encode("utf-8")
-    req = Request(endpoint, data=body, method="POST")
-    req.add_header("Content-Type", "application/json")
-    try:
-        with urlopen(req, timeout=1.5) as response:
-            _ = response.read()
-    except Exception as exc:
-        logger.debug("led_state_post_failed mode=%s error=%s", mode, exc)
-
-
-def _post_animation(animation_name: str) -> tuple[int, str]:
-    bridge_url = str(ANIMATION_BRIDGE_URL or "").rstrip("/")
-    if not bridge_url:
-        raise RuntimeError("animation_bridge_url_missing")
-
-    endpoint = "{}/animation/{}".format(
-        bridge_url,
-        quote(animation_name, safe=""),
-    )
-    req = Request(endpoint, data=b"", method="POST")
-    try:
-        with urlopen(req, timeout=float(ANIMATION_TOOL_HTTP_TIMEOUT_SEC)) as response:
-            status = int(getattr(response, "status", response.getcode()))
-            body = response.read().decode("utf-8", "ignore")
-            return status, body
-    except HTTPError as exc:
-        body = exc.read().decode("utf-8", "ignore")
-        return int(exc.code), body
-    except URLError as exc:
-        raise RuntimeError("animation_bridge_unreachable: {}".format(exc)) from exc
 
 
 def _pick_from_group(group_name: str) -> str:
@@ -157,6 +69,7 @@ def _pick_from_group(group_name: str) -> str:
     return random.choice(variants)
 
 
+# region: normalize_animation_name
 def _normalize_animation_name(raw_name: str) -> str:
     """Resolve an animation name to a concrete Pepper animation key.
 
@@ -189,6 +102,7 @@ def _normalize_animation_name(raw_name: str) -> str:
             return key
 
     return ""
+# endregion
 
 
 def _push_tool_transcript(text: str) -> None:
@@ -228,9 +142,10 @@ def _post_tool_event(
 
 
 async def _dispatch_animation(animation_name: str) -> None:
-    await asyncio.to_thread(_push_tool_transcript, "play_animation({})".format(animation_name))
+    """Fire-and-forget POST to the bridge; log result, swallow errors."""
+    await asyncio.to_thread(_push_tool_transcript, f"play_animation({animation_name})")
     try:
-        status, body = await asyncio.to_thread(_post_animation, animation_name)
+        status, body = await asyncio.to_thread(post_animation, animation_name)
         if 200 <= status < 300:
             logger.info("play_animation_dispatched animation=%s status=%s", animation_name, status)
         else:
@@ -245,7 +160,13 @@ async def _dispatch_animation(animation_name: str) -> None:
 
 
 async def trigger_animation(animation_name: str) -> bool:
-    """Best-effort dispatch for code-driven animations."""
+    """Public entry point for code-driven animations (not a tool call).
+
+    Used when the agent code — not the LLM — wants to fire a gesture
+    (e.g. a greeting animation at startup). Resolves the name the same
+    way `play_animation` does and dispatches. Returns False if the
+    name couldn't be resolved.
+    """
     resolved = _normalize_animation_name(animation_name)
     if not resolved:
         logger.warning("trigger_animation_failed animation=%s error=unknown_animation", animation_name)
@@ -253,98 +174,6 @@ async def trigger_animation(animation_name: str) -> bool:
     logger.info("trigger_animation animation=%s resolved=%s", animation_name, resolved)
     await _dispatch_animation(resolved)
     return True
-
-
-# Building E — FEL ČVUT, Karlovo náměstí
-# Room directions data. To update, just edit this dict directly.
-BUILDING_ROOMS: dict[str, dict[str, dict]] = {
-    "ground_floor": {
-        "23": {"directions": "go left, room 23 is in the middle of the corridor on the left side"},
-        "24": {"directions": "go left, room 24 is in the middle of the corridor on the left side"},
-        "26": {"directions": "go left, room 26 is at the end of the corridor"},
-    },
-    "1st_floor": {
-        "107": {"directions": "go up the stairs, and when you see toilet go there and then right, room 107 is at the end of the corridor"},
-        "112": {"directions": ""},
-        "125": {"directions": "go up the stairs, turn on the landing and continue up, room 125 will be right in front of you"},
-        "126": {"directions": "go up the stairs, turn on the landing and continue up, room 126 will be right in front of you"},
-        "127": {"directions": "go up the stairs, turn on the landing and continue up, then turn right, room 127 will be on left side"},
-        "128": {"directions": "go up the stairs, turn on the landing and continue up, then turn right, room 128 will be on left side"},
-        "129": {"directions": "go up the stairs, turn on the landing and continue up, then turn right, room 129 will be on left side"},
-        "130": {"directions": "go up the stairs, turn on the landing and continue up, then turn right, room 130 will be on left side"},
-        "132": {"directions": "go up the stairs, turn on the landing and continue up, then turn right, room 132 will be at the end of the corridor"},
-    },
-    "2nd_floor": {
-        "230": {"directions": "go up to the second floor, turn right, room 230 will be at the end of the corridor"},
-    },
-    "3rd_floor": {
-        "301": {"directions": ""},
-        "307": {"directions": ""},
-        "310": {"directions": ""},
-        "311": {"directions": ""},
-        "327": {"directions": ""},
-        "328": {"directions": ""},
-        "329": {"directions": ""},
-        "331": {"directions": ""},
-        "332": {"directions": ""},
-        "333a": {"directions": ""},
-        "333b": {"directions": ""},
-        "333c": {"directions": ""},
-        "333d": {"directions": ""},
-        "396": {"directions": ""},
-    },
-}
-
-
-_ROOM_NUMBER_RE = re.compile(r'\b(\d{2,4}[a-zA-Z]?)\b')
-_ROOM_KEYWORDS = [
-    "room", "direction", "where", "how to get", "find", "navigate",
-    "located", "location", "místnost", "kam", "kudy",
-]
-
-
-def _try_room_lookup(query: str) -> dict | None:
-    """If query looks like a room/directions question, look up from BUILDING_ROOMS.
-
-    Returns a result dict if a room number was found in the query AND the
-    query contains a room-related keyword.  Returns None otherwise so the
-    caller can fall through to the normal Weaviate search.
-    """
-    match = _ROOM_NUMBER_RE.search(query)
-    if not match:
-        return None
-    query_lower = query.lower()
-    if not any(kw in query_lower for kw in _ROOM_KEYWORDS):
-        return None
-
-    room_number = match.group(1)
-
-    for floor_id, rooms_on_floor in BUILDING_ROOMS.items():
-        if room_number in rooms_on_floor:
-            room = rooms_on_floor[room_number]
-            directions = (room.get("directions") or "").strip()
-            name = (room.get("name") or "").strip()
-            if not directions:
-                return {
-                    "type": "directions",
-                    "error": "no_directions",
-                    "message": f"Room {room_number} is known but directions are not filled in yet.",
-                }
-            result = {
-                "type": "directions",
-                "room": room_number,
-                "floor": floor_id,
-                "directions": directions,
-            }
-            if name:
-                result["name"] = name
-            return result
-
-    return {
-        "type": "directions",
-        "error": "room_not_found",
-        "message": f"Room {room_number} is not in my map. I only know Building E rooms.",
-    }
 
 
 def build_tools(agent_mode: str) -> list[Any]:
@@ -370,7 +199,7 @@ def build_tools(agent_mode: str) -> list[Any]:
             )
 
         # Check if this is a room/directions query — route to building map.
-        room_result = await asyncio.to_thread(_try_room_lookup, query_text)
+        room_result = await asyncio.to_thread(try_room_lookup, query_text)
         if room_result is not None:
             logger.info("query_search routed_to=room_lookup query=%s result_type=%s",
                         query_text, room_result.get("type", "directions"))
@@ -389,7 +218,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         logger.info("query_search query=%s limit=%s alpha=%s", query_text, safe_limit, rt_alpha)
         await asyncio.to_thread(_push_tool_transcript, "query_search({})".format(query_text))
 
-        await asyncio.to_thread(_post_led_state, "search_pulse")
+        await asyncio.to_thread(post_led_state, "search_pulse")
         t0 = time.monotonic()
         try:
             try:
@@ -427,8 +256,9 @@ def build_tools(agent_mode: str) -> list[Any]:
                     ensure_ascii=False,
                 )
         finally:
-            await asyncio.to_thread(_post_led_state, "idle")
+            await asyncio.to_thread(post_led_state, "idle")
 
+    # region: play_animation_impl
     async def _play_animation_impl(animation: str) -> str:
         """Shared implementation for play_animation (both modes)."""
         t0 = time.monotonic()
@@ -501,6 +331,7 @@ def build_tools(agent_mode: str) -> list[Any]:
                 result_payload, duration_ms,
             )
             return json.dumps(result_payload, ensure_ascii=False)
+    # endregion
 
     # OpenAI mode: side-effect description (works with larger models)
     @function_tool(name="play_animation")
@@ -557,7 +388,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         await asyncio.to_thread(_push_tool_transcript, "look_around({})".format(reason or "-"))
 
         try:
-            jpeg_bytes = await asyncio.to_thread(_fetch_camera_snapshot)
+            jpeg_bytes = await asyncio.to_thread(fetch_camera_snapshot)
         except Exception as exc:
             duration_ms = (time.monotonic() - t0) * 1000
             logger.warning("look_around_fetch_failed error=%s", exc)
@@ -574,7 +405,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         snapshot_ms = (time.monotonic() - t0) * 1000
 
         try:
-            description = await asyncio.to_thread(_describe_image_with_vl, jpeg_bytes, reason)
+            description = await asyncio.to_thread(describe_image_with_vl, jpeg_bytes, reason)
         except Exception as exc:
             duration_ms = (time.monotonic() - t0) * 1000
             logger.warning("look_around_describe_failed error=%s", exc)
@@ -616,7 +447,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         )
 
     # Unified 2-tool set for both modes. Room directions are handled inside
-    # query_search via _try_room_lookup(), so a dedicated tool is not needed.
+    # query_search via rooms.try_room_lookup(), so a dedicated tool is not needed.
     tools: list[Any] = [query_search, play_animation]
     if ENABLE_LOOK_AROUND_TOOL:
         tools.append(look_around)

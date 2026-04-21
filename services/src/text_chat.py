@@ -17,6 +17,8 @@ Slash commands (type / followed by command):
     /quit              exit (also: Ctrl-D)
 """
 
+from __future__ import annotations
+
 import asyncio
 import json
 import shlex
@@ -26,11 +28,12 @@ from pathlib import Path
 
 from livekit import rtc
 
+from config import LIVEKIT_SESSION_FILE, STATE_FILE as _STATE_FILE
+
 # ── Paths & topics ──────────────────────────────────────────────────────────
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
-TOKEN_FILE = ROOT_DIR / "services" / "data" / "token-latest.json"
-STATE_FILE = ROOT_DIR / "services" / "data" / "state.json"
+TOKEN_FILE = Path(LIVEKIT_SESSION_FILE)
+STATE_FILE = Path(_STATE_FILE)
 
 TOPIC_CHAT = "lk.chat"
 TOPIC_DEBUG = "pepper.debug"

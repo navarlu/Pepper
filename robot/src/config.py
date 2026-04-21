@@ -159,7 +159,11 @@ USER_CLIENT_TEST_MODE = _env_str("USER_CLIENT_TEST_MODE", "publish")
 
 # PCM forwarding from listener -> Pepper audio server.
 ALLOWED_STREAM_RATES = {16000, 22050, 44100, 48000}
-PEPPER_STREAM_RATE = _env_int("PEPPER_STREAM_RATE", 16000)
+_raw_stream_rate = _env_int("PEPPER_STREAM_RATE", 16000)
+if _raw_stream_rate not in ALLOWED_STREAM_RATES:
+    print("[config] Unsupported PEPPER_STREAM_RATE=%s, fallback to 16000" % _raw_stream_rate)
+    _raw_stream_rate = 16000
+PEPPER_STREAM_RATE = _raw_stream_rate
 PEPPER_STREAM_ATTENUATION = _env_float("PEPPER_STREAM_ATTENUATION", 0.4)
 BRIDGE_BIND_HOST = _env_str("BRIDGE_BIND_HOST", "0.0.0.0")
 TCP_HOST = _env_str("TCP_HOST", "127.0.0.1")
@@ -197,6 +201,17 @@ PEPPER_QI_URL = _env_str("PEPPER_QI_URL", "tcp://192.168.210.113:9559")
 # Bridge service lookup tuning.
 BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC = _env_float("BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC", 120.0)
 BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC = _env_float("BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC", 15.0)
+BRIDGE_CONNECT_POLL_INTERVAL_SEC = _env_float("BRIDGE_CONNECT_POLL_INTERVAL_SEC", 5.0)
+
+# Camera snapshot capture parameters (used by utils.capture_camera_snapshot,
+# exposed via POST /camera/snapshot on the bridge).
+CAMERA_SNAPSHOT_NAME = _env_str("CAMERA_SNAPSHOT_NAME", "kampion_look_around")
+CAMERA_SNAPSHOT_CAMERA_INDEX = _env_int("CAMERA_SNAPSHOT_CAMERA_INDEX", 0)   # 0=top, 1=bottom
+CAMERA_SNAPSHOT_RESOLUTION = _env_int("CAMERA_SNAPSHOT_RESOLUTION", 2)       # kVGA = 640x480
+CAMERA_SNAPSHOT_COLOR_SPACE = _env_int("CAMERA_SNAPSHOT_COLOR_SPACE", 11)    # kRGB (RGB888)
+CAMERA_SNAPSHOT_FPS = _env_int("CAMERA_SNAPSHOT_FPS", 10)
+CAMERA_SNAPSHOT_MAX_SIDE = _env_int("CAMERA_SNAPSHOT_MAX_SIDE", 768)
+CAMERA_SNAPSHOT_QUALITY = _env_int("CAMERA_SNAPSHOT_QUALITY", 82)
 
 # Animation key -> behavior path mapping JSON.
 ANIMATIONS_FILE = os.path.join(REPO_ROOT, "robot", "data", "animations.json")

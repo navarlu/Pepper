@@ -8,7 +8,8 @@ import wave
 import os
 import audioop
 
-from bridge import connect_session, DEFAULT_QI_URL, to_text
+from utils import connect_session, to_text
+from config import PEPPER_QI_URL as DEFAULT_QI_URL
 
 # WAV to play
 WAV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "hello.wav")

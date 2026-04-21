@@ -1,42 +1,42 @@
+"""User Client — publishes the RPi microphone into the LiveKit room.
+
+Runs on the host (needs ALSA access), connects as identity `user`,
+and publishes a single microphone track captured via `sounddevice`.
+Also listens on the `pepper.state` LiveKit data topic for soft
+mute/unmute commands from the orchestrator; muted frames are zeroed
+rather than disconnecting, so the user's room presence stays stable
+across mute toggles.
+
+Resilient reconnect: the `_room_monitor_loop` watches for token
+rotations (via the session snapshot), WebRTC state changes, and
+stuck-in-reconnecting timeouts — any of them forces a clean
+re-dispatch through `_run_once`.
+"""
+
+from __future__ import annotations
+
 import asyncio
 import contextlib
 import json
-import os
 import time
 from pathlib import Path
-from typing import Optional
 
 import numpy as np
 from dotenv import load_dotenv
 from livekit import rtc
 
-try:
-    from .config import (
-        LIVEKIT_SESSION_FILE,
-        SESSION_ACTIVITY_DEBOUNCE_SEC,
-        USER_IDENTITY,
-        USER_CLIENT_TEST_MODE,
-        USER_MIC_BLOCKSIZE,
-        USER_MIC_CHANNELS,
-        USER_MIC_DEVICE,
-        USER_MIC_RMS_THRESHOLD,
-        USER_MIC_SAMPLE_RATE,
-    )
-except ImportError:
-    from config import (
-        LIVEKIT_SESSION_FILE,
-        SESSION_ACTIVITY_DEBOUNCE_SEC,
-        USER_IDENTITY,
-        USER_CLIENT_TEST_MODE,
-        USER_MIC_BLOCKSIZE,
-        USER_MIC_CHANNELS,
-        USER_MIC_DEVICE,
-        USER_MIC_RMS_THRESHOLD,
-        USER_MIC_SAMPLE_RATE,
-    )
+from config import (
+    SESSION_ACTIVITY_DEBOUNCE_SEC,
+    USER_CLIENT_TEST_MODE,
+    USER_MIC_BLOCKSIZE,
+    USER_MIC_CHANNELS,
+    USER_MIC_DEVICE,
+    USER_MIC_RMS_THRESHOLD,
+    USER_MIC_SAMPLE_RATE,
+)
+from session import SessionWatcher
 
 ROOT_ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
-SESSION_FILE = Path(LIVEKIT_SESSION_FILE)
 TOPIC_CHAT = "lk.chat"
 
 
@@ -45,69 +45,26 @@ def _load_root_env() -> None:
         load_dotenv(dotenv_path=ROOT_ENV_PATH, override=True)
 
 
-class SessionSnapshot:
-    @staticmethod
-    def load_user_snapshot() -> Optional[dict]:
-        try:
-            payload = json.loads(SESSION_FILE.read_text(encoding="utf-8"))
-        except FileNotFoundError:
-            return None
-        except json.JSONDecodeError:
-            return None
-        user = payload.get("user") or {}
-        token = str(user.get("token") or "").strip()
-        ws_url = str(
-            payload.get("hostWsUrl")
-            or payload.get("wsUrl")
-            or payload.get("internalWsUrl")
-            or ""
-        ).strip()
-        room_name = str(payload.get("roomName") or "").strip()
-        if not (token and ws_url and room_name):
-            return None
-        return {
-            "token": token,
-            "wsUrl": ws_url,
-            "roomName": room_name,
-            "identity": str(user.get("identity") or USER_IDENTITY),
-            "generatedAt": str(payload.get("generatedAt") or "").strip(),
-        }
-
-    @staticmethod
-    async def wait_for_user_snapshot() -> dict:
-        missing_logged = False
-        invalid_logged = False
-        while True:
-            snapshot = SessionSnapshot.load_user_snapshot()
-            if snapshot:
-                print(
-                    "[user_client] session snapshot ready room={} wsUrl={} identity={} generatedAt={}".format(
-                        snapshot["roomName"],
-                        snapshot["wsUrl"],
-                        snapshot["identity"],
-                        snapshot.get("generatedAt") or "?",
-                    )
-                )
-                return snapshot
-            try:
-                SESSION_FILE.read_text(encoding="utf-8")
-            except FileNotFoundError:
-                if not missing_logged:
-                    print("[user_client] waiting for session snapshot {}".format(SESSION_FILE))
-                    missing_logged = True
-            except json.JSONDecodeError:
-                if not invalid_logged:
-                    print("[user_client] session snapshot invalid JSON, waiting for rewrite")
-                    invalid_logged = True
-            await asyncio.sleep(0.5)
-
-
 class UserAudioClient:
+    """Publishes the host microphone into the LiveKit room as `user`.
+
+    Orchestrated entirely by the session file: on every token rotation
+    or WebRTC disconnect we tear down and re-run `_run_once`. The
+    microphone stream itself uses `sounddevice` → async queue →
+    `rtc.AudioSource.capture_frame` so the audio callback never blocks
+    on I/O.
+
+    Mute is *soft*: `mic_muted=True` zeroes outgoing frame bytes rather
+    than disconnecting. That keeps the participant present in the room
+    (agent keeps its `participant_identity` binding) across toggles.
+    """
+
     def __init__(self) -> None:
         _load_root_env()
-        self.source: Optional[rtc.AudioSource] = None
-        self.room: Optional[rtc.Room] = None
-        self.audio_queue: Optional[asyncio.Queue[tuple[bytes, int, float]]] = None
+        self._token_watcher = SessionWatcher("user")
+        self.source: rtc.AudioSource | None = None
+        self.room: rtc.Room | None = None
+        self.audio_queue: asyncio.Queue[tuple[bytes, int, float]] | None = None
         self._last_activity_post_monotonic = 0.0
         self._frames_sent = 0
         self._last_audio_log_monotonic = 0.0
@@ -124,7 +81,7 @@ class UserAudioClient:
         self._connected_room_name = ""
         self._connected_identity = ""
 
-    def _connection_state_name(self, room: Optional[rtc.Room] = None) -> str:
+    def _connection_state_name(self, room: rtc.Room | None = None) -> str:
         target = room or self.room
         if target is None:
             return "detached"
@@ -349,7 +306,7 @@ class UserAudioClient:
     async def connect(self) -> None:
         if self.source is None:
             self._reset_runtime_state()
-        snapshot = await SessionSnapshot.wait_for_user_snapshot()
+        snapshot = await self._token_watcher.wait_for_initial_token()
         self._snapshot_signature = self._build_snapshot_signature(snapshot)
         await self._report_component_status(
             "connecting_livekit",
@@ -420,11 +377,11 @@ class UserAudioClient:
         )
 
     async def _room_monitor_loop(self) -> None:
-        _reconnecting_since: Optional[float] = None
+        _reconnecting_since: float | None = None
         RECONNECTING_TIMEOUT_SEC = 45.0
         while not self._reconnect_requested.is_set():
             await asyncio.sleep(1.0)
-            latest_snapshot = SessionSnapshot.load_user_snapshot()
+            latest_snapshot = self._token_watcher.latest_token_info()
             if latest_snapshot:
                 latest_signature = self._build_snapshot_signature(latest_snapshot)
                 if latest_signature != self._snapshot_signature:
@@ -561,7 +518,7 @@ class UserAudioClient:
             try:
                 await self._report_component_status(
                     "waiting_for_session",
-                    str(SESSION_FILE),
+                    "awaiting token snapshot",
                     healthy=False,
                 )
                 await self._run_once()

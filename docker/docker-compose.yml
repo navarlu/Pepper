@@ -96,7 +96,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "robot/utils/safe_startup_watchdog.py"]
+    command: ["uv", "run", "python", "robot/scripts/safe_startup_watchdog.py"]
     volumes:
       - ..:/workspace
       - /home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release:/opt/qi
@@ -140,7 +140,9 @@ services:
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      USER_MIC_DEVICE: "DJI"
     network_mode: host
+    pid: host
     restart: unless-stopped
 
   tablet-server:

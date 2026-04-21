@@ -4,19 +4,13 @@
 from __future__ import print_function
 
 from collections import deque
-import io
-import os
 import socket
 import struct
 import sys
-import audioop
 import time
 import threading
 import json
 
-# Self-built qi library for ARM64 — when running outside Docker,
-# set PYTHONPATH and LD_LIBRARY_PATH manually (see RPI_DEV.md)
-import qi
 from urllib.parse import quote, unquote, urlparse
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
@@ -28,7 +22,6 @@ except Exception:
     from queue import Queue, Empty, Full
 
 from config import (
-    ALLOWED_STREAM_RATES,
     ANIMATIONS_FILE,
     BRIDGE_BIND_HOST,
     BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC,
@@ -50,7 +43,6 @@ from config import (
     TABLET_DEFAULT_BG,
     TABLET_DEFAULT_FG,
     TABLET_DEFAULT_SIZE,
-    TABLET_DEBUG_AUDIO_ENABLED,
     TABLET_DEBUG_MAX_LINES,
     TABLET_DEBUG_MIN_INTERVAL_AUDIO,
     TABLET_CHAT_HISTORY_HTML_TEMPLATE,
@@ -58,145 +50,35 @@ from config import (
     TABLET_REPORTER_QUEUE_SIZE,
     TABLET_SPLIT_CHAT_HTML_TEMPLATE,
     TOUCH_AUTONOMOUS_LIFE,
-    TCP_HOST,
     TCP_PORT,
 )
-
-def _resolve_stream_rate():
-    raw = int(PEPPER_STREAM_RATE)
-    if raw not in ALLOWED_STREAM_RATES:
-        print("[pepper_audio] Unsupported PEPPER_STREAM_RATE=", raw, "fallback to 16000")
-        return 16000
-    return raw
-
-
-TARGET_RATE = _resolve_stream_rate()
-DEFAULT_QI_URL = PEPPER_QI_URL
-PEPPER_CHUNK_LIMIT = int(PEPPER_CHUNK_LIMIT_FRAMES)  # max frames for sendRemoteBufferToOutput
-DEFAULT_OUTPUT_VOLUME = int(PEPPER_OUTPUT_VOLUME)
-PLAYBACK_BATCH_FRAMES = int(PEPPER_PLAYBACK_BATCH_FRAMES)
-MAX_BUFFER_FRAMES = int(PEPPER_MAX_BUFFER_FRAMES)
-TABLET_DEBUG_MIN_INTERVAL = float(TABLET_DEBUG_MIN_INTERVAL_AUDIO)
-
-try:
-    text_type = unicode  # noqa: F821 (py2)
-except NameError:
-    text_type = str
-
-
-def to_text(x):
-    try:
-        if isinstance(x, bytes):
-            return x.decode("utf-8", "ignore")
-    except Exception:
-        pass
-    try:
-        return text_type(x)
-    except Exception:
-        return str(x)
-
-
-CONNECT_POLL_INTERVAL = 5.0  # seconds between retries when Pepper is offline
-
-
-def _pepper_reachable(host, port, timeout=3.0):
-    """Quick TCP probe — returns True if NAOqi port is open."""
-    try:
-        with socket.create_connection((host, int(port)), timeout=timeout):
-            return True
-    except (OSError, socket.timeout):
-        return False
-
-
-def _parse_qi_url(qi_url):
-    """Extract (host, port) from 'tcp://host:port'."""
-    addr = qi_url.replace("tcp://", "")
-    if ":" in addr:
-        host, port = addr.rsplit(":", 1)
-        return host, int(port)
-    return addr, 9559
-
-
-def connect_session(qi_url):
-    """Connect to Pepper, retrying with clean logs until she's reachable."""
-    host, port = _parse_qi_url(qi_url)
-
-    while True:
-        if not _pepper_reachable(host, port):
-            print("[bridge] Pepper unreachable at {}:{} — retrying in {}s".format(
-                host, port, int(CONNECT_POLL_INTERVAL)))
-            time.sleep(CONNECT_POLL_INTERVAL)
-            continue
-
-        try:
-            s = qi.Session()
-            s.connect(qi_url)
-            print("[bridge] connected to Pepper at", qi_url)
-            return s
-        except Exception as exc:
-            print("[bridge] qi.connect failed: {} — retrying in {}s".format(
-                to_text(exc), int(CONNECT_POLL_INTERVAL)))
-            time.sleep(CONNECT_POLL_INTERVAL)
-
-
-def wait_for_service(session, service_name, timeout_sec=90.0, retry_sec=1.0):
-    deadline = time.time() + float(timeout_sec)
-    last_err = None
-    while time.time() < deadline:
-        try:
-            svc = session.service(service_name)
-            print("[bridge] service ready:", service_name)
-            return svc
-        except Exception as exc:
-            last_err = exc
-            print(
-                "[bridge] waiting for service '{}'... {}".format(
-                    service_name, to_text(exc)
-                )
-            )
-            time.sleep(retry_sec)
-    raise RuntimeError(
-        "Timed out waiting for service '{}': {}".format(service_name, to_text(last_err))
-    )
-
-
-def load_animations_map(path):
-    try:
-        with open(path, "r") as f:
-            data = json.load(f) or {}
-        normalized = {}
-        for k, v in data.items():
-            key = to_text(k).strip()
-            val = to_text(v).strip()
-            if key and val:
-                normalized[key] = val
-        print("[bridge] loaded animations:", len(normalized), "from", path)
-        return normalized
-    except Exception as exc:
-        print("[bridge] failed to load animations map:", to_text(exc))
-        return {}
-
-
-def resolve_animation_name(name, animations_map, installed):
-    key = to_text(name).strip()
-    if not key:
-        return None
-    mapped = animations_map.get(key)
-    if mapped:
-        return mapped
-    if "/" in key:
-        return key
-    suffix = "/" + key
-    matches = [b for b in installed if b.endswith(suffix)]
-    if len(matches) == 1:
-        return matches[0]
-    if len(matches) > 1:
-        pref = [m for m in matches if m.startswith("animations/")]
-        return pref[0] if pref else matches[0]
-    return None
+from utils import (
+    CONTROL_FRAME_FLUSH,
+    CONTROL_FRAME_PING,
+    capture_camera_snapshot,
+    connect_session,
+    load_animations_map,
+    mono16_to_stereo16,
+    normalize_output_volume,
+    recv_all,
+    resolve_animation_name,
+    to_text,
+    wait_for_service,
+)
 
 
 class TabletDebugReporter(object):
+    """Background publisher that renders HTML payloads on Pepper's tablet.
+
+    Producers call `publish(...)` or `publish_payload(...)`; a worker
+    thread drains a bounded queue and calls `ALTabletService.showWebview`
+    with a `data:text/html` URL built from one of the templates in
+    `config.py` (inline text, split-chat debug view, chat history).
+    Rate-limited via `TABLET_DEBUG_MIN_INTERVAL_AUDIO` to avoid spamming the
+    tablet during audio streaming. `enabled=False` disables publishing
+    entirely — used in `main()` so `tablet_server.py` owns the screen.
+    """
+
     def __init__(self, enabled, tablet):
         self.enabled = enabled and (tablet is not None)
         self._tablet = tablet
@@ -221,10 +103,15 @@ class TabletDebugReporter(object):
             self._worker = None
 
     def publish(self, title, body="", force=False):
+        """Enqueue a simple centered-text screen (title + optional body).
+
+        Drops old entries to make room if the queue is full. Respects
+        `TABLET_DEBUG_MIN_INTERVAL_AUDIO` unless `force=True`.
+        """
         if not self.enabled:
             return
         now = time.time()
-        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL:
+        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL_AUDIO:
             return
         self._last_sent = now
         text = title.strip()
@@ -250,10 +137,15 @@ class TabletDebugReporter(object):
                 pass
     
     def publish_payload(self, payload, force=False):
+        """Enqueue a raw payload dict — used by the `/tablet/text_inline`
+        HTTP route so callers can drive the split-chat and chat-history
+        views directly. The payload `ui` key selects the template
+        rendered by `_post`.
+        """
         if not self.enabled or self._tablet is None:
             return
         now = time.time()
-        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL:
+        if (not force) and (now - self._last_sent) < TABLET_DEBUG_MIN_INTERVAL_AUDIO:
             return
         self._last_sent = now
         try:
@@ -399,74 +291,6 @@ class TabletDebugReporter(object):
                 pass
 
 
-CAMERA_SNAPSHOT_NAME = "kampion_look_around"
-CAMERA_SNAPSHOT_CAMERA_INDEX = 0     # 0=top, 1=bottom
-CAMERA_SNAPSHOT_RESOLUTION = 2       # kVGA = 640x480
-CAMERA_SNAPSHOT_COLOR_SPACE = 11     # kRGB (RGB888)
-CAMERA_SNAPSHOT_FPS = 10
-CAMERA_SNAPSHOT_MAX_SIDE = 768
-CAMERA_SNAPSHOT_QUALITY = 82
-
-
-def capture_camera_snapshot(video, awareness=None, pause_awareness=True):
-    """Grab one RGB frame from Pepper's top camera and return JPEG bytes.
-
-    If awareness is provided and pause_awareness is True, pauseAwareness()
-    is called around the capture and resumeAwareness() restores it. This
-    prevents motion-blur from the head drift during face tracking.
-    """
-    from PIL import Image  # lazy import so bridge can boot without Pillow
-
-    if video is None:
-        raise RuntimeError("ALVideoDevice unavailable")
-
-    paused = False
-    if awareness is not None and pause_awareness:
-        try:
-            awareness.pauseAwareness()
-            paused = True
-        except Exception as exc:
-            print("[camera] pauseAwareness warning:", to_text(exc))
-
-    handle = None
-    try:
-        handle = video.subscribeCamera(
-            CAMERA_SNAPSHOT_NAME,
-            CAMERA_SNAPSHOT_CAMERA_INDEX,
-            CAMERA_SNAPSHOT_RESOLUTION,
-            CAMERA_SNAPSHOT_COLOR_SPACE,
-            CAMERA_SNAPSHOT_FPS,
-        )
-        img = video.getImageRemote(handle)
-        if img is None:
-            raise RuntimeError("getImageRemote returned None")
-
-        width, height = img[0], img[1]
-        pil = Image.frombytes("RGB", (width, height), bytes(img[6]))
-        video.releaseImage(handle)
-
-        if CAMERA_SNAPSHOT_MAX_SIDE and max(width, height) > CAMERA_SNAPSHOT_MAX_SIDE:
-            pil.thumbnail(
-                (CAMERA_SNAPSHOT_MAX_SIDE, CAMERA_SNAPSHOT_MAX_SIDE),
-                Image.LANCZOS,
-            )
-
-        buf = io.BytesIO()
-        pil.save(buf, format="JPEG", quality=CAMERA_SNAPSHOT_QUALITY, optimize=True)
-        return buf.getvalue()
-    finally:
-        if handle is not None:
-            try:
-                video.unsubscribe(handle)
-            except Exception as exc:
-                print("[camera] unsubscribe warning:", to_text(exc))
-        if paused:
-            try:
-                awareness.resumeAwareness()
-            except Exception as exc:
-                print("[camera] resumeAwareness warning:", to_text(exc))
-
-
 class LedEffectManager(object):
     """Background thread that continuously asserts the preferred eye-LED
     state so the NAOqi mood painter (active during interactive life state)
@@ -528,6 +352,7 @@ class LedEffectManager(object):
         with self._lock:
             return self._mode
 
+    # region: led_worker_loop
     def _run(self):
         pulse_phase = 0
         while not self._stop.is_set():
@@ -552,9 +377,31 @@ class LedEffectManager(object):
                 print("[leds] tick failed mode={} err={}".format(mode, to_text(exc)))
                 if self._stop.wait(0.5):
                     break
+    # endregion
 
 
 class TabletOverlayHttpServer(threading.Thread):
+    """HTTP front door for every non-audio action the bridge exposes.
+
+    Runs in its own thread so the TCP audio loop in `main()` never
+    blocks on HTTP. Routes:
+      - GET  /health                 — liveness probe
+      - POST /animation/<name>       — resolve + run a NAOqi behavior
+                                       asynchronously (acks 200 immediately)
+      - POST /tablet/text_inline     — render a tablet screen via
+                                       `TabletDebugReporter`
+      - POST /tablet/url             — navigate the tablet to an arbitrary
+                                       URL (used by `tablet_server.py`)
+      - POST /leds/state             — set the eye-LED mode on the
+                                       `LedEffectManager`
+      - POST /audio/volume           — adjust `ALAudioDevice` output volume
+      - POST /camera/snapshot        — capture one JPEG from the top
+                                       camera (optionally pausing awareness)
+
+    All service proxies are optional — the server degrades cleanly
+    (503 / 500) if a service was not available at startup.
+    """
+
     def __init__(
         self,
         bridge_url,
@@ -742,7 +589,7 @@ class TabletOverlayHttpServer(threading.Thread):
                         self._write_json(400, {"ok": False, "error": "invalid json"})
                         return
                     try:
-                        requested_volume = _normalize_output_volume(payload.get("volume"))
+                        requested_volume = normalize_output_volume(payload.get("volume"))
                     except Exception:
                         self._write_json(400, {"ok": False, "error": "volume must be an integer 0-100"})
                         return
@@ -785,6 +632,7 @@ class TabletOverlayHttpServer(threading.Thread):
                         )
                         return
 
+                    # region: animation_background
                     def _run_animation_bg(behavior_local, name_local):
                         try:
                             if life is not None and TOUCH_AUTONOMOUS_LIFE:
@@ -826,6 +674,7 @@ class TabletOverlayHttpServer(threading.Thread):
                                         print("[animation] unmute warning:", to_text(unmute_exc))
                         except Exception as bg_exc:
                             print("[animation] failed:", name_local, to_text(bg_exc))
+                    # endregion
 
                     worker = threading.Thread(
                         target=_run_animation_bg,
@@ -943,42 +792,29 @@ class TabletOverlayHttpServer(threading.Thread):
                 pass
 
 
-def recv_all(conn, size):
-    """Receive exactly size bytes from conn or None on EOF."""
-    chunks = []
-    remaining = size
-    while remaining > 0:
-        chunk = conn.recv(remaining)
-        if not chunk:
-            return None
-        chunks.append(chunk)
-        remaining -= len(chunk)
-    return b"".join(chunks)
-
-
-CONTROL_FRAME_FLUSH = 0
-CONTROL_FRAME_PING = 4294967295
-
-
-def mono16_to_stereo16(raw_mono):
-    """
-    raw_mono: bytes, int16 mono.
-    Return bytes, int16 stereo interleaved (L,R,L,R,...).
-    """
-    # Use C-optimized conversion to avoid Python-loop jitter.
-    return audioop.tostereo(raw_mono, 2, 1, 1)
-
-
-def _normalize_output_volume(raw_value):
-    volume = int(raw_value)
-    if volume < 0:
-        return 0
-    if volume > 100:
-        return 100
-    return volume
-
 def main():
-    qi_url = PEPPER_QI_URL or DEFAULT_QI_URL
+    """Bridge entry point.
+
+    Startup sequence:
+      1. Connect to Pepper via `qi.Session` (blocks until reachable).
+      2. Resolve NAOqi services — `ALAudioDevice` is required; the
+         rest (`ALBehaviorManager`, `ALAnimationPlayer`,
+         `ALAutonomousLife`, `ALAudioPlayer`, `ALTextToSpeech`,
+         `ALLeds`, `ALVideoDevice`, `ALBasicAwareness`,
+         `ALTabletService`) are best-effort.
+      3. Apply the autonomous-life ability profile from config.
+      4. Configure audio: open outputs, set output sample rate,
+         set default volume, compute playback batch + buffer sizes.
+      5. Start auxiliary threads: `LedEffectManager`,
+         `TabletDebugReporter`, `TabletOverlayHttpServer` (HTTP).
+      6. Bind the TCP audio socket on `BRIDGE_BIND_HOST:TCP_PORT` and
+         loop forever, accepting one `audio-bridge` client at a time
+         and streaming its mono PCM into Pepper's speakers.
+
+    The outer loop never exits on client disconnect — it just waits
+    for the next client.
+    """
+    qi_url = PEPPER_QI_URL
     print("[pepper_audio] Python version:", sys.version)
     print("[pepper_audio] Connecting to Pepper:", qi_url)
 
@@ -1105,7 +941,7 @@ def main():
         led_manager.start()
     tablet.publish(
         "Pepper audio server starting",
-        "qi={}\nrate={}".format(qi_url, TARGET_RATE),
+        "qi={}\nrate={}".format(qi_url, PEPPER_STREAM_RATE),
         force=True,
     )
 
@@ -1115,28 +951,28 @@ def main():
         print("[pepper_audio] openAudioOutputs warning:", to_text(e))
 
     try:
-        audio.setParameter("outputSampleRate", TARGET_RATE)
-        print("[pepper_audio] set outputSampleRate to", TARGET_RATE)
+        audio.setParameter("outputSampleRate", PEPPER_STREAM_RATE)
+        print("[pepper_audio] set outputSampleRate to", PEPPER_STREAM_RATE)
     except Exception as e:
         print("[pepper_audio] setParameter warning:", to_text(e))
 
     try:
-        audio.setOutputVolume(DEFAULT_OUTPUT_VOLUME)
+        audio.setOutputVolume(PEPPER_OUTPUT_VOLUME)
         current_volume = audio.getOutputVolume()
         print("[pepper_audio] output volume set to", current_volume)
     except Exception as e:
         print("[pepper_audio] setOutputVolume warning:", to_text(e))
 
-    if PLAYBACK_BATCH_FRAMES > PEPPER_CHUNK_LIMIT:
+    if PEPPER_PLAYBACK_BATCH_FRAMES > PEPPER_CHUNK_LIMIT_FRAMES:
         print(
-            "[pepper_audio] PLAYBACK_BATCH_FRAMES too high, clamping to",
-            PEPPER_CHUNK_LIMIT,
+            "[pepper_audio] PEPPER_PLAYBACK_BATCH_FRAMES too high, clamping to",
+            PEPPER_CHUNK_LIMIT_FRAMES,
         )
-    batch_frames = min(PLAYBACK_BATCH_FRAMES, PEPPER_CHUNK_LIMIT)
+    batch_frames = min(PEPPER_PLAYBACK_BATCH_FRAMES, PEPPER_CHUNK_LIMIT_FRAMES)
     batch_bytes = batch_frames * 4  # int16 stereo => 4 bytes per frame
-    max_buffer_frames = max(MAX_BUFFER_FRAMES, batch_frames)
+    max_buffer_frames = max(PEPPER_MAX_BUFFER_FRAMES, batch_frames)
     max_buffer_bytes = max_buffer_frames * 4
-    send_warn_threshold_ms = (float(batch_frames) / float(TARGET_RATE)) * 2000.0
+    send_warn_threshold_ms = (float(batch_frames) / float(PEPPER_STREAM_RATE)) * 2000.0
     print(
         "[pepper_audio] buffering:",
         "batch_frames=", batch_frames,
@@ -1178,6 +1014,7 @@ def main():
 
             try:
                 while True:
+                    # region: tcp_wire_decode
                     # Read 4-byte length header
                     header = recv_all(conn, 4)
                     if not header:
@@ -1204,6 +1041,7 @@ def main():
                     if size > 2 ** 20:
                         print("[pepper_audio] invalid size:", size)
                         break
+                    # endregion
 
                     # Read 'size' bytes of mono PCM
                     chunk = recv_all(conn, size)
@@ -1218,9 +1056,9 @@ def main():
                     stereo = mono16_to_stereo16(chunk)
 
                     nb_frames = len(stereo) // 4  # 2 channels * 2 bytes
-                    if nb_frames > PEPPER_CHUNK_LIMIT:
-                        stereo = stereo[:PEPPER_CHUNK_LIMIT * 4]
-                        nb_frames = PEPPER_CHUNK_LIMIT
+                    if nb_frames > PEPPER_CHUNK_LIMIT_FRAMES:
+                        stereo = stereo[:PEPPER_CHUNK_LIMIT_FRAMES * 4]
+                        nb_frames = PEPPER_CHUNK_LIMIT_FRAMES
 
                     stereo_queue.append(stereo)
                     queued_bytes += len(stereo)
@@ -1229,6 +1067,7 @@ def main():
                     if recv_interval_ms > max_recv_interval_ms:
                         max_recv_interval_ms = recv_interval_ms
 
+                    # region: tcp_playback_drain
                     if queued_bytes > max_buffer_bytes:
                         overflow_bytes = queued_bytes - max_buffer_bytes
                         dropped_bytes = 0
@@ -1277,6 +1116,7 @@ def main():
                         payload = b"".join(parts)
                         send_start_ts = time.time()
                         audio.sendRemoteBufferToOutput(batch_frames, payload)
+                    # endregion
                         send_duration_ms = (time.time() - send_start_ts) * 1000.0
                         send_calls_total += 1
                         frames_sent_total += batch_frames

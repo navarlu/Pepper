@@ -7,71 +7,58 @@ unavailable. Logs a warning and retries the TCP connection periodically.
 Audio frames are silently dropped while the bridge is disconnected.
 """
 
+from __future__ import annotations
+
 import asyncio
 import audioop
 import contextlib
-import json
 import socket
 import time
-from typing import Optional
 
 from livekit import rtc
 
-try:
-    from .config import (
-        AGENT_TRACK_IDENTITY,
-        ALLOWED_STREAM_RATES,
-        LISTENER_IDENTITY,
-        LIVEKIT_URL,
-        PEPPER_STREAM_ATTENUATION,
-        PEPPER_STREAM_RATE,
-        TCP_HOST,
-        TCP_PORT,
-        TOKEN_POLL_INTERVAL,
-    )
-    from .shared import AgentActivityReporter, SessionWatcher, post_debug_event
-except ImportError:
-    from config import (
-        AGENT_TRACK_IDENTITY,
-        ALLOWED_STREAM_RATES,
-        LISTENER_IDENTITY,
-        LIVEKIT_URL,
-        PEPPER_STREAM_ATTENUATION,
-        PEPPER_STREAM_RATE,
-        TCP_HOST,
-        TCP_PORT,
-        TOKEN_POLL_INTERVAL,
-    )
-    from shared import AgentActivityReporter, SessionWatcher, post_debug_event
+from config import (
+    AGENT_TRACK_IDENTITY,
+    LISTENER_IDENTITY,
+    LIVEKIT_URL,
+    PEPPER_STREAM_ATTENUATION,
+    PEPPER_STREAM_RATE,
+    TCP_HOST,
+    TCP_PORT,
+    TOKEN_POLL_INTERVAL,
+)
+from session import SessionWatcher, post_debug_event
 
-
-def _resolve_stream_rate() -> int:
-    raw = int(PEPPER_STREAM_RATE)
-    if raw not in ALLOWED_STREAM_RATES:
-        print(f"[audio-bridge] Unsupported PEPPER_STREAM_RATE={raw}, fallback to 16000")
-        return 16000
-    return raw
-
-
-TARGET_RATE = _resolve_stream_rate()
-ATTENUATION = PEPPER_STREAM_ATTENUATION
+# PEPPER_STREAM_RATE is already validated against ALLOWED_STREAM_RATES by config.py.
 BRIDGE_RETRY_SEC = 5
 
 
 class AudioBridge:
+    """Joins LiveKit as the `listener`, forwards the agent's audio to
+    the robot bridge over a long-lived TCP connection.
+
+    Non-blocking on every axis:
+      - The TCP bridge connection retries in the background; LiveKit
+        streams keep running even when the bridge is offline (frames
+        are silently dropped).
+      - Token rotations from the orchestrator are picked up via
+        `SessionWatcher` and trigger a clean room reconnect.
+      - Multiple concurrent agent streams are coalesced so only one
+        feeds the bridge at a time (old streams cancelled on new one).
+    """
+
     def __init__(self):
         self.livekit_url = LIVEKIT_URL
         self.token_watcher = SessionWatcher("listener", TOKEN_POLL_INTERVAL)
         self.target_identity = AGENT_TRACK_IDENTITY or None
         self.explicit_target_identity = bool(self.target_identity)
-        self.tcp_socket: Optional[socket.socket] = None
-        self.room: Optional[rtc.Room] = None
+        self.tcp_socket: socket.socket | None = None
+        self.room: rtc.Room | None = None
         self._connect_lock = asyncio.Lock()
         self._socket_send_lock = asyncio.Lock()
-        self._watch_task: Optional[asyncio.Task] = None
+        self._watch_task: asyncio.Task | None = None
         self._active_stream_keys: set[str] = set()
         self._stream_tasks: dict[str, asyncio.Task] = {}
-        self._activity = AgentActivityReporter()
         self._bridge_warn_logged = False
 
     # ── TCP bridge (non-blocking) ──
@@ -152,7 +139,7 @@ class AudioBridge:
             return True, "agent_like_fallback"
         return False, "not_agent_like"
 
-    async def _cancel_existing_streams(self, reason: str, keep_key: Optional[str] = None) -> None:
+    async def _cancel_existing_streams(self, reason: str, keep_key: str | None = None) -> None:
         tasks_to_cancel = [
             (k, t) for k, t in list(self._stream_tasks.items())
             if keep_key is None or k != keep_key
@@ -190,7 +177,7 @@ class AudioBridge:
 
             audio_stream = rtc.AudioStream.from_track(
                 track=track,
-                sample_rate=TARGET_RATE,
+                sample_rate=PEPPER_STREAM_RATE,
                 num_channels=1,
             )
 
@@ -198,7 +185,6 @@ class AudioBridge:
                 frame_count = 0
                 bytes_sent = 0
                 start_ts = time.monotonic()
-                last_heartbeat_ts = start_ts
                 try:
                     await self._cancel_existing_streams(reason="new_agent_stream", keep_key=stream_key)
                     async for event in audio_stream:
@@ -215,30 +201,19 @@ class AudioBridge:
                             continue
 
                         sampwidth = 2
-                        mono = audioop.mul(raw, sampwidth, ATTENUATION)
+                        mono = audioop.mul(raw, sampwidth, PEPPER_STREAM_ATTENUATION)
                         size_bytes = len(mono).to_bytes(4, "big")
 
                         frame_count += 1
                         bytes_sent += len(mono)
 
-                        if (time.monotonic() - last_heartbeat_ts) >= 8.0:
-                            last_heartbeat_ts = time.monotonic()
-
                         if frame_count == 1:
                             print(f"[audio-bridge] First audio frame from '{participant_identity}' ({len(mono)} bytes)")
-                            self._activity.report()
                             post_debug_event("agent_speaking", active=True)
                         elif frame_count % 200 == 0:
                             elapsed = max(1e-6, time.monotonic() - start_ts)
                             kbps = (bytes_sent * 8.0 / 1000.0) / elapsed
                             print(f"[audio-bridge] heartbeat key={stream_key} frames={frame_count} kbps={kbps:.1f}")
-                            self._activity.report()
-
-                        try:
-                            rms = audioop.rms(mono, 2) / 32768.0
-                        except Exception:
-                            rms = 0.0
-                        post_debug_event("agent_level", level=rms)
 
                         try:
                             async with self._socket_send_lock:
@@ -264,9 +239,9 @@ class AudioBridge:
     async def _connect_room(
         self,
         token: str,
-        room_name: Optional[str],
-        ws_url: Optional[str] = None,
-        target_identity: Optional[str] = None,
+        room_name: str | None,
+        ws_url: str | None = None,
+        target_identity: str | None = None,
     ) -> None:
         async with self._connect_lock:
             current_token = token

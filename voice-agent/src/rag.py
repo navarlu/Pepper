@@ -1,3 +1,14 @@
+"""Weaviate RAG client for the FEL knowledge base.
+
+The `query_search` tool calls `search_vectors()` to do a hybrid
+(vector + BM25) lookup over the `WEAVIATE_COLLECTION` collection.
+On first run (empty collection) `seed_collection()` ingests the
+`.txt` files under `SEED_DATA_PATHS` so the agent has something to
+retrieve. Vectors are produced server-side by Weaviate's
+`text2vec-openai` module using the embedding model configured in
+`voice-agent/src/config.py`.
+"""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -25,6 +36,10 @@ from .config import (
 
 
 def connect_weaviate():
+    """Open a Weaviate client using the host/ports from config.
+
+    Caller is responsible for closing it — use as `with connect_weaviate() as client`.
+    """
     return weaviate.connect_to_local(
         host=WEAVIATE_HOST,
         port=WEAVIATE_HTTP_PORT,
@@ -41,6 +56,11 @@ def _get_vector_config():
 
 
 def ensure_collection(client) -> bool:
+    """Create `WEAVIATE_COLLECTION` with the doc schema if missing.
+
+    Returns True if the collection was just created (caller should
+    seed it), False if it already existed.
+    """
     if client.collections.exists(WEAVIATE_COLLECTION):
         return False
 
@@ -82,6 +102,11 @@ def _iter_seed_texts(paths: list[Path]) -> list[dict[str, str]]:
 
 
 def seed_collection(client) -> None:
+    """Create the collection + ingest every `.txt` under `SEED_DATA_PATHS`.
+
+    No-op if the collection already exists — seeding only runs on
+    first boot (or after wiping the Weaviate volume).
+    """
     created = ensure_collection(client)
     if not created:
         return
@@ -131,6 +156,13 @@ def _format_results(response) -> list[dict[str, Any]]:
 
 
 def search_vectors(query: str, limit: int = 5, alpha: float | None = None) -> list[dict[str, Any]]:
+    """Run a hybrid search against the knowledge base.
+
+    `alpha` is the vector-vs-keyword balance (0 = pure BM25, 1 = pure
+    vector). Defaults to `WEAVIATE_HYBRID_ALPHA` from config. Returns
+    a list of result dicts with id/title/content/source/created_at/
+    distance/score.
+    """
     effective_alpha = alpha if alpha is not None else WEAVIATE_HYBRID_ALPHA
     with connect_weaviate() as client:
         ensure_collection(client)

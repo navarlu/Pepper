@@ -1,3 +1,21 @@
+"""Local STT (Faster-Whisper) and TTS (Piper) adapters for LiveKit.
+
+Two LiveKit plugin classes used only by `_build_local_session()` in
+`agent.py`:
+
+  - `FasterWhisperSTT` — wraps the `faster_whisper.WhisperModel` into
+    the `livekit.agents.stt.STT` interface. One-shot recognition
+    (no streaming), 16 kHz mono, VAD-filtered.
+  - `PiperTTS` — wraps `piper.PiperVoice` into `livekit.agents.tts.TTS`.
+    Chunked synthesis, native sample rate from the ONNX model.
+
+Both report per-call timing via the optional `on_metrics` callback so
+the agent's pipeline view (`[PIPE] stage=stt ...`) shows real
+latencies.
+"""
+
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
@@ -5,7 +23,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from faster_whisper import WhisperModel
@@ -32,6 +50,14 @@ logger = logging.getLogger("voice-agent")
 
 
 class FasterWhisperSTT(stt.STT):
+    """Faster-Whisper ONNX inference wrapped as a LiveKit `STT` plugin.
+
+    Non-streaming: the agent's VAD chops user speech into utterances,
+    hands each as a batched `AudioFrame` list, and we run one
+    Whisper pass. Short quiet buffers are filtered via an RMS
+    threshold (`min_energy`) to kill obvious mic-bleed hallucinations.
+    """
+
     def __init__(
         self,
         *,
@@ -73,7 +99,7 @@ class FasterWhisperSTT(stt.STT):
     def _recognize_sync(
         self,
         audio_16k: np.ndarray,
-        language: Optional[str],
+        language: str | None,
     ) -> tuple[str, str]:
         segments, info = self._model.transcribe(
             audio_16k,
@@ -87,6 +113,7 @@ class FasterWhisperSTT(stt.STT):
         detected_language = info.language or (language or self._language)
         return text, detected_language
 
+    # region: whisper_recognize
     async def _recognize_impl(
         self,
         buffer: rtc.AudioFrame | list[rtc.AudioFrame],
@@ -104,7 +131,7 @@ class FasterWhisperSTT(stt.STT):
         audio_16k = _resample_audio(audio, src_rate=frame.sample_rate, dst_rate=16000)
         audio_duration_ms = round(len(audio_16k) / 16000.0 * 1000, 1)
 
-        requested_language: Optional[str] = None
+        requested_language: str | None = None
         if language is not NOT_GIVEN:
             requested_language = language
         elif self._language:
@@ -123,6 +150,7 @@ class FasterWhisperSTT(stt.STT):
         if rms < self._min_energy:
             logger.info("stt_filtered reason=low_energy rms=%.4f text=%s", rms, text[:60])
             text = ""
+    # endregion
 
         logger.info("stt_done duration_ms=%.1f audio_duration_ms=%.1f rms=%.4f text=%s", duration_ms, audio_duration_ms, rms, text[:80])
 
@@ -214,6 +242,14 @@ class PiperChunkedStream(tts.ChunkedStream):
 
 
 class PiperTTS(tts.TTS):
+    """Piper (rhasspy/piper) ONNX voice wrapped as a LiveKit `TTS` plugin.
+
+    Non-streaming: one synthesis pass per utterance, 16-bit PCM
+    chunks pushed to the framework's audio emitter. The model file is
+    resolved at construction time; a missing file raises rather than
+    silently failing later.
+    """
+
     def __init__(
         self,
         *,

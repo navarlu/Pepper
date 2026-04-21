@@ -27,7 +27,7 @@ Grounding: these services are *already wired up* in the bridge and safe-startup.
 | `ALAnimationPlayer` / `ALBehaviorManager` | [robot/src/bridge.py](../robot/src/bridge.py) `POST /animation/{name}` | Runs animations (with animations.json name mapping) |
 | `ALTabletService` | [robot/src/bridge.py](../robot/src/bridge.py) `POST /tablet/url`, `POST /tablet/text_inline` | `showWebview` for URLs/HTML; HTML templates in [config.py](../robot/src/config.py) |
 | `ALAutonomousLife` | [robot/src/bridge.py](../robot/src/bridge.py) | Read-only by default (`TOUCH_AUTONOMOUS_LIFE=False`); abilities profile only applied when opted in |
-| `ALMotion` / `ALRobotPosture` / `ALDiagnosis` | [robot/utils/safe_startup.py](../robot/utils/safe_startup.py) | `wakeUp` → `StandInit` → diagnosis dump |
+| `ALMotion` / `ALRobotPosture` / `ALDiagnosis` | [robot/scripts/safe_startup.py](../robot/scripts/safe_startup.py) | `wakeUp` → `StandInit` → diagnosis dump |
 
 Not currently used, but documented here because they're the next step: **ALVideoDevice, ALPhotoCapture, ALAudioRecorder, ALLeds, ALBasicAwareness, ALFaceDetection, ALTracker, ALMemory, ALTouch, ALAnimatedSpeech**.
 

@@ -35,7 +35,7 @@ Entry point: [voice-agent/src/agent.py](voice-agent/src/agent.py) — connects t
 | Component | File | Role |
 |---|---|---|
 | **Bridge** | [robot/src/bridge.py](robot/src/bridge.py) | Python 3 HTTP server on host network. Receives PCM audio via TCP from the audio-bridge and plays it on Pepper via `qi`. Exposes `/animation/<name>`, `/tablet/...` HTTP endpoints. |
-| **Safe Startup** | [robot/utils/safe_startup_watchdog.py](robot/utils/safe_startup_watchdog.py) | Watchdog that ensures Pepper is reachable (NAOqi up + ALMotion ready) before accepting interactions. |
+| **Safe Startup** | [robot/scripts/safe_startup_watchdog.py](robot/scripts/safe_startup_watchdog.py) | Watchdog that ensures Pepper is reachable (NAOqi up + ALMotion ready) before accepting interactions. |
 
 ### Services (`services/src/`)
 

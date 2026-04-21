@@ -49,7 +49,7 @@ python -m voice-agent.src.agent dev
 ## safe_startup_example:
 
 ```text
-lucas@lucas-rpi-5-8gb:~/Projects/FEL/Pepper$ uv run python robot/utils/safe_startup.py 
+lucas@lucas-rpi-5-8gb:~/Projects/FEL/Pepper$ uv run python robot/scripts/safe_startup.py 
 Safe startup 3 staring...
 [info] no URL provided, waiting for Pepper to appear on the network...
 [info] (you can power on Pepper now — this will keep retrying)

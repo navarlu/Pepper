@@ -16,32 +16,28 @@ Chat history clears automatically on ``pepper.debug`` ``session_reset``
 No server, no bidirectional comms — the tablet is a pure display.
 """
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import contextlib
 import html as html_module
 import json
-import os
 from pathlib import Path
-from typing import Optional
 from urllib.parse import quote
 
 import aiohttp
 from livekit import rtc
 
-try:
-    from .shared import SessionWatcher
-except ImportError:
-    from shared import SessionWatcher
+from config import BRIDGE_URL as _BRIDGE_URL
+from config import LIVEKIT_URL as _LIVEKIT_URL
+from config import STATE_FILE as _STATE_FILE
+from session import SessionWatcher
 
-
-# ── Config ──────────────────────────────────────────────────────────────────
-
-ROOT_DIR = Path(__file__).resolve().parents[2]
-STATE_FILE = ROOT_DIR / "services" / "data" / "state.json"
-
-BRIDGE_URL = os.getenv("BRIDGE_URL", "http://127.0.0.1:5000").strip().rstrip("/")
-LIVEKIT_URL_DEFAULT = os.getenv("LIVEKIT_URL", "ws://127.0.0.1:7880").strip()
+# Constants local to this module (tabled-display specific).
+BRIDGE_URL = _BRIDGE_URL.rstrip("/")
+LIVEKIT_URL_DEFAULT = _LIVEKIT_URL
+STATE_FILE = Path(_STATE_FILE)
 
 # Keep the chat window tight — data URLs grow linearly and Pepper's tablet
 # browser gets sluggish past ~30 KB of HTML.
@@ -165,7 +161,7 @@ def _truncate(text: str, n: int) -> str:
 class TabletDisplay:
     def __init__(self) -> None:
         self._watcher = SessionWatcher("tablet")
-        self._room: Optional[rtc.Room] = None
+        self._room: rtc.Room | None = None
         self._room_lock = asyncio.Lock()
         self._livekit_url = LIVEKIT_URL_DEFAULT
         self._chat: collections.deque = collections.deque(maxlen=MAX_CHAT_ENTRIES)
@@ -176,8 +172,8 @@ class TabletDisplay:
             "room_name": None,
         }
         self._dirty = asyncio.Event()
-        self._http: Optional[aiohttp.ClientSession] = None
-        self._last_posted_hash: Optional[int] = None
+        self._http: aiohttp.ClientSession | None = None
+        self._last_posted_hash: int | None = None
 
         # Prime state from disk so the first render has pills ready.
         file_state = _read_state_file()

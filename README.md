@@ -145,8 +145,15 @@ voice-agent/
   models/piper/         # Piper TTS ONNX model
 
 robot/
-  src/bridge.py         # Pepper HTTP bridge (animations, tablet, audio)
-  utils/                # safe_startup_watchdog, discovery
+  src/
+    bridge.py           # Pepper HTTP bridge (animations, tablet, audio)
+    utils.py            # Pure helpers imported by bridge.py
+    config.py           # Env-backed tunables for bridge + scripts
+  scripts/              # Standalone entry points (not a library)
+    safe_startup_watchdog.py  # Docker `safe-startup` service
+    safe_startup.py           # wakeUp + StandInit bootstrap (Pepper discovery)
+    capabilities.py           # One-shot NAOqi service/behavior dump
+    generate_animations_config.py  # Rebuild animations.json from a dump
 
 services/
   src/
