@@ -308,6 +308,13 @@ async def _init_weaviate() -> None:
 
 
 def _get_agent_instructions(agent_mode: str) -> str:
+    # Student-lab override: if student_bundle supplies a SYSTEM_PROMPT,
+    # use it for both modes. Empty bundle falls through to defaults.
+    from .student_loader import get_student_system_prompt
+    student_prompt = get_student_system_prompt()
+    if student_prompt:
+        logger.info("using_student_system_prompt length=%d", len(student_prompt))
+        return student_prompt
     if agent_mode == "local":
         return LOCAL_SYSTEM_PROMPT
     return OPENAI_SYSTEM_PROMPT

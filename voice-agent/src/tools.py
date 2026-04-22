@@ -452,6 +452,10 @@ def build_tools(agent_mode: str) -> list[Any]:
     if ENABLE_LOOK_AROUND_TOOL:
         tools.append(look_around)
 
+    # Student-lab tools from student_bundle.TOOLS. Empty bundle = no-op.
+    from .student_loader import build_student_tools
+    tools.extend(build_student_tools())
+
     logger.info(
         "build_tools version=%s agent_mode=%s tool_count=%d names=%s",
         AGENT_VERSION, agent_mode, len(tools),
