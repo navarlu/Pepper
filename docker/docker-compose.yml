@@ -85,6 +85,8 @@ services:
       PYTHONPATH: /opt/qi
       LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
       PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+      PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-30}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-30}
       BRIDGE_BIND_HOST: "0.0.0.0"
       TCP_PORT: "55555"
       BRIDGE_URL: http://0.0.0.0:5000
@@ -106,6 +108,7 @@ services:
       PYTHONPATH: /opt/qi
       LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
       PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-30}
     network_mode: host
     restart: unless-stopped
 
@@ -143,6 +146,7 @@ services:
       USER_MIC_DEVICE: "DJI"
     network_mode: host
     pid: host
+    privileged: true
     restart: unless-stopped
 
   tablet-server:

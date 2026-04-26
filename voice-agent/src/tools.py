@@ -42,12 +42,14 @@ from .config import (
     ANIMATION_TOOL_MAX_NAME_CHARS,
     ENABLE_ANIMATION_TOOL,
     ENABLE_LOOK_AROUND_TOOL,
+    ENABLE_LOOKUP_PERSON_TOOL,
     ENABLE_QUERY_SEARCH,
     QUERY_SEARCH_DEFAULT_LIMIT,
     WEAVIATE_HYBRID_ALPHA,
 )
 from .rag import search_vectors
 from .rooms import try_room_lookup
+from .udb import NotOnCzvutNetworkError, lookup_person as udb_lookup_person
 
 logger = logging.getLogger("voice-agent")
 
@@ -182,7 +184,7 @@ def build_tools(agent_mode: str) -> list[Any]:
         context: RunContext,
         query: str,
     ) -> str:
-        """Search the FEL knowledge base. Also returns room locations and directions."""
+        """Search the FEE base. Also returns room locations and directions."""
         del context
 
         if not ENABLE_QUERY_SEARCH:
@@ -308,17 +310,20 @@ def build_tools(agent_mode: str) -> list[Any]:
         duration_ms = (time.monotonic() - t0) * 1000
 
         if agent_mode == "local":
-            # Local mode: return None so the LiveKit SDK does NOT re-call the LLM.
-            # Qwen generates text + tool_call in the same response, so text is
-            # already being sent to TTS. Returning data here would trigger a
-            # second LLM call (livekit/agents#4554).
-            result_payload = {"body_state": "ready", "posture": resolved}
+            # Local mode (Qwen 2.5 7B + vLLM hermes): return data so the SDK
+            # re-calls the LLM, which then produces the spoken text in the
+            # second call. At temp=0.01 the model is deterministic enough to
+            # emit tool-only on call 1 and text-only on call 2 — no duplicate
+            # speech. Returning None here causes Qwen to skip text entirely
+            # for some turns (e.g. greetings → silent animation).
+            # Verified by voice-agent/tests/tool_multiturn_test.py (6/6 pass).
+            result_payload = {"ok": True, "pose": resolved}
             await asyncio.to_thread(
                 _post_tool_event, "play_animation",
                 {"animation": animation_name, "resolved": resolved},
                 result_payload, duration_ms,
             )
-            return None
+            return json.dumps(result_payload, ensure_ascii=False)
         else:
             result_payload = {
                 "ok": True,
@@ -350,17 +355,91 @@ def build_tools(agent_mode: str) -> list[Any]:
         del context
         return await _play_animation_impl(animation)
 
-    # Local mode: description framed as returning needed data (Qwen 7B needs this)
-    @function_tool(name="play_animation")
+    # Local mode: name MUST be "play_pose" + param "pose" — `play_animation`
+    # tokenization triggers Qwen 2.5 7B + vLLM hermes parser to leak
+    # <tool_call>/<|im_start|> tokens into text content (verified by
+    # tool_prompt_diff.py: D_play_animation_name 0/5 vs C_query_search_name 5/5).
+    @function_tool(name="play_pose")
     async def play_animation_local(
         context: RunContext,
-        animation: str,
+        pose: str,
     ) -> str:
-        """Check and set the robot body posture. Returns the current body state which you need before speaking. animation must be one of: greeting, bow, explain, happy, thinking, dont_know"""
+        """Set the robot body posture before speaking. pose must be one of: greeting, bow, explain, happy, thinking, dont_know"""
         del context
-        return await _play_animation_impl(animation)
+        return await _play_animation_impl(pose)
 
     play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
+
+    # Pepper-internal staff lookup (UDB scraper). Same registered name in
+    # both modes — the short `lookup_person` form was selected after a
+    # name-stability sweep against Qwen 2.5 7B + vLLM hermes parser; the
+    # verbose `lookup_fel_person` from the test_agent reproducibly leaks
+    # <tool_call>/<|im_start|> tokens in the 3-tool combo with
+    # query_search + play_pose. See voice-agent/tests/tool_lookup_name_search.py.
+    @function_tool(name="lookup_person")
+    async def lookup_person(
+        context: RunContext,
+        name: str,
+    ) -> str:
+        """Look up FEL staff contact info by surname or full name.
+
+        Returns name, email, phone, room, and department for every UDB
+        match. Pass the full surname (prefixes like 'Hoff' return nothing).
+        If multiple people share a surname, all of them come back — ask
+        the visitor for a first name or department before reading info.
+        """
+        del context
+        if not ENABLE_LOOKUP_PERSON_TOOL:
+            return json.dumps({"error": "lookup_person_disabled"}, ensure_ascii=False)
+
+        query = str(name or "").strip()
+        if not query:
+            return json.dumps(
+                {"error": "missing_name", "message": "name cannot be empty"},
+                ensure_ascii=False,
+            )
+
+        t0 = time.monotonic()
+        await asyncio.to_thread(_push_tool_transcript, f"lookup_person({query})")
+        try:
+            result = await asyncio.to_thread(udb_lookup_person, query)
+        except NotOnCzvutNetworkError as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
+            logger.warning("lookup_person_off_network name=%s err=%s", query, exc)
+            payload = {
+                "status": "error",
+                "error": "off_network",
+                "message": str(exc),
+            }
+            await asyncio.to_thread(
+                _post_tool_event, "lookup_person",
+                {"name": query}, payload, duration_ms, error="off_network",
+            )
+            return json.dumps(payload, ensure_ascii=False)
+        except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
+            logger.exception("lookup_person_failed name=%s", query)
+            payload = {
+                "status": "error",
+                "error": "fetch_failed",
+                "message": str(exc),
+            }
+            await asyncio.to_thread(
+                _post_tool_event, "lookup_person",
+                {"name": query}, payload, duration_ms, error=str(exc),
+            )
+            return json.dumps(payload, ensure_ascii=False)
+
+        duration_ms = (time.monotonic() - t0) * 1000
+        logger.info(
+            "lookup_person_done name=%s status=%s count=%s duration_ms=%.0f",
+            query, result.get("status"), result.get("count"), duration_ms,
+        )
+        await asyncio.to_thread(
+            _post_tool_event, "lookup_person",
+            {"name": query}, result, duration_ms,
+        )
+        return json.dumps(result, ensure_ascii=False)
 
     @function_tool
     async def look_around(
@@ -446,15 +525,12 @@ def build_tools(agent_mode: str) -> list[Any]:
             "details from the CAMERA VIEW above. Do not end the turn silent."
         )
 
-    # Unified 2-tool set for both modes. Room directions are handled inside
-    # query_search via rooms.try_room_lookup(), so a dedicated tool is not needed.
+    # Room directions are handled inside query_search via rooms.try_room_lookup().
     tools: list[Any] = [query_search, play_animation]
+    if ENABLE_LOOKUP_PERSON_TOOL:
+        tools.append(lookup_person)
     if ENABLE_LOOK_AROUND_TOOL:
         tools.append(look_around)
-
-    # Student-lab tools from student_bundle.TOOLS. Empty bundle = no-op.
-    from .student_loader import build_student_tools
-    tools.extend(build_student_tools())
 
     logger.info(
         "build_tools version=%s agent_mode=%s tool_count=%d names=%s",

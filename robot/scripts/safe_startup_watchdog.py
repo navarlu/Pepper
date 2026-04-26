@@ -38,6 +38,7 @@ SESSION_CONNECT_TIMEOUT_MS = 10_000
 SERVICE_WAIT_TIMEOUT_SEC = 90.0
 SERVICE_RETRY_SEC = 0.5
 SESSION_MANAGER_URL = os.environ.get("SESSION_MANAGER_URL", "").strip()
+SAFE_STARTUP_VOLUME = int(os.environ.get("PEPPER_SAFE_STARTUP_VOLUME", "30"))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -78,6 +79,10 @@ def safe(label: str, fn):
     except Exception as e:
         log.warning("[warn] %s failed: %s", label, e)
         return False, None
+
+
+def clamp_volume(value: int) -> int:
+    return max(0, min(100, int(value)))
 
 
 def report_watchdog(
@@ -146,16 +151,21 @@ def run_safe_startup(host: str, port: int) -> bool:
     log.info("connected, waiting for core services...")
 
     try:
+        audio = wait_service(session, "ALAudioDevice")
         motion = wait_service(session, "ALMotion")
         life = wait_service(session, "ALAutonomousLife")
         posture = wait_service(session, "ALRobotPosture")
-        diag = wait_service(session, "ALDiagnosis")
 
-        # 1) Disable diagnosis-effect reflex
+        # 1) Set speaker volume early so boot/recovery never comes up at 100.
+        safe(f"ALAudioDevice.setOutputVolume({clamp_volume(SAFE_STARTUP_VOLUME)})",
+             lambda: audio.setOutputVolume(clamp_volume(SAFE_STARTUP_VOLUME)))
+        safe("ALAudioDevice.getOutputVolume()", lambda: audio.getOutputVolume())
+
+        # 2) Disable diagnosis-effect reflex
         safe("ALMotion.setDiagnosisEffectEnabled(False)",
              lambda: motion.setDiagnosisEffectEnabled(False))
 
-        # 2) Disable Autonomous Life
+        # 3) Disable Autonomous Life
         safe("ALAutonomousLife.setState('disabled')",
              lambda: life.setState("disabled"))
 
@@ -164,14 +174,20 @@ def run_safe_startup(host: str, port: int) -> bool:
             safe(f"setAutonomousAbilityEnabled({a}, False)",
                  lambda aa=a: life.setAutonomousAbilityEnabled(aa, False))
 
-        # 3) Wake and stand
+        # 4) Wake and stand
         safe("ALMotion.wakeUp()", lambda: motion.wakeUp())
         safe("ALRobotPosture.goToPosture('StandInit', 0.6)",
              lambda: posture.goToPosture("StandInit", 0.6))
 
-        # 4) Print diagnosis summary
-        safe("ALDiagnosis.getPassiveDiagnosis()", lambda: diag.getPassiveDiagnosis())
-        safe("ALDiagnosis.getActiveDiagnosis()", lambda: diag.getActiveDiagnosis())
+        # 5) Print diagnosis summary, best-effort only. Diagnosis is useful
+        # for logs, but must not block the startup commands above when the
+        # robot is already unstable.
+        try:
+            diag = wait_service(session, "ALDiagnosis", timeout_sec=5.0)
+            safe("ALDiagnosis.getPassiveDiagnosis()", lambda: diag.getPassiveDiagnosis())
+            safe("ALDiagnosis.getActiveDiagnosis()", lambda: diag.getActiveDiagnosis())
+        except Exception as exc:
+            log.warning("[warn] ALDiagnosis unavailable after safe startup: %s", exc)
 
         log.info("safe startup complete for %s", url)
         session.close()

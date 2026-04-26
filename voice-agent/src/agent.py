@@ -278,14 +278,22 @@ def _build_local_session() -> AgentSession:
     history is sanitized before each request to vLLM — see
     `qwen_compat.py`.
     """
+    # Sampling tuned for Qwen 2.5 7B + vLLM hermes parser: see
+    # voice-agent/tests/tool_multiturn_test.py — temp=0.01 + top_p=0.8 +
+    # repetition_penalty=1.05 hit 6/6 in the multi-turn scenario test.
+    # Higher temps reintroduce <tool_call>/<|im_start|> leakage in text.
     local_llm = openai.LLM(
         model=LOCAL_LLM_MODEL,
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
-        temperature=0.1,
+        temperature=0.01,
+        top_p=0.8,
         parallel_tool_calls=False,
         _strict_tool_schema=False,
-        extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        extra_body={
+            "chat_template_kwargs": {"enable_thinking": False},
+            "repetition_penalty": 1.05,
+        },
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
     wrap_llm_chat_with_history_sanitizer(local_llm)
@@ -308,13 +316,6 @@ async def _init_weaviate() -> None:
 
 
 def _get_agent_instructions(agent_mode: str) -> str:
-    # Student-lab override: if student_bundle supplies a SYSTEM_PROMPT,
-    # use it for both modes. Empty bundle falls through to defaults.
-    from .student_loader import get_student_system_prompt
-    student_prompt = get_student_system_prompt()
-    if student_prompt:
-        logger.info("using_student_system_prompt length=%d", len(student_prompt))
-        return student_prompt
     if agent_mode == "local":
         return LOCAL_SYSTEM_PROMPT
     return OPENAI_SYSTEM_PROMPT

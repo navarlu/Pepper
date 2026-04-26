@@ -84,3 +84,7 @@ Bigger TTS and STT?
 REMOVING of the agents
 ADD 3 more animations
 READING NUMBER
+
+
+migrate to main
+migrate to eth

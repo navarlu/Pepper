@@ -90,11 +90,20 @@ Type `/help` inside the CLI to see this list at any time.
 | `/status`          | Snapshot of room id, current mode, your identity, all participants, whether `user` is connected, current mic state, and how old the orchestrator's token is. |
 | `/mode <openai\|local>` | Switch the agent mode by writing `services/src/orchestrator_config.json`. The orchestrator picks this up within ~3s, deletes the current room, creates a new one, and dispatches a warm agent of the new mode. **Note:** the room name changes — you'll need to `/quit` and re-launch the CLI to pick up the new tokens. |
 | `/mic <on\|off>`   | Soft mute/unmute of `user-client`'s mic. `off` makes it send silent frames; `on` re-enables mic capture. user-client stays connected to the room either way — no docker restart. |
+| `/volume <0-100>`  | Set Pepper's output volume through the bridge (`POST /audio/volume`). Example: `/volume 50`. |
 | `/reset`           | Tell the agent to clear its chat history. Same effect as the 60s idle timeout, but on demand. The agent stays warm — only the conversation context is wiped. |
 | `/quit`            | Disconnect and exit. `Ctrl-D` works too.                                       |
 
 Anything that doesn't start with `/` is sent to the agent as a chat
 message.
+
+The same volume control is available directly over HTTP:
+
+```bash
+curl -sS -X POST http://127.0.0.1:5000/audio/volume \
+  -H 'Content-Type: application/json' \
+  -d '{"volume":50}'
+```
 
 ---
 

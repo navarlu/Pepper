@@ -13,6 +13,7 @@ Slash commands (type / followed by command):
     /status            snapshot of room, mode, participants, mic state
     /mode <m>          switch agent mode (openai | local)
     /mic <on|off>      mute/unmute user-client's mic (soft, no disconnect)
+    /volume <0-100>    set Pepper speaker volume through the bridge
     /reset             clear agent's chat history
     /quit              exit (also: Ctrl-D)
 """
@@ -25,10 +26,12 @@ import shlex
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 from livekit import rtc
 
-from config import LIVEKIT_SESSION_FILE, STATE_FILE as _STATE_FILE
+from config import BRIDGE_URL, LIVEKIT_SESSION_FILE, STATE_FILE as _STATE_FILE
 
 # ── Paths & topics ──────────────────────────────────────────────────────────
 
@@ -128,6 +131,32 @@ def _format_age(iso_ts: str) -> str:
     return f"{secs // 3600}h{(secs % 3600) // 60}m ago"
 
 
+def _post_bridge_json(path: str, payload: dict, timeout: float = 3.0) -> tuple[int, dict]:
+    base = str(BRIDGE_URL or "").rstrip("/")
+    if not base:
+        raise RuntimeError("BRIDGE_URL is empty")
+    req = Request(
+        base + path,
+        data=json.dumps(payload).encode("utf-8"),
+        method="POST",
+    )
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=timeout) as response:
+            status = int(getattr(response, "status", response.getcode()))
+            raw = response.read()
+    except HTTPError as exc:
+        status = int(exc.code)
+        raw = exc.read()
+    except URLError as exc:
+        raise RuntimeError(f"bridge unreachable: {exc}") from exc
+    try:
+        body = json.loads(raw.decode("utf-8", "ignore") or "{}")
+    except json.JSONDecodeError:
+        body = {"raw": raw.decode("utf-8", "ignore")}
+    return status, body
+
+
 # ── Command handlers ────────────────────────────────────────────────────────
 
 class ChatSession:
@@ -216,6 +245,33 @@ class ChatSession:
         _write_state_file(dispatch_nonce=nonce)
         _print(f"  re-dispatch requested (nonce={nonce}) — orchestrator acts in ≤3s")
 
+    async def cmd_volume(self, args: list[str]) -> None:
+        if not args:
+            _print("Usage: /volume <0-100>")
+            return
+        try:
+            requested = int(args[0])
+        except ValueError:
+            _print("Usage: /volume <0-100>")
+            return
+        if requested < 0 or requested > 100:
+            _print("Usage: /volume <0-100>")
+            return
+        try:
+            status, body = await asyncio.to_thread(
+                _post_bridge_json,
+                "/audio/volume",
+                {"volume": requested},
+            )
+        except Exception as exc:
+            _print(f"  volume request failed: {exc}")
+            return
+        if 200 <= status < 300 and body.get("ok"):
+            _print(f"  volume set to {body.get('volume', requested)}")
+            return
+        error = body.get("error") or body
+        _print(f"  volume request failed: HTTP {status} {error}")
+
     async def cmd_quit(self, _args: list[str]) -> None:
         self._stop.set()
 
@@ -289,6 +345,7 @@ COMMANDS: dict[str, tuple] = {
     "mic":      (ChatSession.cmd_mic,      "<on|off> — soft mute/unmute user-client's mic"),
     "reset":    (ChatSession.cmd_reset,    "clear agent's chat history"),
     "dispatch": (ChatSession.cmd_dispatch, "re-dispatch the current mode's agent (fixes stale agent)"),
+    "volume":   (ChatSession.cmd_volume,   "<0-100> — set Pepper speaker volume via bridge"),
     "quit":     (ChatSession.cmd_quit,     "exit"),
 }
 

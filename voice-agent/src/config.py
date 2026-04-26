@@ -83,6 +83,13 @@ ENABLE_QUERY_SEARCH = True
 QUERY_SEARCH_DEFAULT_LIMIT = 5
 QUERY_SEARCH_MAX_LIMIT = 8
 
+# UDB staff-lookup tool — hits https://udb.fel.cvut.cz live for every call.
+# Registered name MUST stay `lookup_person` in local mode (Qwen 2.5 7B):
+# longer names like `lookup_fel_person` reproducibly leak <tool_call>
+# tokens through the hermes parser when combined with query_search and
+# play_pose. Validated by voice-agent/tests/tool_lookup_name_search.py.
+ENABLE_LOOKUP_PERSON_TOOL = True
+
 # Look-around vision tool — grabs a camera snapshot via the bridge and has a
 # dedicated small VL model describe it, returning plain text to the main LLM.
 # This avoids the chat-template tool-calling issues seen on Qwen2.5-VL main
@@ -197,6 +204,31 @@ _LOCAL_LOOK_AROUND_BLOCK = (
     "actually see and then offer to help further. "
 )
 
+_OPENAI_LOOKUP_BLOCK = """
+
+## Staff lookup (lookup_person)
+
+When a visitor names a member of FEL staff they want to see, call the
+`lookup_person` tool with that name. Pass a full surname — prefixes like
+"Hoff" return nothing, "Hoffmann" works. Diacritics do not matter.
+
+Rules:
+- If the tool returns count > 1, ask a disambiguating question (first
+  name, department, role) before reading any contact info. Never silently
+  pick the first match.
+- If a field (phone, email, room) is null, say so honestly instead of
+  inventing a fallback.
+- If status == "not_found", try once more with a plausible alternate
+  spelling (the visitor was transcribed by STT — common slips: missing
+  doubled letters, missing diacritics, "-ová" feminine suffix). If still
+  not found, ask the visitor to spell the surname.
+- If status == "error" with off_network, apologise that the staff
+  directory is unreachable and offer to take a message instead."""
+
+_LOCAL_LOOKUP_BLOCK = (
+    " When a visitor names a staff member, call lookup_person with that name."
+)
+
 OPENAI_SYSTEM_PROMPT = """
 {base}
 
@@ -217,19 +249,29 @@ Rules:
   positive or cheerful answer -> `happy`
   searching or considering -> `thinking`
   uncertainty or missing information -> `dont_know`
-- NEVER say tool names, tool arguments, bracketed action text, or stage directions aloud.{vision}
+- NEVER say tool names, tool arguments, bracketed action text, or stage directions aloud.{lookup}{vision}
 """.strip().format(
     base=BASE_SYSTEM_PROMPT,
+    lookup=_OPENAI_LOOKUP_BLOCK if ENABLE_LOOKUP_PERSON_TOOL else "",
     vision=_OPENAI_LOOK_AROUND_BLOCK if ENABLE_LOOK_AROUND_TOOL else "",
 )
 
 LOCAL_SYSTEM_PROMPT = (
-    "You are Pepper, a robot receptionist at CTU FEE Prague. "
-    "Speak briefly and politely in English. If the user prefers another language, switch to it. "
-    "Use query_search to find information — do not guess. "
-    "query_search also knows room locations and walking directions. "
-    "Call play_animation to check your body state before every reply. "
+    # Hermes parser on Qwen 2.5 7B is sensitive to:
+    #   1. tool name `play_animation` triggers <tool_call>/<|im_start|> leakage
+    #      -> use `play_pose` instead (registered name in tools.py)
+    #   2. tool name `lookup_fel_person` triggers same leakage in the
+    #      query_search + play_pose combo
+    #      -> use `lookup_person` instead (verified 0/17 leaks across
+    #         std/rich/ambig conversations in tool_lookup_name_search.py)
+    #   3. longer prompts cause leakage even with the right tool names
+    #      -> keep this minimal, imperative, single line, no backstory
+    # Verified 9/9 multi-turn pass + 0/9 leaks (see tool_prompt_diff.py P2).
+    "You are Pepper, a robot receptionist. "
+    "Always call query_search to look up facts before answering. "
+    "Always call play_pose before speaking. "
+    "Be brief and polite."
+    + (_LOCAL_LOOKUP_BLOCK if ENABLE_LOOKUP_PERSON_TOOL else "")
     + (_LOCAL_LOOK_AROUND_BLOCK if ENABLE_LOOK_AROUND_TOOL else "")
-    + "Never say tool names aloud."
 )
 

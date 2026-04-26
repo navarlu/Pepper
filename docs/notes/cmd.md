@@ -22,12 +22,31 @@ docker compose -f docker/docker-compose.yml restart orchestrator
 tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
 uv run python services/src/text_chat.py
 ```
-Switch agent mode (from inside the chat CLI):
-```
-/mode openai
-/mode local
-```
-Or directly write the config file:
+
 ```bash
-echo '{"agent_mode": "openai"}' > services/src/orchestrator_config.json
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
+
+# Inside tmux:
+cd /mnt/data_personal/navarlu2/work/Pepper
+source .venv3/bin/activate
+export PEPPER_AGENT_NAME=pepper-local
+export PEPPER_AGENT_MODE=local
+python -m voice-agent.src.agent dev
+```
+
+Detach without stopping: `Ctrl+B` then `D`.
+
+## 3. Start vLLM on woska (only for `local` mode)
+
+```bash
+ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
+
+
+## Starting the CLI
+
+```bash
+tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
+uv run python services/src/text_chat.py
 ```
