@@ -41,8 +41,6 @@ LOCAL_STT_DEVICE = _env_str("LOCAL_STT_DEVICE", "cpu")
 LOCAL_STT_COMPUTE_TYPE = _env_str("LOCAL_STT_COMPUTE_TYPE", "int8")
 LOCAL_STT_CPU_THREADS = _env_int("LOCAL_STT_CPU_THREADS", 0)
 LOCAL_LLM_BASE_URL = _env_str("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1")
-LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen2.5-7B-Instruct")
-#LOCAL_LLM_MODEL = _env_str("LOCAL_LLM_MODEL", "Qwen/Qwen3.5-9B")
 LOCAL_TTS_MODEL_PATH = Path(
     _env_str(
         "LOCAL_TTS_MODEL_PATH",

@@ -5,6 +5,8 @@ import threading
 import time
 import json
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from dotenv import load_dotenv
 from livekit.agents import (
@@ -28,7 +30,6 @@ from .config import (
     USER_IDENTITY,
     LIVEKIT_URL,
     LOCAL_LLM_BASE_URL,
-    LOCAL_LLM_MODEL,
     LOCAL_STT_COMPUTE_TYPE,
     LOCAL_STT_CPU_THREADS,
     LOCAL_STT_DEVICE,
@@ -272,6 +273,47 @@ def _on_llm_metrics_collected(metrics) -> None:
     _post_pipeline_metric(payload)
 
 
+_RESOLVED_LOCAL_MODEL: str | None = None
+_MODEL_DISCOVERY_TIMEOUT_SEC = 3.0
+
+
+def _resolve_local_model_name() -> str:
+    """Ask the vLLM server which model it is currently serving.
+
+    Hits GET {LOCAL_LLM_BASE_URL}/models, returns data[0].id, caches the
+    result for the lifetime of the process. Raises RuntimeError on any
+    failure so the agent refuses to start with a wrong/stale model name
+    instead of silently falling back to the config default.
+    """
+    global _RESOLVED_LOCAL_MODEL
+    if _RESOLVED_LOCAL_MODEL is not None:
+        return _RESOLVED_LOCAL_MODEL
+
+    url = f"{LOCAL_LLM_BASE_URL.rstrip('/')}/models"
+    try:
+        with urlopen(url, timeout=_MODEL_DISCOVERY_TIMEOUT_SEC) as resp:
+            payload = json.loads(resp.read().decode("utf-8"))
+    except (URLError, TimeoutError, json.JSONDecodeError, OSError) as exc:
+        raise RuntimeError(
+            f"Could not discover model from vLLM at {url}: {exc!r}. "
+            f"Is the server running on woska?"
+        ) from exc
+
+    data = payload.get("data") if isinstance(payload, dict) else None
+    if not isinstance(data, list) or not data or not data[0].get("id"):
+        raise RuntimeError(
+            f"vLLM /models returned no model entries: {payload!r}"
+        )
+
+    model_id = str(data[0]["id"])
+    logger.info(
+        "local_model_discovered base_url=%s model=%s",
+        LOCAL_LLM_BASE_URL, model_id,
+    )
+    _RESOLVED_LOCAL_MODEL = model_id
+    return model_id
+
+
 def _build_local_session() -> AgentSession:
     """Build an `AgentSession` using local STT (Whisper) + local LLM
     (vLLM) + local TTS (Piper). Wraps the LLM's `chat()` call so chat
@@ -283,7 +325,7 @@ def _build_local_session() -> AgentSession:
     # repetition_penalty=1.05 hit 6/6 in the multi-turn scenario test.
     # Higher temps reintroduce <tool_call>/<|im_start|> leakage in text.
     local_llm = openai.LLM(
-        model=LOCAL_LLM_MODEL,
+        model=_resolve_local_model_name(),
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
         temperature=0.01,
@@ -338,7 +380,7 @@ async def entrypoint(ctx: JobContext) -> None:
         "agent version=%s agent_mode=%s model=%s warm=%s persistent=%s",
         AGENT_VERSION,
         agent_mode,
-        LOCAL_LLM_MODEL if agent_mode == "local" else MODEL_NAME,
+        _resolve_local_model_name() if agent_mode == "local" else MODEL_NAME,
         is_warm,
         is_persistent,
     )
