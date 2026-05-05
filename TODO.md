@@ -46,7 +46,7 @@
 - master -> main
 
 ## Bugs:
-
+Open AI mode after calling tool got stuck and turned of autonomous life
 
 Log system
 
@@ -89,4 +89,14 @@ READING NUMBER
 migrate to main
 migrate to eth
 
+lookup_person
+return all numbers or filter just one?
+add toilet instrcutions to find_directions
+gym
+automat
+skrinky
 
+tools o first round
+animation
+add imporatnt dates to knowldage
+add documents for query search (maybe publications of hoffmans lab??)

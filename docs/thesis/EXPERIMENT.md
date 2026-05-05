@@ -1,119 +1,131 @@
 # Experiment Design — HRI Evaluation
 
-## Overview
+## Goal
 
-Within-subjects user study comparing two system variants (cloud vs. local LLM) of the Pepper receptionist in a real FEE Karlovo namesti setting. Each participant experiences both conditions, order counterbalanced.
-
-**Independent variable:** LLM backend — `pepper-openai` (OpenAI Realtime) vs. `pepper-local` (Whisper + Qwen 2.5 7B + Piper)
-
-**Target sample:** 20–30 participants (within-subjects designs need fewer participants; R-012 ch.10, R-001 used ~30)
+Find out whether students perceive the Pepper receptionist as helpful, intelligent, and natural — and whether the perception differs between a **cloud** LLM (OpenAI Realtime) and a **locally-run** LLM (Llama 3.1 8B via vLLM). Deployed at the FEE Karlovo náměstí reception during high-traffic windows between lecture blocks.
 
 ---
 
-## Conditions
+## Design
+
+**Within-subjects, two conditions, order counterbalanced.** Each participant talks to Pepper twice — once with each backend — and fills a short questionnaire after each session. Order (cloud-first vs. local-first) alternates between consecutive participants.
+
+**Independent variable:** LLM backend.
 
 | Condition | STT | LLM | TTS |
 |---|---|---|---|
-| **Cloud** | OpenAI Realtime (built-in) | GPT Realtime Mini | OpenAI Realtime (built-in) |
-| **Local** | Faster Whisper | Qwen 2.5 7B (vLLM) | Piper |
+| **Cloud** | OpenAI Realtime (speech-to-speech) | `gpt-realtime-mini` | OpenAI Realtime |
+| **Local** | FasterWhisper | Llama 3.1 8B Instruct AWQ via vLLM | Piper |
 
-Both conditions use the same RAG pipeline (Weaviate + `text-embedding-3-large`), the same tool set (`query_search`, `play_animation`), and the same system prompt. The only difference is the LLM backend.
+> ⚠️ **Disclose in the thesis.** Cloud is end-to-end speech-to-speech; local is a cascade of three independent models. Differences in prosody, latency and turn-taking cannot be attributed to the LLM alone. Frame the comparison as **system-level**, not as an isolated LLM swap.
 
----
-
-## Tasks per Condition
-
-Each participant performs 2–3 structured tasks with each variant:
-
-1. **Factual / RAG question** — "Where is room KN:E-301?" or "What are the office hours for the study department?" (tests retrieval accuracy + response correctness)
-2. **Informational question** — "What scholarships are available for master's students?" (tests longer-form generation quality)
-3. **Social / open-ended exchange** — "What's it like being a robot?" or free conversation (tests naturalness, personality, non-verbal behaviour)
-
-Tasks should be comparable across conditions but not identical (to avoid memorization). Prepare two matched task sets and counterbalance assignment.
+**Sample:** 20–30 participants. Pilot with 2–3 lab members first; pilot data is discarded.
 
 ---
 
-## Measurement Instruments
+## Interaction (no scripted card)
 
-### Subjective (questionnaires, administered after each condition)
+Instead of fixed scripted questions, give each participant a **topic prompt** and let them ask about their own life. This trades cross-participant comparability for the realism of how a receptionist would actually be used.
 
-| Instrument | Constructs | Scale type | Reference |
-|---|---|---|---|
-| **Godspeed** (Bartneck et al., 2009) | Anthropomorphism, Animacy, Likeability, Perceived Intelligence, Perceived Safety | 5-point semantic differential | R-006 |
-| **Almere Model** (Heerink et al., 2010) — selected subscales | Perceived Usefulness, Perceived Ease of Use, Perceived Enjoyment, Social Presence, Trust, Anxiety, Intention to Use | 5-point Likert | R-007 |
-| **NASA-TLX** (optional) | Cognitive workload | 21-point scales + pairwise comparisons | Used by R-003 (ROS-LLM) |
+> "Imagine Pepper is a new receptionist at FEE. Please ask her about:
+> 1. **One of your subjects** — when's the next class?
+> 2. **One of your teachers** — what's their email or office?
+> 3. **A room** — how do I get there?
+> 4. **The canteen** — what's for lunch today?
+> 5. **Anything else** you'd want a receptionist to know."
 
-**Tips from the literature:**
-- When using multiple questionnaires in one session, mix the items to mask intention (Godspeed paper, chunk 25)
-- Add dummy items if using a single scale in isolation
-- Do a power analysis to confirm sample size is sufficient for expected effect size
-- Consult with a psychologist on overall methodology if possible (Godspeed paper, chunk 3)
+Same five categories in both conditions. Participants are encouraged to pick **different** subjects / teachers / rooms in the second round — that removes the "I already heard the answer" bias and is what would naturally happen anyway.
 
-### Objective (system metrics, logged automatically)
+**Ground truth captured live by the experimenter.** While the student talks, look up the canonical answer on a laptop (timetable / UDB / room directory) and write it on a session sheet. Post-hoc, label each answer as *correct / partial / wrong / refused*.
 
-| Metric | Source | How |
+---
+
+## Measurement
+
+### After each condition (~3 min)
+
+| Instrument | What it measures | Items |
 |---|---|---|
-| **Response latency** | LiveKit agent logs | Time from end-of-user-speech to start-of-robot-speech |
-| **Word Error Rate (WER)** | Compare ASR transcript vs. ground truth | Prepare a set of test utterances; R-001 benchmarked this across accents |
-| **Task completion rate** | Manual annotation | Did the robot give a correct, relevant answer? |
-| **RAG retrieval relevance** | Dev console query log | Was the retrieved context appropriate? |
-| **Interaction duration** | Session manager logs | Total time per condition |
-| **Repair attempts** | Manual annotation from transcripts | How often did the participant have to repeat / rephrase? |
+| **Godspeed** (Bartneck et al. 2009) | Anthropomorphism, Animacy, Likeability, Perceived Intelligence, Perceived Safety | 24, 5-pt semantic differential |
+| **Per-task items** | For each of the 5 questions: answer correct? helpful? (1–5) | 2 × 5 = 10 |
+| **Open box** | "What did you notice about this interaction?" | 1 |
+
+### After both conditions (~1 min)
+
+- "Which interaction did you prefer? Why?"
+- Reveal the cloud-vs-local design and debrief.
+
+### From the logs (no extra work)
+
+The voice-agent already emits `[PIPE]` STT/LLM/TTS timings and structured tool-call events. Per session, we get for free:
+
+- **End-to-end latency** per turn (user-stops → robot-starts)
+- **Which tool was called**, with arguments, duration, success/error
+- **Number of turns** and total interaction time
+
+**One small code addition:** dump these to a JSON-Lines file per session at `voice-agent/logs/sessions/<session_id>.jsonl`, so each interaction is replayable post-hoc.
 
 ---
 
-## Procedure
+## Procedure (~15 min/participant)
 
-1. **Welcome & consent** — Participant reads info sheet, signs consent form. Collect demographics: age, gender, native language, English proficiency, prior experience with ChatGPT / voice assistants / robots.
-2. **Brief orientation** — Explain the receptionist scenario (no mention of two different backends yet).
-3. **Condition A** — Participant interacts with Pepper (cloud or local, counterbalanced). Performs the 2–3 structured tasks, followed by a short free conversation.
-4. **Post-condition A questionnaire** — Godspeed + Almere subscales.
-5. **Short break** (~2 min).
-6. **Condition B** — Same structure, other backend, matched task set.
-7. **Post-condition B questionnaire** — Same instruments.
-8. **Comparative questionnaire** — "Which interaction felt more natural / enjoyable?" + open-ended: "What differences did you notice?" + general feedback.
-9. **Debriefing** — Reveal the two-condition design, explain the cloud vs. local distinction, answer questions.
-
-**Estimated time per participant:** 20–30 minutes.
-
----
-
-## Covariates to Capture
-
-Based on findings from R-001 (ChatGPT + Whisper on Pepper):
-- **Prior ChatGPT experience** — participants with heavy ChatGPT usage had higher expectations and reported more disappointment (R-001, chunk 18). Record this as a covariate.
-- **English proficiency** — non-native speakers may struggle more with ASR, especially local STT.
-- **Prior robot experience** — familiarity with robots affects expectations.
+| Step | Time |
+|---|---|
+| Greet, hand info sheet (CZ + EN), sign consent | 1 min |
+| Mini-demographics: age, study programme + year, English self-rating (CEFR), prior ChatGPT/voice-assistant use, prior robot interaction | 1 min |
+| Brief: "Please ask Pepper about these 5 things." | 1 min |
+| **Condition A** — interaction | 4 min |
+| Post-A questionnaire (Godspeed + per-task items + open box) | 3 min |
+| **Condition B** — same brief, different choices | 4 min |
+| Post-B questionnaire | 3 min |
+| Comparative + debrief | 2 min |
 
 ---
 
-## Known Pitfalls
+## Logging
 
-- **Don't over-decompose concepts** into ad-hoc sub-scales; use validated instruments as-is (Godspeed, chunk 3)
-- **Pepper face tracking** was a major pain point in R-001 — participants had to repeat themselves and seek the robot's attention. Log these failures; consider it a limitation.
-- **Wizard-of-Oz is not needed** — our system is fully autonomous, which is a strength to highlight vs. WoZ-based studies
-- **Order effects** — always counterbalance condition order; analyse for order effects in the results
-- **Expectation bias** — don't reveal the cloud/local distinction until debriefing
+```
+voice-agent/logs/sessions/<session_id>.jsonl   # turns, tool calls, timings
+voice-agent/logs/sessions/<session_id>.meta    # participant_id, condition, demographics
+voice-agent/logs/sessions/<session_id>.notes   # experimenter live ground truth + correctness labels
+```
 
----
-
-## Analysis Plan
-
-- **Within-subjects comparisons**: paired t-tests or Wilcoxon signed-rank tests for each Godspeed / Almere subscale between conditions
-- **Effect sizes**: report Cohen's d for each comparison
-- **Objective metrics**: compare means (latency, WER, task completion) between conditions
-- **Qualitative**: thematic analysis of open-ended responses and comparative feedback
-- **Covariates**: check if ChatGPT experience, English proficiency, or robot experience moderate the effects (e.g., ANCOVA or regression)
+Anonymous IDs only (`P017`). No names. Audio recording opt-in; default off — text logs are enough.
 
 ---
 
-## Key References (in Thesis KB)
+## Ethics (light-touch)
 
-| ID | Paper | Relevance |
+- One-page bilingual (CZ + EN) consent form: purpose, what's recorded, data flow (in cloud condition, audio is sent to OpenAI in the US — call this out explicitly), retention (raw audio deleted after defence, anonymised metrics kept indefinitely as research data), right to withdraw within 30 days.
+- Adults only; exclude visiting school groups.
+- Confirm with Matěj whether the **FEL ethics committee** needs to review. Low-risk observational HRI usually doesn't require it, but a written "no review needed" protects against later objections.
+
+---
+
+## Analysis
+
+- **Godspeed subscales:** Wilcoxon signed-rank (paired) per subscale. Report effect size (rank-biserial *r*).
+- **Answer correctness:** McNemar's test on paired binary (cloud-correct / local-correct).
+- **Latency:** compare medians (right-skewed distribution); report distribution.
+- **Open feedback:** quick thematic coding by you alone — list the 3 most common themes per condition.
+
+With *n* ≈ 25, frame the study as **descriptive / exploratory**, not confirmatory.
+
+---
+
+## Open Decisions (resolve before pilot)
+
+- [ ] **Interaction language** — English only is safest (local Llama is English-tuned; Czech ASR via Whisper degrades). Capture CEFR as a covariate.
+- [ ] **Audio recording** — opt-in, off by default. Text-only is enough for analysis.
+- [ ] **Tablet content** — thesis task #5 mentions tablet use. If we wire any (e.g. show staff card after `lookup_person`), keep it identical across conditions; otherwise note as future work.
+- [ ] **Pepper face tracking** — known R-001 pain point. Decide: track participant or fix gaze straight ahead (consistent across participants).
+
+---
+
+## Key References
+
+| ID | Paper | Use |
 |---|---|---|
-| R-001 | Chen et al. — "Does ChatGPT and Whisper Make Humanoid Robots More Relatable?" | Closest prior work: ChatGPT + Whisper on Pepper, user study with ~30 participants |
-| R-003 | Mower et al. — "ROS-LLM" | Used NASA-TLX for HRI evaluation, task completion timing |
-| R-006 | Bartneck et al. — "Godspeed Questionnaire Series" | Primary subjective measurement instrument for robot perception |
-| R-007 | Heerink et al. — "Almere Model" | Technology acceptance model for social robots, adapted from UTAUT |
-| R-012 | Bartneck et al. — "Human-Robot Interaction: An Introduction" | Ch. 10: Research Methods — study design, WoZ, sample size, metrics |
-| R-013 | Jurafsky & Martin — "Speech and Language Processing" | Background on ASR, WER, dialogue systems |
+| R-001 | Chen et al. — "Does ChatGPT and Whisper Make Humanoid Robots More Relatable?" | Closest prior work; ChatGPT + Whisper on Pepper, *n* ≈ 30 |
+| R-006 | Bartneck et al. — Godspeed Questionnaire Series | Subjective measurement instrument |
+| R-012 | Bartneck et al. — *Human-Robot Interaction: An Introduction*, Ch. 10 | Methodology reference |

@@ -441,18 +441,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._bind = (host, port)
 
     def run(self):
-        tablet = self._tablet
-        bm = self._bm
-        anim = self._anim
-        life = self._life
-        animations_map = self._animations_map
-        audio_player = self._audio_player
-        tts = self._tts
-        audio_device = self._audio_device
-        tablet_service = self._tablet_service
-        led_manager = self._led_manager
-        video_device = self._video_device
-        awareness = self._awareness
+        server_self = self
         camera_lock = threading.Lock()
 
         class Handler(BaseHTTPRequestHandler):
@@ -515,6 +504,18 @@ class TabletOverlayHttpServer(threading.Thread):
 
             def do_POST(self):
                 path_only = self.path.split("?", 1)[0]
+                tablet = server_self._tablet
+                bm = server_self._bm
+                anim = server_self._anim
+                life = server_self._life
+                animations_map = server_self._animations_map
+                audio_player = server_self._audio_player
+                tts = server_self._tts
+                audio_device = server_self._audio_device
+                tablet_service = server_self._tablet_service
+                led_manager = server_self._led_manager
+                video_device = server_self._video_device
+                awareness = server_self._awareness
                 if path_only == "/camera/snapshot":
                     if video_device is None:
                         self._write_json(503, {"ok": False, "error": "video device unavailable"})
@@ -610,10 +611,12 @@ class TabletOverlayHttpServer(threading.Thread):
                     # See CONNECTION_ISSUE.md for the full story.
                     if bm is None and anim is None:
                         self._write_json(
-                            500,
+                            202,
                             {
-                                "ok": False,
-                                "error": "No animation service available (ALAnimationPlayer/ALBehaviorManager)",
+                                "ok": True,
+                                "queued": False,
+                                "status": "pepper_unavailable",
+                                "message": "Animation service unavailable; Pepper is probably offline.",
                             },
                         )
                         return
@@ -770,11 +773,16 @@ class TabletOverlayHttpServer(threading.Thread):
                     self.send_response(404)
                     self.end_headers()
                     return
+                pepper_connected = server_self._audio_device is not None
                 self._write_json(
                     200,
                     {
                         "ok": True,
                         "service": "bridge",
+                        "pepper_connected": pepper_connected,
+                        "animation_available": (
+                            server_self._bm is not None or server_self._anim is not None
+                        ),
                         "audio_bind_host": BRIDGE_BIND_HOST,
                         "audio_port": TCP_PORT,
                     },
@@ -790,6 +798,30 @@ class TabletOverlayHttpServer(threading.Thread):
                 self._server.shutdown()
             except Exception:
                 pass
+
+    def update_services(
+        self,
+        behavior_manager=None,
+        animation_player=None,
+        life_service=None,
+        audio_player=None,
+        tts=None,
+        audio_device=None,
+        tablet_service=None,
+        led_manager=None,
+        video_device=None,
+        awareness=None,
+    ):
+        self._bm = behavior_manager
+        self._anim = animation_player
+        self._life = life_service
+        self._audio_player = audio_player
+        self._tts = tts
+        self._audio_device = audio_device
+        self._tablet_service = tablet_service
+        self._led_manager = led_manager
+        self._video_device = video_device
+        self._awareness = awareness
 
 
 def main():
@@ -817,6 +849,19 @@ def main():
     qi_url = PEPPER_QI_URL
     print("[pepper_audio] Python version:", sys.version)
     print("[pepper_audio] Connecting to Pepper:", qi_url)
+
+    animations_map = load_animations_map(ANIMATIONS_FILE)
+    tablet = TabletDebugReporter(False, None)
+    tablet_http = TabletOverlayHttpServer(
+        BRIDGE_URL,
+        tablet,
+        None,
+        None,
+        None,
+        animations_map,
+    )
+    tablet_http.start()
+    print("[bridge] HTTP control plane started; waiting for Pepper services")
 
     sess = connect_session(qi_url)
     try:
@@ -908,7 +953,6 @@ def main():
         print("[bridge] ALBasicAwareness not available — snapshots will skip pauseAwareness")
         awareness_service = None
 
-    animations_map = load_animations_map(ANIMATIONS_FILE)
     tablet_service = None
     try:
         tablet_service = sess.service("ALTabletService")
@@ -918,15 +962,10 @@ def main():
     # The tablet-display service (services/src/tablet_server.py) owns the
     # tablet screen via POST /tablet/url. We silence TabletDebugReporter so
     # this bridge's legacy data-URL publishes don't fight over showWebview().
-    tablet = TabletDebugReporter(False, tablet_service)
-    tablet.start()
-    tablet_http = TabletOverlayHttpServer(
-        BRIDGE_URL,
-        tablet,
-        behavior_manager,
-        animation_player,
-        life_service,
-        animations_map,
+    tablet_http.update_services(
+        behavior_manager=behavior_manager,
+        animation_player=animation_player,
+        life_service=life_service,
         audio_player=audio_player_service,
         tts=tts_service,
         audio_device=audio,
@@ -935,7 +974,6 @@ def main():
         video_device=video_device,
         awareness=awareness_service,
     )
-    tablet_http.start()
 
     if led_manager is not None:
         led_manager.start()

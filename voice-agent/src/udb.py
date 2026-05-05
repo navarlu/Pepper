@@ -40,7 +40,7 @@ OFF_NETWORK_MARKERS = (
 _PROFILE_LABEL_ALIASES: dict[str, tuple[str, ...]] = {
     "name": ("Name", "Jméno"),
     "email": ("Email", "E-mail"),
-    "phone": ("Phone", "Telefon"),
+    "phone": ("Phone", "Telefon", "Mobile phone", "Mobil"),
     "room": ("Room", "Místnost"),
     "department": ("Department", "Pracoviště"),
 }
@@ -210,10 +210,43 @@ def _pick(fields: dict[str, Any], labels: tuple[str, ...]) -> str | None:
     return None
 
 
+# Academic/professional titles we strip before picking a surname. The
+# LLM frequently echoes back full UDB names like "doc. Mgr. Matej
+# Hoffmann, Ph.D." into lookup_person, which used to make the surname
+# be "Ph.D." and the search return zero hits. Comparison is
+# case-insensitive and ignores trailing punctuation, so "Ph.D.", "ph.d",
+# and "Ph.D," all match.
+_TITLE_TOKENS = frozenset({
+    # Czech/Slovak academic prefixes
+    "doc", "prof", "mgr", "ing", "bc", "mga",
+    "mudr", "judr", "phdr", "rndr", "paeddr", "thdr", "dr",
+    # Academic/professional suffixes
+    "ph.d", "phd", "csc", "drsc", "dsc",
+    "mba", "ll.m", "m.a", "m.sc", "b.sc",
+    # Generic personal titles
+    "mr", "mrs", "ms",
+})
+
+
+def _is_title(token: str) -> bool:
+    return token.strip(",.;:").lower() in _TITLE_TOKENS
+
+
 def _split_name(raw: str) -> tuple[str | None, str]:
-    tokens = raw.strip().split()
+    """Strip titles, then split into (first-name part, surname).
+
+    The last non-title token becomes the surname (used as the UDB search
+    term). Everything before it becomes the first-name part (used to
+    narrow ambiguous matches in `lookup_person`).
+    """
+    tokens = [
+        t.rstrip(",;:")
+        for t in raw.strip().split()
+        if not _is_title(t)
+    ]
+    tokens = [t for t in tokens if t]
     if not tokens:
-        raise ValueError("empty name")
+        raise ValueError(f"no name tokens left after stripping titles: {raw!r}")
     if len(tokens) == 1:
         return None, tokens[0]
     return " ".join(tokens[:-1]), tokens[-1]

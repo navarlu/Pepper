@@ -19,11 +19,14 @@ from livekit.agents import (
     llm,
     room_io,
 )
+from livekit.agents.voice.generation import update_instructions
 from livekit.plugins import openai, silero
 
+from .animation_director import AnimationDirector
 from .config import (
     AGENT_NAME,
     AGENT_VERSION,
+    GREETING_INSTRUCTIONS,
     LANG,
     LISTENER_IDENTITY,
     MONITOR_IDENTITY,
@@ -47,7 +50,7 @@ from .config import (
     TTS_VOICE,
 )
 from .local_speech import FasterWhisperSTT, PiperTTS
-from .qwen_compat import install_function_args_patch, wrap_llm_chat_with_history_sanitizer
+from .qwen_compat import install_function_args_patch
 from .rag import connect_weaviate, seed_collection
 from .tools import build_tools
 
@@ -86,6 +89,33 @@ def _set_runtime_defaults() -> None:
 
 _load_root_env()
 _set_runtime_defaults()
+
+
+def _print_boot_banner() -> None:
+    """Loud, unmissable boot banner so the tmux pane shows what build is live.
+
+    Bumping AGENT_VERSION + restarting the agent should change the banner.
+    The prompt fingerprint (sha256[:8]) confirms the *content* of the system
+    prompt loaded into this Python process — useful when bind-mounted source
+    is edited but the running process holds the previous version in memory.
+    """
+    import hashlib
+    prompt_hash = hashlib.sha256(LOCAL_SYSTEM_PROMPT.encode("utf-8")).hexdigest()[:8]
+    prompt_preview = LOCAL_SYSTEM_PROMPT.split("\n")[0][:80]
+    banner = [
+        "================================================================",
+        f"[BOOT] voice-agent v{AGENT_VERSION}",
+        f"[BOOT] agent_name={AGENT_NAME}",
+        f"[BOOT] prompt_sha8={prompt_hash}  len={len(LOCAL_SYSTEM_PROMPT)}",
+        f"[BOOT] prompt[0]: {prompt_preview}",
+        "================================================================",
+    ]
+    for line in banner:
+        print(line, flush=True)
+        logger.info(line)
+
+
+_print_boot_banner()
 
 
 def _log_event(payload: dict[str, object]) -> None:
@@ -316,29 +346,26 @@ def _resolve_local_model_name() -> str:
 
 def _build_local_session() -> AgentSession:
     """Build an `AgentSession` using local STT (Whisper) + local LLM
-    (vLLM) + local TTS (Piper). Wraps the LLM's `chat()` call so chat
-    history is sanitized before each request to vLLM — see
-    `qwen_compat.py`.
+    (vLLM) + local TTS (Piper).
     """
-    # Sampling tuned for Qwen 2.5 7B + vLLM hermes parser: see
-    # voice-agent/tests/tool_multiturn_test.py — temp=0.01 + top_p=0.8 +
-    # repetition_penalty=1.05 hit 6/6 in the multi-turn scenario test.
-    # Higher temps reintroduce <tool_call>/<|im_start|> leakage in text.
+    # Sampling tuned for Llama 3.1 8B Instruct AWQ + vLLM llama3_json
+    # parser. Validated end-to-end in voice-agent/tests/local_llm_benchmark/.
+    # parallel_tool_calls=False is required: Llama 3.1's chat template
+    # rejects assistant messages carrying more than one tool_call.
     local_llm = openai.LLM(
         model=_resolve_local_model_name(),
         base_url=LOCAL_LLM_BASE_URL,
         api_key="not-needed",
-        temperature=0.01,
-        top_p=0.8,
+        # 0.2 — empirically the floor for Llama 3.1 8B AWQ on this prompt.
+        # At 0.1 the model fixates on the highest-probability token
+        # (play_animation greeting) and loops without producing text on
+        # the very first turn of a fresh chat. 0.2 keeps tool-policy
+        # discipline while leaving enough variance to escape that attractor.
+        temperature=0.2,
         parallel_tool_calls=False,
         _strict_tool_schema=False,
-        extra_body={
-            "chat_template_kwargs": {"enable_thinking": False},
-            "repetition_penalty": 1.05,
-        },
     )
     local_llm.on("metrics_collected", _on_llm_metrics_collected)
-    wrap_llm_chat_with_history_sanitizer(local_llm)
 
     return AgentSession(
         vad=_get_local_vad(),
@@ -361,6 +388,49 @@ def _get_agent_instructions(agent_mode: str) -> str:
     if agent_mode == "local":
         return LOCAL_SYSTEM_PROMPT
     return OPENAI_SYSTEM_PROMPT
+
+
+def _count_user_messages(chat_ctx: llm.ChatContext) -> int:
+    return sum(
+        1
+        for item in chat_ctx.items
+        if getattr(item, "type", None) == "message"
+        and getattr(item, "role", None) == "user"
+    )
+
+
+class GreetingAgent(Agent):
+    """Agent subclass used in local mode that:
+      1. Captures the latest chat_ctx on every llm_node call so the
+         AnimationDirector can read it from outside the call stack.
+      2. On the very first user turn, merges GREETING_INSTRUCTIONS into
+         the existing system prompt via `update_instructions`. This
+         steers Llama 3.1's first-turn reply into a brief verbal
+         greeting; the chat template attaches the tool list to the
+         FIRST user message so we cannot inject earlier than this.
+
+    Ported from the local-LLM benchmark
+    (`voice-agent/tests/local_llm_benchmark/livekit_console.py`)."""
+
+    def __init__(self, instructions: str, tools: list, *, merge_greeting: bool) -> None:
+        super().__init__(instructions=instructions, tools=tools)
+        self._merge_greeting = merge_greeting
+        self._greeting_done = False
+        self._latest_chat_ctx: llm.ChatContext | None = None
+
+    async def llm_node(self, chat_ctx, tools, model_settings):
+        self._latest_chat_ctx = chat_ctx
+        if self._merge_greeting and not self._greeting_done:
+            user_msgs = _count_user_messages(chat_ctx)
+            if user_msgs == 1:
+                merged = f"{LOCAL_SYSTEM_PROMPT}\n\n{GREETING_INSTRUCTIONS}"
+                update_instructions(chat_ctx, instructions=merged, add_if_missing=True)
+                self._greeting_done = True
+                logger.debug(
+                    "greeting_merged user_msgs=%d chars=%d",
+                    user_msgs, len(GREETING_INSTRUCTIONS),
+                )
+        return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
 
 
 
@@ -531,10 +601,23 @@ async def entrypoint(ctx: JobContext) -> None:
         len(agent_tools),
         [getattr(t, 'name', str(t)) for t in agent_tools],
     )
-    agent = Agent(
+    # GreetingAgent subclass captures `_latest_chat_ctx` for the
+    # AnimationDirector and (in local mode) merges
+    # GREETING_INSTRUCTIONS on the first user turn. In OpenAI Realtime
+    # mode the merge is skipped — the OpenAI prompt + Realtime model
+    # don't have Llama's chat-template tool-eagerness.
+    agent = GreetingAgent(
         instructions=_get_agent_instructions(agent_mode),
         tools=agent_tools,
+        merge_greeting=(agent_mode == "local"),
     )
+
+    # AnimationDirector — forced one-tool LLM pass picks an animation
+    # for every assistant reply. Active in local mode only; OpenAI
+    # Realtime keeps using the LLM-visible play_animation tool.
+    animation_director: AnimationDirector | None = None
+    if agent_mode == "local":
+        animation_director = AnimationDirector(llm_instance=session.llm)
 
     session_closed = asyncio.Event()
 
@@ -619,7 +702,9 @@ async def entrypoint(ctx: JobContext) -> None:
 
     @session.on("conversation_item_added")
     def _on_item_added(event) -> None:
-        """Push agent text to session-manager immediately (before TTS finishes)."""
+        """Push agent text to session-manager immediately (before TTS
+        finishes), and trigger an animation pick via AnimationDirector
+        in local mode."""
         item = event.item
         if not hasattr(item, "role") or str(item.role) != "assistant":
             return
@@ -627,6 +712,8 @@ async def entrypoint(ctx: JobContext) -> None:
         if not text:
             return
         logger.info("early_transcript speaker=Pepper text=%s", text[:120])
+        if animation_director is not None and agent._latest_chat_ctx is not None:
+            animation_director.schedule(agent._latest_chat_ctx)
 
     t0 = time.monotonic()
     await session.start(

@@ -50,3 +50,5 @@ tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
 tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
 uv run python services/src/text_chat.py
 ```
+
+ vllm serve hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4   --host 0.0.0.0 --port 8000   --quantization awq_marlin   --dtype half   --max-model-len 8192   --gpu-memory-utilization 0.85   --enable-auto-tool-choice   --tool-call-parser llama3_json   --chat-template ~/vllm-templates/tool_chat_template_llama3.1_json.jinja

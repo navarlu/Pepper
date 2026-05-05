@@ -1,16 +1,22 @@
 """Tool definitions exposed to the LLM.
 
-Three tools, all built by `build_tools(agent_mode)`:
+Tools, all built by `build_tools(agent_mode)`:
 
   - `query_search(query)` — RAG over the FEL knowledge base in
-    Weaviate, with a deterministic fast path for room-number
-    questions (`rooms.try_room_lookup`).
-  - `play_animation(animation)` — pick a Pepper gesture and POST it to
-    the robot bridge. Two thin wrappers with different docstrings for
-    the OpenAI vs local (Qwen) model quirks, sharing one
-    implementation.
-  - `look_around(purpose)` — grab a JPEG snapshot from Pepper's top
-    camera, caption it with a side VL model, return text. Gated by
+    Weaviate. Gated by `ENABLE_QUERY_SEARCH` (default off in local
+    mode after the benchmark validation: its broad trigger cascaded
+    on bare greetings).
+  - `lookup_person(first_name, surname)` — UDB staff directory lookup
+    with first-name disambiguation + most-credentialed pick. Gated
+    by `ENABLE_LOOKUP_PERSON_TOOL`.
+  - `find_path_to_room(room)` — curated Building E directions with a
+    FelSight floor-only fallback for uncurated rooms.
+  - `mensa_menu(day)` — Charles Square food counter weekly menu.
+  - `subject_schedule(subject, activity, day)` — public timetable.
+  - `play_animation(name)` — Pepper body gesture, off by default in
+    local mode (`ENABLE_ANIMATION_TOOL=False`); the
+    `AnimationDirector` is the only path to animations there.
+  - `look_around(purpose)` — JPEG + VL caption. Gated by
     `ENABLE_LOOK_AROUND_TOOL`.
 
 All HTTP plumbing lives in `bridge_client`; this module is purely
@@ -24,7 +30,7 @@ import json
 import logging
 import random
 import time
-from typing import Any
+from typing import Any, Literal
 
 from livekit.agents import RunContext, function_tool
 
@@ -47,9 +53,11 @@ from .config import (
     QUERY_SEARCH_DEFAULT_LIMIT,
     WEAVIATE_HYBRID_ALPHA,
 )
+from ._person_helpers import find_person
+from ._room_directions import compute_room_directions
 from .rag import search_vectors
-from .rooms import try_room_lookup
-from .udb import NotOnCzvutNetworkError, lookup_person as udb_lookup_person
+from .mensa import fetch_mensa_menu
+from .timetable import fetch_subject_schedule
 
 logger = logging.getLogger("voice-agent")
 
@@ -161,6 +169,19 @@ async def _dispatch_animation(animation_name: str) -> None:
         logger.warning("play_animation_failed animation=%s error=%s", animation_name, str(exc))
 
 
+def _animation_success_payload(resolved: str) -> dict[str, Any]:
+    """LLM-facing result for a valid animation request.
+
+    Bridge/Pepper failures are logged separately. The model should not spend a
+    conversational turn explaining robot-body transport issues to the user.
+    """
+    return {
+        "ok": True,
+        "status": "queued",
+        "animation": resolved,
+    }
+
+
 async def trigger_animation(animation_name: str) -> bool:
     """Public entry point for code-driven animations (not a tool call).
 
@@ -184,7 +205,17 @@ def build_tools(agent_mode: str) -> list[Any]:
         context: RunContext,
         query: str,
     ) -> str:
-        """Search the FEE base. Also returns room locations and directions."""
+        """Search the FEL knowledge base for specific factual questions about
+        programmes, courses, departments, schedules, rules, the campus, or
+        the building. Returns short result snippets — quote them in your reply.
+
+        Only call this when the user has actually asked a concrete factual
+        question about FEL. Never call it for greetings, chit-chat, personal
+        opinions, identity questions, arithmetic, jokes, or anything not
+        about FEL specifics.
+
+        query: paraphrase of what the user just asked, in English.
+        """
         del context
 
         if not ENABLE_QUERY_SEARCH:
@@ -200,20 +231,8 @@ def build_tools(agent_mode: str) -> list[Any]:
                 ensure_ascii=False,
             )
 
-        # Check if this is a room/directions query — route to building map.
-        room_result = await asyncio.to_thread(try_room_lookup, query_text)
-        if room_result is not None:
-            logger.info("query_search routed_to=room_lookup query=%s result_type=%s",
-                        query_text, room_result.get("type", "directions"))
-            await asyncio.to_thread(_push_tool_transcript, "query_search({}) [room]".format(query_text))
-            t0 = time.monotonic()
-            duration_ms = (time.monotonic() - t0) * 1000
-            await asyncio.to_thread(
-                _post_tool_event, "query_search",
-                {"query": query_text, "routed": "room_lookup"},
-                room_result, duration_ms,
-            )
-            return json.dumps(room_result, ensure_ascii=False)
+        # Room-number routing was removed when src/rooms.py was retired
+        # in favour of the dedicated `find_path_to_room` tool.
 
         rt_alpha = WEAVIATE_HYBRID_ALPHA
         safe_limit = QUERY_SEARCH_DEFAULT_LIMIT
@@ -309,135 +328,262 @@ def build_tools(agent_mode: str) -> list[Any]:
 
         duration_ms = (time.monotonic() - t0) * 1000
 
-        if agent_mode == "local":
-            # Local mode (Qwen 2.5 7B + vLLM hermes): return data so the SDK
-            # re-calls the LLM, which then produces the spoken text in the
-            # second call. At temp=0.01 the model is deterministic enough to
-            # emit tool-only on call 1 and text-only on call 2 — no duplicate
-            # speech. Returning None here causes Qwen to skip text entirely
-            # for some turns (e.g. greetings → silent animation).
-            # Verified by voice-agent/tests/tool_multiturn_test.py (6/6 pass).
-            result_payload = {"ok": True, "pose": resolved}
-            await asyncio.to_thread(
-                _post_tool_event, "play_animation",
-                {"animation": animation_name, "resolved": resolved},
-                result_payload, duration_ms,
-            )
-            return json.dumps(result_payload, ensure_ascii=False)
-        else:
-            result_payload = {
-                "ok": True,
-                "status": "queued",
-                "animation": resolved,
-            }
-            await asyncio.to_thread(
-                _post_tool_event, "play_animation",
-                {"animation": animation_name, "resolved": resolved},
-                result_payload, duration_ms,
-            )
-            return json.dumps(result_payload, ensure_ascii=False)
+        result_payload = _animation_success_payload(resolved)
+        await asyncio.to_thread(
+            _post_tool_event, "play_animation",
+            {"animation": animation_name, "resolved": resolved},
+            result_payload, duration_ms,
+        )
+        return json.dumps(result_payload, ensure_ascii=False)
     # endregion
 
-    # OpenAI mode: side-effect description (works with larger models)
+    # Single registration name `play_animation` for both modes — works with
+    # Llama 3.1 (llama3_json parser) and OpenAI Realtime. Qwen 2.5 needed
+    # the `play_pose` workaround due to hermes-parser token leakage; that
+    # workaround was dropped when we moved to Llama 3.1 8B AWQ. See
+    # voice-agent/tests/local_llm_benchmark/ for validation.
     @function_tool(name="play_animation")
-    async def play_animation_openai(
+    async def play_animation(
         context: RunContext,
-        animation: str,
+        name: Literal[
+            "greeting", "bow", "explain", "happy", "thinking", "dont_know",
+        ],
     ) -> str:
-        """Move Pepper's robot body. Call exactly once per reply.
+        """Trigger a Pepper gesture in parallel with your reasoning.
 
-        animation must be one of: greeting, bow, explain, happy, thinking, dont_know
+        Returns "OK" instantly and does not affect your answer. Call this
+        at most once per user message, as your first action; once called
+        for the current message, do not call again — proceed to the next
+        tool or to your spoken reply.
 
-        Use greeting when user says hello. Use explain when giving information.
-        Use bow for thanks or goodbye. Use happy for positive replies.
-        Use thinking when searching. Use dont_know when unsure.
+        Pick the group that matches the meaning of your reply:
+          - greeting:  hello/welcome
+          - bow:       thanks, goodbye
+          - explain:   factual/informational answer
+          - happy:     enthusiastic affirmation
+          - thinking:  clarifying question or expressing uncertainty
+          - dont_know: apology or 'couldn't find'
+
+        name: one of greeting, bow, explain, happy, thinking, dont_know.
         """
         del context
-        return await _play_animation_impl(animation)
+        return await _play_animation_impl(name)
 
-    # Local mode: name MUST be "play_pose" + param "pose" — `play_animation`
-    # tokenization triggers Qwen 2.5 7B + vLLM hermes parser to leak
-    # <tool_call>/<|im_start|> tokens into text content (verified by
-    # tool_prompt_diff.py: D_play_animation_name 0/5 vs C_query_search_name 5/5).
-    @function_tool(name="play_pose")
-    async def play_animation_local(
-        context: RunContext,
-        pose: str,
-    ) -> str:
-        """Set the robot body posture before speaking. pose must be one of: greeting, bow, explain, happy, thinking, dont_know"""
-        del context
-        return await _play_animation_impl(pose)
-
-    play_animation = play_animation_local if agent_mode == "local" else play_animation_openai
-
-    # Pepper-internal staff lookup (UDB scraper). Same registered name in
-    # both modes — the short `lookup_person` form was selected after a
-    # name-stability sweep against Qwen 2.5 7B + vLLM hermes parser; the
-    # verbose `lookup_fel_person` from the test_agent reproducibly leaks
-    # <tool_call>/<|im_start|> tokens in the 3-tool combo with
-    # query_search + play_pose. See voice-agent/tests/tool_lookup_name_search.py.
     @function_tool(name="lookup_person")
     async def lookup_person(
         context: RunContext,
-        name: str,
+        first_name: str = "",
+        surname: str = "",
     ) -> str:
-        """Look up FEL staff contact info by surname or full name.
+        """Look up a person's contact info (phone, email, room) in the
+        public staff directory.
 
-        Returns name, email, phone, room, and department for every UDB
-        match. Pass the full surname (prefixes like 'Hoff' return nothing).
-        If multiple people share a surname, all of them come back — ask
-        the visitor for a first name or department before reading info.
+        Both `first_name` and `surname` are required. If the user gave
+        only a surname or only a first name, ask them in conversation
+        for the missing part BEFORE calling this tool.
+
+        The schema accepts empty strings only so a misfire doesn't
+        crash the agent — when either arg is empty, the tool returns
+        `error: "missing_first_name"` with an instruction telling you
+        to ask the user for the missing part.
+
+        first_name: the person's given name. Required.
+        surname: the person's surname only — no titles. Required.
         """
         del context
         if not ENABLE_LOOKUP_PERSON_TOOL:
             return json.dumps({"error": "lookup_person_disabled"}, ensure_ascii=False)
 
-        query = str(name or "").strip()
-        if not query:
-            return json.dumps(
-                {"error": "missing_name", "message": "name cannot be empty"},
-                ensure_ascii=False,
-            )
-
+        first_q = str(first_name or "").strip()
+        surname_q = str(surname or "").strip()
         t0 = time.monotonic()
-        await asyncio.to_thread(_push_tool_transcript, f"lookup_person({query})")
-        try:
-            result = await asyncio.to_thread(udb_lookup_person, query)
-        except NotOnCzvutNetworkError as exc:
-            duration_ms = (time.monotonic() - t0) * 1000
-            logger.warning("lookup_person_off_network name=%s err=%s", query, exc)
+        await asyncio.to_thread(
+            _push_tool_transcript,
+            f"lookup_person(first_name={first_q!r}, surname={surname_q!r})",
+        )
+        result = await find_person(first_q, surname_q)
+        duration_ms = (time.monotonic() - t0) * 1000
+
+        # Pull a short summary for the structured tool log.
+        if "error" in result:
+            log_status = result["error"]
+        else:
+            picked = (result.get("matches") or [{}])[0].get("name", "?")
+            log_status = f"ok picked={picked!r}"
+        logger.info(
+            "lookup_person_done first=%r surname=%r status=%s duration_ms=%.0f",
+            first_q, surname_q, log_status, duration_ms,
+        )
+        await asyncio.to_thread(
+            _post_tool_event, "lookup_person",
+            {"first_name": first_q, "surname": surname_q},
+            result, duration_ms,
+            error=result.get("error") if "error" in result else None,
+        )
+        return json.dumps(result, ensure_ascii=False)
+
+    @function_tool(name="find_path_to_room")
+    async def find_path_to_room(
+        context: RunContext,
+        room: str,
+    ) -> str:
+        """Get directions to a room in Building E. The user is already
+        standing with you at the main entrance.
+
+        Call this when the user asks how to get to a room or where a
+        room is.
+
+        room: copy the user's room number VERBATIM, including every
+            digit and any trailing zero. The user's "230" is "230",
+            not "23". Examples: '230', 'E-230', '107', 'E-107',
+            'S-109'.
+        """
+        del context
+        room_q = str(room or "").strip()
+        t0 = time.monotonic()
+        await asyncio.to_thread(_push_tool_transcript, f"find_path_to_room({room_q!r})")
+        if not room_q:
             payload = {
-                "status": "error",
-                "error": "off_network",
-                "message": str(exc),
+                "error": "missing_room",
+                "instruction": (
+                    "Ask the user which room they need directions to."
+                ),
             }
+            duration_ms = (time.monotonic() - t0) * 1000
             await asyncio.to_thread(
-                _post_tool_event, "lookup_person",
-                {"name": query}, payload, duration_ms, error="off_network",
+                _post_tool_event, "find_path_to_room",
+                {"room": room_q}, payload, duration_ms, error="missing_room",
             )
             return json.dumps(payload, ensure_ascii=False)
+
+        result = await compute_room_directions(room_q)
+        duration_ms = (time.monotonic() - t0) * 1000
+        logger.info(
+            "find_path_to_room_done room=%r resolved=%r floor=%s duration_ms=%.0f",
+            room_q, result.get("room"), result.get("floor"), duration_ms,
+        )
+        await asyncio.to_thread(
+            _post_tool_event, "find_path_to_room",
+            {"room": room_q}, result, duration_ms,
+            error=result.get("error") if "error" in result else None,
+        )
+        return json.dumps(result, ensure_ascii=False)
+
+    @function_tool
+    async def mensa_menu(
+        context: RunContext,
+        day: str = "",
+    ) -> str:
+        """Look up what meals are available at the Charles Square CTU food counter.
+
+        Use this when the user asks what they can eat, buy for lunch, or what is
+        on the menu at the mensa/menza/canteen. The optional day can be empty,
+        today, tomorrow, an ISO date like 2026-04-30, or a weekday. The result is
+        in English and includes suggested_meals; in your spoken reply, mention
+        only one or two meals unless the user asks for the full menu.
+
+        day: optional day filter.
+        """
+        del context
+        requested_day = str(day or "").strip()
+        t0 = time.monotonic()
+        await asyncio.to_thread(_push_tool_transcript, f"mensa_menu({requested_day or '-'})")
+        try:
+            result = await asyncio.to_thread(fetch_mensa_menu, requested_day)
         except Exception as exc:
             duration_ms = (time.monotonic() - t0) * 1000
-            logger.exception("lookup_person_failed name=%s", query)
+            logger.warning("mensa_menu_failed day=%s error=%s", requested_day, exc)
             payload = {
                 "status": "error",
-                "error": "fetch_failed",
+                "error": "mensa_fetch_failed",
                 "message": str(exc),
             }
             await asyncio.to_thread(
-                _post_tool_event, "lookup_person",
-                {"name": query}, payload, duration_ms, error=str(exc),
+                _post_tool_event,
+                "mensa_menu",
+                {"day": requested_day},
+                payload,
+                duration_ms,
+                error=str(exc),
             )
             return json.dumps(payload, ensure_ascii=False)
 
         duration_ms = (time.monotonic() - t0) * 1000
-        logger.info(
-            "lookup_person_done name=%s status=%s count=%s duration_ms=%.0f",
-            query, result.get("status"), result.get("count"), duration_ms,
-        )
         await asyncio.to_thread(
-            _post_tool_event, "lookup_person",
-            {"name": query}, result, duration_ms,
+            _post_tool_event,
+            "mensa_menu",
+            {"day": requested_day},
+            result,
+            duration_ms,
+        )
+        return json.dumps(result, ensure_ascii=False)
+
+    @function_tool
+    async def subject_schedule(
+        context: RunContext,
+        subject: str,
+        activity: str = "",
+        day: str = "",
+    ) -> str:
+        """Look up the public timetable for a FEE subject.
+
+        Use this when the user asks when or where a subject's lecture, lab,
+        exercise, or tutorial starts. Prefer passing the subject code if the
+        user says one, for example B3B35ARI1. activity can be empty, lecture,
+        laboratory, or exercise. day can be empty, Monday, Tuesday, Wednesday,
+        Thursday, or Friday. If the result contains
+        resolution="multiple_codes_same_subject", answer using those shared
+        events and mention which subject codes were found. If the result is
+        ambiguous without shared events, ask for the subject code.
+
+        subject: subject code or subject name.
+        activity: optional event type filter.
+        day: optional weekday filter.
+        """
+        del context
+        subject_query = str(subject or "").strip()
+        activity_query = str(activity or "").strip()
+        day_query = str(day or "").strip()
+        t0 = time.monotonic()
+        await asyncio.to_thread(
+            _push_tool_transcript,
+            f"subject_schedule({subject_query or '-'}, {activity_query or '-'}, {day_query or '-'})",
+        )
+        try:
+            result = await asyncio.to_thread(
+                fetch_subject_schedule,
+                subject_query,
+                activity_query,
+                day_query,
+            )
+        except Exception as exc:
+            duration_ms = (time.monotonic() - t0) * 1000
+            logger.warning(
+                "subject_schedule_failed subject=%s activity=%s day=%s error=%s",
+                subject_query, activity_query, day_query, exc,
+            )
+            payload = {
+                "status": "error",
+                "error": "subject_schedule_failed",
+                "message": str(exc),
+            }
+            await asyncio.to_thread(
+                _post_tool_event,
+                "subject_schedule",
+                {"subject": subject_query, "activity": activity_query, "day": day_query},
+                payload,
+                duration_ms,
+                error=str(exc),
+            )
+            return json.dumps(payload, ensure_ascii=False)
+
+        duration_ms = (time.monotonic() - t0) * 1000
+        await asyncio.to_thread(
+            _post_tool_event,
+            "subject_schedule",
+            {"subject": subject_query, "activity": activity_query, "day": day_query},
+            result,
+            duration_ms,
         )
         return json.dumps(result, ensure_ascii=False)
 
@@ -525,8 +671,17 @@ def build_tools(agent_mode: str) -> list[Any]:
             "details from the CAMERA VIEW above. Do not end the turn silent."
         )
 
-    # Room directions are handled inside query_search via rooms.try_room_lookup().
-    tools: list[Any] = [query_search, play_animation]
+    # Room directions are now a dedicated tool (find_path_to_room).
+    # query_search is gated by ENABLE_QUERY_SEARCH (off after the
+    # benchmark cascade fix). play_animation is gated separately:
+    # local mode uses the AnimationDirector (no LLM-visible tool),
+    # openai mode keeps the LLM-driven tool until we have a
+    # Realtime-compatible director.
+    tools: list[Any] = [find_path_to_room, mensa_menu, subject_schedule]
+    if ENABLE_QUERY_SEARCH:
+        tools.append(query_search)
+    if ENABLE_ANIMATION_TOOL or agent_mode != "local":
+        tools.append(play_animation)
     if ENABLE_LOOKUP_PERSON_TOOL:
         tools.append(lookup_person)
     if ENABLE_LOOK_AROUND_TOOL:
