@@ -83,3 +83,6 @@ teaching/
 
 # Local-LLM benchmark output (model-by-model JSON + markdown summaries).
 voice-agent/tests/local_llm_benchmark/results/
+
+# Experiment session logs.
+voice-agent/src/experiment/results/experiments/

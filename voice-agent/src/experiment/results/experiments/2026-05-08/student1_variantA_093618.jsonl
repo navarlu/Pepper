@@ -1,7 +1,0 @@
-{"kind": "header", "student_id": "1", "variant": "A", "room": "pepper-experiment", "started": "2026-05-08T09:36:18", "host": "lucas-rpi-5-8gb", "recorded_at": 1778225778.0850246}
-{"kind": "session_start", "room": "pepper-experiment", "variant": "A", "student_id": "1", "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "ts": 1778225781.6826615, "recorded_at": 1778225781.9724715}
-{"kind": "user_turn", "text": "Hello Pepper!", "input": "speech", "ts": 1778225788.6346385, "recorded_at": 1778225788.6422858}
-{"kind": "tool_call", "name": "send_message_to_user", "args": {"text": "Hello, how can I help you today?", "emotion": "greet"}, "ts": 1778225789.4168677, "recorded_at": 1778225789.4210892}
-{"kind": "user_turn", "text": "Can you please tell me some funny joke?", "input": "speech", "ts": 1778225797.165903, "recorded_at": 1778225797.1794038}
-{"kind": "tool_call", "name": "send_message_to_user", "args": {"text": "Sorry, I'm a receptionist, not a comedian!", "emotion": "happy"}, "ts": 1778225797.9496946, "recorded_at": 1778225797.953444}
-{"kind": "session_end", "ts": 1778225863.014605, "recorded_at": 1778225863.019008}
