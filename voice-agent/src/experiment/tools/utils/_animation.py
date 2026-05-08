@@ -4,7 +4,10 @@ inline-tag parser in animation_tag_parser.py) and Path B (the
 
 Single source of truth for benchmark animation work:
   - `_normalize_animation_name`: alias / group / direct-key resolver
-  - `trigger_animation`: rate-limited fire-and-forget POST to the bridge
+  - `trigger_animation`: enqueue a gesture; a single async worker
+    drains the queue and dispatches one at a time, sleeping
+    `_ANIM_DURATION_SEC` between calls so consecutive gestures don't
+    overlap (overlapping bridge mutes can silence live TTS mid-reply).
 
 Kept benchmark-local on purpose. Production has its own
 `trigger_animation` in `voice-agent/src/tools.py`; we don't share state
@@ -15,7 +18,6 @@ from __future__ import annotations
 
 import asyncio
 import random
-import time
 
 from tools.utils._common import _VOICE_AGENT_DIR  # noqa: F401  (path side-effect)
 
@@ -26,15 +28,23 @@ from src.live.config import (  # noqa: E402
     ANIMATION_TOOL_ALLOWED,
 )
 
-ALLOWED_ANIMATIONS = ("greeting", "bow", "explain", "happy", "thinking", "dont_know")
+# Reserved for benchmark-only overrides on top of the production alias
+# map in `voice-agent/src/live/config.py`. Empty by default — the
+# canonical group keys (greet, think, explain, …) match the prompt
+# vocabulary directly, so no local rewriting is needed.
+_LOCAL_GESTURE_ALIASES: dict[str, str] = {}
 
-# Benchmark-local short forms that mirror the system-prompt vocabulary
-# (greet/think/explain/bow/happy/dont_know). The production alias map
-# already covers `greet` and the rest, but not `think` — so we add it
-# here without touching `voice-agent/src/config.py`.
-_LOCAL_GESTURE_ALIASES: dict[str, str] = {
-    "think": "thinking",
-}
+
+# One-shot startup log so we can confirm in the agent stdout that the
+# new vocabulary actually loaded on woska after the file copy.
+print(
+    "[anim] config loaded groups={} aliases={} variants={}".format(
+        len(ANIMATION_GROUPS),
+        len(ANIMATION_TOOL_ALIASES),
+        len(ANIMATION_TOOL_ALLOWED),
+    )
+)
+print("[anim] groups: {}".format(sorted(ANIMATION_GROUPS.keys())))
 
 
 def _pick_from_group(group_name: str) -> str:
@@ -69,43 +79,88 @@ def _normalize_animation_name(raw_name: str) -> str:
     return ""
 
 
-# Min gap between animations. Set just below the typical Pepper gesture
-# duration so think→explain transitions land cleanly while still
-# protecting the bridge audio-mute lifecycle (each animation mutes
-# ALAudioPlayer at start and restores in `finally` — overlapping
-# animations can silence Pepper's live TTS mid-reply).
-_ANIMATION_MIN_GAP_SEC = 1.5
-_last_animation_at = 0.0
+# Estimated typical Pepper gesture runtime. The bridge HTTP POST returns
+# 200 immediately (animation runs in a background thread on the robot),
+# so we can't observe true completion from here — instead the worker
+# sleeps this long before pulling the next gesture, keeping consecutive
+# animations from overlapping.
+_ANIM_DURATION_SEC = 2.5
+
+# Bounded queue. If the LLM fires more gestures than the worker can
+# drain (chained tool calls in one turn), we drop the newest rather than
+# letting the queue grow unbounded — a gesture that plays 10 s after
+# the relevant speech is over is worse than no gesture at all.
+_QUEUE_MAX = 2
+
+_anim_queue: asyncio.Queue[str] | None = None
+_worker_task: asyncio.Task[None] | None = None
+
+
+async def _animation_worker() -> None:
+    """Single consumer that drains `_anim_queue` sequentially.
+
+    For each item: POST to the bridge, log the result, sleep one
+    estimated gesture duration before pulling the next item. Runs
+    forever once started; survives individual dispatch failures.
+    """
+    assert _anim_queue is not None
+    print("[anim] worker started")
+    while True:
+        resolved = await _anim_queue.get()
+        try:
+            status, body = await asyncio.to_thread(post_animation, resolved)
+            print(
+                f"[anim] dispatched variant={resolved} status={status} "
+                f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
+            )
+        except Exception as exc:
+            print(f"[anim] dispatch failed variant={resolved} err={exc!r}")
+        finally:
+            _anim_queue.task_done()
+        # Hold the slot for the estimated runtime so the next gesture
+        # starts after the current one is roughly done on the robot.
+        await asyncio.sleep(_ANIM_DURATION_SEC)
+
+
+def _ensure_worker() -> None:
+    """Lazily create the queue and start the worker task. Must be
+    called from inside a running event loop.
+    """
+    global _anim_queue, _worker_task
+    if _anim_queue is None:
+        _anim_queue = asyncio.Queue(maxsize=_QUEUE_MAX)
+        print(f"[anim] queue created maxsize={_QUEUE_MAX} duration={_ANIM_DURATION_SEC}s")
+    if _worker_task is None or _worker_task.done():
+        _worker_task = asyncio.create_task(_animation_worker(), name="anim-worker")
 
 
 async def trigger_animation(name: str) -> bool:
-    """Resolve `name` through the alias map and POST to the bridge.
+    """Resolve `name` through the alias map and enqueue it for the
+    sequential dispatch worker.
 
-    Fire-and-forget: errors are swallowed (logged to stdout), body
-    language is cosmetic and must never gate a reply. Returns True
-    when an animation was dispatched, False on resolve failure or
-    rate-limit.
+    Returns True if the gesture was queued, False if the name didn't
+    resolve or the queue was full. Body language is cosmetic — never
+    gate a reply on the return value.
     """
-    global _last_animation_at
-
+    print(f"[anim] trigger called name={name!r}")
     resolved = _normalize_animation_name(name)
     if not resolved:
-        print(f"  [anim] unknown name={name!r} — no-op")
+        print(f"[anim] reject name={name!r} reason=unknown_or_unmapped")
         return False
+    print(f"[anim] resolved name={name!r} -> variant={resolved}")
 
-    now = time.monotonic()
-    gap = now - _last_animation_at
-    if gap < _ANIMATION_MIN_GAP_SEC:
-        print(
-            f"  [anim] rate-limited name={resolved} gap_ms={gap * 1000:.0f}"
-        )
-        return False
-    _last_animation_at = now
+    _ensure_worker()
+    assert _anim_queue is not None
 
     try:
-        status, _body = await asyncio.to_thread(post_animation, resolved)
-        print(f"  [anim] dispatched name={resolved} status={status}")
-    except Exception as exc:
-        print(f"  [anim] dispatch failed name={resolved} err={exc}")
+        _anim_queue.put_nowait(resolved)
+        print(
+            f"[anim] enqueued variant={resolved} "
+            f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
+        )
+        return True
+    except asyncio.QueueFull:
+        print(
+            f"[anim] dropped variant={resolved} reason=queue_full(max={_QUEUE_MAX})"
+        )
         return False
-    return True

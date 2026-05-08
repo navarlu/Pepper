@@ -112,6 +112,12 @@ LOOK_AROUND_VISION_PROMPT = _env_str(
 # implementation in tools.py is still used by the director (via
 # `trigger_animation`) and by manual smoke tests.
 ENABLE_ANIMATION_TOOL = False
+# How much `adjust_volume` steps Pepper's speaker per call. The tool
+# POSTs `/audio/volume {"delta": +VOLUME_STEP|-VOLUME_STEP}` to the
+# bridge — the bridge owns the actual ALAudioDevice + state.json on
+# the rpi side; the agent never touches state.json directly.
+VOLUME_STEP = _env_int("VOLUME_STEP", 20)
+
 ANIMATION_BRIDGE_URL = _env_str("ANIMATION_BRIDGE_URL", "http://127.0.0.1:5000")
 ANIMATION_TOOL_HTTP_TIMEOUT_SEC = _env_float("ANIMATION_TOOL_HTTP_TIMEOUT_SEC", 2.5)
 ANIMATION_TOOL_MAX_NAME_CHARS = 120
@@ -119,16 +125,34 @@ ANIMATION_TOOL_MAX_NAME_CHARS = 120
 # Each group maps a semantic name (what the agent sees) to a list of actual
 # Pepper animation keys.  The tool picks a random variant from the group so
 # Pepper's movements feel natural and non-repetitive.
+# Silent receptionist gesture set — every variant is from the
+# `animations/Stand/Gestures/*` or `animations/Stand/BodyTalk/*`
+# subtree (pure motion timelines, no embedded audio). Emotions/* and
+# Reactions/* paths were dropped because their .qianim files include
+# vocalisation tracks that bypass ALAudioPlayer's master volume.
 ANIMATION_GROUPS: dict[str, list[str]] = {
-    "greeting":   ["Hey_1", "Hey_2", "Hey_3", "Hey_4", "Hey_6", "Hey_7", "Hey_8", "Hey_9", "Hey_10"],
-    "bow":        ["BowShort_1", "BowShort_2", "BowShort_3"],
-    "explain":    ["Explain_1", "Explain_2", "Explain_3", "Explain_4", "Explain_5", "Explain_6", "Explain_7", "Explain_8"],
-    "happy":      ["Happy_1", "Happy_2", "Happy_3", "Happy_4"],
-    "thinking":   ["Thinking_1", "Thinking_2", "Thinking_3", "Thinking_4", "Thinking_5", "Thinking_6", "Thinking_7", "Thinking_8"],
-    "dont_know":  ["IDontKnow_1", "IDontKnow_2", "IDontKnow_3", "IDontKnow_4", "IDontKnow_5", "IDontKnow_6"],
-    "excited":    ["Excited_1", "Excited_2", "Excited_3"],
-    "interested": ["Interested_1", "Interested_2"],
-    "surprised":  ["Surprised_1", "Surprise_1", "Surprise_2", "Surprise_3"],
+    "greet":         ["Hey_1", "Hey_2", "Hey_3", "Hey_4", "Hey_6", "Hey_7", "Hey_8", "Hey_9", "Hey_10"],
+    "bow":           ["BowShort_1", "BowShort_2", "BowShort_3"],
+    "goodbye":       ["Kisses_1", "BowShort_1", "BowShort_2", "BowShort_3"],
+    "affirm":        ["Yes_1", "Yes_2", "Yes_3", "Great_1"],
+    "deny":          ["No_1", "No_2", "No_3", "No_4", "No_5", "No_6", "No_7", "No_8", "No_9"],
+    "think":         ["Thinking_1", "Thinking_2", "Thinking_3", "Thinking_4", "Thinking_5",
+                      "Thinking_6", "Thinking_7", "Thinking_8",
+                      "Remember_1", "Remember_2", "Remember_3"],
+    "explain":       ["Explain_1", "Explain_2", "Explain_3", "Explain_4", "Explain_5",
+                      "Explain_6", "Explain_7", "Explain_8", "Explain_10", "Explain_11"],
+    "emphasis":      ["Everything_1", "Everything_2", "Everything_3", "Everything_4",
+                      "Everything_6", "Stretch_1", "Stretch_2"],
+    "whisper":       ["Whisper_1"],
+    "question":      [f"WhatSThis_{i}" for i in range(1, 17)],
+    "calm":          ["CalmDown_1", "CalmDown_2", "CalmDown_3", "CalmDown_4", "CalmDown_5", "CalmDown_6"],
+    "offer":         ["Give_1", "Give_2", "Give_3", "Give_4", "Give_5", "Give_6", "Take_1"],
+    "address_user":  ["You_1", "You_2", "You_3", "You_4", "You_5",
+                      "YouKnowWhat_1", "YouKnowWhat_2", "YouKnowWhat_3",
+                      "YouKnowWhat_4", "YouKnowWhat_5", "YouKnowWhat_6"],
+    "dont_know":     ["IDontKnow_1", "IDontKnow_2", "IDontKnow_3", "IDontKnow_4",
+                      "IDontKnow_5", "IDontKnow_6", "DontUnderstand_1", "Confused_2"],
+    "speak_neutral": [f"BodyTalk_{i}" for i in range(1, 17)],
 }
 
 # Flat set of all valid animation keys across all groups (for bridge validation).
@@ -138,36 +162,46 @@ ANIMATION_TOOL_ALLOWED: set[str] = {
 
 # Aliases let the agent use natural words that map to group names.
 ANIMATION_TOOL_ALIASES: dict[str, str] = {
-    "hello":       "greeting",
-    "hi":          "greeting",
-    "greet":       "greeting",
-    "welcome":     "greeting",
-    "hey":         "greeting",
-    "bow":         "bow",
-    "thanks":      "bow",
-    "thank_you":   "bow",
-    "goodbye":     "bow",
-    "explain":     "explain",
-    "info":        "explain",
-    "information": "explain",
-    "happy":       "happy",
-    "positive":    "happy",
-    "joy":         "happy",
-    "thinking":    "thinking",
-    "searching":   "thinking",
-    "consider":    "thinking",
-    "uncertain":   "dont_know",
-    "dontknow":    "dont_know",
-    "i_dont_know": "dont_know",
-    "shrug":       "dont_know",
-    "excited":     "excited",
-    "enthusiasm":  "excited",
-    "interested":  "interested",
-    "listening":   "interested",
-    "curious":     "interested",
-    "surprised":   "surprised",
-    "wow":         "surprised",
-    "shock":       "surprised",
+    "hello":         "greet",
+    "hi":            "greet",
+    "welcome":       "greet",
+    "hey":           "greet",
+    "greeting":      "greet",
+    "thanks":        "bow",
+    "thank_you":     "bow",
+    "bye":           "goodbye",
+    "farewell":      "goodbye",
+    "yes":           "affirm",
+    "agree":         "affirm",
+    "confirm":       "affirm",
+    "no":            "deny",
+    "refuse":        "deny",
+    "thinking":      "think",
+    "consider":      "think",
+    "searching":     "think",
+    "info":          "explain",
+    "information":   "explain",
+    "describe":      "explain",
+    "stress":        "emphasis",
+    "important":     "emphasis",
+    "secret":        "whisper",
+    "quiet":         "whisper",
+    "ask":           "question",
+    "what":          "question",
+    "reassure":      "calm",
+    "calm_down":     "calm",
+    "give":          "offer",
+    "present":       "offer",
+    "hand":          "offer",
+    "you":           "address_user",
+    "user":          "address_user",
+    "uncertain":     "dont_know",
+    "dontknow":      "dont_know",
+    "i_dont_know":   "dont_know",
+    "idk":           "dont_know",
+    "shrug":         "dont_know",
+    "neutral":       "speak_neutral",
+    "default":       "speak_neutral",
 }
 
 BASE_SYSTEM_PROMPT = """

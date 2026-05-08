@@ -72,6 +72,38 @@ def post_animation(animation_name: str) -> tuple[int, str]:
         raise RuntimeError(f"animation_bridge_unreachable: {exc}") from exc
 
 
+def post_volume_delta(delta: int) -> tuple[int, dict]:
+    """POST `/audio/volume {"delta": <int>}` — step Pepper's speaker
+    volume up or down. Returns `(status_code, response_json)`.
+
+    The bridge clamps to 0..100, applies via `ALAudioDevice`, persists
+    to the rpi-side `state.json`, and returns the previous + new
+    volume. This is the single source of truth for volume changes —
+    don't write the JSON file from here, since the agent and the
+    bridge run on different machines.
+    """
+    endpoint = f"{_bridge_base()}/audio/volume"
+    body = json.dumps({"delta": int(delta)}).encode("utf-8")
+    req = Request(endpoint, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=float(ANIMATION_TOOL_HTTP_TIMEOUT_SEC)) as response:
+            status = int(getattr(response, "status", response.getcode()))
+            raw = response.read().decode("utf-8", "ignore")
+    except HTTPError as exc:
+        status = int(exc.code)
+        raw = exc.read().decode("utf-8", "ignore")
+    except URLError as exc:
+        raise RuntimeError(f"audio_bridge_unreachable: {exc}") from exc
+    try:
+        data = json.loads(raw) if raw else {}
+        if not isinstance(data, dict):
+            data = {"raw": raw}
+    except Exception:
+        data = {"raw": raw}
+    return status, data
+
+
 def post_led_state(mode: str) -> None:
     """Best-effort POST `/leds/state {"mode": ...}`.
 

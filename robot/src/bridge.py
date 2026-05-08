@@ -68,6 +68,14 @@ from utils import (
     wait_for_service,
 )
 
+AUTONOMOUS_LIFE_ABILITIES = (
+    "AutonomousBlinking",
+    "BackgroundMovement",
+    "BasicAwareness",
+    "ListeningMovement",
+    "SpeakingMovement",
+)
+
 
 class TabletDebugReporter(object):
     """Background publisher that renders HTML payloads on Pepper's tablet.
@@ -396,6 +404,8 @@ class TabletOverlayHttpServer(threading.Thread):
                                        URL (used by `tablet_server.py`)
       - POST /leds/state             — set the eye-LED mode on the
                                        `LedEffectManager`
+      - GET  /life/state             — read autonomous-life state and
+                                       ability flags
       - POST /audio/volume           — adjust `ALAudioDevice` output volume
       - POST /camera/snapshot        — capture one JPEG from the top
                                        camera (optionally pausing awareness)
@@ -591,17 +601,51 @@ class TabletOverlayHttpServer(threading.Thread):
                     except Exception:
                         self._write_json(400, {"ok": False, "error": "invalid json"})
                         return
+                    # Accept either absolute `volume` (0..100) or relative
+                    # `delta` (e.g. +20 / -20). Delta lets remote callers step
+                    # the volume without first reading the current value —
+                    # avoids the "agent on woska / state.json on rpi" split
+                    # that bit us with the file-write tool design.
                     try:
-                        requested_volume = normalize_output_volume(payload.get("volume"))
-                    except Exception:
-                        self._write_json(400, {"ok": False, "error": "volume must be an integer 0-100"})
+                        previous_volume = int(audio_device.getOutputVolume())
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                        return
+                    if payload.get("delta") is not None:
+                        try:
+                            delta = int(payload.get("delta"))
+                        except Exception:
+                            self._write_json(400, {"ok": False, "error": "delta must be an integer"})
+                            return
+                        requested_volume = normalize_output_volume(previous_volume + delta)
+                    elif "volume" in payload:
+                        try:
+                            requested_volume = normalize_output_volume(payload.get("volume"))
+                        except Exception:
+                            self._write_json(400, {"ok": False, "error": "volume must be an integer 0-100"})
+                            return
+                    else:
+                        self._write_json(400, {"ok": False, "error": "missing volume or delta"})
                         return
                     try:
                         audio_device.setOutputVolume(requested_volume)
                         current_volume = int(audio_device.getOutputVolume())
-                        print("[bridge] output volume updated to", current_volume)
+                        clamped = current_volume != requested_volume or (
+                            payload.get("delta") is not None
+                            and current_volume != previous_volume + int(payload.get("delta"))
+                        )
+                        print("[bridge] output volume {} -> {}".format(previous_volume, current_volume))
                         _write_runtime_state({"pepper_output_volume": current_volume})
-                        self._write_json(200, {"ok": True, "volume": current_volume, "persisted": True})
+                        self._write_json(
+                            200,
+                            {
+                                "ok": True,
+                                "previous": previous_volume,
+                                "volume": current_volume,
+                                "clamped": clamped,
+                                "persisted": True,
+                            },
+                        )
                     except Exception as exc:
                         self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
@@ -751,13 +795,7 @@ class TabletOverlayHttpServer(threading.Thread):
                             payload.setdefault("life_state", to_text(life.getState()))
                             payload.setdefault(
                                 "life_abilities",
-                                {
-                                    "AutonomousBlinking": bool(life.getAutonomousAbilityEnabled("AutonomousBlinking")),
-                                    "BackgroundMovement": bool(life.getAutonomousAbilityEnabled("BackgroundMovement")),
-                                    "BasicAwareness": bool(life.getAutonomousAbilityEnabled("BasicAwareness")),
-                                    "ListeningMovement": bool(life.getAutonomousAbilityEnabled("ListeningMovement")),
-                                    "SpeakingMovement": bool(life.getAutonomousAbilityEnabled("SpeakingMovement")),
-                                },
+                                _collect_life_state(life).get("abilities", {}),
                             )
                         except Exception:
                             pass
@@ -772,6 +810,13 @@ class TabletOverlayHttpServer(threading.Thread):
 
             def do_GET(self):
                 path_only = self.path.split("?", 1)[0]
+                if path_only == "/life/state":
+                    life = server_self._life
+                    if life is None:
+                        self._write_json(503, {"ok": False, "error": "life service unavailable"})
+                        return
+                    self._write_json(200, _collect_life_state(life))
+                    return
                 if path_only != "/health":
                     self.send_response(404)
                     self.end_headers()
@@ -835,6 +880,35 @@ def _read_runtime_state():
     except Exception as exc:
         print("[bridge] state read failed path={} err={}".format(STATE_FILE, to_text(exc)))
         return {}
+
+
+def _safe_life_call(life, method_name):
+    try:
+        return getattr(life, method_name)()
+    except Exception as exc:
+        return {"error": to_text(exc)}
+
+
+def _collect_life_state(life):
+    abilities = {}
+    errors = {}
+    for ability in AUTONOMOUS_LIFE_ABILITIES:
+        try:
+            abilities[ability] = bool(life.getAutonomousAbilityEnabled(ability))
+        except Exception as exc:
+            abilities[ability] = None
+            errors[ability] = to_text(exc)
+
+    payload = {
+        "ok": True,
+        "state": _safe_life_call(life, "getState"),
+        "focus": _safe_life_call(life, "getFocus"),
+        "activity": _safe_life_call(life, "getActivity"),
+        "abilities": abilities,
+    }
+    if errors:
+        payload["errors"] = errors
+    return payload
 
 
 def _write_runtime_state(patch):
