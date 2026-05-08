@@ -19,6 +19,7 @@ The bridge calls use `/animation/<name>`, `/leds/state`,
 from __future__ import annotations
 
 import base64
+import html as _html
 import json
 import logging
 from urllib.error import HTTPError, URLError
@@ -91,6 +92,79 @@ def post_led_state(mode: str) -> None:
             _ = response.read()
     except Exception as exc:
         logger.debug("led_state_post_failed mode=%s error=%s", mode, exc)
+
+
+_TABLET_INFO_HTML = """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{{box-sizing:border-box;margin:0;padding:0;}}
+html,body{{height:100%;background:#f7f8fa;color:#1b2430;
+  font-family:-apple-system,"Segoe UI",Roboto,sans-serif;}}
+body{{display:flex;align-items:center;justify-content:center;padding:32px;}}
+.card{{
+  max-width:92%;
+  background:#ffffff;border:1px solid #e3e6eb;
+  border-radius:24px;padding:48px 56px;
+  box-shadow:0 8px 32px rgba(15,23,42,.08);
+  text-align:center;
+}}
+.label{{font-size:18px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:#0a7a2f;margin-bottom:18px;}}
+.value{{font-size:60px;font-weight:600;color:#1b2430;
+  line-height:1.25;word-break:break-word;white-space:pre-wrap;}}
+</style></head>
+<body><div class="card">
+  <div class="label">Info</div>
+  <div class="value">{value}</div>
+</div></body></html>"""
+
+
+_TABLET_BLANK_HTML = (
+    '<!doctype html><html><head><meta charset="utf-8">'
+    '<style>html,body{margin:0;height:100%;background:#f7f8fa;}</style>'
+    '</head><body></body></html>'
+)
+
+
+def _post_tablet_url(html: str) -> tuple[int, str]:
+    data_url = "data:text/html;charset=utf-8," + quote(html.encode("utf-8"))
+    endpoint = f"{_bridge_base()}/tablet/url"
+    body = json.dumps({"url": data_url}).encode("utf-8")
+    req = Request(endpoint, data=body, method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=float(ANIMATION_TOOL_HTTP_TIMEOUT_SEC)) as response:
+            status = int(getattr(response, "status", response.getcode()))
+            resp_body = response.read().decode("utf-8", "ignore")
+            return status, resp_body
+    except HTTPError as exc:
+        resp_body = exc.read().decode("utf-8", "ignore")
+        return int(exc.code), resp_body
+    except URLError as exc:
+        raise RuntimeError(f"tablet_bridge_unreachable: {exc}") from exc
+
+
+def post_tablet_info(text: str) -> tuple[int, str]:
+    """Render `text` as an info card on Pepper's tablet via `/tablet/url`.
+
+    Used by the experiment-agent `display_info` tool to surface
+    copy-worthy values (phone numbers, emails, room codes) in writing
+    while Pepper speaks. A later call overwrites the page; the card
+    is also cleared by `post_tablet_clear()` when the next user turn
+    starts.
+
+    Returns `(status_code, response_body)`. Raises `RuntimeError` if
+    the bridge is unreachable.
+    """
+    safe = _html.escape(str(text or ""), quote=True)
+    return _post_tablet_url(_TABLET_INFO_HTML.format(value=safe))
+
+
+def post_tablet_clear() -> tuple[int, str]:
+    """Blank the info card. Called by the experiment worker when a new
+    user turn begins so a phone number / email shown for the previous
+    turn doesn't linger on the screen indefinitely."""
+    return _post_tablet_url(_TABLET_BLANK_HTML)
 
 
 def fetch_camera_snapshot() -> bytes:

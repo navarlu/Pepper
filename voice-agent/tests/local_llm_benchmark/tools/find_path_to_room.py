@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Literal
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import asyncio
@@ -18,7 +19,10 @@ import asyncio
 import requests
 from livekit.agents import RunContext, function_tool
 
+from tools._animation import trigger_animation
 from tools._common import _json, _run_main
+
+_Gesture = Literal["greet", "think", "explain", "bow", "happy", "dont_know"]
 
 
 _GRAPHQL_URL = "https://navigate.fel.cvut.cz/graphql"
@@ -234,7 +238,11 @@ def _query_floor(room: str) -> int | None:
 
 
 @function_tool
-async def find_path_to_room(context: RunContext, room: str) -> str:
+async def find_path_to_room(
+    context: RunContext,
+    room: str,
+    gesture: _Gesture = "explain",
+) -> str:
     """Get directions to a room in Building E. The user is already standing
     with you at the main entrance.
 
@@ -243,8 +251,12 @@ async def find_path_to_room(context: RunContext, room: str) -> str:
     room: copy the user's room number VERBATIM, including every digit
         and any trailing zero. The user's "230" is "230" — not "23".
         Examples: '230', 'E-230', '107', 'E-107', 'S-109'.
+    gesture: Pepper body language while answering. Default 'explain'.
+        One of greet, think, explain, bow, happy, dont_know.
     """
     del context
+    if gesture:
+        asyncio.create_task(trigger_animation(gesture))
     room_norm = _normalize_room(room)
     print(f"  [tool] find_path_to_room({room_norm!r})")
 

@@ -4,20 +4,22 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from typing import Any, Literal
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 import re
 import traceback
-from typing import Any
 
 from livekit.agents import RunContext, function_tool
 
+from tools._animation import trigger_animation
 from tools._common import _json, _run_main
 
 from src.timetable import fetch_subject_schedule  # noqa: E402
 
 _SUBJECT_CODE = re.compile(r"^[A-Za-z]{2,4}\d?$")
+_Gesture = Literal["greet", "think", "explain", "bow", "happy", "dont_know"]
 
 
 @function_tool
@@ -26,6 +28,7 @@ async def subject_schedule(
     subject: str,
     activity: str = "",
     day: str = "",
+    gesture: _Gesture = "think",
 ) -> str:
     """Look up the public timetable for a FEE subject.
 
@@ -57,8 +60,12 @@ async def subject_schedule(
     subject: short intranet course code, 2 to 4 letters with optional trailing digit.
     activity: session type — "lecture", "exercise", "laboratory", or "".
     day: optional weekday filter.
+    gesture: Pepper body language while fetching. Default 'think'.
+        One of greet, think, explain, bow, happy, dont_know.
     """
     del context
+    if gesture:
+        asyncio.create_task(trigger_animation(gesture))
     subject_query = str(subject or "").strip()
     activity_query = str(activity or "").strip()
     day_query = str(day or "").strip()

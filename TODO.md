@@ -100,3 +100,8 @@ tools o first round
 animation
 add imporatnt dates to knowldage
 add documents for query search (maybe publications of hoffmans lab??)
+
+safe startup restarting pepper for no reason
+
+staticka adressa pro Pepper
+hotspot turn on on restart na rpi

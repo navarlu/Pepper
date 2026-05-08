@@ -10,16 +10,20 @@ from __future__ import annotations
 import sys
 import unicodedata
 from pathlib import Path
+from typing import Literal
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 import asyncio
 
 from livekit.agents import RunContext, function_tool
 
+from tools._animation import trigger_animation
 from tools._common import _json, _run_main
 from tools._person import _slim_match
 
 from src.udb import NotOnCzvutNetworkError, lookup_person as udb_lookup_person  # noqa: E402
+
+_Gesture = Literal["greet", "think", "explain", "bow", "happy", "dont_know"]
 
 
 _TITLE_WEIGHTS = {
@@ -65,6 +69,7 @@ async def lookup_person(
     context: RunContext,
     first_name: str,
     surname: str,
+    gesture: _Gesture = "think",
 ) -> str:
     """Look up a person's contact info (phone, email, room) in the
     public staff directory.
@@ -75,8 +80,12 @@ async def lookup_person(
 
     first_name: the person's given name. Required.
     surname: the person's surname only — no titles. Required.
+    gesture: Pepper body language while looking up. Default 'think'.
+        One of greet, think, explain, bow, happy, dont_know.
     """
     del context
+    if gesture:
+        asyncio.create_task(trigger_animation(gesture))
     surname_q = str(surname or "").strip()
     first_q = str(first_name or "").strip()
     if (

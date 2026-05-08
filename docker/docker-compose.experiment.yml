@@ -1,3 +1,37 @@
+# Experiment stack — minimal sibling of docker-compose.yml.
+#
+# What this compose runs:
+#   livekit + redis              — same as production
+#   weaviate                     — same as production (tools may use it)
+#   reverse-tunnel               — same as production (exposes RPi's
+#                                  LiveKit on woska's localhost so the
+#                                  pepper-experiment worker reaches it)
+#   bridge                       — Pepper hardware (animations / LEDs)
+#   audio-bridge                 — Pepper mic/speaker into LiveKit
+#   experiment-orchestrator      — REPLACES production orchestrator.
+#                                  Creates the fixed `pepper-experiment`
+#                                  room and writes tokens to the same
+#                                  livekit_session.json file the bridge
+#                                  + audio-bridge already poll. No
+#                                  agent dispatch, no state polling.
+#
+# What this compose does NOT run (intentional):
+#   voice-agent (production agent) — replaced by the experiment_worker
+#                                    on woska, dispatched by experiment.py
+#   tablet-server                — not relevant for the study
+#   ssh-tunnel                   — only needed for production flows
+#
+# safe-startup IS included (added because Pepper would otherwise boot
+# in whatever pose the previous session left her in — often arms up).
+#
+# Toggle:
+#   docker compose -f docker/docker-compose.yml down
+#   docker compose -f docker/docker-compose.experiment.yml up -d
+#
+# Restore production:
+#   docker compose -f docker/docker-compose.experiment.yml down
+#   docker compose -f docker/docker-compose.yml up -d
+
 services:
   livekit:
     image: livekit/livekit-server:v1.10.1
@@ -7,10 +41,6 @@ services:
       - --keys=${LIVEKIT_KEYS}
     volumes:
       - ./livekit:/livekit:ro
-    # Bridge networking (NOT host) so the container sees only eth0+lo.
-    # With node_ip=127.0.0.1 this makes loopback the only advertised ICE
-    # candidate — matches the proven connection_test setup that worked
-    # over the SSH reverse tunnel from woska.
     ports:
       - "127.0.0.1:7880:7880"
       - "127.0.0.1:7881:7881"
@@ -25,12 +55,12 @@ services:
       - ./redis-data:/data
     restart: unless-stopped
 
-  orchestrator:
+  experiment-orchestrator:
     build:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/orchestrator.py"]
+    command: ["uv", "run", "python", "services/src/experiment_orchestrator.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -38,44 +68,12 @@ services:
       LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
       LIVEKIT_HTTP_URL: http://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
-      PEPPER_AGENT_MODE: openai
-      PEPPER_AGENT_NAME_OPENAI: pepper-openai
-      PEPPER_AGENT_NAME_LOCAL: pepper-local
-      SESSION_IDLE_TIMEOUT_SEC: 60
+      EXPERIMENT_ROOM_NAME: pepper-experiment
     network_mode: host
     depends_on:
       - livekit
       - redis
     restart: unless-stopped
-
-  voice-agent:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "-m", "voice-agent.src.agent", "dev"]
-    env_file: ../.env
-    volumes:
-      - ..:/workspace
-    environment:
-      LIVEKIT_URL: ws://127.0.0.1:7880
-      WEAVIATE_HOST: 127.0.0.1
-      WEAVIATE_HTTP_PORT: 8080
-      WEAVIATE_GRPC_PORT: 50051
-      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
-      PEPPER_AGENT_NAME: pepper-openai
-      PEPPER_AGENT_MODE: openai
-      SESSION_IDLE_TIMEOUT_SEC: 60
-    network_mode: host
-    stop_grace_period: 15s
-    restart: unless-stopped
-
-  # Experiment mode lives in a separate compose file
-  # (docker/docker-compose.experiment.yml). To switch:
-  #   docker compose -f docker/docker-compose.yml down
-  #   docker compose -f docker/docker-compose.experiment.yml up -d
-  # The experiment worker itself runs on woska in tmux — see
-  # docs/notes/cmd.md and scripts/sync_experiment_to_woska.sh.
 
   bridge:
     build:
@@ -97,9 +95,22 @@ services:
       BRIDGE_BIND_HOST: "0.0.0.0"
       TCP_PORT: "55555"
       BRIDGE_URL: http://0.0.0.0:5000
+      # Slightly faster first-chunk than the production default 1600 =
+      # 100 ms gather. At 800 (50 ms) we shave ~50 ms off the audio
+      # pre-roll while staying above NAOqi's per-call overhead floor.
+      # Going lower (e.g. 320) flooded the bridge with `WARNING slow
+      # sendRemoteBufferToOutput` because each `sendRemoteBufferToOutput`
+      # call costs ~30–40 ms regardless of payload — at 20 ms batches
+      # you can't keep up with realtime.
+      PEPPER_PLAYBACK_BATCH_FRAMES: "800"
     network_mode: host
     restart: unless-stopped
 
+  # Watchdog that puts Pepper into a known-safe pose on boot (hands
+  # down, neutral stance, baseline volume) before the bridge takes
+  # over. Without this, she can boot in whatever pose the previous
+  # session left her in — often arms in the air. Same definition as
+  # the production stack.
   safe-startup:
     build:
       context: ..
@@ -133,8 +144,14 @@ services:
       TCP_HOST: 127.0.0.1
       TCP_PORT: 55555
     network_mode: host
+    depends_on:
+      - experiment-orchestrator
     restart: unless-stopped
 
+  # user-client is the missing piece for input audio: it joins the room
+  # as identity `user` and publishes the USB microphone (DJI) into
+  # LiveKit. Without it, the agent has no `user` participant to listen
+  # to and the worker's wait_for_user_participant() blocks forever.
   user-client:
     build:
       context: ..
@@ -154,27 +171,10 @@ services:
     network_mode: host
     pid: host
     privileged: true
-    restart: unless-stopped
-
-  tablet-server:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/tablet_server.py"]
-    volumes:
-      - ..:/workspace
-    environment:
-      LIVEKIT_URL: ws://127.0.0.1:7880
-      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
-      BRIDGE_URL: http://127.0.0.1:5000
-    network_mode: host
     depends_on:
-      - orchestrator
+      - experiment-orchestrator
     restart: unless-stopped
 
-  # Reverse tunnel: exposes RPi services on woska:localhost so the remote voice-agent can reach them.
-  # Also keeps the forward tunnel for vLLM (woska:8000 → RPi:8000) for local-mode fallback.
   reverse-tunnel:
     image: alpine:3.21
     entrypoint: ["/bin/sh", "-c"]
@@ -199,40 +199,17 @@ services:
     network_mode: host
     restart: unless-stopped
 
-  # Forward tunnel: woska:8000 → RPi:8000 (for running voice-agent locally with remote vLLM)
-  ssh-tunnel:
-    image: alpine:3.21
-    entrypoint: ["/bin/sh", "-c"]
-    command:
-      - |
-        apk add --no-cache autossh openssh-client &&
-        exec autossh -M 0 -N \
-          -o StrictHostKeyChecking=accept-new \
-          -o ServerAliveInterval=15 \
-          -o ServerAliveCountMax=3 \
-          -o ExitOnForwardFailure=yes \
-          -J navarlu2@ptak.felk.cvut.cz \
-          -L 0.0.0.0:8000:127.0.0.1:8000 \
-          navarlu2@woska
-    volumes:
-      - /home/lucas/.ssh:/root/.ssh:ro
-    network_mode: host
-    restart: unless-stopped
-
   weaviate:
-      image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
-      env_file: ../.env
-      ports:
-        - "8080:8080"
-        - "50051:50051"
-      restart: unless-stopped
-      environment:
-        QUERY_DEFAULTS_LIMIT: 25
-        AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
-        PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
-        DEFAULT_VECTORIZER_MODULE: text2vec-openai
-        ENABLE_MODULES: text2vec-openai
-        OPENAI_APIKEY: ${OPENAI_API_KEY}
-        CLUSTER_HOSTNAME: "node1"
-      volumes:
-        - ./weaviate_data:/var/lib/weaviate
+    image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
+    env_file: ../.env
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    restart: unless-stopped
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      DEFAULT_VECTORIZER_MODULE: text2vec-openai
+      ENABLE_MODULES: text2vec-openai
+      OPENAI_APIKEY: ${OPENAI_API_KEY}

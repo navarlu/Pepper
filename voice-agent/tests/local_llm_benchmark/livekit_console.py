@@ -43,9 +43,14 @@ from livekit.agents.voice.generation import update_instructions
 from livekit.plugins import openai, silero
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from animation_director import AnimationDirector  # noqa: E402
+from animation_tag_parser import filter_animation_tags  # noqa: E402
 from prompt import GREETING_INSTRUCTIONS, SYSTEM_PROMPT  # noqa: E402
 from tools import LIVEKIT_TOOLS  # noqa: E402
+
+# AnimationDirector is intentionally not imported. The dual-channel
+# design replaces it: Path A (tts_node tag filter) handles plain
+# spoken replies, Path B (`gesture` param on every tool) handles tool
+# calls. The director file stays on disk for A/B comparison.
 
 logger = logging.getLogger("livekit-console")
 
@@ -204,6 +209,14 @@ class GreetingAgent(Agent):
         _dump_chat_ctx("LLM_NODE INPUT (final, sent to LLM)", chat_ctx)
         return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
 
+    async def tts_node(self, text, model_settings):
+        """Path A: strip [tag] markers from the streaming text and
+        dispatch the matching gesture as a side-effect. Cleaned text
+        flows through to the default TTS path unchanged."""
+        return Agent.default.tts_node(
+            self, filter_animation_tags(text), model_settings,
+        )
+
 
 # ----- Entrypoint -------------------------------------------------------
 
@@ -231,20 +244,11 @@ async def entrypoint(ctx: JobContext) -> None:
     )
 
     agent = GreetingAgent()
-    director = AnimationDirector(llm_instance=session.llm)
 
-    @session.on("conversation_item_added")
-    def _on_item_added(ev):  # type: ignore[no-untyped-def]
-        item = getattr(ev, "item", None)
-        if item is None or getattr(item, "role", None) != "assistant":
-            return
-        if not (getattr(item, "text_content", "") or "").strip():
-            return
-        ctx = agent._latest_chat_ctx
-        if ctx is None:
-            return
-        director.schedule(ctx)
-
+    # Animations are now driven by tts_node (Path A — inline [tag]
+    # parser) for spoken replies and by the `gesture` argument
+    # baked into every tool (Path B) for tool-call turns. No
+    # post-turn AnimationDirector pass.
     await session.start(agent=agent, room=ctx.room)
 
 
