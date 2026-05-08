@@ -7,7 +7,7 @@ the orchestrator, the tablet server) reaches Pepper through the bridge.
 It plays two roles at once:
 
 1. **Audio sink** — a TCP server that accepts mono 16-bit PCM frames
-   from [services/src/audio_bridge.py](../../services/src/audio_bridge.py)
+   from [services/src/live/audio_bridge.py](../../services/src/live/audio_bridge.py)
    and streams them into Pepper's speakers via `ALAudioDevice`.
 2. **HTTP control plane** — a small HTTP server that exposes animations,
    tablet rendering, eye LEDs, camera snapshots, and audio volume to
@@ -290,7 +290,7 @@ robot's body. They flow through the bridge end-to-end:
 LLM tool call                HTTP                     qi / NAOqi
 ─────────────                ────                     ──────────
 play_animation("Hey_1")  ──► POST /animation/Hey_1 ──► ALAnimationPlayer.run(
- (voice-agent/src/tools.py)   (bridge)                   "animations/Stand/Gestures/Hey_1")
+ (voice-agent/src/live/tools.py)   (bridge)                   "animations/Stand/Gestures/Hey_1")
                                 │
                                 └── or ALBehaviorManager.runBehavior(<path>)
                                     for user-installed behaviors
@@ -514,7 +514,7 @@ Thin producer/consumer wrapper around `ALTabletService.showWebview`.
 
 > ⚠️ In `main()` the reporter is constructed with `enabled=False` so
 > the bridge does **not** drive the tablet anymore — the
-> [`tablet_server.py`](../../services/src/tablet_server.py) service
+> [`tablet_server.py`](../../services/src/live/tablet_server.py) service
 > owns it via `/tablet/url`. The reporter remains to handle direct
 > `/tablet/text_inline` HTTP calls.
 

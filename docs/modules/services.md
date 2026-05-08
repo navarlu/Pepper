@@ -34,17 +34,17 @@ is automatically on `sys.path[0]`, so modules use flat
 
 | File | Role |
 |------|------|
-| [config.py](../../services/src/config.py) | Every tunable (env-backed). Single source of truth for sample rates, identities, file paths, agent names, timing constants. |
-| [session.py](../../services/src/session.py) | `SessionWatcher` — polls the token file, waits/notifies on rotation. `post_debug_event` — log helper. Shared by audio_bridge, tablet_server, user_client. |
-| [orchestrator.py](../../services/src/orchestrator.py) | Room lifecycle + token minting + agent dispatch + state watcher + state broadcaster. The keystone. |
-| [audio_bridge.py](../../services/src/audio_bridge.py) | Joins LiveKit as `listener`, forwards agent audio over TCP to the robot bridge. |
-| [user_client.py](../../services/src/user_client.py) | Joins LiveKit as `user`, publishes the RPi microphone. Listens to `pepper.state` for soft mute. |
-| [tablet_server.py](../../services/src/tablet_server.py) | Joins LiveKit as `tablet` (subscribe-only), renders chat HTML, POSTs `data:text/html` URLs to the bridge's `/tablet/url`. |
-| [text_chat.py](../../services/src/text_chat.py) | Debug CLI. Joins as `debug-cli`, sends text over `pepper.text`, writes state.json for mode/mic/dispatch commands. |
+| [config.py](../../services/src/live/config.py) | Every tunable (env-backed). Single source of truth for sample rates, identities, file paths, agent names, timing constants. |
+| [session.py](../../services/src/live/session.py) | `SessionWatcher` — polls the token file, waits/notifies on rotation. `post_debug_event` — log helper. Shared by audio_bridge, tablet_server, user_client. |
+| [orchestrator.py](../../services/src/live/orchestrator.py) | Room lifecycle + token minting + agent dispatch + state watcher + state broadcaster. The keystone. |
+| [audio_bridge.py](../../services/src/live/audio_bridge.py) | Joins LiveKit as `listener`, forwards agent audio over TCP to the robot bridge. |
+| [user_client.py](../../services/src/live/user_client.py) | Joins LiveKit as `user`, publishes the RPi microphone. Listens to `pepper.state` for soft mute. |
+| [tablet_server.py](../../services/src/live/tablet_server.py) | Joins LiveKit as `tablet` (subscribe-only), renders chat HTML, POSTs `data:text/html` URLs to the bridge's `/tablet/url`. |
+| [text_chat.py](../../services/src/live/text_chat.py) | Debug CLI. Joins as `debug-cli`, sends text over `pepper.text`, writes state.json for mode/mic/dispatch commands. |
 
 ---
 
-## Orchestrator — [`orchestrator.py`](../../services/src/orchestrator.py)
+## Orchestrator — [`orchestrator.py`](../../services/src/live/orchestrator.py)
 
 The only long-lived writer of state. No HTTP server, no dashboard.
 
@@ -101,7 +101,7 @@ user_client, text_chat) just listens.
 
 ---
 
-## Session watcher — [`session.py`](../../services/src/session.py)
+## Session watcher — [`session.py`](../../services/src/live/session.py)
 
 Dead-simple poll-file-for-changes abstraction around the token file.
 One `SessionWatcher(role)` per consumer.
@@ -124,7 +124,7 @@ internal one.
 
 ---
 
-## Audio bridge — [`audio_bridge.py`](../../services/src/audio_bridge.py)
+## Audio bridge — [`audio_bridge.py`](../../services/src/live/audio_bridge.py)
 
 Bridges LiveKit audio into the robot bridge's TCP port. Two
 independent concerns, both non-blocking:
@@ -154,7 +154,7 @@ Audio is attenuated (`PEPPER_STREAM_ATTENUATION`, default 0.4) via
 
 ---
 
-## User client — [`user_client.py`](../../services/src/user_client.py)
+## User client — [`user_client.py`](../../services/src/live/user_client.py)
 
 Captures the host microphone via `sounddevice` and publishes it as
 the `user` participant. Runs **on the host**, not in Docker, because
@@ -196,7 +196,7 @@ never block the audio callback.
 
 ---
 
-## Tablet server — [`tablet_server.py`](../../services/src/tablet_server.py)
+## Tablet server — [`tablet_server.py`](../../services/src/live/tablet_server.py)
 
 Owns Pepper's tablet screen. Pepper's tablet browser can't reach the
 RPi's LAN (it sits on an internal USB network), so we can't serve a
@@ -228,7 +228,7 @@ linearly and the tablet browser slows down past ~30 KB of HTML.
 
 ---
 
-## Text chat CLI — [`text_chat.py`](../../services/src/text_chat.py)
+## Text chat CLI — [`text_chat.py`](../../services/src/live/text_chat.py)
 
 A terminal debugger that sits in the same LiveKit room as the agent.
 Joins as `debug-cli` (subscribe-only), coexists with user-client
@@ -263,7 +263,7 @@ Full command doc: [text-chat-cli.md](../notes/text-chat-cli.md).
 
 ---
 
-## Config knobs — [`config.py`](../../services/src/config.py)
+## Config knobs — [`config.py`](../../services/src/live/config.py)
 
 Everything is env-backed; defaults work for a dev run on the RPi.
 Most-touched:

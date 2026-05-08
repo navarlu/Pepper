@@ -90,7 +90,7 @@ cd /mnt/data_personal/navarlu2/work/Pepper
 source .venv3/bin/activate
 export PEPPER_AGENT_NAME=pepper-local
 export PEPPER_AGENT_MODE=local
-python -m voice-agent.src.agent dev
+python -m voice-agent.src.live.agent dev
 ```
 
 Detach without stopping: `Ctrl+B` then `D`.
@@ -115,7 +115,7 @@ every 3 seconds. Change the mode either from the chat CLI or directly:
 
 ```bash
 # From the chat CLI:
-uv run python services/src/text_chat.py
+uv run python services/src/live/text_chat.py
 # Then: /mode openai  or  /mode local
 
 # Or directly:
@@ -136,7 +136,7 @@ scp -J navarlu2@ptak.felk.cvut.cz \
 
 # Then restart agent in tmux on woska:
 ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-agent2'
-# Ctrl+C, then re-run: python -m voice-agent.src.agent dev
+# Ctrl+C, then re-run: python -m voice-agent.src.live.agent dev
 ```
 
 The RPi voice-agent (Docker) auto-reloads via watchfiles — no manual restart.

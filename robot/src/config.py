@@ -132,6 +132,10 @@ LIVEKIT_SESSION_FILE = _env_str(
     "LIVEKIT_SESSION_FILE",
     os.path.join(REPO_ROOT, "services", "data", "token-latest.json"),
 )
+STATE_FILE = _env_str(
+    "STATE_FILE",
+    os.path.join(REPO_ROOT, "services", "data", "state.json"),
+)
 LIVEKIT_STATUS_POLL_INTERVAL_SEC = _env_float("LIVEKIT_STATUS_POLL_INTERVAL_SEC", 2.0)
 
 # Session manager service.

@@ -54,7 +54,7 @@ The `.env` file is in the project root (not `docker/`), must be passed with `--e
 ## Orchestrator (formerly Session Manager)
 
 - **Ubuntu (main)**: still has the older `session_manager` HTTP service with operator dashboard.
-- **RPi**: replaced by the lightweight `orchestrator` ([services/src/orchestrator.py](../../services/src/orchestrator.py)) — no HTTP server, no dashboard, no health probing. Mode switching is driven by [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) (polled every 3s). Re-dispatch on failure is handled via a simple retry loop.
+- **RPi**: replaced by the lightweight `orchestrator` ([services/src/live/orchestrator.py](../../services/src/live/orchestrator.py)) — no HTTP server, no dashboard, no health probing. Mode switching is driven by [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) (polled every 3s). Re-dispatch on failure is handled via a simple retry loop.
 
 ## Pepper IP / Network
 

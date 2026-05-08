@@ -119,7 +119,7 @@ If the env var is set, the watchdog POSTs a JSON status to
 
 > ⚠️ **This is a legacy hook.** The system used to have a
 > session-manager HTTP service; it's since been replaced by the
-> lighter [services/src/orchestrator.py](../../services/src/orchestrator.py),
+> lighter [services/src/live/orchestrator.py](../../services/src/live/orchestrator.py),
 > which does **not** expose `/api/watchdog-status`. Today `SESSION_MANAGER_URL`
 > is unset in compose, so `report_watchdog()` is a no-op. Keep or
 > delete the hook — both are fine.

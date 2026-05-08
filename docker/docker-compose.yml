@@ -30,7 +30,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/orchestrator.py"]
+    command: ["uv", "run", "python", "services/src/live/orchestrator.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -53,7 +53,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "-m", "voice-agent.src.agent", "dev"]
+    command: ["uv", "run", "python", "-m", "voice-agent.src.live.agent", "dev"]
     env_file: ../.env
     volumes:
       - ..:/workspace
@@ -75,7 +75,7 @@ services:
   #   docker compose -f docker/docker-compose.yml down
   #   docker compose -f docker/docker-compose.experiment.yml up -d
   # The experiment worker itself runs on woska in tmux — see
-  # docs/notes/cmd.md and scripts/sync_experiment_to_woska.sh.
+  # docs/notes/cmd.md and scripts/experiment/sync_to_woska.sh.
 
   bridge:
     build:
@@ -124,7 +124,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/audio_bridge.py"]
+    command: ["uv", "run", "python", "services/src/live/audio_bridge.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -140,7 +140,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/user_client.py"]
+    command: ["uv", "run", "python", "services/src/live/user_client.py"]
     volumes:
       - ..:/workspace
     devices:
@@ -161,7 +161,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/tablet_server.py"]
+    command: ["uv", "run", "python", "services/src/live/tablet_server.py"]
     volumes:
       - ..:/workspace
     environment:

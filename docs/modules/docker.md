@@ -85,7 +85,7 @@ persistence in `./redis-data`.
 
 ### `orchestrator`
 
-Runs `services/src/orchestrator.py`. Host networking so it can reach
+Runs `services/src/live/orchestrator.py`. Host networking so it can reach
 `livekit` on `127.0.0.1:7880`. Bind-mounts the repo at `/workspace`.
 
 **Env needed:** `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` (currently
@@ -93,7 +93,7 @@ Runs `services/src/orchestrator.py`. Host networking so it can reach
 
 ### `voice-agent`
 
-Runs `-m voice-agent.src.agent dev` — the LiveKit CLI with file
+Runs `-m voice-agent.src.live.agent dev` — the LiveKit CLI with file
 watching (`dev` enables `watchfiles` auto-reload). Host networking.
 Loads `.env` via `env_file`.
 
@@ -312,10 +312,10 @@ what `voice-agent` already does.
 
 ### 5. Inconsistent launch style
 
-`voice-agent` runs via `-m voice-agent.src.agent dev` (module form,
+`voice-agent` runs via `-m voice-agent.src.live.agent dev` (module form,
 with a hyphen in the package name that Python tolerates but is
 unusual). Every other Python service runs as a plain script path
-(`services/src/orchestrator.py`, etc.). The module form is required
+(`services/src/live/orchestrator.py`, etc.). The module form is required
 for the LiveKit `dev` harness to work (file watching), so this is
 cosmetic unless we want to unify the launch style — which would need
 renaming `voice-agent/` to `voice_agent/` (breaking change across all

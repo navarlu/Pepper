@@ -14,7 +14,7 @@ per-dispatch by a metadata flag:
 Both modes use the same tool set. Both boot as *warm persistent*
 agents: once loaded they stay in the room across conversations and
 only wipe their own chat history on idle — see the persistent loop in
-[agent.py](../../voice-agent/src/agent.py).
+[agent.py](../../voice-agent/src/live/agent.py).
 
 ---
 
@@ -55,14 +55,14 @@ user audio → STT → LLM (with tool schemas) ──► tool call? ──► ye
 
 | File | Role |
 |------|------|
-| [agent.py](../../voice-agent/src/agent.py) | Entry point. LiveKit `entrypoint()`, session lifecycle, mode selection, persistent loop, model prewarming, RTC diagnostics, session-control signals. |
-| [config.py](../../voice-agent/src/config.py) | Every tunable. Env-backed. Includes the two system prompts, `ANIMATION_GROUPS`, `ANIMATION_TOOL_ALIASES`, Weaviate settings, Piper/Whisper settings, vision settings. |
-| [tools.py](../../voice-agent/src/tools.py) | The three `@function_tool` definitions built in `build_tools(agent_mode)`. Tool logic only — HTTP plumbing lives in `bridge_client`. |
-| [bridge_client.py](../../voice-agent/src/bridge_client.py) | HTTP clients for the robot bridge (animations, LEDs, camera) and the side VL describer (captioning). |
-| [rag.py](../../voice-agent/src/rag.py) | Weaviate client: connect, create collection, seed from `.txt` files under `data/FEL/`, hybrid search. Formerly `utils.py` (renamed to match its actual role). |
-| [rooms.py](../../voice-agent/src/rooms.py) | Hand-curated directions for Building E (Karlovo náměstí). Keyword + regex lookup so `query_search` can answer room questions deterministically. |
-| [local_speech.py](../../voice-agent/src/local_speech.py) | `FasterWhisperSTT` and `PiperTTS` — LiveKit plugin classes that wrap the local STT/TTS models for the `local` mode. |
-| [qwen_compat.py](../../voice-agent/src/qwen_compat.py) | Qwen 2.5 quirk patches (malformed tool-call JSON). Isolated so the workaround can be deleted wholesale once we move off Qwen 2.5. |
+| [agent.py](../../voice-agent/src/live/agent.py) | Entry point. LiveKit `entrypoint()`, session lifecycle, mode selection, persistent loop, model prewarming, RTC diagnostics, session-control signals. |
+| [config.py](../../voice-agent/src/live/config.py) | Every tunable. Env-backed. Includes the two system prompts, `ANIMATION_GROUPS`, `ANIMATION_TOOL_ALIASES`, Weaviate settings, Piper/Whisper settings, vision settings. |
+| [tools.py](../../voice-agent/src/live/tools.py) | The three `@function_tool` definitions built in `build_tools(agent_mode)`. Tool logic only — HTTP plumbing lives in `bridge_client`. |
+| [bridge_client.py](../../voice-agent/src/live/bridge_client.py) | HTTP clients for the robot bridge (animations, LEDs, camera) and the side VL describer (captioning). |
+| [rag.py](../../voice-agent/src/live/rag.py) | Weaviate client: connect, create collection, seed from `.txt` files under `data/FEL/`, hybrid search. Formerly `utils.py` (renamed to match its actual role). |
+| [rooms.py](../../voice-agent/src/live/rooms.py) | Hand-curated directions for Building E (Karlovo náměstí). Keyword + regex lookup so `query_search` can answer room questions deterministically. |
+| [local_speech.py](../../voice-agent/src/live/local_speech.py) | `FasterWhisperSTT` and `PiperTTS` — LiveKit plugin classes that wrap the local STT/TTS models for the `local` mode. |
+| [qwen_compat.py](../../voice-agent/src/live/qwen_compat.py) | Qwen 2.5 quirk patches (malformed tool-call JSON). Isolated so the workaround can be deleted wholesale once we move off Qwen 2.5. |
 
 ---
 
@@ -88,7 +88,7 @@ output. `_wait_for_user_participant()` polls `remote_participants`,
 skipping any identity in `{LISTENER_IDENTITY, MONITOR_IDENTITY}`.
 
 <!-- snippet: wait_for_user_participant -->
-<!-- generated from voice-agent/src/agent.py:117 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/agent.py:117 by docs/embed_snippets.py -->
 ```python
 async def _wait_for_user_participant(ctx: JobContext):
     last_logged_identity = None
@@ -172,7 +172,7 @@ The idle monitor is guarded by `had_activity_since_reset` — it
 empty history every 60s" log spam on an idle room.
 
 <!-- snippet: idle_monitor -->
-<!-- generated from voice-agent/src/agent.py:646 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/agent.py:646 by docs/embed_snippets.py -->
 ```python
 async def _idle_monitor() -> None:
     """Check for idle timeout every 2s. Only fires reset when there is
@@ -199,7 +199,7 @@ async def _idle_monitor() -> None:
 <!-- /snippet -->
 
 <!-- snippet: persistent_loop -->
-<!-- generated from voice-agent/src/agent.py:674 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/agent.py:674 by docs/embed_snippets.py -->
 ```python
 while True:
     reset_task = asyncio.ensure_future(sc.reset_event.wait())
@@ -276,7 +276,7 @@ sentinel.
 
 ---
 
-## Tools — [`tools.py`](../../voice-agent/src/tools.py)
+## Tools — [`tools.py`](../../voice-agent/src/live/tools.py)
 
 All three tools are built inside `build_tools(agent_mode)`. The
 closure captures `agent_mode` so `play_animation` can return
@@ -329,7 +329,7 @@ Shared logic in `_play_animation_impl(animation)`:
    - **openai mode** — `{"ok": true, "status": "queued", ...}` JSON.
 
 <!-- snippet: normalize_animation_name -->
-<!-- generated from voice-agent/src/tools.py:73 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/tools.py:73 by docs/embed_snippets.py -->
 ```python
 def _normalize_animation_name(raw_name: str) -> str:
     """Resolve an animation name to a concrete Pepper animation key.
@@ -367,7 +367,7 @@ def _normalize_animation_name(raw_name: str) -> str:
 <!-- /snippet -->
 
 <!-- snippet: play_animation_impl -->
-<!-- generated from voice-agent/src/tools.py:262 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/tools.py:262 by docs/embed_snippets.py -->
 ```python
 async def _play_animation_impl(animation: str) -> str:
     """Shared implementation for play_animation (both modes)."""
@@ -464,12 +464,12 @@ call.
 Each tool reports `(name, args, result, duration_ms, error)` via
 `_post_tool_event`, which also forwards to the external listener
 registered by `agent.py`. That listener publishes on `pepper.debug`
-so the [text_chat CLI](../../services/src/text_chat.py) can stream
+so the [text_chat CLI](../../services/src/live/text_chat.py) can stream
 tool activity live.
 
 ---
 
-## Local speech — [`local_speech.py`](../../voice-agent/src/local_speech.py)
+## Local speech — [`local_speech.py`](../../voice-agent/src/live/local_speech.py)
 
 ### `FasterWhisperSTT`
 
@@ -487,7 +487,7 @@ Non-streaming LiveKit STT plugin. Flow per utterance:
    `on_metrics`.
 
 <!-- snippet: whisper_recognize -->
-<!-- generated from voice-agent/src/local_speech.py:117 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/local_speech.py:117 by docs/embed_snippets.py -->
 ```python
 async def _recognize_impl(
     self,
@@ -538,7 +538,7 @@ currently 22050 for `en_US-hfc_female-medium`.
 
 ---
 
-## Qwen compatibility — [`qwen_compat.py`](../../voice-agent/src/qwen_compat.py)
+## Qwen compatibility — [`qwen_compat.py`](../../voice-agent/src/live/qwen_compat.py)
 
 Three exports, all addressing **one** class of problem: Qwen 2.5 7B
 emits malformed tool-call JSON (usually an extra trailing brace) about
@@ -560,7 +560,7 @@ The whole file is a workaround. When we upgrade past Qwen 2.5 or vLLM
 fixes the re-parse crash, delete it — nothing else depends on it.
 
 <!-- snippet: sanitize_json -->
-<!-- generated from voice-agent/src/qwen_compat.py:36 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/qwen_compat.py:36 by docs/embed_snippets.py -->
 ```python
 def sanitize_json(raw: str) -> str:
     """Extract the first balanced JSON object from a string.
@@ -591,7 +591,7 @@ def sanitize_json(raw: str) -> str:
 
 ---
 
-## Rooms — [`rooms.py`](../../voice-agent/src/rooms.py)
+## Rooms — [`rooms.py`](../../voice-agent/src/live/rooms.py)
 
 Not in Weaviate because the answer is fixed, short, and we want
 deterministic behavior. `try_room_lookup(query)` gates on *both* a
@@ -604,7 +604,7 @@ Schema is deliberately sparse (`{"directions": str, ...optional
 name}`) so updating means editing the dict — no migration, no reindex.
 
 <!-- snippet: try_room_lookup -->
-<!-- generated from voice-agent/src/rooms.py:65 by docs/embed_snippets.py -->
+<!-- generated from voice-agent/src/live/rooms.py:65 by docs/embed_snippets.py -->
 ```python
 def try_room_lookup(query: str) -> dict | None:
     """Try to answer a room/directions question from `BUILDING_ROOMS`.
@@ -665,7 +665,7 @@ def try_room_lookup(query: str) -> dict | None:
 
 ---
 
-## RAG — [`rag.py`](../../voice-agent/src/rag.py)
+## RAG — [`rag.py`](../../voice-agent/src/live/rag.py)
 
 Three public entry points:
 
@@ -687,7 +687,7 @@ call per document ingested — mind it if you wipe the collection.
 
 ## System prompts & mode-specific quirks
 
-Both prompts come from [config.py](../../voice-agent/src/config.py):
+Both prompts come from [config.py](../../voice-agent/src/live/config.py):
 `OPENAI_SYSTEM_PROMPT` and `LOCAL_SYSTEM_PROMPT`. They share the same
 core identity (`BASE_SYSTEM_PROMPT`) but diverge on tool framing:
 
@@ -709,7 +709,7 @@ generic answers even after a successful caption.
 ## Config reference
 
 Knobs most worth knowing — full list in
-[config.py](../../voice-agent/src/config.py):
+[config.py](../../voice-agent/src/live/config.py):
 
 | Name                               | Effect |
 |------------------------------------|--------|

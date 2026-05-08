@@ -43,7 +43,7 @@ cd /mnt/data_personal/navarlu2/work/Pepper
 source .venv3/bin/activate
 export PEPPER_AGENT_NAME=pepper-local
 export PEPPER_AGENT_MODE=local
-python -m voice-agent.src.agent dev
+python -m voice-agent.src.live.agent dev
 ```
 
 ## safe_startup_example:

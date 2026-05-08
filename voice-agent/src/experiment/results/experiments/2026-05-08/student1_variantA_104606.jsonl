@@ -1,0 +1,4 @@
+{"kind": "header", "student_id": "1", "variant": "A", "room": "pepper-experiment", "started": "2026-05-08T10:46:06", "host": "lucas-rpi-5-8gb", "recorded_at": 1778229966.9986615}
+{"kind": "session_start", "room": "pepper-experiment", "variant": "A", "student_id": "1", "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "ts": 1778229970.4316483, "recorded_at": 1778229970.6493316}
+{"kind": "session_end", "ts": 1778229976.0943997, "recorded_at": 1778229976.0985997}
+{"kind": "footer", "ended": "2026-05-08T10:47:44", "duration_seconds": 97.4, "exit_reason": "interrupted", "event_counts": {"header": 1, "session_start": 1, "session_end": 1}, "recorded_at": 1778230064.4019804}

@@ -5,7 +5,7 @@ in-room user — without having to speak. Useful when iterating on agent
 behavior, tools, or prompts and you want a fast loop without the audio
 pipeline in the way.
 
-Source: [services/src/text_chat.py](../../services/src/text_chat.py)
+Source: [services/src/live/text_chat.py](../../services/src/live/text_chat.py)
 
 ---
 
@@ -57,7 +57,7 @@ LiveKit topics in play:
 | `lk.chat`        | agent → all                   | Agent transcriptions (also accepts text input from `user`). |
 
 Tool-call broadcasting is hooked at the central `_post_tool_event` in
-[voice-agent/src/tools.py](../../voice-agent/src/tools.py) — the agent
+[voice-agent/src/live/tools.py](../../voice-agent/src/live/tools.py) — the agent
 registers a listener at startup that forwards every fired tool over
 `pepper.debug`. So *every* tool call shows up in the CLI, regardless of
 which mode (`openai` / `local`) is active.
@@ -68,7 +68,7 @@ which mode (`openai` / `local`) is active.
 
 ```bash
 tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
-uv run python services/src/text_chat.py
+uv run python services/src/live/text_chat.py
 ```
 
 That's it. No need to stop user-client first. Room name, ws URL, and

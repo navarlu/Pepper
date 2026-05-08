@@ -33,11 +33,11 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_FILES = [
     "robot/src/bridge.py",
     "robot/src/utils.py",
-    "voice-agent/src/agent.py",
-    "voice-agent/src/tools.py",
-    "voice-agent/src/local_speech.py",
-    "voice-agent/src/qwen_compat.py",
-    "voice-agent/src/rooms.py",
+    "voice-agent/src/live/agent.py",
+    "voice-agent/src/live/tools.py",
+    "voice-agent/src/live/local_speech.py",
+    "voice-agent/src/live/qwen_compat.py",
+    "voice-agent/src/live/rooms.py",
 ]
 
 MARKDOWN_FILES = [

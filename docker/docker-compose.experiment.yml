@@ -16,8 +16,8 @@
 #                                  agent dispatch, no state polling.
 #
 # What this compose does NOT run (intentional):
-#   voice-agent (production agent) — replaced by the experiment_worker
-#                                    on woska, dispatched by experiment.py
+#   voice-agent (production agent) — replaced by experiment/agent.py on
+#                                    woska, dispatched by experiment/launcher.py
 #   tablet-server                — not relevant for the study
 #   ssh-tunnel                   — only needed for production flows
 #
@@ -60,7 +60,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/experiment_orchestrator.py"]
+    command: ["uv", "run", "python", "services/src/experiment/orchestrator.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -135,7 +135,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/audio_bridge.py"]
+    command: ["uv", "run", "python", "services/src/live/audio_bridge.py"]
     volumes:
       - ..:/workspace
     environment:
@@ -157,7 +157,7 @@ services:
       context: ..
       dockerfile: docker/Dockerfile.runtime
     working_dir: /workspace
-    command: ["uv", "run", "python", "services/src/user_client.py"]
+    command: ["uv", "run", "python", "services/src/live/user_client.py"]
     volumes:
       - ..:/workspace
     devices:

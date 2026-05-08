@@ -4,6 +4,7 @@
 from __future__ import print_function
 
 from collections import deque
+import os
 import socket
 import struct
 import sys
@@ -39,6 +40,7 @@ from config import (
     PEPPER_PLAYBACK_BATCH_FRAMES,
     PEPPER_QI_URL,
     PEPPER_STREAM_RATE,
+    STATE_FILE,
     TABLET_DEFAULT_ALIGN,
     TABLET_DEFAULT_BG,
     TABLET_DEFAULT_FG,
@@ -598,7 +600,8 @@ class TabletOverlayHttpServer(threading.Thread):
                         audio_device.setOutputVolume(requested_volume)
                         current_volume = int(audio_device.getOutputVolume())
                         print("[bridge] output volume updated to", current_volume)
-                        self._write_json(200, {"ok": True, "volume": current_volume})
+                        _write_runtime_state({"pepper_output_volume": current_volume})
+                        self._write_json(200, {"ok": True, "volume": current_volume, "persisted": True})
                     except Exception as exc:
                         self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
@@ -824,6 +827,90 @@ class TabletOverlayHttpServer(threading.Thread):
         self._awareness = awareness
 
 
+def _read_runtime_state():
+    try:
+        with open(STATE_FILE, "r") as fh:
+            state = json.load(fh) or {}
+            return state if isinstance(state, dict) else {}
+    except Exception as exc:
+        print("[bridge] state read failed path={} err={}".format(STATE_FILE, to_text(exc)))
+        return {}
+
+
+def _write_runtime_state(patch):
+    try:
+        state = _read_runtime_state()
+        state.update(patch)
+        state["updatedAt"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        parent = os.path.dirname(STATE_FILE)
+        if parent and not os.path.isdir(parent):
+            os.makedirs(parent)
+        tmp = STATE_FILE + ".tmp"
+        with open(tmp, "w") as fh:
+            json.dump(state, fh, indent=2)
+        os.rename(tmp, STATE_FILE)
+        try:
+            os.chmod(STATE_FILE, 0o666)
+        except OSError:
+            pass
+    except Exception as exc:
+        print("[bridge] state write failed path={} err={}".format(STATE_FILE, to_text(exc)))
+
+
+def _state_output_volume(default_volume):
+    state = _read_runtime_state()
+    if "pepper_output_volume" not in state:
+        return normalize_output_volume(default_volume)
+    try:
+        return normalize_output_volume(state.get("pepper_output_volume"))
+    except Exception as exc:
+        print("[bridge] invalid pepper_output_volume in state.json err={}".format(to_text(exc)))
+        return normalize_output_volume(default_volume)
+
+
+class RuntimeVolumeWatcher(threading.Thread):
+    """Applies services/data/state.json pepper_output_volume changes live."""
+
+    def __init__(self, audio_device, initial_volume, poll_sec=1.0):
+        super(RuntimeVolumeWatcher, self).__init__()
+        self.daemon = True
+        self._audio = audio_device
+        self._volume = int(initial_volume)
+        self._poll_sec = float(poll_sec)
+        self._stop_event = threading.Event()
+        self._last_mtime = None
+
+    def stop(self):
+        self._stop_event.set()
+
+    def run(self):
+        while not self._stop_event.wait(self._poll_sec):
+            try:
+                mtime = os.path.getmtime(STATE_FILE)
+            except OSError:
+                continue
+            if self._last_mtime == mtime:
+                continue
+            self._last_mtime = mtime
+            state = _read_runtime_state()
+            if "pepper_output_volume" not in state:
+                continue
+            try:
+                requested_volume = normalize_output_volume(state.get("pepper_output_volume"))
+            except Exception as exc:
+                print("[bridge] ignoring invalid pepper_output_volume err={}".format(to_text(exc)))
+                continue
+            if requested_volume == self._volume:
+                continue
+            try:
+                self._audio.setOutputVolume(requested_volume)
+                current_volume = int(self._audio.getOutputVolume())
+                self._volume = current_volume
+                print("[bridge] output volume applied from state.json:", current_volume)
+            except Exception as exc:
+                print("[bridge] failed applying state volume err={}".format(to_text(exc)))
+
+
 def main():
     """Bridge entry point.
 
@@ -994,10 +1081,15 @@ def main():
     except Exception as e:
         print("[pepper_audio] setParameter warning:", to_text(e))
 
+    runtime_volume_watcher = None
     try:
-        audio.setOutputVolume(PEPPER_OUTPUT_VOLUME)
+        startup_volume = _state_output_volume(PEPPER_OUTPUT_VOLUME)
+        audio.setOutputVolume(startup_volume)
         current_volume = audio.getOutputVolume()
         print("[pepper_audio] output volume set to", current_volume)
+        _write_runtime_state({"pepper_output_volume": int(current_volume)})
+        runtime_volume_watcher = RuntimeVolumeWatcher(audio, int(current_volume))
+        runtime_volume_watcher.start()
     except Exception as e:
         print("[pepper_audio] setOutputVolume warning:", to_text(e))
 
@@ -1234,6 +1326,8 @@ def main():
                 )
     finally:
         server.close()
+        if runtime_volume_watcher is not None:
+            runtime_volume_watcher.stop()
         if led_manager is not None:
             led_manager.stop()
         tablet_http.stop()
