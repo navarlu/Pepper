@@ -14,6 +14,7 @@ from livekit.agents import RunContext, function_tool
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
 from .utils._events import _emit_tool_event, _heartbeat_or_none
+from .utils._filler import _speak_filler
 from .utils._person import _slim_match
 from .utils._person_lookup import (
     _english_to_czech_variants,
@@ -60,6 +61,7 @@ async def lookup_person(
         the loop immediately — only set False if you really want to
         end the turn without saying anything to the user.
     """
+    asyncio.create_task(_speak_filler(context, "Let me look that up in the directory."))
     del context
     print(
         f"  [tool] lookup_person(first_name={first_name!r}, "

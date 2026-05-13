@@ -12,6 +12,7 @@ from livekit.agents import RunContext, function_tool
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
 from .utils._events import _emit_tool_event, _heartbeat_or_none
+from .utils._filler import _speak_filler
 
 from src.live.timetable import fetch_subject_schedule  # noqa: E402
 
@@ -51,6 +52,7 @@ async def subject_schedule(
     emotion: body language while fetching. Default 'think'.
     request_heartbeat: True (default) to continue.
     """
+    asyncio.create_task(_speak_filler(context, "Checking the schedule, one moment."))
     del context
     subject_q = (subject or "").strip()
     activity_q = (activity or "").strip()

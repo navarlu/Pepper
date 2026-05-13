@@ -80,17 +80,37 @@ body{{display:flex;flex-direction:column;overflow:hidden;}}
 header{{flex:0 0 auto;padding:18px 28px;background:#ffffff;
   border-bottom:1px solid #e3e6eb;display:flex;gap:14px;align-items:center;
   box-shadow:0 1px 2px rgba(15,23,42,.04);}}
-.title{{font-size:28px;font-weight:700;letter-spacing:-.01em;color:#1b2430;
-  margin-right:auto;}}
+.title{{font-size:44px;font-weight:800;letter-spacing:-.01em;color:#1b2430;
+  margin-right:auto;display:flex;align-items:baseline;gap:14px;}}
+.title .role{{font-size:44px;font-weight:800;color:#1b2430;
+  letter-spacing:-.01em;}}
 .pill{{padding:10px 20px;border-radius:999px;background:#eef1f5;
-  color:#1b2430;font-size:20px;font-weight:600;border:1px solid #dfe4ea;
-  line-height:1.1;white-space:nowrap;}}
+  color:#1b2430;font-size:14px;font-weight:700;border:1px solid #dfe4ea;
+  line-height:1.1;white-space:nowrap;text-transform:uppercase;
+  letter-spacing:.08em;}}
 .pill .k{{color:#6b7280;font-size:14px;text-transform:uppercase;
   letter-spacing:.08em;margin-right:8px;font-weight:700;}}
 .pill.mode-openai{{background:#e7f1ff;border-color:#b6d4fe;color:#0b5ed7;}}
 .pill.mode-local{{background:#e6f7ec;border-color:#b7e2c7;color:#0a7a2f;}}
 .pill.mic-live{{background:#e6f7ec;border-color:#b7e2c7;color:#0a7a2f;}}
 .pill.mic-muted{{background:#fdecea;border-color:#f5c3bf;color:#b42318;}}
+.pill.agent-ready{{background:#e6f7ec;border-color:#b7e2c7;color:#0a7a2f;}}
+.pill.agent-absent{{background:#fdecea;border-color:#f5c3bf;color:#b42318;}}
+.pill.lang{{background:#f3eaff;border-color:#d6c2f0;color:#5e2bb0;}}
+.statebar{{flex:0 0 auto;display:flex;justify-content:center;align-items:center;
+  padding:12px 28px;font-size:32px;font-weight:700;letter-spacing:.02em;
+  text-align:center;border-bottom:1px solid #e3e6eb;}}
+.statebar.listening{{background:#e6f7ec;color:#0a7a2f;}}
+.statebar.thinking{{background:#fff4e0;color:#9a5b00;}}
+.statebar.speaking{{background:#e7f1ff;color:#0b5ed7;}}
+.statebar.initializing,.statebar.idle{{background:#eef1f5;color:#6b7280;}}
+.sleeping{{flex:1 1 auto;display:flex;flex-direction:column;
+  justify-content:center;align-items:center;text-align:center;
+  background:#f0eef9;color:#4b3f7a;padding:40px 28px;}}
+.sleeping .zzz{{font-size:120px;font-weight:800;letter-spacing:.05em;
+  line-height:1;margin-bottom:18px;color:#7a6cb8;}}
+.sleeping .msg{{font-size:38px;font-weight:700;margin-bottom:8px;}}
+.sleeping .sub{{font-size:22px;color:#7d75a3;font-style:italic;}}
 main{{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:22px 28px 28px;
   -webkit-overflow-scrolling:touch;scroll-behavior:smooth;}}
 .feed{{display:flex;flex-direction:column;gap:18px;max-width:980px;margin:0 auto;
@@ -104,8 +124,8 @@ main{{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:22px 28px 28px;
   letter-spacing:.12em;color:#8a94a6;}}
 .row.user .who{{color:#0b5ed7;}}
 .row.pepper .who{{color:#0a7a2f;}}
-.bubble{{padding:16px 22px;border-radius:22px;line-height:1.35;
-  font-size:30px;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;
+.bubble{{padding:14px 18px;border-radius:20px;line-height:1.35;
+  font-size:22px;word-wrap:break-word;word-break:break-word;white-space:pre-wrap;
   background:#ffffff;border:1px solid #e3e6eb;
   box-shadow:0 2px 6px rgba(15,23,42,.04);}}
 .row.user .bubble{{background:#e7f1ff;border-color:#b6d4fe;color:#08326f;
@@ -125,14 +145,7 @@ main{{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;padding:22px 28px 28px;
 #anchor{{height:1px;}}
 </style></head>
 <body>
-<header>
-  <div class="title">Pepper</div>
-  <div class="pill {mode_cls}"><span class="k">Mode</span>{mode_text}</div>
-  <div class="pill {mic_cls}"><span class="k">Mic</span>{mic_text}</div>
-</header>
-<main id="main">
-  <div class="feed">{rows}<div id="anchor"></div></div>
-</main>
+{body}
 <script>
 // Pin to the bottom on every render so new messages are visible. User can
 // still touch-scroll up to read history briefly; the next render snaps back.
@@ -170,6 +183,9 @@ class TabletDisplay:
             "agent_name": None,
             "mic_muted": False,
             "room_name": None,
+            "agent_state": None,  # listening / thinking / speaking / initializing
+            "agent_present": False,  # any participant with identity "agent-*" in the room
+            "agent_language": "en",  # spoken language; updated via pepper.state
         }
         self._dirty = asyncio.Event()
         self._http: aiohttp.ClientSession | None = None
@@ -219,6 +235,10 @@ class TabletDisplay:
                     self._state["mic_muted"] = bool(payload["mic_muted"])
                 if payload.get("roomName") is not None:
                     self._state["room_name"] = payload["roomName"]
+                if payload.get("agent_state") is not None:
+                    self._state["agent_state"] = str(payload["agent_state"])
+                if payload.get("agent_language") is not None:
+                    self._state["agent_language"] = str(payload["agent_language"]).lower()
                 self._dirty.set()
                 return
 
@@ -277,18 +297,77 @@ class TabletDisplay:
         @room.on("disconnected")
         def _on_disconnect(*_args):
             _log("room disconnected")
+            self._state["agent_present"] = False
+            self._state["agent_state"] = None
+            self._dirty.set()
+
+        # Track agent presence by identity prefix "agent-". When a fresh
+        # agent joins (new loop iteration), wipe the chat so the next
+        # session starts clean. When the agent leaves, flip the pill so
+        # the user sees Pepper is not ready.
+        def _is_agent(p) -> bool:
+            return str(getattr(p, "identity", "") or "").startswith("agent-")
+
+        def _refresh_agent_presence() -> None:
+            present = any(
+                _is_agent(p)
+                for p in (getattr(room, "remote_participants", {}) or {}).values()
+            )
+            self._state["agent_present"] = present
+            self._dirty.set()
+
+        @room.on("participant_connected")
+        def _on_participant_connected(p):
+            if _is_agent(p):
+                _log(f"agent connected: {getattr(p, 'identity', '?')}")
+                self._chat.clear()
+                self._state["agent_state"] = None
+                _refresh_agent_presence()
+
+        @room.on("participant_disconnected")
+        def _on_participant_disconnected(p):
+            if _is_agent(p):
+                _log(f"agent disconnected: {getattr(p, 'identity', '?')}")
+                self._state["agent_state"] = None
+                _refresh_agent_presence()
 
     # -- Rendering -----------------------------------------------------------
 
+    _STATE_LABELS = {
+        "listening": "Listening",
+        "thinking": "Thinking…",
+        "speaking": "Speaking",
+        "initializing": "Starting up…",
+    }
+
+    # Experiment blinding: "realtime" is the GPT-realtime variant
+    # (Mode B). On the tablet it must be indistinguishable from the
+    # production OpenAI variant — same label "B", same blue pill.
+    _MODE_LABELS = {"local": "A", "openai": "B", "realtime": "B"}
+
     def _render_html(self) -> str:
         mode = self._state.get("agent_mode") or "?"
-        mode_cls = "mode-" + mode if mode in ("openai", "local") else ""
+        if mode == "realtime":
+            mode_cls = "mode-openai"
+        elif mode in ("openai", "local"):
+            mode_cls = "mode-" + mode
+        else:
+            mode_cls = ""
+        mode_label = self._MODE_LABELS.get(mode, mode)
         mic_muted = bool(self._state.get("mic_muted"))
         mic_cls = "mic-muted" if mic_muted else "mic-live"
         mic_text = "MUTED" if mic_muted else "live"
+        agent_present = bool(self._state.get("agent_present"))
+        agent_cls = "agent-ready" if agent_present else "agent-absent"
+        agent_text = "ready" if agent_present else "starting…"
+        lang_text = (self._state.get("agent_language") or "en").upper()
+
+        agent_state = (self._state.get("agent_state") or "").lower()
+        state_cls = agent_state if agent_state in self._STATE_LABELS else "idle"
+        state_text = self._STATE_LABELS.get(agent_state, "—")
 
         if not self._chat:
-            rows_html = '<div class="empty">Waiting for conversation…</div>'
+            rows_html = '<div class="empty">Ready for your question.</div>'
         else:
             parts = []
             for entry in self._chat:
@@ -326,13 +405,33 @@ class TabletDisplay:
                 )
             rows_html = "".join(parts)
 
-        return PAGE_TEMPLATE.format(
-            mode_cls=mode_cls,
-            mode_text=_esc(mode),
-            mic_cls=mic_cls,
-            mic_text=mic_text,
-            rows=rows_html,
-        )
+        if not agent_present:
+            body = (
+                '<div class="sleeping">'
+                '<div class="zzz">z z z</div>'
+                '<div class="msg">Pepper is sleeping</div>'
+                '<div class="sub">Please do not disturb — '
+                "I'll wake up soon.</div>"
+                '</div>'
+            )
+        else:
+            header = (
+                '<header>'
+                '<div class="title">Pepper<span class="role"> — Receptionist</span></div>'
+                f'<div class="pill lang"><span class="k">Lang</span>{_esc(lang_text)}</div>'
+                f'<div class="pill {mode_cls}"><span class="k">Mode</span>{_esc(mode_label)}</div>'
+                f'<div class="pill {agent_cls}"><span class="k">Agent</span>{agent_text}</div>'
+                # f'<div class="pill {mic_cls}"><span class="k">Mic</span>{mic_text}</div>'
+                '</header>'
+            )
+            body = (
+                f'{header}'
+                f'<div class="statebar {state_cls}">{_esc(state_text)}</div>'
+                f'<main id="main"><div class="feed">{rows_html}'
+                '<div id="anchor"></div></div></main>'
+            )
+
+        return PAGE_TEMPLATE.format(body=body)
 
     async def _post_to_bridge(self, html: str) -> None:
         data_url = "data:text/html;charset=utf-8," + quote(html.encode("utf-8"))
@@ -356,6 +455,34 @@ class TabletDisplay:
                     _log(f"bridge POST non-2xx status={resp.status} body={body[:120]}")
         except Exception as exc:
             _log(f"bridge POST failed err={exc}")
+
+    async def _presence_watchdog(self) -> None:
+        """Re-derive `agent_present` from the live participant list every
+        few seconds. Belt-and-braces: if a participant_disconnected event
+        is dropped (network blip, server hiccup) the event-driven state
+        would stay stale forever. This poll fixes that without flooding.
+        """
+        while True:
+            await asyncio.sleep(3.0)
+            room = self._room
+            if room is None:
+                truth = False
+            else:
+                # rtc.Room exposes connection_state on newer versions; fall
+                # back to remote_participants enumeration which works on all.
+                try:
+                    truth = any(
+                        str(getattr(p, "identity", "") or "").startswith("agent-")
+                        for p in (getattr(room, "remote_participants", {}) or {}).values()
+                    )
+                except Exception:
+                    truth = False
+            if bool(self._state.get("agent_present")) != truth:
+                _log(f"presence watchdog: agent_present {self._state.get('agent_present')} → {truth}")
+                self._state["agent_present"] = truth
+                if not truth:
+                    self._state["agent_state"] = None
+                self._dirty.set()
 
     async def _render_loop(self) -> None:
         while True:
@@ -386,6 +513,11 @@ class TabletDisplay:
             self._room = room
             self._state["room_name"] = getattr(room, "name", self._state.get("room_name"))
             identity = getattr(room.local_participant, "identity", "?")
+            # Seed agent presence in case the agent joined before us.
+            self._state["agent_present"] = any(
+                str(getattr(p, "identity", "") or "").startswith("agent-")
+                for p in (getattr(room, "remote_participants", {}) or {}).values()
+            )
             _log(f"connected room='{self._state['room_name']}' identity='{identity}'")
             # Trigger an initial render so the tablet shows the current state
             # even before any event arrives.
@@ -393,8 +525,13 @@ class TabletDisplay:
 
     async def _on_token_change(self, info: dict) -> None:
         _log(f"token change — reconnecting to room='{info.get('roomName')}'")
-        # Fresh room means a fresh session — clear history.
+        # Fresh room means a fresh session — clear history and drop any
+        # stale agent-presence state so the tablet shows "sleeping" until
+        # the new room is actually up.
         self._chat.clear()
+        self._state["agent_present"] = False
+        self._state["agent_state"] = None
+        self._dirty.set()
         try:
             await self._connect_room(info)
         except Exception as exc:
@@ -422,6 +559,7 @@ class TabletDisplay:
         try:
             lk_task = asyncio.create_task(self._lk_loop())
             render_task = asyncio.create_task(self._render_loop())
+            presence_task = asyncio.create_task(self._presence_watchdog())
             # First render as soon as we start, so any cached state shows up
             # before LK connects.
             self._dirty.set()
@@ -430,7 +568,8 @@ class TabletDisplay:
             finally:
                 lk_task.cancel()
                 render_task.cancel()
-                for t in (lk_task, render_task):
+                presence_task.cancel()
+                for t in (lk_task, render_task, presence_task):
                     with contextlib.suppress(asyncio.CancelledError, Exception):
                         await t
                 if self._room is not None:

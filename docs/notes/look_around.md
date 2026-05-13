@@ -139,22 +139,22 @@ Ranked by effort:
 #   ENABLE_LOOK_AROUND_TOOL = True
 
 # 2. Deploy to woska (don't forget — auto-sync is NOT set up)
-scp -J navarlu2@ptak.felk.cvut.cz \
+scp -J navarlu2@halmos.felk.cvut.cz \
   voice-agent/src/live/tools.py voice-agent/src/live/config.py \
   navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/
 
 # 3. Confirm reload
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska \
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska \
   'tmux capture-pane -t pepper-agent2 -p -S -50 | grep "registered worker" | tail -2'
 ```
 
 If the vLLM instances aren't running (woska rebooted etc.), restart them:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska \
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska \
   'tmux send-keys -t LLM "bash /tmp/vllm_main_7b.sh" Enter'
 # wait ~3 min for boot
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska \
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska \
   'tmux new-session -d -s VL -x 220 -y 50 2>/dev/null; tmux send-keys -t VL "bash /tmp/vllm_vision_3b.sh" Enter'
 ```
 

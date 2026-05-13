@@ -46,8 +46,7 @@ def main():
 
     print("[life-state] connected to {}".format(url))
     print("[life-state] state    = {}".format(safe_call("state", life.getState)))
-    print("[life-state] focus    = {}".format(safe_call("focus", life.getFocus)))
-    print("[life-state] activity = {}".format(safe_call("activity", life.getActivity)))
+    print("[life-state] focus    = {}".format(safe_call("focus", life.getFocusedActivity)))
     for ability in ABILITIES:
         value = safe_call(
             ability,

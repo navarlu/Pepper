@@ -12,7 +12,7 @@ vLLM runs in a tmux session on woska. To check the logs:
 
 ```bash
 # From the RPi (via jump host):
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -p -S -100"
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -p -S -100"
 ```
 
 - **Session:** `LLM`
@@ -34,13 +34,13 @@ This means Qwen generated a `<tool_call>` block with broken/empty JSON inside. W
 
 ```bash
 # List sessions:
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux list-sessions"
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux list-sessions"
 
 # List panes in LLM session:
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux list-panes -t LLM -F '#{pane_index} #{pane_current_command}'"
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux list-panes -t LLM -F '#{pane_index} #{pane_current_command}'"
 
 # Get more scrollback (last 500 lines):
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -p -S -500"
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -p -S -500"
 ```
 
 ### Pepper local agent logs (woska)
@@ -48,7 +48,7 @@ ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t LLM:0.0 -
 The local mode voice agent (`pepper-local`) runs in a tmux session on woska:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-agent2 -p -S -100"
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-agent2 -p -S -100"
 ```
 
 ### Pepper OpenAI agent logs (RPi)

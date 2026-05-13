@@ -15,7 +15,7 @@
 
 set -euo pipefail
 
-JUMP="navarlu2@ptak.felk.cvut.cz"
+JUMP="navarlu2@halmos.felk.cvut.cz"
 REMOTE="navarlu2@woska"
 REMOTE_BASE="/mnt/data_personal/navarlu2/work/Pepper"
 # Script lives at services/scripts/experiment/sync_to_woska.sh — three
@@ -30,8 +30,12 @@ ssh -J "$JUMP" "$REMOTE" "mkdir -p '$REMOTE_BASE/$SUBDIR'"
 
 scp -r -J "$JUMP" \
   "$SUBDIR/agent.py" \
+  "$SUBDIR/agent_cs.py" \
+  "$SUBDIR/agent_4o.py" \
   "$SUBDIR/prompt.py" \
+  "$SUBDIR/prompt_cs.py" \
   "$SUBDIR/tools" \
+  "$SUBDIR/tools_cs" \
   "$REMOTE:$REMOTE_BASE/$SUBDIR/"
 
 echo

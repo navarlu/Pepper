@@ -186,7 +186,7 @@ services:
           -o ServerAliveInterval=15 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \
-          -J navarlu2@ptak.felk.cvut.cz \
+          -J navarlu2@halmos.felk.cvut.cz \
           -R 7880:127.0.0.1:7880 \
           -R 7881:127.0.0.1:7881 \
           -R 7443:127.0.0.1:7443 \
@@ -211,7 +211,7 @@ services:
           -o ServerAliveInterval=15 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \
-          -J navarlu2@ptak.felk.cvut.cz \
+          -J navarlu2@halmos.felk.cvut.cz \
           -L 0.0.0.0:8000:127.0.0.1:8000 \
           navarlu2@woska
     volumes:

@@ -13,7 +13,7 @@ RPi (192.168.210.78)                       woska (GPU server)
 │   └── node_ip=127.0.0.1, ICE/TCP only    │   └── connects via ws://localhost:7880
 ├── redis (LiveKit state)                  └── vLLM (Qwen 2.5 7B, :8000)
 ├── orchestrator (room + tokens + dispatch)
-│   └── reads orchestrator_config.json     Reverse SSH tunnel (RPi → woska, via ptak):
+│   └── reads orchestrator_config.json     Reverse SSH tunnel (RPi → woska, via halmos):
 │       and dispatches pepper-openai          7880 → LiveKit signaling (WS)
 │       or pepper-local by mode               7881 → LiveKit RTC TCP
 ├── voice-agent "pepper-openai" (Docker)      5000 → bridge (animations)
@@ -28,7 +28,7 @@ RPi (192.168.210.78)                       woska (GPU server)
 
 ## Connection topology — TLDR
 
-A single SSH tunnel through `ptak.felk.cvut.cz` carries both **signaling (7880)**
+A single SSH tunnel through `halmos.felk.cvut.cz` carries both **signaling (7880)**
 and **WebRTC media (7881 TCP)**. LiveKit is configured with `node_ip=127.0.0.1`
 and `use_ice_lite=true` so it only advertises the loopback candidate — which
 matches what woska sees on its end of the tunnel. **No UDP, no TURN, no
@@ -74,7 +74,7 @@ register with LiveKit. The orchestrator picks the right one based on mode.
 The `reverse-tunnel` container auto-establishes the SSH tunnel. From woska:
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep -E "7880|7881|5000|8080"'
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep -E "7880|7881|5000|8080"'
 ```
 
 Expected: all four ports listening on `127.0.0.1`.
@@ -82,7 +82,7 @@ Expected: all four ports listening on `127.0.0.1`.
 ### 3. Start voice agent on woska (local mode only)
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
 
 # Inside tmux:
@@ -130,12 +130,12 @@ fresh tokens to [services/data/token-latest.json](../../services/data/token-late
 
 ```bash
 # Quick path (just the agent source files):
-scp -J navarlu2@ptak.felk.cvut.cz \
+scp -J navarlu2@halmos.felk.cvut.cz \
   voice-agent/src/{agent.py,tools.py,config.py} \
   navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/
 
 # Then restart agent in tmux on woska:
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-agent2'
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-agent2'
 # Ctrl+C, then re-run: python -m voice-agent.src.live.agent dev
 ```
 
@@ -152,7 +152,7 @@ uv run python voice-agent/tests/test_livekit_connection.py
 ## Troubleshooting
 
 **Agent shows `wait_pc_connection timed out` in the woska tmux:**
-- Check tunnel is up: `ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep 7881'`
+- Check tunnel is up: `ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep 7881'`
 - Check LiveKit advertises `nodeIP=127.0.0.1`: `docker compose -f docker/docker-compose.yml logs livekit | head -30`
 - Restart the tunnel: `docker compose -f docker/docker-compose.yml restart reverse-tunnel`
 

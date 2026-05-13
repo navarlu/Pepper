@@ -10,6 +10,7 @@ from livekit.agents import RunContext, function_tool
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
 from .utils._events import _emit_tool_event, _heartbeat_or_none
+from .utils._filler import _speak_filler
 
 from src.live.mensa import fetch_mensa_menu  # noqa: E402
 
@@ -34,6 +35,7 @@ async def mensa_menu(
     request_heartbeat: True (default) to continue and speak via
         send_message_to_user with the menu.
     """
+    asyncio.create_task(_speak_filler(context, "Let me pull up today's menu."))
     del context
     print(f"  [tool] mensa_menu(emotion={emotion!r}, hb={request_heartbeat})")
     _emit_tool_event("mensa_menu", {

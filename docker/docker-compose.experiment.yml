@@ -18,7 +18,10 @@
 # What this compose does NOT run (intentional):
 #   voice-agent (production agent) — replaced by experiment/agent.py on
 #                                    woska, dispatched by experiment/launcher.py
-#   tablet-server                — not relevant for the study
+#   tablet-server                — included so Pepper's tablet shows the
+#                                  live chat + state pills during the
+#                                  experiment (same definition as the
+#                                  production stack).
 #   ssh-tunnel                   — only needed for production flows
 #
 # safe-startup IS included (added because Pepper would otherwise boot
@@ -73,6 +76,59 @@ services:
     depends_on:
       - livekit
       - redis
+    restart: unless-stopped
+
+  # Mode B worker — runs the OpenAI Realtime ("gpt-realtime-mini")
+  # experiment agent directly on the RPi. Registered with agent_name
+  # `pepper-experiment-realtime` so launcher.py dispatches to it when
+  # --variant B is selected. Mode A still runs agent.py on woska.
+  voice-agent-realtime:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "voice-agent/src/experiment/agent_realtime.py", "dev"]
+    env_file: ../.env
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
+      # Realtime worker has no separate TTS (audio is emitted by the
+      # realtime model itself), so context.session.say() raises
+      # "trying to generate speech from text without a TTS model".
+      # Disable the per-tool pre-canned filler utterances.
+      TOOL_FILLERS: "0"
+      PYTHONUNBUFFERED: "1"
+    network_mode: host
+    depends_on:
+      - livekit
+    stop_grace_period: 15s
+    restart: unless-stopped
+
+  # Mode C worker — chained OpenAI 4o pipeline (silero VAD →
+  # gpt-4o-transcribe STT → gpt-4o-mini LLM → gpt-4o-mini-tts).
+  # Registered with agent_name `pepper-experiment-4o` so launcher.py
+  # dispatches to it when --variant C is selected. Same tools + prompt
+  # as Mode A — speaks via send_message_to_user.
+  voice-agent-4o:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "voice-agent/src/experiment/agent_4o.py", "dev"]
+    env_file: ../.env
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
+      AGENT_LANG: "en"
+      PYTHONUNBUFFERED: "1"
+    network_mode: host
+    depends_on:
+      - livekit
+    stop_grace_period: 15s
     restart: unless-stopped
 
   bridge:
@@ -175,6 +231,23 @@ services:
       - experiment-orchestrator
     restart: unless-stopped
 
+  tablet-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/live/tablet_server.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      BRIDGE_URL: http://127.0.0.1:5000
+    network_mode: host
+    depends_on:
+      - experiment-orchestrator
+    restart: unless-stopped
+
   reverse-tunnel:
     image: alpine:3.21
     entrypoint: ["/bin/sh", "-c"]
@@ -186,7 +259,7 @@ services:
           -o ServerAliveInterval=15 \
           -o ServerAliveCountMax=3 \
           -o ExitOnForwardFailure=yes \
-          -J navarlu2@ptak.felk.cvut.cz \
+          -J navarlu2@halmos.felk.cvut.cz \
           -R 7880:127.0.0.1:7880 \
           -R 7881:127.0.0.1:7881 \
           -R 7443:127.0.0.1:7443 \

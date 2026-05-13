@@ -13,6 +13,7 @@ from livekit.agents import RunContext, function_tool
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
 from .utils._events import _emit_tool_event, _heartbeat_or_none
+from .utils._filler import _speak_filler
 from .utils.find_path_to_room import (
     ROOM_DIRECTIONS,
     _normalize_room,
@@ -43,6 +44,7 @@ async def find_path_to_room(
     request_heartbeat: True (default) to continue the loop so you
         can read the directions via send_message_to_user.
     """
+    asyncio.create_task(_speak_filler(context, "Let me find that room for you."))
     del context
     room_norm = _normalize_room(room)
     print(

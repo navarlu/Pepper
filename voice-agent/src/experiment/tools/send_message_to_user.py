@@ -8,12 +8,31 @@ native to LiveKit (see generation.py:814).
 from __future__ import annotations
 
 import asyncio
+import os
+import re
 
 from livekit.agents import RunContext, function_tool
 
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
 from .utils._events import _emit_tool_event
+
+# Flip via env to A/B without code changes. Default = robust mode: user
+# cannot interrupt Pepper mid-utterance (kills false barge-in from
+# Pepper's own audio in the mic + from premature user re-talking).
+ALLOW_INTERRUPTIONS = os.environ.get("ALLOW_INTERRUPTIONS", "0").strip().lower() in (
+    "1", "true", "yes", "on",
+)
+
+# Sentence boundary: punctuation followed by whitespace. Speak each
+# sentence as its own session.say() so the first sentence reaches
+# audio in ~250ms instead of waiting for the whole utterance to synth.
+_SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+
+def _split_sentences(text: str) -> list[str]:
+    parts = [p.strip() for p in _SENT_SPLIT.split(text) if p.strip()]
+    return parts or [text]
 
 
 @function_tool(name="send_message_to_user")
@@ -41,22 +60,17 @@ async def send_message_to_user(
     print(f"  [tool] send_message_to_user(emotion={emotion!r}, text={text_clean!r})")
     _emit_tool_event("send_message_to_user", {"text": text_clean, "emotion": emotion})
     if not text_clean:
-        # Returning None still terminates the loop, same as a normal
-        # send. We just don't push empty audio to the user.
         return None
 
     if emotion:
         asyncio.create_task(trigger_animation(emotion))
 
-    # session.say pushes through the TTS pipeline. Awaiting on the
-    # SpeechHandle ensures we don't return (and end the loop) before
-    # Pepper actually starts speaking.
-    handle = context.session.say(text_clean, allow_interruptions=True)
-    try:
-        await handle.wait_for_playout()
-    except Exception as exc:
-        # If TTS errors, log but still terminate — better silent than
-        # looping forever.
-        print(f"  [tool] send_message_to_user playout error: {exc!r}")
+    for sentence in _split_sentences(text_clean):
+        handle = context.session.say(sentence, allow_interruptions=ALLOW_INTERRUPTIONS)
+        try:
+            await handle.wait_for_playout()
+        except Exception as exc:
+            print(f"  [tool] send_message_to_user playout error: {exc!r}")
+            break
 
     return None  # ← Terminal: reply_required=False, loop ends.

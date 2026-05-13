@@ -2,14 +2,14 @@
 
 Copy agent files to woska (after editing voice-agent code in local mode):
 ```bash
-scp -J navarlu2@ptak.felk.cvut.cz \
+scp -J navarlu2@halmos.felk.cvut.cz \
   voice-agent/src/live/{agent.py,tools.py,config.py} \
   navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/live/
 ```
 
-SSH to ptak (jump host):
+SSH to halmos (jump host):
 ```bash
-ssh navarlu2@ptak.felk.cvut.cz
+ssh navarlu2@halmos.felk.cvut.cz
 ```
 
 Restart a service after compose env changes (formerly session-manager — now orchestrator):
@@ -24,7 +24,7 @@ uv run python services/src/live/text_chat.py
 ```
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
 
 # Inside tmux:
@@ -79,7 +79,7 @@ docker compose -f docker/docker-compose.experiment.yml ps
 #    up in its own tmux (see § 3 below). The pepper-experiment worker
 #    coexists with the existing pepper-agent2 tmux — they have
 #    different agent_names so they don't collide.
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t pepper-experiment 2>/dev/null || tmux new-session -s pepper-experiment
 
 # Inside tmux on woska:
@@ -142,7 +142,7 @@ docker compose -f docker/docker-compose.yml up -d
 ## 3. Start vLLM on woska (only for `local` mode)
 
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
 
 # Volume

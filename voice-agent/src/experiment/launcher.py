@@ -83,6 +83,19 @@ if ROOT_ENV_PATH.exists():
 
 VARIANTS = ("A", "B", "C")
 EXPERIMENT_AGENT_NAME = "pepper-experiment"
+EXPERIMENT_AGENT_NAME_REALTIME = "pepper-experiment-realtime"
+EXPERIMENT_AGENT_NAME_4O = "pepper-experiment-4o"
+# Variant → agent_name. A uses the local-stack worker on woska
+# (agent.py). B uses the OpenAI Realtime worker on the RPi
+# (agent_realtime.py). C uses the OpenAI 4o-chained worker on the
+# RPi (agent_4o.py: silero VAD + gpt-4o-transcribe + gpt-4o-mini +
+# gpt-4o-mini-tts). All three share the same room + recorder +
+# JSONL schema — only the dispatch target differs.
+AGENT_NAME_BY_VARIANT = {
+    "A": EXPERIMENT_AGENT_NAME,
+    "B": EXPERIMENT_AGENT_NAME_REALTIME,
+    "C": EXPERIMENT_AGENT_NAME_4O,
+}
 EXPERIMENT_ROOM_NAME = "pepper-experiment"  # matches experiment-orchestrator
 RECORDER_IDENTITY = "experimenter-recorder"
 TOPIC_EXPERIMENT = "pepper.experiment"
@@ -334,31 +347,45 @@ async def run(args: argparse.Namespace) -> int:
         "experiment_variant": variant,
         "experiment_student_id": student_id,
     })
+    agent_name = AGENT_NAME_BY_VARIANT.get(variant, EXPERIMENT_AGENT_NAME)
     lkapi = api.LiveKitAPI(args.livekit_url, args.api_key, args.api_secret)
     try:
         try:
             dispatch = await lkapi.agent_dispatch.create_dispatch(
                 api.CreateAgentDispatchRequest(
-                    agent_name=EXPERIMENT_AGENT_NAME,
+                    agent_name=agent_name,
                     room=room_name,
                     metadata=metadata_blob,
                 )
             )
             dispatch_id = str(getattr(dispatch, "id", "") or "")
-            print(f"[experiment] dispatched agent={EXPERIMENT_AGENT_NAME} "
+            print(f"[experiment] dispatched agent={agent_name} "
                   f"dispatch_id={dispatch_id}")
         except Exception as exc:
             print(f"[experiment] dispatch failed: {exc!r}", file=sys.stderr)
-            print(
-                "[experiment] is the voice-agent-experiment container "
-                "running? Start it with:\n"
-                "    docker compose -f docker/docker-compose.yml stop voice-agent\n"
-                "    docker compose -f docker/docker-compose.yml --profile experiment "
-                "up -d voice-agent-experiment\n"
-                "and check it is registered with `docker compose -f "
-                "docker/docker-compose.yml logs -f voice-agent-experiment`.",
-                file=sys.stderr,
-            )
+            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
+                print(
+                    "[experiment] is the voice-agent-realtime container running?\n"
+                    "    docker compose -f docker/docker-compose.experiment.yml "
+                    "up -d voice-agent-realtime\n"
+                    "    docker compose -f docker/docker-compose.experiment.yml "
+                    "logs -f voice-agent-realtime",
+                    file=sys.stderr,
+                )
+            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+                print(
+                    "[experiment] is agent_4o.py running on woska in tmux "
+                    "'pepper-experiment-4o'?\n"
+                    "    ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska\n"
+                    "    tmux attach -t pepper-experiment-4o",
+                    file=sys.stderr,
+                )
+            else:
+                print(
+                    "[experiment] is the pepper-experiment worker running on "
+                    "woska in tmux 'pepper-experiment'? See docs/notes/cmd.md.",
+                    file=sys.stderr,
+                )
             exit_reason = f"dispatch_failed:{exc!r}"
             return 3
 
@@ -409,19 +436,38 @@ async def run(args: argparse.Namespace) -> int:
         agents = await _wait_for_agents(room, timeout=60.0)
         agent_idents = sorted(a.identity for a in agents)
         if not agents:
-            print("[experiment] ERROR: no agent participant joined the "
-                  "room within 60s. Is agent.py running "
-                  "on woska in tmux 'pepper-experiment'?", file=sys.stderr)
+            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
+                hint = ("Is voice-agent-realtime running on the RPi? "
+                        "`docker compose -f docker/docker-compose.experiment.yml "
+                        "logs -f voice-agent-realtime`")
+            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+                hint = ("Is agent_4o.py running on woska in tmux "
+                        "'pepper-experiment-4o'? "
+                        "`ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska` "
+                        "then `tmux attach -t pepper-experiment-4o`")
+            else:
+                hint = ("Is agent.py running on woska in tmux 'pepper-experiment'?")
+            print(f"[experiment] ERROR: no agent participant joined the "
+                  f"room within 60s. {hint}", file=sys.stderr)
             exit_reason = "no_agent_joined"
             return 4
         if len(agents) > 1:
+            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
+                cleanup = ("docker compose -f docker/docker-compose.experiment.yml "
+                           "restart voice-agent-realtime")
+            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+                # agent_4o.py runs on woska in tmux 'pepper-experiment-4o'.
+                # Restart the worker there to drop all stale jobs.
+                cleanup = ("ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "
+                           "'tmux send-keys -t pepper-experiment-4o C-c \"python voice-agent/src/experiment/agent_4o.py dev\" Enter'")
+            else:
+                cleanup = ("ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska && "
+                           "pkill -f experiment/agent.py")
             print(f"[experiment] ERROR: {len(agents)} agent participants "
                   f"in room {room_name!r}: {agent_idents}.\n"
-                  f"[experiment] Stale workers from previous runs are "
-                  f"still alive on woska. Clean up before re-running:\n"
-                  f"    ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska\n"
-                  f"    pkill -f experiment/agent.py\n"
-                  f"    # then restart the worker inside tmux 'pepper-experiment'",
+                  f"[experiment] Stale workers from previous runs are still "
+                  f"alive. Clean up before re-running:\n"
+                  f"    {cleanup}",
                   file=sys.stderr)
             exit_reason = "duplicate_agents"
             return 4

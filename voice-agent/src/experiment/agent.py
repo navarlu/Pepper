@@ -88,10 +88,21 @@ os.environ.setdefault("LIVEKIT_URL", "ws://127.0.0.1:7880")
 from src.live.local_speech import FasterWhisperSTT, PiperTTS  # noqa: E402
 from src.live.qwen_compat import install_function_args_patch  # noqa: E402
 
-import tools  # noqa: E402  (kept for set_tool_event_listener access from worker)
+import importlib  # noqa: E402
+
 from src.live.bridge_client import post_tablet_clear  # noqa: E402
-from tools import LIVEKIT_TOOLS_TOOLONLY  # noqa: E402
-from prompt import GREETING_INSTRUCTIONS, SYSTEM_PROMPT  # noqa: E402
+
+# Prompt + tools modules are env-selectable so language variants can be
+# swapped in without forking the worker. Defaults = English. The tools
+# module must expose LIVEKIT_TOOLS_TOOLONLY plus the
+# set_tool_event_listener / set_tool_result_listener hooks.
+_PROMPT_MODULE = os.environ.get("EXPERIMENT_PROMPT_MODULE", "prompt")
+_TOOLS_MODULE = os.environ.get("EXPERIMENT_TOOLS_MODULE", "tools")
+_prompt_mod = importlib.import_module(_PROMPT_MODULE)
+SYSTEM_PROMPT = _prompt_mod.SYSTEM_PROMPT
+GREETING_INSTRUCTIONS = _prompt_mod.GREETING_INSTRUCTIONS
+tools = importlib.import_module(_TOOLS_MODULE)
+LIVEKIT_TOOLS_TOOLONLY = tools.LIVEKIT_TOOLS_TOOLONLY
 
 logger = logging.getLogger("experiment-worker")
 
@@ -123,7 +134,7 @@ USER_IDENTITY = os.environ.get("USER_IDENTITY", "user")
 LISTENER_IDENTITY = os.environ.get("LISTENER_IDENTITY", "listener-python")
 MONITOR_IDENTITY = os.environ.get("MONITOR_IDENTITY", "monitor-python")
 
-LANG = "en"
+LANG = os.environ.get("AGENT_LANG", "en").strip().lower() or "en"
 LOCAL_LLM_BASE_URL = os.environ.get("LOCAL_LLM_BASE_URL", "http://localhost:8000/v1")
 LOCAL_STT_MODEL = os.environ.get("LOCAL_STT_MODEL", "tiny")
 LOCAL_STT_DEVICE = os.environ.get("LOCAL_STT_DEVICE", "cpu")
@@ -169,19 +180,16 @@ def _get_vad():
     global _PREWARMED_VAD
     if _PREWARMED_VAD is None:
         t0 = time.monotonic()
-        # activation_threshold=0.25 (default 0.5) so silero trips on
-        # the DJI mic's quiet output. Production OpenAI Realtime is
-        # tolerant of low levels, but local silero+Whisper is not, and
-        # the DJI Mic Mini's ALSA capture sits around 0.002 RMS — well
-        # under the default 0.5 probability gate. Drop to 0.25 so the
-        # model picks up real speech without false-triggering on
-        # background noise (which still typically scores < 0.1).
+        threshold = float(os.environ.get("LOCAL_VAD_THRESHOLD", "0.6"))
+        min_speech = float(os.environ.get("LOCAL_VAD_MIN_SPEECH", "0.15"))
         _PREWARMED_VAD = silero.VAD.load(
-            activation_threshold=float(os.environ.get("LOCAL_VAD_THRESHOLD", "0.25")),
+            activation_threshold=threshold,
+            min_speech_duration=min_speech,
         )
         logger.info(
-            "vad_loaded threshold=%.2f elapsed=%.2fs",
-            float(os.environ.get("LOCAL_VAD_THRESHOLD", "0.25")),
+            "vad_loaded threshold=%.2f min_speech=%.2fs elapsed=%.2fs",
+            threshold,
+            min_speech,
             time.monotonic() - t0,
         )
     return _PREWARMED_VAD
@@ -339,18 +347,27 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # Publish helper — fire-and-forget, schedules onto the main loop so it's
     # safe from worker threads (tool callbacks).
-    async def _publish(payload: dict) -> None:
+    async def _publish_topic(topic: str, payload: dict) -> None:
         try:
             data = json.dumps(payload, ensure_ascii=False, default=str).encode("utf-8")
-            await ctx.room.local_participant.publish_data(data, topic=TOPIC_EXPERIMENT)
+            await ctx.room.local_participant.publish_data(data, topic=topic)
         except Exception as exc:
-            logger.debug("publish_failed err=%s", exc)
+            logger.debug("publish_failed topic=%s err=%s", topic, exc)
+
+    async def _publish(payload: dict) -> None:
+        await _publish_topic(TOPIC_EXPERIMENT, payload)
 
     def _publish_sync(payload: dict) -> None:
         try:
             asyncio.run_coroutine_threadsafe(_publish(payload), main_loop)
         except Exception as exc:
             logger.debug("publish_schedule_failed err=%s", exc)
+
+    def _publish_sync_topic(topic: str, payload: dict) -> None:
+        try:
+            asyncio.run_coroutine_threadsafe(_publish_topic(topic, payload), main_loop)
+        except Exception as exc:
+            logger.debug("publish_schedule_failed topic=%s err=%s", topic, exc)
 
     # Wipe whatever display_info last drew on Pepper's tablet. Fired
     # whenever a new user turn begins (VAD start or typed input) so the
@@ -416,6 +433,9 @@ async def entrypoint(ctx: JobContext) -> None:
         llm=local_llm,
         tts=_get_tts(),
         max_tool_steps=4,
+        min_interruption_duration=float(
+            os.environ.get("LOCAL_MIN_INTERRUPTION", "3.0")
+        ),
     )
 
     # Tracks user texts that arrived via the pepper.text topic so the
@@ -431,6 +451,14 @@ async def entrypoint(ctx: JobContext) -> None:
         "student_id": student_id,
         "model": model_id,
         "ts": time.time(),
+    })
+
+    # Tell the tablet which mode this worker is — production orchestrator
+    # publishes this normally, but the experiment orchestrator doesn't,
+    # so the mode pill stays "?" without this. Local-mode worker → "A".
+    _publish_sync_topic("pepper.state", {
+        "agent_mode": "local",
+        "agent_language": LANG,
     })
 
     # ── DEBUG: visibility into the audio pipeline ──────────────────
@@ -458,6 +486,8 @@ async def entrypoint(ctx: JobContext) -> None:
     def _on_agent_state(event) -> None:
         new_state = getattr(event, "new_state", None) or getattr(event, "state", "?")
         print(f"  {_ts()} [STAGE D] agent_state={new_state}", flush=True)
+        # Surface to the tablet (which already subscribes to pepper.state).
+        _publish_sync_topic("pepper.state", {"agent_state": str(new_state)})
 
     # Streaming STT debug — only echo non-empty transcripts so we don't
     # spam the tmux with empty interims/finals. The canonical user_turn
@@ -620,5 +650,12 @@ if __name__ == "__main__":
             num_idle_processes=0,
             agent_name=AGENT_NAME,
             job_memory_warn_mb=2000,
+            # Never give up reconnecting. Default is 16 retries — when
+            # the RPi docker stack is down the worker would log "failed
+            # to connect after 16 attempts" and exit, requiring a manual
+            # tmux restart. With this set the worker just keeps retrying
+            # at 10s intervals (backoff caps at 10s) until LiveKit is
+            # reachable again.
+            max_retry=2**31 - 1,
         )
     )

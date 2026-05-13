@@ -36,7 +36,7 @@ See [gpu-setup.md](gpu-setup.md) for the full setup with agent naming (`pepper-l
 
 Quick start on woska:
 ```bash
-ssh -J navarlu2@ptak.felk.cvut.cz navarlu2@woska
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t pepper-agent
 
 cd /mnt/data_personal/navarlu2/work/Pepper

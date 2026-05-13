@@ -139,7 +139,7 @@ networking, exposes `:8080` (HTTP) and `:50051` (gRPC). Uses the
 ### `reverse-tunnel`
 
 Alpine + autossh. Opens an SSH connection from RPi → `woska` (via
-jump host `ptak.felk.cvut.cz`) and sets up **remote forwards** so
+jump host `halmos.felk.cvut.cz`) and sets up **remote forwards** so
 that RPi-side services appear on `localhost` at woska:
 
 | Port | What it forwards |

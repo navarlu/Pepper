@@ -75,7 +75,7 @@ dispatches the warm voice-agent that matches the currently selected mode.
 Mode switching is a simple file write — no HTTP API needed.
 
 **Connection topology** for local mode: a single SSH reverse tunnel from
-RPi → woska (via the `ptak.felk.cvut.cz` jump host) carries both LiveKit
+RPi → woska (via the `halmos.felk.cvut.cz` jump host) carries both LiveKit
 signaling (port 7880) and WebRTC media (port 7881 TCP). No UDP, no TURN, no
 VPN. The full investigation is at
 [docs/logs/connection-test-journal.md](docs/logs/connection-test-journal.md).
@@ -90,7 +90,7 @@ VPN. The full investigation is at
 - `.env` file in the project root with `OPENAI_API_KEY`, `LIVEKIT_API_KEY`,
   `LIVEKIT_API_SECRET`, `LIVEKIT_KEYS`
 - Pepper robot on the same network (or reachable via TCP)
-- For local mode only: SSH access to `woska` via `ptak.felk.cvut.cz`
+- For local mode only: SSH access to `woska` via `halmos.felk.cvut.cz`
 
 ### Bring it up
 
