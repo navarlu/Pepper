@@ -26,6 +26,16 @@ THIS_DIR = Path(__file__).resolve().parent
 LAUNCHER = THIS_DIR / "launcher.py"
 PROJECT_ROOT = THIS_DIR.parent.parent.parent  # .../Pepper
 
+# `experiment_active` in services/data/state.json is the single source
+# of truth for "loop_launcher is running" — the bridge polls it to
+# decide sleep/wake posture and the tablet polls it to decide chat
+# vs zzz UI. Heartbeat ages out in HEARTBEAT_STALE_SEC so a hard kill
+# of this wrapper auto-heals (Pepper falls asleep on her own).
+sys.path.insert(0, str(THIS_DIR))
+from _runtime_state import write_runtime_state  # noqa: E402
+
+HEARTBEAT_INTERVAL_SEC = 2.0
+
 VARIANTS = ("A", "B", "C")
 
 
@@ -172,22 +182,64 @@ async def _run_one(student_id: int, variant: str, idle_seconds: float,
     return rc
 
 
-async def run(args: argparse.Namespace) -> int:
-    student = args.student
+async def _heartbeat_loop() -> None:
+    """Refresh `experiment_active`/`experiment_heartbeat_ts` every 2 s.
+
+    The bridge treats the experiment as active only if the heartbeat
+    is recent — so as long as this task is running, Pepper stays
+    awake; if this task dies for any reason, the heartbeat ages out
+    and the bridge puts her to sleep.
+    """
     while True:
+        write_runtime_state({
+            "experiment_active": True,
+            "experiment_heartbeat_ts": time.time(),
+        })
+        await asyncio.sleep(HEARTBEAT_INTERVAL_SEC)
+
+
+async def run(args: argparse.Namespace) -> int:
+    # Announce we're active before the first session dispatch so the
+    # bridge / tablet flip to "awake" before Pepper is actually needed.
+    write_runtime_state({
+        "experiment_active": True,
+        "experiment_heartbeat_ts": time.time(),
+    })
+    heartbeat_task = asyncio.create_task(_heartbeat_loop())
+    student = args.student
+    try:
+        while True:
+            try:
+                await _run_one(student, args.variant, args.idle_seconds,
+                               args.warmup_grace)
+            except KeyboardInterrupt:
+                print("\n[loop] Ctrl+C — exiting wrapper.", flush=True)
+                return 130
+            student += 1
+            # Brief breather between sessions so log files don't collide on HHMMSS.
+            await asyncio.sleep(1.5)
+    finally:
+        heartbeat_task.cancel()
         try:
-            await _run_one(student, args.variant, args.idle_seconds,
-                           args.warmup_grace)
-        except KeyboardInterrupt:
-            print("\n[loop] Ctrl+C — exiting wrapper.", flush=True)
-            return 130
-        student += 1
-        # Brief breather between sessions so log files don't collide on HHMMSS.
-        await asyncio.sleep(1.5)
+            await heartbeat_task
+        except (asyncio.CancelledError, Exception):
+            pass
+        # Explicit "we're done" — the bridge/tablet pick this up on the
+        # next mtime tick (≤0.5s) and put Pepper to sleep immediately
+        # rather than waiting for the heartbeat to age out.
+        write_runtime_state({"experiment_active": False})
+        print("[loop] experiment_active=false written to state.json", flush=True)
 
 
 def main() -> int:
     args = _parse_args()
+    # SIGTERM handler so `systemctl stop` / `docker stop` / `kill <pid>`
+    # also reach the finally block above. SIGINT is already handled by
+    # asyncio's KeyboardInterrupt path. kill -9 cannot be intercepted —
+    # the bridge's heartbeat-staleness check handles that case.
+    def _term_handler(_signum, _frame):
+        raise KeyboardInterrupt
+    signal.signal(signal.SIGTERM, _term_handler)
     try:
         return asyncio.run(run(args))
     except KeyboardInterrupt:

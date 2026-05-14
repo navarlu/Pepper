@@ -29,6 +29,13 @@ from config import (
     BRIDGE_LOG_TABLET_HTTP,
     BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC,
     BRIDGE_URL,
+    HEAD_LOCK_PITCH_RAD,
+    HEAD_LOCK_SPEED,
+    HEAD_LOCK_YAW_RAD,
+    SLEEP_HEAD_PITCH_RAD,
+    SLEEP_HEAD_SPEED,
+    WAKE_HEAD_PITCH_RAD,
+    WAKE_HEAD_SPEED,
     LIFE_AUTONOMOUS_BLINKING,
     LIFE_BACKGROUND_MOVEMENT,
     LIFE_BASIC_AWARENESS,
@@ -57,6 +64,8 @@ from config import (
 from utils import (
     CONTROL_FRAME_FLUSH,
     CONTROL_FRAME_PING,
+    CONTROL_FRAME_DRAIN_REQ,
+    CONTROL_FRAME_DRAIN_ACK,
     capture_camera_snapshot,
     connect_session,
     load_animations_map,
@@ -75,6 +84,29 @@ AUTONOMOUS_LIFE_ABILITIES = (
     "ListeningMovement",
     "SpeakingMovement",
 )
+
+# Minimal zzz page pushed to the tablet at bridge startup so NAOqi's default
+# app can't claim the screen before tablet_server.py posts its first render.
+# Visual style matches tablet_server.py's .sleeping class so users don't see
+# a different-looking page flash before the real one arrives.
+_BOOT_ZZZ_HTML = (
+    "<!doctype html><html><head><meta charset='utf-8'>"
+    "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+    "<style>html,body{margin:0;height:100%;background:#f0eef9;color:#4b3f7a;"
+    "font-family:-apple-system,'Segoe UI',Roboto,sans-serif;"
+    "display:flex;flex-direction:column;justify-content:center;align-items:center;"
+    "text-align:center;padding:40px 28px;}"
+    ".zzz{font-size:120px;font-weight:800;letter-spacing:.05em;line-height:1;"
+    "margin-bottom:18px;color:#7a6cb8;}"
+    ".msg{font-size:38px;font-weight:700;margin-bottom:8px;}"
+    ".sub{font-size:22px;color:#7d75a3;font-style:italic;}"
+    "</style></head><body>"
+    "<div class='zzz'>z z z</div>"
+    "<div class='msg'>Pepper is sleeping</div>"
+    "<div class='sub'>Please do not disturb &mdash; I'll wake up soon.</div>"
+    "</body></html>"
+)
+_BOOT_ZZZ_DATA_URL = "data:text/html;charset=utf-8," + quote(_BOOT_ZZZ_HTML.encode("utf-8"))
 
 
 class TabletDebugReporter(object):
@@ -302,24 +334,43 @@ class TabletDebugReporter(object):
 
 
 class LedEffectManager(object):
-    """Background thread that continuously asserts the preferred eye-LED
-    state so the NAOqi mood painter (active during interactive life state)
-    can't hold the eyes pink.
+    """Background thread that continuously asserts the preferred LED
+    state so the NAOqi mood/awareness painters (active during the
+    interactive life state) can't hold the eyes pink or paint the
+    "I'm listening" blue circling animation.
+
+    Policy on Pepper:
+      - Eyes: solid white (AutonomousBlinking still produces natural
+        blinks because it interrupts the LED intensity briefly between
+        our paints — we don't fight that).
+      - Ears, chest, shoulders: always off in every mode.
 
     Modes:
-      - "idle"         solid white, refreshed at ~3 Hz
-      - "search_pulse" dim-blue <-> bright-blue loop (~0.5 s each)
-      - "off"          LEDs off, refreshed at ~1 Hz
+      - "idle"         eyes solid white at ~6 Hz, others forced off
+      - "search_pulse" dim-blue <-> bright-blue eye loop (~0.5 s each),
+                       others forced off
+      - "off"          everything off at ~20 Hz
     """
 
-    GROUP = "FaceLeds"
+    EYE_GROUP = "FaceLeds"
+    # Non-eye LED groups that we always force off. EarLeds is intentionally
+    # excluded — the autonomous ear-cycling painter outruns any reasonable
+    # off-tick we tried (tested up to 20 Hz), and the visual was no better
+    # than just letting it animate. Listed individually because BrainLeds/
+    # FeetLeds are NAO-only and raise on Pepper firmware.
+    SILENT_GROUPS = ("ChestLeds", "ShoulderLeds", "BrainLeds", "FeetLeds")
+    OFF_GROUP_ALL = "AllLeds"
     IDLE_COLOR = 0x00FFFFFF
     PULSE_DIM = 0x00001133
     PULSE_BRIGHT = 0x0040A0FF
-    IDLE_FADE = 0.2
-    IDLE_TICK = 0.3
+    # Short fade so NAOqi's awareness painter can't slip a blue tint
+    # in during a long fade window. 0.0 = instant set.
+    IDLE_FADE = 0.0
+    # ~6.7 Hz — tight enough to beat the BasicAwareness eye repaint
+    # without masking AutonomousBlinking's brief dark blink frame.
+    IDLE_TICK = 0.15
     PULSE_FADE = 0.5
-    OFF_TICK = 1.0
+    OFF_TICK = 0.05
     VALID_MODES = ("idle", "search_pulse", "off")
 
     def __init__(self, leds):
@@ -344,7 +395,7 @@ class LedEffectManager(object):
             self._worker = None
         if self._leds is not None:
             try:
-                self._leds.reset(self.GROUP)
+                self._leds.reset(self.EYE_GROUP)
             except Exception as exc:
                 print("[leds] reset on stop warning:", to_text(exc))
 
@@ -362,6 +413,16 @@ class LedEffectManager(object):
         with self._lock:
             return self._mode
 
+    def _silence_non_eye_groups(self):
+        # Force every non-eye LED group off. Wrapped per-group because some
+        # group names are NAO-only and raise on Pepper — we don't want one
+        # missing group to abort the entire tick.
+        for group in self.SILENT_GROUPS:
+            try:
+                self._leds.off(group)
+            except Exception:
+                pass
+
     # region: led_worker_loop
     def _run(self):
         pulse_phase = 0
@@ -369,15 +430,17 @@ class LedEffectManager(object):
             mode = self.get_mode()
             try:
                 if mode == "idle":
-                    self._leds.fadeRGB(self.GROUP, self.IDLE_COLOR, self.IDLE_FADE)
+                    self._leds.fadeRGB(self.EYE_GROUP, self.IDLE_COLOR, self.IDLE_FADE)
+                    self._silence_non_eye_groups()
                     if self._stop.wait(self.IDLE_TICK):
                         break
                 elif mode == "search_pulse":
                     color = self.PULSE_BRIGHT if pulse_phase else self.PULSE_DIM
                     pulse_phase ^= 1
-                    self._leds.fadeRGB(self.GROUP, color, self.PULSE_FADE)
+                    self._leds.fadeRGB(self.EYE_GROUP, color, self.PULSE_FADE)
+                    self._silence_non_eye_groups()
                 elif mode == "off":
-                    self._leds.off(self.GROUP)
+                    self._leds.off(self.OFF_GROUP_ALL)
                     if self._stop.wait(self.OFF_TICK):
                         break
                 else:
@@ -409,6 +472,17 @@ class TabletOverlayHttpServer(threading.Thread):
       - POST /audio/volume           — adjust `ALAudioDevice` output volume
       - POST /camera/snapshot        — capture one JPEG from the top
                                        camera (optionally pausing awareness)
+      - POST /motion/head_lock       — park the head at (yaw, pitch) and
+                                       pause ALBasicAwareness; or resume
+      - POST /motion/sleep           — between-session sleep: abilities off,
+                                       head down, LEDs off (driven by tablet)
+      - POST /motion/wake            — between-session wake: abilities on,
+                                       head neutral, LEDs idle (driven by tablet)
+      - GET  /notifications          — list active ALNotificationManager
+                                       entries (shoulder/chest red blink)
+      - POST /notifications/clear    — remove every active notification —
+                                       the only way to silence shoulder/
+                                       chest system-LED indicators
 
     All service proxies are optional — the server degrades cleanly
     (503 / 500) if a service was not available at startup.
@@ -429,6 +503,8 @@ class TabletOverlayHttpServer(threading.Thread):
         led_manager=None,
         video_device=None,
         awareness=None,
+        motion=None,
+        notification_manager=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -444,6 +520,8 @@ class TabletOverlayHttpServer(threading.Thread):
         self._led_manager = led_manager
         self._video_device = video_device
         self._awareness = awareness
+        self._motion = motion
+        self._notifications = notification_manager
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -528,6 +606,7 @@ class TabletOverlayHttpServer(threading.Thread):
                 led_manager = server_self._led_manager
                 video_device = server_self._video_device
                 awareness = server_self._awareness
+                motion = server_self._motion
                 if path_only == "/camera/snapshot":
                     if video_device is None:
                         self._write_json(503, {"ok": False, "error": "video device unavailable"})
@@ -588,6 +667,116 @@ class TabletOverlayHttpServer(threading.Thread):
                         self._write_json(400, {"ok": False, "error": to_text(exc)})
                     except Exception as exc:
                         self._write_json(500, {"ok": False, "error": to_text(exc)})
+                    return
+
+                if path_only == "/motion/head_lock":
+                    # Park the head + pause autonomous head tracking, or
+                    # release back to free look-around. Body sway, blinking,
+                    # speaking gestures and explicit /animation/* calls are
+                    # untouched — this only stops ALBasicAwareness from
+                    # turning the head toward faces/sound.
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw) if raw else {}
+                        if not isinstance(payload, dict):
+                            payload = {}
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "invalid json"})
+                        return
+                    lock = bool(payload.get("lock", True))
+                    try:
+                        yaw = float(payload.get("yaw", HEAD_LOCK_YAW_RAD))
+                        pitch = float(payload.get("pitch", HEAD_LOCK_PITCH_RAD))
+                        speed = float(payload.get("speed", HEAD_LOCK_SPEED))
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "yaw/pitch/speed must be numbers"})
+                        return
+
+                    errors = {}
+                    if lock:
+                        if awareness is not None:
+                            try:
+                                awareness.pauseAwareness()
+                            except Exception as exc:
+                                errors["awareness"] = to_text(exc)
+                        if motion is not None:
+                            try:
+                                motion.setAngles(["HeadYaw", "HeadPitch"], [yaw, pitch], speed)
+                            except Exception as exc:
+                                errors["motion"] = to_text(exc)
+                        else:
+                            errors["motion"] = "motion service unavailable"
+                    else:
+                        # Release: resume awareness; do NOT re-setAngles so the
+                        # tracker is free to drive the head again immediately.
+                        if awareness is not None:
+                            try:
+                                awareness.resumeAwareness()
+                            except Exception as exc:
+                                errors["awareness"] = to_text(exc)
+
+                    print("[head_lock] lock={} yaw={} pitch={} speed={} errors={}".format(
+                        lock, yaw, pitch, speed, errors or None,
+                    ))
+                    status = 200 if not errors else 500
+                    self._write_json(
+                        status,
+                        {
+                            "ok": not errors,
+                            "lock": lock,
+                            "yaw": yaw,
+                            "pitch": pitch,
+                            "errors": errors or None,
+                        },
+                    )
+                    return
+
+                if path_only == "/notifications/clear":
+                    notifications = server_self._notifications
+                    if notifications is None:
+                        self._write_json(503, {"ok": False, "error": "ALNotificationManager unavailable"})
+                        return
+                    cleared = []
+                    errors = {}
+                    try:
+                        items = notifications.notifications() or []
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                        return
+                    for item in items:
+                        parsed = _notification_to_dict(item)
+                        nid = parsed.get("id")
+                        if nid is None:
+                            continue
+                        try:
+                            notifications.remove(int(nid))
+                            cleared.append(int(nid))
+                        except Exception as exc:
+                            errors[str(nid)] = to_text(exc)
+                    print("[notifications] cleared {} ids errors={}".format(
+                        len(cleared), errors or None,
+                    ))
+                    self._write_json(
+                        200,
+                        {"ok": True, "cleared": cleared, "errors": errors or None},
+                    )
+                    return
+
+                if path_only == "/motion/sleep" or path_only == "/motion/wake":
+                    action = "sleep" if path_only == "/motion/sleep" else "wake"
+                    errors = apply_pepper_state(
+                        action, life=life, motion=motion, led_manager=led_manager,
+                    )
+                    status = 200 if not errors else 500
+                    self._write_json(
+                        status,
+                        {
+                            "ok": not errors,
+                            "action": action,
+                            "errors": errors or None,
+                        },
+                    )
                     return
 
                 if path_only == "/audio/volume":
@@ -817,6 +1006,19 @@ class TabletOverlayHttpServer(threading.Thread):
                         return
                     self._write_json(200, _collect_life_state(life))
                     return
+                if path_only == "/notifications":
+                    notifications = server_self._notifications
+                    if notifications is None:
+                        self._write_json(503, {"ok": False, "error": "ALNotificationManager unavailable"})
+                        return
+                    try:
+                        items = notifications.notifications() or []
+                    except Exception as exc:
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                        return
+                    out = [_notification_to_dict(item) for item in items]
+                    self._write_json(200, {"ok": True, "count": len(out), "notifications": out})
+                    return
                 if path_only != "/health":
                     self.send_response(404)
                     self.end_headers()
@@ -859,6 +1061,8 @@ class TabletOverlayHttpServer(threading.Thread):
         led_manager=None,
         video_device=None,
         awareness=None,
+        motion=None,
+        notification_manager=None,
     ):
         self._bm = behavior_manager
         self._anim = animation_player
@@ -870,6 +1074,8 @@ class TabletOverlayHttpServer(threading.Thread):
         self._led_manager = led_manager
         self._video_device = video_device
         self._awareness = awareness
+        self._motion = motion
+        self._notifications = notification_manager
 
 
 def _read_runtime_state():
@@ -880,6 +1086,33 @@ def _read_runtime_state():
     except Exception as exc:
         print("[bridge] state read failed path={} err={}".format(STATE_FILE, to_text(exc)))
         return {}
+
+
+def _notification_to_dict(item):
+    """Coerce one ALNotificationManager entry to a JSON-friendly dict.
+
+    NAOqi returns entries as AnyValue maps that surface in Python as a
+    list of [key, value] pairs, e.g.
+        [['id', 1], ['message', '...'], ['severity', 'error'], ['removeOnRead', False]]
+    Direct dict-style access fails on those. This walks the pairs and
+    coerces booleans/ints sanely so /notifications and /clear don't
+    blow up on the AnyValue shape.
+    """
+    if isinstance(item, dict):
+        return {to_text(k): item[k] for k in item}
+    out = {}
+    try:
+        for pair in item:
+            if not hasattr(pair, "__len__") or len(pair) < 2:
+                continue
+            key = to_text(pair[0])
+            value = pair[1]
+            if isinstance(value, bytes):
+                value = value.decode("utf-8", "replace")
+            out[key] = value
+    except Exception as exc:
+        return {"raw": to_text(item), "parse_error": to_text(exc)}
+    return out
 
 
 def _safe_life_call(life, method_name):
@@ -942,6 +1175,103 @@ def _state_output_volume(default_volume):
         return normalize_output_volume(default_volume)
 
 
+# --- Pepper wake / sleep state machine ------------------------------------
+
+# Both the HTTP endpoints (/motion/sleep, /motion/wake) and the
+# ExperimentStateWatcher below route through `apply_pepper_state` so
+# the side-effects (life state, ability profile, head angle, LEDs) are
+# defined exactly once. Returns a dict of {component: error_msg} —
+# empty dict means full success.
+
+# "Sleep" here is a light rest pose, not a full NAOqi shutdown: life_state
+# stays "solitary" in both profiles so wake is effectively instant. We only
+# toggle BackgroundMovement + BasicAwareness — disabling them on sleep is
+# what keeps the head pinned to SLEEP_HEAD_PITCH_RAD instead of springing
+# back up. The tablet "zzz" UI is driven separately by experiment_active.
+PEPPER_STATE_PROFILES = {
+    "sleep": {
+        "life_state": "solitary",
+        "abilities": {
+            "AutonomousBlinking": True,
+            "BackgroundMovement": False,
+            "BasicAwareness": False,
+            "ListeningMovement": False,
+            "SpeakingMovement": True,
+        },
+        "head_pitch": SLEEP_HEAD_PITCH_RAD,
+        "head_speed": SLEEP_HEAD_SPEED,
+        "led_mode": "off",
+    },
+    "wake": {
+        "life_state": "solitary",
+        "abilities": {
+            "AutonomousBlinking": True,
+            "BackgroundMovement": True,
+            "BasicAwareness": True,
+            "ListeningMovement": False,
+            "SpeakingMovement": True,
+        },
+        "head_pitch": WAKE_HEAD_PITCH_RAD,
+        "head_speed": WAKE_HEAD_SPEED,
+        "led_mode": "idle",
+    },
+}
+
+
+def apply_pepper_state(action, life=None, motion=None, led_manager=None):
+    """Apply the "sleep" or "wake" profile to Pepper.
+
+    Idempotent and best-effort. Both profiles keep life_state at
+    "solitary" so wake is effectively instant — sleep is just a rest
+    pose (head lowered, BackgroundMovement/BasicAwareness off so the
+    head stays put), not a full NAOqi shutdown. The visible "she's
+    asleep" cue is the tablet "zzz" UI driven by experiment_active.
+    Note: with life_state staying solitary, NAOqi's LED mood painter
+    keeps running and may repaint FaceLeds/EarLeds over our "off"
+    setting — accepted trade-off for fast wake.
+    """
+    profile = PEPPER_STATE_PROFILES.get(action)
+    if profile is None:
+        return {"action": "unknown action: {}".format(action)}
+    errors = {}
+    if life is not None:
+        try:
+            life.setState(profile["life_state"])
+        except Exception as exc:
+            errors["life_state"] = to_text(exc)
+        for ability, enabled in profile["abilities"].items():
+            try:
+                life.setAutonomousAbilityEnabled(ability, bool(enabled))
+            except Exception as exc:
+                errors[ability] = to_text(exc)
+    else:
+        errors["life"] = "life service unavailable"
+
+    if motion is not None:
+        try:
+            motion.setAngles(
+                ["HeadYaw", "HeadPitch"],
+                [0.0, profile["head_pitch"]],
+                profile["head_speed"],
+            )
+        except Exception as exc:
+            errors["motion"] = to_text(exc)
+    else:
+        errors["motion"] = "motion service unavailable"
+
+    if led_manager is not None:
+        try:
+            led_manager.set_mode(profile["led_mode"])
+        except Exception as exc:
+            errors["leds"] = to_text(exc)
+
+    print("[motion] {} pitch={} speed={} leds={} errors={}".format(
+        action, profile["head_pitch"], profile["head_speed"],
+        profile["led_mode"], errors or None,
+    ))
+    return errors
+
+
 class RuntimeVolumeWatcher(threading.Thread):
     """Applies services/data/state.json pepper_output_volume changes live."""
 
@@ -983,6 +1313,83 @@ class RuntimeVolumeWatcher(threading.Thread):
                 print("[bridge] output volume applied from state.json:", current_volume)
             except Exception as exc:
                 print("[bridge] failed applying state volume err={}".format(to_text(exc)))
+
+
+class ExperimentStateWatcher(threading.Thread):
+    """Drives Pepper's wake/sleep state from `experiment_active` in
+    services/data/state.json.
+
+    The wrapper (`loop_launcher.py`) is the sole writer. It sets
+    `experiment_active: true` + refreshes `experiment_heartbeat_ts`
+    every 2 s while it's running, and writes `experiment_active: false`
+    on every exit path. If it dies hard (kill -9), the heartbeat ages
+    out and we treat the experiment as inactive — Pepper falls asleep
+    on her own.
+
+    Polls every 0.5 s. On every poll, re-derives the desired state
+    from the file (not just on mtime change) so stale heartbeats are
+    detected even when nothing else has written to state.json.
+    """
+
+    HEARTBEAT_STALE_SEC = 10.0
+    POLL_SEC = 0.5
+
+    def __init__(self, life, motion, led_manager):
+        super(ExperimentStateWatcher, self).__init__()
+        self.daemon = True
+        self._life = life
+        self._motion = motion
+        self._led_manager = led_manager
+        self._stop_event = threading.Event()
+        self._last_active = None  # None = unknown, force first apply
+
+    def stop(self):
+        self._stop_event.set()
+
+    def update_services(self, life=None, motion=None, led_manager=None):
+        # Allow main() to attach service handles as they get resolved.
+        if life is not None:
+            self._life = life
+        if motion is not None:
+            self._motion = motion
+        if led_manager is not None:
+            self._led_manager = led_manager
+
+    def _derive_active(self):
+        state = _read_runtime_state()
+        if not bool(state.get("experiment_active", False)):
+            return False
+        try:
+            hb = float(state.get("experiment_heartbeat_ts", 0))
+        except Exception:
+            hb = 0.0
+        if hb <= 0:
+            # No heartbeat yet — trust the flag once, the wrapper writes
+            # heartbeat together with the flag so this only happens on a
+            # stale file from before this feature shipped.
+            return True
+        return (time.time() - hb) < self.HEARTBEAT_STALE_SEC
+
+    def run(self):
+        # First tick happens immediately so the bridge converges on the
+        # correct state as soon as it's wired up, no race with restart.
+        while True:
+            try:
+                active = self._derive_active()
+            except Exception as exc:
+                print("[experiment_state] derive failed err={}".format(to_text(exc)))
+                active = False
+            if active != self._last_active:
+                print("[experiment_state] active={} (was {})".format(active, self._last_active))
+                self._last_active = active
+                apply_pepper_state(
+                    "wake" if active else "sleep",
+                    life=self._life,
+                    motion=self._motion,
+                    led_manager=self._led_manager,
+                )
+            if self._stop_event.wait(self.POLL_SEC):
+                return
 
 
 def main():
@@ -1114,11 +1521,74 @@ def main():
         print("[bridge] ALBasicAwareness not available — snapshots will skip pauseAwareness")
         awareness_service = None
 
+    motion_service = None
+    try:
+        motion_service = wait_for_service(sess, "ALMotion", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALMotion available — /motion/head_lock enabled")
+    except Exception:
+        print("[bridge] ALMotion not available — /motion/head_lock disabled")
+        motion_service = None
+
     tablet_service = None
     try:
         tablet_service = sess.service("ALTabletService")
     except Exception:
         tablet_service = None
+
+    # ALNotificationManager owns the chest-button red blink and the
+    # shoulder-LED white+red flash — those are system notifications
+    # (thermal / battery / joint fault), not behavior animations, and
+    # ALLeds cannot override them. Exposing it lets /notifications and
+    # /notifications/clear actually do something.
+    notification_manager = None
+    try:
+        notification_manager = wait_for_service(
+            sess, "ALNotificationManager",
+            timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC,
+        )
+        print("[bridge] ALNotificationManager available — /notifications enabled")
+    except Exception:
+        print("[bridge] ALNotificationManager not available — /notifications disabled")
+        notification_manager = None
+
+    # Clear any pre-existing notifications at startup so a stale
+    # hardware fault (laser/joint/thermal) left over from a previous
+    # session doesn't keep the shoulder/chest LEDs blinking. If the
+    # fault is still live, NAOqi will re-raise it — at which point
+    # POST /notifications/clear can be called again manually.
+    if notification_manager is not None:
+        try:
+            items = notification_manager.notifications() or []
+            cleared = 0
+            for item in items:
+                parsed = _notification_to_dict(item)
+                nid = parsed.get("id")
+                if nid is None:
+                    continue
+                try:
+                    notification_manager.remove(int(nid))
+                    cleared += 1
+                except Exception as exc:
+                    print("[notifications] startup remove id={} failed err={}".format(
+                        nid, to_text(exc),
+                    ))
+            print("[notifications] startup cleared {} of {} entries".format(
+                cleared, len(items),
+            ))
+        except Exception as exc:
+            print("[notifications] startup clear failed err={}".format(to_text(exc)))
+
+    # Immediately claim the screen with a zzz placeholder before NAOqi's
+    # default tablet app (Aldebaran demo / Hey-Pepper) can take over.
+    # tablet_server.py will overwrite this within a couple of seconds, but
+    # this guarantees the gap between bridge-up and tablet_server's first
+    # successful POST /tablet/url shows our content, not a foreign app.
+    if tablet_service is not None:
+        try:
+            tablet_service.showWebview(_BOOT_ZZZ_DATA_URL)
+            print("[bridge] tablet seeded with boot zzz placeholder")
+        except Exception as exc:
+            print("[bridge] failed to seed boot zzz placeholder err={}".format(to_text(exc)))
 
     # The tablet-display service (services/src/tablet_server.py) owns the
     # tablet screen via POST /tablet/url. We silence TabletDebugReporter so
@@ -1134,6 +1604,8 @@ def main():
         led_manager=led_manager,
         video_device=video_device,
         awareness=awareness_service,
+        motion=motion_service,
+        notification_manager=notification_manager,
     )
 
     if led_manager is not None:
@@ -1166,6 +1638,17 @@ def main():
         runtime_volume_watcher.start()
     except Exception as e:
         print("[pepper_audio] setOutputVolume warning:", to_text(e))
+
+    # Drive Pepper's wake/sleep state from state.json.experiment_active.
+    # loop_launcher.py writes that flag (+ heartbeat); this watcher
+    # mirrors it onto the robot. Starts after life/motion/leds are
+    # resolved so the very first tick has the handles it needs.
+    experiment_state_watcher = ExperimentStateWatcher(
+        life=life_service,
+        motion=motion_service,
+        led_manager=led_manager,
+    )
+    experiment_state_watcher.start()
 
     if PEPPER_PLAYBACK_BATCH_FRAMES > PEPPER_CHUNK_LIMIT_FRAMES:
         print(
@@ -1216,6 +1699,26 @@ def main():
             queued_bytes = 0
             stereo_queue = deque()
 
+            # Real-time pacing for sendRemoteBufferToOutput. Without this,
+            # the drain loop hands audio to NAOqi as fast as it can,
+            # which lets ALAudioDevice accumulate seconds of internal
+            # buffer. That broke end-of-speech detection: the bridge
+            # reported DRAIN_ACK as soon as the local stereo_queue
+            # emptied, but Pepper's speaker still had ~2 s of buffered
+            # audio left to play (which fed back into the mic).
+            #
+            # Strategy: schedule each batch at exactly batch_duration
+            # apart. NAOqi's internal buffer never grows past one batch,
+            # so when stereo_queue empties + one batch tail in
+            # _drain_watcher, the speaker really is silent.
+            batch_duration_sec = float(batch_frames) / float(PEPPER_STREAM_RATE)
+            # If the gap since last send exceeds this, treat as a fresh
+            # speaking window and reset the pacing clock — otherwise
+            # after a long silence we'd "catch up" by sending a burst,
+            # re-creating the same backlog problem.
+            pacing_reset_gap_sec = max(0.5, batch_duration_sec * 10.0)
+            next_send_ts = None
+
             try:
                 while True:
                     # region: tcp_wire_decode
@@ -1239,6 +1742,55 @@ def main():
                         continue
 
                     if size == CONTROL_FRAME_PING:
+                        continue
+
+                    # Drain-handshake: audio-bridge asks "is the speaker
+                    # actually idle?" after wait_for_playout(). Reply with
+                    # DRAIN_ACK once the buffered stereo queue is empty
+                    # AND one batch-duration of tail elapsed (covers
+                    # NAOqi's internal ALAudioDevice buffer). Done in a
+                    # short-lived thread so the main loop stays responsive
+                    # to follow-up audio chunks.
+                    if size == CONTROL_FRAME_DRAIN_REQ:
+                        _drain_conn = conn
+                        _drain_queue_ref = [stereo_queue]
+                        _drain_tail_sec = float(batch_frames) / float(PEPPER_STREAM_RATE)
+                        _drain_start = time.time()
+                        print(
+                            "[pepper_audio] drain_req_received queued_frames=",
+                            queued_bytes // 4,
+                        )
+
+                        def _drain_watcher():
+                            # Poll the queue length until empty, then
+                            # wait one batch of tail. Cheap (~20 iters
+                            # at 10ms each in the worst case).
+                            while True:
+                                try:
+                                    q = _drain_queue_ref[0]
+                                    if len(q) == 0:
+                                        break
+                                except Exception:
+                                    break
+                                time.sleep(0.01)
+                            time.sleep(_drain_tail_sec)
+                            elapsed_ms = (time.time() - _drain_start) * 1000.0
+                            try:
+                                _drain_conn.sendall(
+                                    struct.pack(">I", CONTROL_FRAME_DRAIN_ACK)
+                                )
+                                print(
+                                    "[pepper_audio] drain_ack_sent",
+                                    "tail_wait_ms=", round(_drain_tail_sec * 1000.0, 1),
+                                    "total_elapsed_ms=", round(elapsed_ms, 1),
+                                )
+                            except Exception as _drain_exc:
+                                print(
+                                    "[pepper_audio] drain_ack send failed:",
+                                    repr(_drain_exc),
+                                )
+
+                        threading.Thread(target=_drain_watcher).start()
                         continue
 
                     # Sanity check
@@ -1318,8 +1870,36 @@ def main():
                                 need_bytes = 0
 
                         payload = b"".join(parts)
+
+                        # Real-time pacing. Sleep until the schedule
+                        # says it's time to hand the next batch to
+                        # NAOqi. Skipped on a fresh speaking window
+                        # (next_send_ts=None) and after a long silence
+                        # gap (handled by the reset below). This keeps
+                        # NAOqi's internal buffer at ~one batch so
+                        # end-of-speech detection is honest.
+                        now_ts = time.time()
+                        if next_send_ts is not None:
+                            if now_ts - next_send_ts > pacing_reset_gap_sec:
+                                # The schedule is stale (long silence).
+                                # Fresh start.
+                                next_send_ts = None
+                            else:
+                                wait_sec = next_send_ts - now_ts
+                                if wait_sec > 0:
+                                    time.sleep(wait_sec)
+
                         send_start_ts = time.time()
                         audio.sendRemoteBufferToOutput(batch_frames, payload)
+
+                        # Schedule the next batch exactly one batch
+                        # duration after this one. We use the previous
+                        # target as the reference (not "now") so jitter
+                        # in send_duration_ms doesn't compound.
+                        if next_send_ts is None:
+                            next_send_ts = send_start_ts + batch_duration_sec
+                        else:
+                            next_send_ts = next_send_ts + batch_duration_sec
                     # endregion
                         send_duration_ms = (time.time() - send_start_ts) * 1000.0
                         send_calls_total += 1
@@ -1402,6 +1982,7 @@ def main():
         server.close()
         if runtime_volume_watcher is not None:
             runtime_volume_watcher.stop()
+        experiment_state_watcher.stop()
         if led_manager is not None:
             led_manager.stop()
         tablet_http.stop()

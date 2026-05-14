@@ -123,7 +123,36 @@ values on the length field:
 |------------------------|---------------------------------------------------|
 | `0` (`CONTROL_FRAME_FLUSH`) | Drop the local queue and call `flushAudioOutputs()`. |
 | `0xFFFFFFFF` (`CONTROL_FRAME_PING`) | Keepalive — ignore.                           |
+| `0xFFFFFFFE` (`CONTROL_FRAME_DRAIN_REQ`) | Service asks "is the speaker idle yet?" — bridge replies `DRAIN_ACK` (4-byte BE) once `stereo_queue` empties plus one batch of tail. Used by `send_message_to_user` to wait on real end-of-speech instead of LiveKit's emitter drain. |
+| `0xFFFFFFFD` (`CONTROL_FRAME_DRAIN_ACK`) | Reply to DRAIN_REQ, sent **bridge → service**.  |
 | Anything else          | PCM chunk of exactly that many bytes.            |
+
+### Silence-gating (audio-bridge side)
+
+LiveKit's `AgentSession` publishes a **continuous** audio track — even
+between TTS utterances it emits silence frames at ~50-100 fps to keep
+the WebRTC stream alive. Forwarding all of those to NAOqi fills the
+internal `ALAudioDevice` queue (whose state isn't readable from
+Python), and `sendRemoteBufferToOutput` ends up running slower than
+real-time. The visible symptom is *Pepper's reply plays seconds — even
+tens of seconds — after the text already appeared on the tablet*.
+
+The audio-bridge side ([services/src/live/audio_bridge.py](../../services/src/live/audio_bridge.py))
+gates by frame RMS:
+
+  * Forward when `audioop.rms(frame, 2) ≥ SILENCE_GATE_RMS` (default 50).
+  * After the last loud frame, keep forwarding for
+    `SILENCE_GATE_HANGOVER_MS` (default 400 ms) so we don't clamp the
+    gate shut between syllables.
+  * On the falling edge (gate closes), send one `CONTROL_FRAME_FLUSH`
+    so NAOqi drops whatever was still queued from the previous
+    utterance. This is what stops a stale tail from playing late on
+    the *next* turn.
+
+Tune via env (`SILENCE_GATE_RMS=0` disables gating entirely). The
+heartbeat log line now shows `voiced_frames` and `silence_dropped`
+separately so you can see at a glance whether the gate is doing its
+job.
 
 <!-- snippet: tcp_wire_decode -->
 <!-- generated from robot/src/bridge.py:1018 by docs/embed_snippets.py -->
@@ -256,6 +285,86 @@ return JSON (`{"ok": bool, ...}`) except `/camera/snapshot` and
 | `POST` | `/leds/state`         | `{"mode": "idle"|"search_pulse"|"off"}` → `LedEffectManager.set_mode`. |
 | `POST` | `/audio/volume`       | `{"volume": 0..100}` → `ALAudioDevice.setOutputVolume`. |
 | `POST` | `/camera/snapshot`    | Grab one JPEG from the top camera (see `capture_camera_snapshot` below). Serialized by a `camera_lock` — NAOqi's video ring buffer misbehaves under concurrent subscribes. Returns `image/jpeg`. |
+| `POST` | `/motion/head_lock`   | `{"lock": bool, "yaw"?: float, "pitch"?: float, "speed"?: float}` — park the head at `(yaw, pitch)` rad and `pauseAwareness()`, or `resumeAwareness()` when `lock=false`. Defaults from `HEAD_LOCK_YAW_RAD` / `HEAD_LOCK_PITCH_RAD` / `HEAD_LOCK_SPEED`. |
+| `POST` | `/motion/sleep`       | Between-session sleep: disable all autonomous abilities, drop head to `SLEEP_HEAD_PITCH_RAD`, set eye LEDs to `off`. Driven by `tablet_server` when no `agent-*` participant is in the LiveKit room. |
+| `POST` | `/motion/wake`        | Between-session wake: enable the awake ability profile (BasicAwareness + BackgroundMovement + AutonomousBlinking + SpeakingMovement), lift head to `WAKE_HEAD_PITCH_RAD`, set eye LEDs to `idle`. Driven by `tablet_server` when an `agent-*` participant joins. |
+
+### `/motion/sleep` and `/motion/wake` — body matches the experiment state
+
+`loop_launcher.py` is the single writer that says "the experiment is
+running." It stamps `experiment_active: true` and refreshes
+`experiment_heartbeat_ts` every 2 s in `services/data/state.json`.
+On every exit path it writes `experiment_active: false`. A hard
+crash heals automatically: if the heartbeat goes stale (>10 s old)
+the bridge treats the experiment as inactive.
+
+Two consumers poll the file every 0.5 s:
+
+- **Bridge** runs `ExperimentStateWatcher` (modeled on the same
+  pattern as `RuntimeVolumeWatcher`). On every transition it calls
+  `apply_pepper_state("wake")` or `apply_pepper_state("sleep")` —
+  the same function the HTTP endpoints below dispatch through, so
+  the side-effects are defined exactly once.
+- **`tablet_server`** runs `_state_file_watcher` and renders the
+  chat UI when active, the zzz UI when inactive.
+
+State machine:
+
+| State        | Source                        | Abilities                                                                   | Head pitch (rad) | LEDs |
+|--------------|-------------------------------|-----------------------------------------------------------------------------|------------------|------|
+| Asleep       | `experiment_active=false`     | all off, life state="disabled"                                              | `SLEEP_HEAD_PITCH_RAD` (+0.445) | off  |
+| Awake-idle   | `experiment_active=true`      | AutonomousBlinking + BackgroundMovement + BasicAwareness + SpeakingMovement, life state="solitary" | `WAKE_HEAD_PITCH_RAD` (0.00)   | idle |
+| Awake-locked | voice-agent `session.start`   | BasicAwareness paused (via `/motion/head_lock`)                             | `HEAD_LOCK_PITCH_RAD` (-0.15)  | idle |
+
+Asleep ↔ Awake-idle is owned by `ExperimentStateWatcher` (state.json).
+Awake-idle ↔ Awake-locked is owned by the voice-agent session
+([_pipeline.py](../../voice-agent/src/experiment/_pipeline.py)). The
+two layers compose: head_lock during a conversation pauses awareness
+without changing life state, and on session end it just resumes
+awareness — the outer wake/sleep gate stays whatever the watcher set.
+
+Flipping `life.setState("disabled")` for sleep is essential — NAOqi's
+mood/awareness painter repaints `FaceLeds` and `EarLeds` faster than
+our LED-off ticks while life state is `solitary`/`interactive`.
+Disabling individual abilities is not enough. Wake always pairs with
+sleep through the watcher, so Pepper never gets stuck in `disabled`.
+
+The `/motion/sleep` and `/motion/wake` HTTP endpoints remain as
+diagnostic primitives — they call exactly the same code path the
+watcher uses. A subsequent state.json write (or a stale-heartbeat
+tick) will overwrite any manual change. That's intentional: there
+is one source of truth, and the endpoints are debugging conveniences.
+
+```bash
+# Manual wake / sleep for testing — watcher will reassert on next tick.
+curl -X POST http://<bridge>:5000/motion/sleep
+curl -X POST http://<bridge>:5000/motion/wake
+```
+
+### `/motion/head_lock` — pin the head during an interaction
+
+Used by the loop-experiment voice agent: at session start the head is
+parked centered + slightly up (`yaw=0`, `pitch=-0.15` rad ≈ -8.6°) and
+`ALBasicAwareness` is paused so Pepper stops scanning faces/sound; at
+session end the awareness is resumed and she goes back to looking
+around on her own. Body sway, blinking, speaking gestures and
+`/animation/*` calls are **not** affected — this only stops the
+autonomous head scanning. The voice-agent wraps the lock/unlock in a
+`try/finally`, so any normal session exit (graceful close, recorder
+leaves, in-process crash) releases the head. A hard `kill -9` of the
+worker is the only path that can leave the head parked until the next
+session locks/unlocks it.
+
+```bash
+curl -X POST http://<bridge>:5000/motion/head_lock \
+     -H 'Content-Type: application/json' -d '{"lock": true}'
+curl -X POST http://<bridge>:5000/motion/head_lock \
+     -H 'Content-Type: application/json' -d '{"lock": false}'
+```
+
+Requires `ALMotion` (for `setAngles`) and benefits from
+`ALBasicAwareness` (for `pause/resumeAwareness`); either being absent
+is logged but doesn't fail the other half.
 
 ### Why `/animation/<name>` acks before running
 
@@ -638,6 +747,8 @@ ones that most affect runtime behavior:
 | `PEPPER_OUTPUT_VOLUME`       | Initial `ALAudioDevice` output volume.               |
 | `LIFE_*` flags               | Autonomous-life ability profile applied at startup.  |
 | `TOUCH_AUTONOMOUS_LIFE`      | If False, the bridge won't touch life state/abilities. |
+| `HEAD_LOCK_YAW_RAD` / `HEAD_LOCK_PITCH_RAD` / `HEAD_LOCK_SPEED` | Default head pose for `POST /motion/head_lock`. |
+| `SLEEP_HEAD_PITCH_RAD` / `WAKE_HEAD_PITCH_RAD` / `SLEEP_HEAD_SPEED` / `WAKE_HEAD_SPEED` | Head pose + servo speed for `POST /motion/{sleep,wake}`. |
 | `BRIDGE_URL` / `BRIDGE_BIND_HOST` / `TCP_PORT` | HTTP/TCP binds.                 |
 | `BRIDGE_CONNECT_POLL_INTERVAL_SEC` | Retry delay when Pepper is offline at startup. |
 | `CAMERA_SNAPSHOT_*`          | Top-camera capture parameters (index, resolution, FPS, quality, downscale). |

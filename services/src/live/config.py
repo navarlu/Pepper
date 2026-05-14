@@ -10,7 +10,7 @@ from __future__ import annotations
 import os
 
 REPO_ROOT = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
+    os.path.join(os.path.dirname(__file__), os.pardir, os.pardir, os.pardir)
 )
 
 
@@ -107,6 +107,32 @@ if _raw_stream_rate not in ALLOWED_STREAM_RATES:
     _raw_stream_rate = 16000
 PEPPER_STREAM_RATE = _raw_stream_rate
 PEPPER_STREAM_ATTENUATION = _env_float("PEPPER_STREAM_ATTENUATION", 0.4)
+
+# Silence-gate: skip forwarding near-silent frames so NAOqi's
+# ALAudioDevice queue doesn't fill up between utterances. LiveKit
+# AgentSession publishes a continuous audio track (50-100 frames/sec)
+# whether the agent is speaking or not; without this gate the robot
+# receives audio at ~1.6× real-time and `sendRemoteBufferToOutput`
+# backs up, leading to 10s of seconds of audible delay.
+#
+# Tuning:
+#  * THRESHOLD: int16 RMS. Default 20 catches the silence the LiveKit
+#    track emits between utterances (~rms 5-15) while staying well
+#    below the quietest TTS vowels (~rms 60+). Bump up if the gate
+#    misses (silence flows through, backlog grows); bump down if
+#    speech gets clipped at the START of an utterance.
+#  * HANGOVER_MS: how long after the last loud frame we keep
+#    forwarding before gating again. Default 1500 ms is long enough
+#    to bridge sentence boundaries inside a single TTS reply (Piper
+#    can emit 500 ms of silence between sentences). Make it shorter
+#    if you want the gate to close faster; longer if you hear it
+#    chopping inside a single reply.
+#  * SET SILENCE_GATE_RMS=0 to disable gating entirely.
+#  * SET SILENCE_GATE_TRACE=1 to log per-frame RMS — useful for
+#    tuning, very noisy in production.
+SILENCE_GATE_RMS = _env_int("SILENCE_GATE_RMS", 20)
+SILENCE_GATE_HANGOVER_MS = _env_int("SILENCE_GATE_HANGOVER_MS", 1500)
+SILENCE_GATE_TRACE = _env_int("SILENCE_GATE_TRACE", 0) == 1
 
 TCP_HOST = _env_str("TCP_HOST", "127.0.0.1")
 TCP_PORT = _env_int("TCP_PORT", 55555)

@@ -97,6 +97,13 @@ services:
       BRIDGE_BIND_HOST: "0.0.0.0"
       TCP_PORT: "55555"
       BRIDGE_URL: http://0.0.0.0:5000
+      # Wake/sleep is driven by the ExperimentStateWatcher polling
+      # services/data/state.json.experiment_active (written by
+      # loop_launcher.py). The watcher's first tick applies the right
+      # state as soon as services come up, so no env-level coercion of
+      # autonomous-life is needed here. Set TOUCH_AUTONOMOUS_LIFE=true
+      # explicitly only if you need the legacy "force solitary at boot"
+      # behavior for non-experiment workflows.
     network_mode: host
     restart: unless-stopped
 

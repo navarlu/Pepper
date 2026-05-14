@@ -70,6 +70,7 @@ class UserAudioClient:
         self._last_audio_log_monotonic = 0.0
         self._peak_rms = 0.0
         self._last_level_post_monotonic = 0.0
+        self._last_dbg_post_monotonic = 0.0
         self.test_mode = str(USER_CLIENT_TEST_MODE or "publish").strip().lower()
         self.mic_muted = False
         self._component_state = ""
@@ -211,6 +212,7 @@ class UserAudioClient:
         self._last_audio_log_monotonic = 0.0
         self._peak_rms = 0.0
         self._last_level_post_monotonic = 0.0
+        self._last_dbg_post_monotonic = 0.0
         self._reconnect_requested = asyncio.Event()
         self._reconnect_reason = ""
         self._connected_room_name = ""
@@ -242,6 +244,21 @@ class UserAudioClient:
             if now - self._last_level_post_monotonic >= 0.25:
                 self._last_level_post_monotonic = now
                 await self._report_debug_event("mic_level", level=rms)
+            # Echo-debug: log captured RMS at the moment we decide
+            # whether to mute. If mic_muted=True but captured_rms is
+            # high, the mic is hearing Pepper's audio (publish gets
+            # zeroed, no leak). If mic_muted=False right after a turn
+            # ended and captured_rms is high, the unmute came too
+            # early and we're forwarding Pepper's tail audio
+            # downstream. Rate-limited to every 100 ms so logs aren't
+            # flooded.
+            captured_rms = rms
+            if now - self._last_dbg_post_monotonic >= 0.1:
+                self._last_dbg_post_monotonic = now
+                print(
+                    f"[mic_dbg] muted={self.mic_muted} captured_rms={captured_rms:.4f}",
+                    flush=True,
+                )
             if self.mic_muted:
                 frame_bytes = bytes(len(frame_bytes))
                 rms = 0.0

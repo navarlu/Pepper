@@ -230,3 +230,22 @@ LIFE_BACKGROUND_MOVEMENT = _env_bool("LIFE_BACKGROUND_MOVEMENT", True)
 LIFE_BASIC_AWARENESS = _env_bool("LIFE_BASIC_AWARENESS", False)
 LIFE_LISTENING_MOVEMENT = _env_bool("LIFE_LISTENING_MOVEMENT", False)
 LIFE_SPEAKING_MOVEMENT = _env_bool("LIFE_SPEAKING_MOVEMENT", True)
+
+# Head-lock defaults (used by POST /motion/head_lock).
+# Radians: HeadYaw 0 = center; HeadPitch negative = up, positive = down.
+# -0.15 rad ~= -8.6° (slight upward tilt, as if looking at a standing person).
+HEAD_LOCK_YAW_RAD = _env_float("HEAD_LOCK_YAW_RAD", 0.0)
+HEAD_LOCK_PITCH_RAD = _env_float("HEAD_LOCK_PITCH_RAD", -0.15)
+HEAD_LOCK_SPEED = _env_float("HEAD_LOCK_SPEED", 0.1)
+
+# Sleep/wake defaults (used by POST /motion/sleep, POST /motion/wake).
+# Sleep drops the head as far down as the joint allows with autonomous
+# abilities off; wake lifts it back to neutral and re-enables the awake
+# ability profile. Speeds are slow so the servo move is mechanically
+# quiet at session boundaries.
+# Pepper's HeadPitch hardware limit is +0.4451 rad (~25.5° down). Asking
+# for more is silently clamped by NAOqi, so we sit exactly at the limit.
+SLEEP_HEAD_PITCH_RAD = _env_float("SLEEP_HEAD_PITCH_RAD", 0.445)
+WAKE_HEAD_PITCH_RAD = _env_float("WAKE_HEAD_PITCH_RAD", 0.0)
+SLEEP_HEAD_SPEED = _env_float("SLEEP_HEAD_SPEED", 0.05)
+WAKE_HEAD_SPEED = _env_float("WAKE_HEAD_SPEED", 0.10)

@@ -38,7 +38,14 @@ except NameError:
 # -- Protocol constants (PCM TCP stream between audio-bridge and bridge) ------
 
 CONTROL_FRAME_FLUSH = 0
-CONTROL_FRAME_PING = 4294967295  # 0xFFFFFFFF
+CONTROL_FRAME_PING = 4294967295   # 0xFFFFFFFF
+# Drain handshake: audio-bridge sends DRAIN_REQ when send_message_to_user
+# finishes its last wait_for_playout(); the bridge replies with DRAIN_ACK
+# once ALAudioDevice's queue is empty (plus one batch of tail to cover
+# NAOqi's internal buffer). Lets the experiment worker return at the
+# real end-of-speech instead of the LiveKit emitter drain.
+CONTROL_FRAME_DRAIN_REQ = 4294967294  # 0xFFFFFFFE  service → robot
+CONTROL_FRAME_DRAIN_ACK = 4294967293  # 0xFFFFFFFD  robot → service
 
 
 # -- Text / type coercion -----------------------------------------------------

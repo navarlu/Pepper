@@ -23,6 +23,7 @@ import collections
 import contextlib
 import html as html_module
 import json
+import time
 from pathlib import Path
 from urllib.parse import quote
 
@@ -46,6 +47,11 @@ MAX_CHAT_ENTRIES = 40
 # segment. 300 ms feels instant but coalesces bursts nicely.
 RENDER_DEBOUNCE_SEC = 0.30
 POST_TIMEOUT_SEC = 3.0
+# Slow heartbeat that forces a re-post even when nothing in our state has
+# changed. Guards against the tablet drifting to a foreign page (NAOqi
+# default app, bridge restart seed, etc.) — our content reclaims the
+# screen on the next tick.
+REFRESH_TICK_SEC = 15.0
 
 TOPIC_CHAT = "lk.chat"
 TOPIC_DEBUG = "pepper.debug"
@@ -190,6 +196,14 @@ class TabletDisplay:
         self._dirty = asyncio.Event()
         self._http: aiohttp.ClientSession | None = None
         self._last_posted_hash: int | None = None
+        # `experiment_active` is the single source of truth for whether
+        # to render the chat UI or the zzz sleeping UI. Written by
+        # loop_launcher.py into services/data/state.json. Refreshed by
+        # the state.json watcher below.
+        self._state["experiment_active"] = False
+        # Tracks last state-file mtime so the watcher only re-derives
+        # state on actual file changes (cheap polling).
+        self._last_state_mtime: float | None = None
 
         # Prime state from disk so the first render has pills ready.
         file_state = _read_state_file()
@@ -343,11 +357,11 @@ class TabletDisplay:
     # Experiment blinding: "realtime" is the GPT-realtime variant
     # (Mode B). On the tablet it must be indistinguishable from the
     # production OpenAI variant — same label "B", same blue pill.
-    _MODE_LABELS = {"local": "A", "openai": "B", "realtime": "B"}
+    _MODE_LABELS = {"local": "A", "openai": "B", "realtime": "B", "4o-chained": "C"}
 
     def _render_html(self) -> str:
         mode = self._state.get("agent_mode") or "?"
-        if mode == "realtime":
+        if mode in ("realtime", "4o-chained"):
             mode_cls = "mode-openai"
         elif mode in ("openai", "local"):
             mode_cls = "mode-" + mode
@@ -405,7 +419,8 @@ class TabletDisplay:
                 )
             rows_html = "".join(parts)
 
-        if not agent_present:
+        experiment_active = bool(self._state.get("experiment_active"))
+        if not experiment_active:
             body = (
                 '<div class="sleeping">'
                 '<div class="zzz">z z z</div>'
@@ -433,13 +448,21 @@ class TabletDisplay:
 
         return PAGE_TEMPLATE.format(body=body)
 
-    async def _post_to_bridge(self, html: str) -> None:
+    async def _post_to_bridge(self, html: str) -> bool:
+        """POST a rendered page to bridge `/tablet/url`.
+
+        Returns True on 2xx, False otherwise. The render loop uses
+        this to decide whether to retry — early failures during
+        bridge qi-warmup (ALTabletService not yet resolved) come
+        back as 503 and must be re-attempted, otherwise Pepper's
+        tablet stays on whatever it was last showing.
+        """
         data_url = "data:text/html;charset=utf-8," + quote(html.encode("utf-8"))
         # Dedup: if the rendered page is identical to the last one we pushed,
         # skip the showWebview — Pepper's tablet re-layouts on every call.
         h = hash(data_url)
         if h == self._last_posted_hash:
-            return
+            return True
         assert self._http is not None
         try:
             async with self._http.post(
@@ -450,11 +473,13 @@ class TabletDisplay:
                 if 200 <= resp.status < 300:
                     self._last_posted_hash = h
                     _log(f"rendered chat={len(self._chat)} bytes={len(data_url)}")
-                else:
-                    body = await resp.text()
-                    _log(f"bridge POST non-2xx status={resp.status} body={body[:120]}")
+                    return True
+                body = await resp.text()
+                _log(f"bridge POST non-2xx status={resp.status} body={body[:120]}")
+                return False
         except Exception as exc:
             _log(f"bridge POST failed err={exc}")
+            return False
 
     async def _presence_watchdog(self) -> None:
         """Re-derive `agent_present` from the live participant list every
@@ -484,6 +509,41 @@ class TabletDisplay:
                     self._state["agent_state"] = None
                 self._dirty.set()
 
+    async def _state_file_watcher(self) -> None:
+        """Mirror `experiment_active` from services/data/state.json
+        into `self._state` so the renderer can switch between the chat
+        UI and the zzz sleeping UI.
+
+        loop_launcher.py is the only writer; it also stamps an
+        `experiment_heartbeat_ts`. If the heartbeat is stale (process
+        died without a clean exit), treat the experiment as inactive.
+
+        Polls every 0.5 s. Re-derives the truth on every tick (not
+        just on mtime change) so heartbeat staleness alone is enough
+        to flip to sleep.
+        """
+        HEARTBEAT_STALE_SEC = 10.0
+        POLL_SEC = 0.5
+        while True:
+            try:
+                state = _read_state_file()
+            except Exception as exc:
+                _log(f"state.json read error err={exc}")
+                state = {}
+            active = bool(state.get("experiment_active", False))
+            if active:
+                try:
+                    hb = float(state.get("experiment_heartbeat_ts", 0))
+                except Exception:
+                    hb = 0.0
+                if hb > 0 and (time.time() - hb) >= HEARTBEAT_STALE_SEC:
+                    active = False
+            if active != bool(self._state.get("experiment_active")):
+                _log(f"experiment_active {self._state.get('experiment_active')} → {active}")
+                self._state["experiment_active"] = active
+                self._dirty.set()
+            await asyncio.sleep(POLL_SEC)
+
     async def _render_loop(self) -> None:
         while True:
             await self._dirty.wait()
@@ -492,9 +552,27 @@ class TabletDisplay:
             self._dirty.clear()
             try:
                 html = self._render_html()
-                await self._post_to_bridge(html)
+                ok = await self._post_to_bridge(html)
             except Exception as exc:
                 _log(f"render error err={exc}")
+                ok = False
+            if not ok:
+                # Bridge wasn't ready (qi-warmup race) or some transient
+                # error. Re-trigger ourselves so the next loop iteration
+                # retries — otherwise tablet would stay on the previous
+                # render until the next state change.
+                await asyncio.sleep(2.0)
+                self._dirty.set()
+
+    async def _refresh_tick(self) -> None:
+        """Force a re-post every REFRESH_TICK_SEC so the tablet can't drift
+        to a foreign page. We clear the dedup hash before flagging dirty,
+        otherwise _post_to_bridge would short-circuit the identical render.
+        """
+        while True:
+            await asyncio.sleep(REFRESH_TICK_SEC)
+            self._last_posted_hash = None
+            self._dirty.set()
 
     # -- LiveKit connection lifecycle ----------------------------------------
 
@@ -560,6 +638,8 @@ class TabletDisplay:
             lk_task = asyncio.create_task(self._lk_loop())
             render_task = asyncio.create_task(self._render_loop())
             presence_task = asyncio.create_task(self._presence_watchdog())
+            state_task = asyncio.create_task(self._state_file_watcher())
+            refresh_task = asyncio.create_task(self._refresh_tick())
             # First render as soon as we start, so any cached state shows up
             # before LK connects.
             self._dirty.set()
@@ -569,7 +649,9 @@ class TabletDisplay:
                 lk_task.cancel()
                 render_task.cancel()
                 presence_task.cancel()
-                for t in (lk_task, render_task, presence_task):
+                state_task.cancel()
+                refresh_task.cancel()
+                for t in (lk_task, render_task, presence_task, state_task, refresh_task):
                     with contextlib.suppress(asyncio.CancelledError, Exception):
                         await t
                 if self._room is not None:

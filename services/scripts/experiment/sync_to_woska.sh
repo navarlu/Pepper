@@ -32,6 +32,7 @@ scp -r -J "$JUMP" \
   "$SUBDIR/agent.py" \
   "$SUBDIR/agent_cs.py" \
   "$SUBDIR/agent_4o.py" \
+  "$SUBDIR/_pipeline.py" \
   "$SUBDIR/prompt.py" \
   "$SUBDIR/prompt_cs.py" \
   "$SUBDIR/tools" \

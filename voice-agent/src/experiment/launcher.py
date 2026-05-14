@@ -209,7 +209,7 @@ class Recorder:
     def _print_ready_banner(event: dict) -> None:
         """Loud, can't-miss-it banner so the experimenter knows when
         to start the conversation."""
-        model = event.get("model") or "?"
+        model = event.get("llm_model") or event.get("model") or "?"
         bar = "=" * 70
         print()
         print(bar, flush=True)

@@ -104,6 +104,42 @@ def post_volume_delta(delta: int) -> tuple[int, dict]:
     return status, data
 
 
+def post_head_lock(
+    lock: bool,
+    yaw: float | None = None,
+    pitch: float | None = None,
+) -> None:
+    """Best-effort POST `/motion/head_lock`.
+
+    Pauses ALBasicAwareness + parks the head at (yaw, pitch) when
+    `lock=True`; resumes awareness when `lock=False`. Used at
+    experiment session start/end to stop Pepper's autonomous head
+    scanning while a participant is interacting with her, then
+    release it afterwards.
+
+    Never raises — if the bridge is unreachable the head simply
+    keeps doing whatever it was already doing, which is a safe
+    fallback.
+    """
+    try:
+        base = _bridge_base()
+    except RuntimeError:
+        return
+    endpoint = f"{base}/motion/head_lock"
+    body: dict[str, object] = {"lock": bool(lock)}
+    if yaw is not None:
+        body["yaw"] = float(yaw)
+    if pitch is not None:
+        body["pitch"] = float(pitch)
+    req = Request(endpoint, data=json.dumps(body).encode("utf-8"), method="POST")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urlopen(req, timeout=1.5) as response:
+            _ = response.read()
+    except Exception as exc:
+        logger.debug("head_lock_post_failed lock=%s error=%s", lock, exc)
+
+
 def post_led_state(mode: str) -> None:
     """Best-effort POST `/leds/state {"mode": ...}`.
 
