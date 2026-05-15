@@ -57,6 +57,27 @@ class SessionRuntime:
     # DRAIN_REQ control frame to the on-robot bridge. The tool calls
     # this after wait_for_playout() so the round-trip is per-utterance.
     request_drain: Optional[Callable[[], Awaitable[None]]] = None
+    # Participant identity from the loop launcher (integer counter +
+    # variant letter). Made available to tools so end_conversation can
+    # build a per-participant QR payload and render the participant
+    # code (`T01`, `T02`, …) on the tablet.
+    student_id: Optional[int] = None
+    variant: Optional[str] = None
+    # Installed by the pipeline: signals the worker's shutdown_event so
+    # the session ends cleanly. Used by `end_conversation` after its
+    # farewell + countdown finish.
+    end_session_callback: Optional[Callable[[str], Awaitable[None]]] = None
+    # Installed by the pipeline: publishes a dict onto `pepper.state` so
+    # tools can update UI-side flags (e.g. `farewell_active=True` to
+    # tell tablet-server to stop posting chat re-renders while the
+    # farewell QR is on screen).
+    update_state: Optional[Callable[[dict], Awaitable[None]]] = None
+    # Installed by the pipeline: marks the user mic persistently muted
+    # — bumps the unmute-generation counter so any pending grace-window
+    # unmute task no-ops, then publishes `mic_muted=True` on pepper.state.
+    # Used by `end_conversation` to lock the mic during the QR hold so a
+    # user speaking during the countdown cannot trigger a new LLM turn.
+    mute_mic_persistent: Optional[Callable[[str], None]] = None
 
     def ts(self) -> str:
         """`+s.sss` since session start — same format used elsewhere."""

@@ -479,9 +479,34 @@ async def run(args: argparse.Namespace) -> int:
         # exit path we take (/done, EOF, Ctrl+C, exception, abort).
         # The worker on woska also self-shuts when it sees the recorder
         # leave the room — belt and suspenders.
+        #
+        # Two exit triggers race here:
+        #   1. Experimenter types /done (or EOF) on stdin.
+        #   2. Worker self-shuts (e.g. `end_conversation` tool) and
+        #      publishes `session_end` on `pepper.experiment`. Without
+        #      polling for that here, the launcher would sit in
+        #      stdin.readline() forever after the agent already died,
+        #      and loop_launcher's proc.wait() would hang.
         try:
-            await _watch_stdin_for_done(room)
-            print("[experiment] /done received — sending shutdown to worker...")
+            stdin_task = asyncio.create_task(_watch_stdin_for_done(room))
+            session_end_task = asyncio.create_task(_wait_session_end(recorder))
+            done, pending = await asyncio.wait(
+                [stdin_task, session_end_task],
+                return_when=asyncio.FIRST_COMPLETED,
+            )
+            for t in pending:
+                t.cancel()
+                try:
+                    await t
+                except (asyncio.CancelledError, Exception):
+                    pass
+            if session_end_task in done:
+                print(
+                    "[experiment] session_end received — worker self-shutdown "
+                    "(end_conversation tool); finishing cleanup..."
+                )
+            else:
+                print("[experiment] /done received — sending shutdown to worker...")
         except (KeyboardInterrupt, asyncio.CancelledError):
             exit_reason = "interrupted"
             print("[experiment] interrupted — sending shutdown to worker...")
@@ -514,10 +539,17 @@ async def run(args: argparse.Namespace) -> int:
             ended=dt.datetime.now(), started=started, exit_reason=exit_reason,
         )
         recorder.close()
+        # Cap LiveKit API teardown at 3 s — on the worker-self-shutdown
+        # path (`end_conversation` → ctx.shutdown) the API HTTP session
+        # can hang here indefinitely, which keeps launcher alive,
+        # which keeps loop_launcher's proc.wait() blocked, which
+        # prevents the next session from being dispatched.
         try:
-            await lkapi.aclose()
-        except Exception:
-            pass
+            await asyncio.wait_for(lkapi.aclose(), timeout=3.0)
+        except asyncio.TimeoutError:
+            logger.warning("lkapi.aclose timed out after 3s — forcing exit")
+        except Exception as exc:
+            logger.warning("lkapi.aclose failed: %s", exc)
 
     print(f"[experiment] log saved: {log_path}")
     return 0

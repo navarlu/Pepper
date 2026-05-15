@@ -235,6 +235,84 @@ def post_tablet_clear() -> tuple[int, str]:
     return _post_tablet_url(_TABLET_BLANK_HTML)
 
 
+_TABLET_FAREWELL_HTML = """<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{{box-sizing:border-box;margin:0;padding:0;}}
+html,body{{height:100%;background:#f7f8fa;color:#1b2430;
+  font-family:-apple-system,"Segoe UI",Roboto,sans-serif;}}
+body{{display:flex;align-items:center;justify-content:center;padding:18px;
+  position:relative;}}
+.card{{
+  max-width:98%;
+  background:#ffffff;border:1px solid #e3e6eb;
+  border-radius:24px;padding:24px 32px 28px;
+  box-shadow:0 8px 32px rgba(15,23,42,.08);
+  text-align:center;display:flex;flex-direction:column;align-items:center;
+  gap:12px;
+}}
+.label{{font-size:16px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:#5e2bb0;}}
+.qr{{width:560px;height:560px;display:flex;align-items:center;
+  justify-content:center;background:#ffffff;}}
+.qr img{{width:100%;height:100%;display:block;
+  image-rendering:pixelated;image-rendering:-moz-crisp-edges;}}
+.id{{font-size:52px;font-weight:800;color:#1b2430;letter-spacing:.04em;
+  font-family:"SF Mono","Menlo",monospace;}}
+.caption{{font-size:20px;color:#6b7280;font-weight:600;}}
+.countdown{{position:absolute;top:18px;right:24px;
+  padding:10px 20px;border-radius:999px;background:#eef1f5;
+  color:#1b2430;font-size:20px;font-weight:800;border:1px solid #dfe4ea;
+  letter-spacing:.05em;font-variant-numeric:tabular-nums;}}
+</style></head>
+<body>
+<div class="countdown" id="cd">{remaining} s</div>
+<div class="card">
+  <div class="label">Thanks for chatting</div>
+  <div class="qr"><img src="{qr_data_uri}" alt="QR"></div>
+  <div class="id">{conv_id}</div>
+  <div class="caption">Scan to give feedback</div>
+</div>
+<script>
+(function(){{
+  var r = {remaining};
+  var el = document.getElementById('cd');
+  var iv = setInterval(function(){{
+    if (r > 0) {{
+      r -= 1;
+      el.textContent = r + ' s';
+      if (r === 0) {{ el.style.display = 'none'; clearInterval(iv); }}
+    }}
+  }}, 1000);
+}})();
+</script>
+</body></html>"""
+
+
+def post_tablet_farewell(conv_id: str, qr_data_uri: str, remaining: int) -> tuple[int, str]:
+    """Render the post-interaction farewell page (QR + participant ID
+    + JS-driven countdown) on Pepper's tablet via `/tablet/url`.
+
+    `qr_data_uri` should be a `data:image/png;base64,...` string
+    produced by `segno.make(...).png_data_uri(...)`. PNG keeps the
+    image rasterised on the NAOqi WebView, which renders inline SVG
+    less reliably on the older WebKit it ships with.
+
+    The page contains its own JS countdown timer — the caller posts
+    once at the start with `remaining` set to the full duration and
+    does not need to re-post each second.
+
+    Returns `(status_code, response_body)`. Raises `RuntimeError` if
+    the bridge is unreachable.
+    """
+    html = _TABLET_FAREWELL_HTML.format(
+        qr_data_uri=qr_data_uri,
+        conv_id=_html.escape(str(conv_id or ""), quote=True),
+        remaining=int(remaining),
+    )
+    return _post_tablet_url(html)
+
+
 def fetch_camera_snapshot() -> bytes:
     """POST `/camera/snapshot` and return the JPEG bytes.
 

@@ -199,18 +199,6 @@ class PiperChunkedStream(tts.ChunkedStream):
         super().__init__(tts=piper_tts, input_text=input_text, conn_options=conn_options)
         self._piper_tts = piper_tts
 
-    def _synthesize_sync(self, text: str) -> list[bytes]:
-        chunks = self._piper_tts._voice.synthesize(
-            text,
-            syn_config=SynthesisConfig(
-                speaker_id=self._piper_tts._opts.speaker_id,
-                length_scale=self._piper_tts._opts.length_scale,
-                noise_scale=self._piper_tts._opts.noise_scale,
-                noise_w_scale=self._piper_tts._opts.noise_w_scale,
-            ),
-        )
-        return [chunk.audio_int16_bytes for chunk in chunks]
-
     async def _run(self, output_emitter: tts.AudioEmitter) -> None:
         output_emitter.initialize(
             request_id=str(uuid.uuid4()),
@@ -218,11 +206,53 @@ class PiperChunkedStream(tts.ChunkedStream):
             num_channels=self._piper_tts.num_channels,
             mime_type="audio/raw",
         )
+
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[bytes | None] = asyncio.Queue()
         t0 = time.monotonic()
-        pcm_chunks = await asyncio.to_thread(self._synthesize_sync, self.input_text)
+        first_chunk_ms: float | None = None
+
+        def worker() -> None:
+            try:
+                for chunk in self._piper_tts._voice.synthesize(
+                    self.input_text,
+                    syn_config=SynthesisConfig(
+                        speaker_id=self._piper_tts._opts.speaker_id,
+                        length_scale=self._piper_tts._opts.length_scale,
+                        noise_scale=self._piper_tts._opts.noise_scale,
+                        noise_w_scale=self._piper_tts._opts.noise_w_scale,
+                    ),
+                ):
+                    loop.call_soon_threadsafe(queue.put_nowait, chunk.audio_int16_bytes)
+            finally:
+                loop.call_soon_threadsafe(queue.put_nowait, None)
+
+        worker_task = asyncio.create_task(asyncio.to_thread(worker))
+
+        chunk_count = 0
+        while True:
+            pcm = await queue.get()
+            if pcm is None:
+                break
+            if first_chunk_ms is None:
+                first_chunk_ms = (time.monotonic() - t0) * 1000.0
+                logger.info(
+                    "tts_first_chunk_ms=%.1f chars=%d",
+                    first_chunk_ms, len(self.input_text),
+                )
+            output_emitter.push(pcm)
+            chunk_count += 1
+
+        output_emitter.flush()
+        await worker_task
+
         duration_ms = round((time.monotonic() - t0) * 1000, 1)
         characters = len(self.input_text)
-        logger.info("tts_done duration_ms=%.1f characters=%d text=%s", duration_ms, characters, self.input_text[:80])
+        logger.info(
+            "tts_done duration_ms=%.1f first_chunk_ms=%.1f chunks=%d characters=%d text=%s",
+            duration_ms, first_chunk_ms if first_chunk_ms is not None else -1.0,
+            chunk_count, characters, self.input_text[:80],
+        )
 
         on_metrics = self._piper_tts._on_metrics
         if on_metrics:
@@ -230,15 +260,13 @@ class PiperChunkedStream(tts.ChunkedStream):
                 on_metrics({
                     "stage": "tts",
                     "duration_ms": duration_ms,
+                    "first_chunk_ms": first_chunk_ms,
+                    "chunks": chunk_count,
                     "characters": characters,
                     "text": self.input_text[:200],
                 })
             except Exception:
                 pass
-
-        for chunk in pcm_chunks:
-            output_emitter.push(chunk)
-        output_emitter.flush()
 
 
 class PiperTTS(tts.TTS):

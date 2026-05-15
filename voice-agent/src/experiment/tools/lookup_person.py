@@ -20,6 +20,7 @@ from .utils._person_lookup import (
     _english_to_czech_variants,
     _first_name_token,
     _fold,
+    _is_generic_non_name,
     _is_honorific,
     _pick_best_variant,
     _title_score,
@@ -40,21 +41,33 @@ async def lookup_person(
     emotion: Emotion = "think",
     request_heartbeat: bool = True,
 ) -> Any:
-    """Look up a person's contact info (phone, email, room) in the
-    public staff directory. Tolerates phonetic approximations of
-    unfamiliar surnames — pass exactly what the user said and the
+    """Call this tool when the user has said a specific person's name
+    (a surname, optionally with a first name) and wants their phone,
+    email, or office. A 'name' here means a proper-noun surname like
+    'Novák', 'Svoboda', or 'Smith' — something a person would put on a
+    name tag.
+
+    Worked example: user says "Where can I find professor Novák?" →
+    call with surname="Novák", first_name="" — the tool returns
+    Novák's office and phone, then you speak the requested field via
+    send_message_to_user.
+
+    The tool tolerates phonetic approximations (Whisper transcribes
+    Czech speech in English orthography, so "Šebek" arrives as
+    "Shebek" or "Shebeck") — pass exactly what the user said and the
     tool will try common spelling variants automatically.
 
-    Surname is the actual search key. First name is OPTIONAL and used
-    only as a tiebreaker when several people share a surname. If the
-    user only gave a surname (or said "Mr./Mrs. <surname>"), pass
-    first_name="" — the tool returns the most-senior match and lists
-    the others so you can decide whether to ask the user to clarify or
-    just answer.
+    First name is OPTIONAL, used only as a tiebreaker when several
+    people share a surname. If the user gave only a surname (or said
+    "Mr./Mrs. <surname>"), pass first_name="" — the tool returns the
+    most-senior match plus alternatives so you can ask which one the
+    user meant.
 
-    first_name: the person's given name. Optional ("" is fine).
-        Honorifics are ignored.
-    surname: the person's surname only — no titles. Required.
+    first_name: the person's given name, OR "" if the user did not say
+        one. Honorifics are ignored.
+    surname: the proper-noun surname the user spoke — a real family
+        name like 'Novák', 'Dvořák', 'Smith'. Must be an actual name a
+        person could have on a name tag, not a common noun or pronoun.
     emotion: body language while looking up. Default 'think'.
     request_heartbeat: True (default) to keep the loop alive so you
         can speak via send_message_to_user after this. False halts
@@ -80,10 +93,27 @@ async def lookup_person(
     if not surname_q:
         return _heartbeat_or_none({
             "error": "missing_surname",
-            "instruction": (
-                "A surname is required to search the directory. "
-                "Ask the user via send_message_to_user for the "
-                "person's surname."
+            "_agent_note": (
+                "Surname missing. The agent should ask the user for "
+                "the person's surname via send_message_to_user."
+            ),
+        }, request_heartbeat)
+    # Backstop: reject generic words ("user", "human", "someone", …)
+    # the model occasionally passes when no specific name was said.
+    # The model never sees the blocklist — only the rejection result.
+    if _is_generic_non_name(surname_q):
+        print(
+            f"  [tool] lookup_person rejected generic non-name "
+            f"{surname_q!r}"
+        )
+        return _heartbeat_or_none({
+            "error": "not_a_name",
+            "rejected_surname": surname_q,
+            "_agent_note": (
+                f"Input {surname_q!r} is a generic word, not a "
+                "surname. No directory call was made. The agent "
+                "should answer the user directly via "
+                "send_message_to_user without looking anything up."
             ),
         }, request_heartbeat)
     # Drop honorifics and surname-duplicates from first_q so they don't
@@ -118,10 +148,11 @@ async def lookup_person(
             "count": 0,
             "matches": [],
             "tried_variants": variants,
-            "instruction": (
+            "_agent_note": (
                 f"No staff named {surname_q!r} found in the directory "
-                f"(tried Czech variants: {variants}). Tell the user "
-                "and ask them to confirm or spell the surname."
+                f"(tried Czech variants: {variants}). The agent should "
+                "ask the user to confirm or spell the surname via "
+                "send_message_to_user."
             ),
         }, request_heartbeat)
     chosen_variant, result = picked
@@ -179,31 +210,31 @@ async def lookup_person(
     )
 
     if len(filtered) == 1 and filter_note is None:
-        instruction = (
-            "Public staff directory entry. In your next "
-            "send_message_to_user, mention only the field the user "
-            "asked for — phone / email / room / etc."
+        agent_note = (
+            "Single directory match. The agent answers via "
+            "send_message_to_user with only the field the user asked "
+            "for — phone, email, or office."
         )
     elif filter_note:
-        instruction = (
-            f"{filter_note}. Answer with the requested field for the "
-            "picked person. If you suspect this is the wrong person, "
-            "you may briefly mention the alternatives and ask which "
-            "one the user meant."
+        agent_note = (
+            f"{filter_note}. The agent answers with the requested "
+            "field for the picked person. If this looks like the "
+            "wrong person, the agent may briefly mention the "
+            "alternatives and ask which one the user meant."
         )
     else:
-        instruction = (
-            f"Multiple people share surname {chosen_variant!r}. Picked "
-            f"the most senior. Other candidates: {alternatives}. If the "
-            "user is asking about a specific person, briefly ask which "
-            "one they meant; otherwise just answer with the requested "
-            "field for the picked person."
+        agent_note = (
+            f"Multiple people share surname {chosen_variant!r}. The "
+            f"most senior was picked. Other candidates: {alternatives}. "
+            "If the user asked about a specific person, the agent "
+            "briefly asks which one they meant; otherwise the agent "
+            "answers with the requested field for the picked person."
         )
 
     response: dict[str, Any] = {
         "count": len(filtered),
         "matches": [best],
-        "instruction": instruction,
+        "_agent_note": agent_note,
     }
     if alternatives:
         response["alternatives"] = alternatives

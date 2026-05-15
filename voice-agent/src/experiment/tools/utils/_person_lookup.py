@@ -57,6 +57,28 @@ def _is_honorific(token: str) -> bool:
     return _fold(token).strip().rstrip(".,;:") in _HONORIFIC_TOKENS
 
 
+# Generic words the LLM sometimes passes as a surname when the user
+# said "a human", "someone", etc. Folded (no diacritics), lowercase.
+# Internal backstop only — the model must never see this list.
+_GENERIC_NON_NAMES = frozenset({
+    "user", "human", "person", "people", "someone", "anyone",
+    "somebody", "anybody", "everyone", "everybody",
+    "man", "woman", "guy", "lady", "boy", "girl",
+    "one", "thing", "anything", "nothing", "everything",
+    # Czech equivalents
+    "lide", "lidi", "clovek", "nekdo", "kdokoliv", "kdokoli",
+    "nekoho", "nekomu", "nikdo", "vsichni",
+    "muz", "zena", "kluk", "holka", "pan", "pani",
+})
+
+
+def _is_generic_non_name(token: str) -> bool:
+    """True if `token` is a common noun / pronoun the user might use
+    when NOT naming a specific person ("a human", "someone", "lidé").
+    Diacritic- and case-insensitive."""
+    return _fold(token).strip().rstrip(".,;:!?") in _GENERIC_NON_NAMES
+
+
 # ── English → Czech surname normalisation ─────────────────────────────
 _ENG_TO_CZ_RULES = (
     ("sh", "s"),    # Šebek → Shebek

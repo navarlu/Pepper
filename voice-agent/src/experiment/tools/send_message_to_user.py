@@ -157,7 +157,18 @@ async def send_message_to_user(
 
     t0 = time.monotonic()
     for i, sentence in enumerate(chunks, start=1):
+        t_say = time.monotonic()
         handle = context.session.say(sentence)
+        # Diagnostic: pairs with [TTS] first_frame / [TTS] done in
+        # _pipeline._ExperimentAgent.tts_node. If say_returned is high
+        # the synchronous setup is slow; if first_frame is high the
+        # TTS API is slow; if both are low but chunk_done is high the
+        # audio playout itself is taking long.
+        print(
+            f"  {ts_fn()} [SPEECH] say_returned i={i}/{len(chunks)} "
+            f"dt_ms={(time.monotonic() - t_say) * 1000.0:.1f}",
+            flush=True,
+        )
         try:
             await handle.wait_for_playout()
         except Exception as exc:

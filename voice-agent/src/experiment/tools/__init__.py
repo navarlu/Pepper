@@ -36,6 +36,7 @@ from .mensa_menu import mensa_menu
 from .subject_schedule import subject_schedule
 from .get_time import get_time
 from .adjust_volume import adjust_volume
+from .end_conversation import end_conversation
 # query_search intentionally NOT in the default surface — its broad
 # trigger hijacks turn-1 with cascading search loops on bare greetings.
 # Re-add by importing and listing it below once the trigger is tightened.
@@ -48,4 +49,5 @@ LIVEKIT_TOOLS_TOOLONLY = [
     mensa_menu,
     subject_schedule,
     adjust_volume,
+    end_conversation,
 ]

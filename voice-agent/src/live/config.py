@@ -122,6 +122,25 @@ ANIMATION_BRIDGE_URL = _env_str("ANIMATION_BRIDGE_URL", "http://127.0.0.1:5000")
 ANIMATION_TOOL_HTTP_TIMEOUT_SEC = _env_float("ANIMATION_TOOL_HTTP_TIMEOUT_SEC", 2.5)
 ANIMATION_TOOL_MAX_NAME_CHARS = 120
 
+# Base form URL for the post-interaction feedback questionnaire. The
+# `end_conversation` tool appends `?usp=pp_url&<ID_ENTRY>=T01` to
+# pre-fill the conversation-ID field on the form, then encodes the
+# resulting URL into a QR shown on the tablet.
+EXPERIMENT_FEEDBACK_URL = _env_str(
+    "EXPERIMENT_FEEDBACK_URL",
+    "https://docs.google.com/forms/d/e/"
+    "1FAIpQLSfCO5Z9cbQsEfodz6oBXe2umM6A0uzTgPntF3kPQXpjQf_MSg/viewform",
+)
+# Google-Forms `entry.<field-id>` parameter name for the Conversation-ID
+# field. Pulled from the form's prefilled-URL helper — if the form is
+# re-created the field ID changes, so swap this via env to update.
+EXPERIMENT_FEEDBACK_ID_ENTRY = _env_str(
+    "EXPERIMENT_FEEDBACK_ID_ENTRY",
+    "entry.1544722281",
+)
+# Seconds to display the farewell QR before the session is ended.
+EXPERIMENT_FAREWELL_DISPLAY_SEC = _env_int("EXPERIMENT_FAREWELL_DISPLAY_SEC", 30)
+
 # Each group maps a semantic name (what the agent sees) to a list of actual
 # Pepper animation keys.  The tool picks a random variant from the group so
 # Pepper's movements feel natural and non-repetitive.

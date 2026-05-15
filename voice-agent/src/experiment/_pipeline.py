@@ -60,6 +60,7 @@ from src.live.bridge_client import post_head_lock
 from tools.utils._session_runtime import (
     SessionRuntime,
     clear_session_runtime,
+    get_session_runtime,
     set_session_runtime,
 )
 
@@ -114,6 +115,46 @@ class _ExperimentAgent(Agent):
             update_instructions(chat_ctx, instructions=merged, add_if_missing=True)
             self._greeting_done = True
         return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
+
+    async def tts_node(self, text, model_settings):
+        # Diagnostic: separates TTS first-byte latency from playout
+        # duration so we can tell whether a long [SPEECH] chunk_done
+        # was the TTS API hanging, vs. audio actually playing slowly.
+        # Logs three landmarks per synthesis:
+        #   [TTS] first_frame dt_ms=...   first audio frame returned
+        #   [TTS] done frames=N ...       full stream drained
+        #   [TTS] done frames=0 ...       NO audio produced (TTS failed silently)
+        rt = get_session_runtime()
+        ts_fn = (lambda: rt.ts()) if rt is not None else (lambda: "")
+        t0 = time.monotonic()
+        first_at: float | None = None
+        frames = 0
+        try:
+            async for frame in Agent.default.tts_node(self, text, model_settings):
+                if first_at is None:
+                    first_at = time.monotonic()
+                    print(
+                        f"  {ts_fn()} [TTS] first_frame dt_ms="
+                        f"{(first_at - t0) * 1000.0:.1f}",
+                        flush=True,
+                    )
+                frames += 1
+                yield frame
+        finally:
+            total_ms = (time.monotonic() - t0) * 1000.0
+            if first_at is None:
+                print(
+                    f"  {ts_fn()} [TTS] done frames=0 total_ms={total_ms:.1f} "
+                    f"NO_AUDIO_PRODUCED",
+                    flush=True,
+                )
+            else:
+                stream_ms = (time.monotonic() - first_at) * 1000.0
+                print(
+                    f"  {ts_fn()} [TTS] done frames={frames} "
+                    f"total_ms={total_ms:.1f} stream_ms={stream_ms:.1f}",
+                    flush=True,
+                )
 
 
 def _parse_dispatch_metadata(ctx: JobContext) -> dict:
@@ -188,16 +229,22 @@ async def run_pipeline(
             published to the recorder.
     """
     t_entry = time.monotonic()
+    meta = _parse_dispatch_metadata(ctx)
+    variant = str(meta.get("experiment_variant") or "").strip()
+    student_id = str(meta.get("experiment_student_id") or "").strip()
+    try:
+        student_id_int: int | None = int(student_id) if student_id else None
+    except ValueError:
+        student_id_int = None
+
     runtime = SessionRuntime(
         eos_mode=os.environ.get("EOS_MODE", "auto").strip().lower() or "auto",
         drain_timeout=float(os.environ.get("DRAIN_TIMEOUT", "5.0")),
         split_sentences=_truthy(os.environ.get("SPLIT_SENTENCES"), default=True),
+        student_id=student_id_int,
+        variant=variant or None,
     )
     set_session_runtime(runtime)
-
-    meta = _parse_dispatch_metadata(ctx)
-    variant = str(meta.get("experiment_variant") or "").strip()
-    student_id = str(meta.get("experiment_student_id") or "").strip()
 
     # Resolve the stack now so the boot banner has the full model line
     # — useful when grepping logs for "which models did this session
@@ -339,10 +386,21 @@ async def run_pipeline(
     _publish_sync_topic(TOPIC_STATE, {
         "agent_mode": mode_label,
         "agent_language": os.environ.get("AGENT_LANG", "en").strip().lower() or "en",
+        # Participant code shown on the tablet for the whole session so
+        # the user can note it down for the post-interaction questionnaire
+        # (the QR rendered by `end_conversation` also encodes it).
+        "student_id": (
+            f"T{student_id_int:02d}" if student_id_int is not None else None
+        ),
         # Ensure user-client starts each session with the mic live. A
         # crashed previous session could have left mic_muted=True
         # latched in user_client; this re-broadcasts the clean state.
         "mic_muted": False,
+        # If the previous session crashed mid-farewell, tablet-server
+        # may still have `farewell_active=True` latched and would
+        # suppress all chat renders. Explicitly clear it here so every
+        # fresh session starts with the normal chat UI.
+        "farewell_active": False,
     })
 
     # ── audio-bridge presence tracking (Change 6) ───────────────────
@@ -403,6 +461,14 @@ async def run_pipeline(
     # the generation so the old unmute task no-ops on wake. Prevents a
     # late grace-window unmute from clobbering a fresh "speaking" mute.
     mic_unmute_gen = {"value": 0}
+    # Hard lock — once True, every `_set_mic_muted(False, ...)` is a
+    # no-op. Set by `end_conversation` so the QR hold cannot be
+    # interrupted: without this, a `_schedule_unmute` fired AFTER the
+    # farewell mute would re-open the mic (the generation counter only
+    # invalidates PENDING unmutes, not future-scheduled ones). The
+    # lock auto-clears at next session start because this entire
+    # closure is recreated per worker process.
+    mic_locked = {"value": False}
     # Extra padding after `speaker_drained` (real EOS at the bridge)
     # so whatever audio NAOqi's internal ALAudioDevice buffer is still
     # holding finishes playing before the mic re-opens. With the
@@ -413,6 +479,16 @@ async def run_pipeline(
     MIC_UNMUTE_GRACE_MS = int(os.environ.get("MIC_UNMUTE_GRACE_MS", "250"))
 
     def _set_mic_muted(muted: bool, reason: str) -> None:
+        if mic_locked["value"] and not muted:
+            # Farewell QR is on screen — refuse to unmute regardless of
+            # who is asking (agent_state->listening, speaker_drained
+            # grace, etc.). Logged so the trail of failed unmutes is
+            # visible if someone wonders why the mic is stuck.
+            print(
+                f"  {_ts()} [MIC] unmute_refused locked=True reason={reason}",
+                flush=True,
+            )
+            return
         if mic_state["muted"] == muted:
             return
         mic_state["muted"] = muted
@@ -443,6 +519,18 @@ async def run_pipeline(
         # Invalidate any pending grace-window unmute, then mute.
         mic_unmute_gen["value"] += 1
         _set_mic_muted(True, reason=reason)
+
+    def _mark_mute_permanent(reason: str) -> None:
+        # As `_mark_mute`, but also flips the hard lock so no later
+        # `_schedule_unmute` (or any other path) can re-open the mic
+        # for the remainder of this session.
+        mic_locked["value"] = True
+        mic_unmute_gen["value"] += 1
+        _set_mic_muted(True, reason=reason)
+
+    # Expose to tools (end_conversation calls this after speaker drain
+    # so the QR hold cannot be interrupted by a stray user utterance).
+    runtime.mute_mic_persistent = _mark_mute_permanent
 
     @session.on("agent_state_changed")
     def _on_agent_state(event) -> None:
@@ -495,6 +583,27 @@ async def run_pipeline(
         # event is the canonical record of Pepper's speech.
 
     shutdown_event = asyncio.Event()
+
+    async def _end_session_from_tool(reason: str) -> None:
+        """Invoked by the `end_conversation` tool once its farewell
+        and on-tablet countdown are done. Setting `shutdown_event` is
+        what the existing wait loop below already keys off — same
+        effect as receiving a `pepper.control shutdown` message or the
+        recorder disconnecting."""
+        logger.info("end_session_from_tool reason=%s", reason)
+        print(f"  {_ts()} [PIPELINE] end_session_from_tool reason={reason}", flush=True)
+        shutdown_event.set()
+
+    runtime.end_session_callback = _end_session_from_tool
+
+    async def _update_state_from_tool(payload: dict) -> None:
+        """Forward a partial `pepper.state` update from a tool. Used by
+        `end_conversation` to toggle `farewell_active`, which tells
+        tablet-server to stop posting chat re-renders while the QR is
+        on screen (otherwise the chat HTML flickers over the QR)."""
+        await _publish_topic(TOPIC_STATE, payload)
+
+    runtime.update_state = _update_state_from_tool
 
     @ctx.room.on("data_received")
     def _on_data(packet):

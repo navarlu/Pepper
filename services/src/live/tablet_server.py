@@ -23,6 +23,7 @@ import collections
 import contextlib
 import html as html_module
 import json
+import os
 import time
 from pathlib import Path
 from urllib.parse import quote
@@ -46,6 +47,11 @@ MAX_CHAT_ENTRIES = 40
 # Debounce so a burst of partial transcripts doesn't trigger a showWebview per
 # segment. 300 ms feels instant but coalesces bursts nicely.
 RENDER_DEBOUNCE_SEC = 0.30
+# How long the farewell QR stays on the tablet after a worker
+# publishes `farewell_active=True`. tablet-server owns this window
+# locally so we can dispatch the next session immediately without it
+# overwriting the QR with fresh chat HTML.
+FAREWELL_HOLD_SEC = float(os.environ.get("EXPERIMENT_FAREWELL_DISPLAY_SEC", "30"))
 POST_TIMEOUT_SEC = 3.0
 # Slow heartbeat that forces a re-post even when nothing in our state has
 # changed. Guards against the tablet drifting to a foreign page (NAOqi
@@ -192,7 +198,26 @@ class TabletDisplay:
             "agent_state": None,  # listening / thinking / speaking / initializing
             "agent_present": False,  # any participant with identity "agent-*" in the room
             "agent_language": "en",  # spoken language; updated via pepper.state
+            # Participant code (e.g. "T01") published once per session by
+            # the experiment worker on pepper.state. Rendered as the ID
+            # pill in the header so users can note it for the
+            # post-interaction questionnaire.
+            "student_id": None,
+            # Set True by the experiment worker (via `pepper.state`) for
+            # the duration of the `end_conversation` farewell QR. While
+            # active, the render loop below stops POSTing to the bridge
+            # so the QR — owned exclusively by the voice-agent during
+            # this window — does not flicker under chat re-renders.
+            "farewell_active": False,
         }
+        # Owns the 30 s farewell QR window locally. When the worker
+        # publishes `farewell_active=True`, this captures the moment;
+        # the render loop and the data handler both consult it. The
+        # subsequent session's `session_start` payload still contains
+        # `farewell_active=False`, but we IGNORE that field until our
+        # own timer expires so the new session's chat does not race in
+        # over a QR the user is still trying to scan.
+        self._farewell_until_monotonic: float | None = None
         self._dirty = asyncio.Event()
         self._http: aiohttp.ClientSession | None = None
         self._last_posted_hash: int | None = None
@@ -253,6 +278,42 @@ class TabletDisplay:
                     self._state["agent_state"] = str(payload["agent_state"])
                 if payload.get("agent_language") is not None:
                     self._state["agent_language"] = str(payload["agent_language"]).lower()
+                if "student_id" in payload:
+                    sid = payload.get("student_id")
+                    self._state["student_id"] = (
+                        str(sid).strip() if sid not in (None, "") else None
+                    )
+                if "farewell_active" in payload:
+                    incoming = bool(payload["farewell_active"])
+                    if incoming:
+                        # Worker entered end_conversation. Start (or
+                        # extend) the local QR-hold window — the
+                        # tablet-side render loop will refuse to post
+                        # chat HTML until this expires regardless of
+                        # what the next session publishes.
+                        self._state["farewell_active"] = True
+                        self._farewell_until_monotonic = (
+                            time.monotonic() + FAREWELL_HOLD_SEC
+                        )
+                        _log(
+                            "farewell_active=True received, holding "
+                            f"tablet for {FAREWELL_HOLD_SEC}s"
+                        )
+                    else:
+                        # Ignore incoming False while our timer is still
+                        # ticking — the next session re-publishes False
+                        # at startup, and without this guard the QR
+                        # would be replaced by the new chat in <1s.
+                        if (
+                            self._farewell_until_monotonic is not None
+                            and time.monotonic() < self._farewell_until_monotonic
+                        ):
+                            _log("farewell_active=False ignored (hold still active)")
+                        else:
+                            was_active = bool(self._state.get("farewell_active"))
+                            self._state["farewell_active"] = False
+                            if was_active:
+                                self._last_posted_hash = None
                 self._dirty.set()
                 return
 
@@ -374,7 +435,7 @@ class TabletDisplay:
         agent_present = bool(self._state.get("agent_present"))
         agent_cls = "agent-ready" if agent_present else "agent-absent"
         agent_text = "ready" if agent_present else "starting…"
-        lang_text = (self._state.get("agent_language") or "en").upper()
+        pid_text = self._state.get("student_id") or ""
 
         agent_state = (self._state.get("agent_state") or "").lower()
         state_cls = agent_state if agent_state in self._STATE_LABELS else "idle"
@@ -430,10 +491,14 @@ class TabletDisplay:
                 '</div>'
             )
         else:
+            id_pill_html = (
+                f'<div class="pill lang"><span class="k">ID</span>{_esc(pid_text)}</div>'
+                if pid_text else ""
+            )
             header = (
                 '<header>'
                 '<div class="title">Pepper<span class="role"> — Receptionist</span></div>'
-                f'<div class="pill lang"><span class="k">Lang</span>{_esc(lang_text)}</div>'
+                f'{id_pill_html}'
                 f'<div class="pill {mode_cls}"><span class="k">Mode</span>{_esc(mode_label)}</div>'
                 f'<div class="pill {agent_cls}"><span class="k">Agent</span>{agent_text}</div>'
                 # f'<div class="pill {mic_cls}"><span class="k">Mic</span>{mic_text}</div>'
@@ -550,6 +615,36 @@ class TabletDisplay:
             # Debounce — gather bursts of partial events into one render.
             await asyncio.sleep(RENDER_DEBOUNCE_SEC)
             self._dirty.clear()
+            # Auto-expire the farewell hold once our local timer is up.
+            # The next session's `session_start` already tried to set
+            # `farewell_active=False` (ignored above while we were
+            # within the hold window); flip it now so chat resumes.
+            if (
+                self._state.get("farewell_active")
+                and self._farewell_until_monotonic is not None
+                and time.monotonic() >= self._farewell_until_monotonic
+            ):
+                _log("farewell_active hold expired — resuming chat renders")
+                self._state["farewell_active"] = False
+                self._farewell_until_monotonic = None
+                self._last_posted_hash = None
+            # During the farewell window the voice-agent owns the
+            # tablet (it has posted a QR + JS countdown). Skip our
+            # chat-render POST so we do not flicker on top of it.
+            # State changes still update self._state in the background
+            # so the next render after the farewell ends reflects them.
+            if self._state.get("farewell_active"):
+                # Schedule a wake-up at expiry so we resume even if no
+                # other event comes in to set self._dirty.
+                if self._farewell_until_monotonic is not None:
+                    delay = max(
+                        0.5,
+                        self._farewell_until_monotonic - time.monotonic(),
+                    )
+                    asyncio.get_running_loop().call_later(
+                        delay, self._dirty.set,
+                    )
+                continue
             try:
                 html = self._render_html()
                 ok = await self._post_to_bridge(html)

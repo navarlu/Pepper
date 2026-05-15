@@ -87,6 +87,7 @@ TTS_INSTRUCTIONS = os.environ.get(
     "OPENAI_TTS_INSTRUCTIONS",
     "Speak in a friendly, warm, conversational tone — like a receptionist.",
 )
+TTS_RESPONSE_FORMAT = os.environ.get("OPENAI_TTS_RESPONSE_FORMAT", "pcm").strip() or "pcm"
 
 
 _PREWARMED_VAD = None
@@ -120,10 +121,15 @@ print(
 def _build_stack():
     cloud_stt = openai.STT(model=STT_MODEL, language=LANG)
     cloud_llm = openai.LLM(model=LLM_MODEL, temperature=0.2, parallel_tool_calls=False)
+    # Keep the response format configurable. Local diagnostics showed
+    # large variance between mp3/opus/pcm depending on request shape;
+    # for the current Pepper path, pcm has been the most stable default
+    # because the LiveKit plugin emits decoded frames directly.
     cloud_tts = openai.TTS(
         model=TTS_MODEL,
         voice=TTS_VOICE,
         instructions=TTS_INSTRUCTIONS,
+        response_format=TTS_RESPONSE_FORMAT,
     )
     return {
         "vad": _get_vad(),
@@ -135,6 +141,7 @@ def _build_stack():
             "llm_model": LLM_MODEL,
             "tts_model": TTS_MODEL,
             "tts_voice": TTS_VOICE,
+            "tts_response_format": TTS_RESPONSE_FORMAT,
         },
     }
 

@@ -161,7 +161,11 @@ uv run python services/src/live/text_chat.py
 
  uv run python voice-agent/tests/local_llm_benchmark/livekit_console.py console --text
 
- uv run python voice-agent/src/experiment/launcher.py \
+ uv run python voice-agent/src/experiment/loop_launcher.py \
     --student 1 --variant A
 
 ./services/scripts/experiment/sync_to_woska.sh
+
+
+tmux attach -t experiment 2>/dev/null || tmux new-session -s experiment
+uv run python voice-agent/src/experiment/loop_launcher.py

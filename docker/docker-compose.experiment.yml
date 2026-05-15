@@ -78,58 +78,11 @@ services:
       - redis
     restart: unless-stopped
 
-  # Mode B worker — runs the OpenAI Realtime ("gpt-realtime-mini")
-  # experiment agent directly on the RPi. Registered with agent_name
-  # `pepper-experiment-realtime` so launcher.py dispatches to it when
-  # --variant B is selected. Mode A still runs agent.py on woska.
-  voice-agent-realtime:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "voice-agent/src/experiment/agent_realtime.py", "dev"]
-    env_file: ../.env
-    volumes:
-      - ..:/workspace
-    environment:
-      LIVEKIT_URL: ws://127.0.0.1:7880
-      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
-      # Realtime worker has no separate TTS (audio is emitted by the
-      # realtime model itself), so context.session.say() raises
-      # "trying to generate speech from text without a TTS model".
-      # Disable the per-tool pre-canned filler utterances.
-      TOOL_FILLERS: "0"
-      PYTHONUNBUFFERED: "1"
-    network_mode: host
-    depends_on:
-      - livekit
-    stop_grace_period: 15s
-    restart: unless-stopped
-
-  # Mode C worker — chained OpenAI 4o pipeline (silero VAD →
-  # gpt-4o-transcribe STT → gpt-4o-mini LLM → gpt-4o-mini-tts).
-  # Registered with agent_name `pepper-experiment-4o` so launcher.py
-  # dispatches to it when --variant C is selected. Same tools + prompt
-  # as Mode A — speaks via send_message_to_user.
-  voice-agent-4o:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile.runtime
-    working_dir: /workspace
-    command: ["uv", "run", "python", "voice-agent/src/experiment/agent_4o.py", "dev"]
-    env_file: ../.env
-    volumes:
-      - ..:/workspace
-    environment:
-      LIVEKIT_URL: ws://127.0.0.1:7880
-      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
-      AGENT_LANG: "en"
-      PYTHONUNBUFFERED: "1"
-    network_mode: host
-    depends_on:
-      - livekit
-    stop_grace_period: 15s
-    restart: unless-stopped
+  # Mode B (realtime) and Mode C (4o-chained) workers run on woska,
+  # not on the RPi — launcher.py dispatches them remotely via the
+  # `pepper-experiment-realtime` / `pepper-experiment-4o` agent names.
+  # They are intentionally NOT defined in this compose file. Mode A
+  # (`pepper-experiment`) also runs on woska.
 
   bridge:
     build:
@@ -146,10 +99,11 @@ services:
       PYTHONPATH: /opt/qi
       LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
       PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
-      PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-30}
-      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-30}
+      PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-100}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
       BRIDGE_BIND_HOST: "0.0.0.0"
       TCP_PORT: "55555"
+      HEAD_LOCK_PITCH_RAD: "-0.23"
       BRIDGE_URL: http://0.0.0.0:5000
       # Slightly faster first-chunk than the production default 1600 =
       # 100 ms gather. At 800 (50 ms) we shave ~50 ms off the audio
@@ -182,7 +136,7 @@ services:
       PYTHONPATH: /opt/qi
       LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
       PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
-      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-30}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
     network_mode: host
     restart: unless-stopped
 
@@ -218,12 +172,13 @@ services:
       - ..:/workspace
     devices:
       - /dev/snd:/dev/snd
-    group_add:
-      - audio
+    # group_add (audio) inherited from base docker-compose.yml — don't redeclare,
+    # compose concatenates list overrides and rejects duplicate group_add entries.
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
       USER_MIC_DEVICE: "DJI"
+      USER_MIC_BLOCKSIZE: "2400"   # 50 ms @ 48 kHz; production default is 4800 (100 ms)
     network_mode: host
     pid: host
     privileged: true
