@@ -45,7 +45,7 @@ from _runtime_state import write_runtime_state  # noqa: E402
 
 HEARTBEAT_INTERVAL_SEC = 2.0
 
-VARIANTS = ("A", "B", "C")
+VARIANTS = ("A", "B")
 
 # Seconds to keep the farewell QR visible AFTER a session ends with
 # `end_conversation`. Enforced here (post-session sleep) rather than
@@ -394,10 +394,8 @@ async def run(args: argparse.Namespace) -> int:
                 print("\n[loop] Ctrl+C — exiting wrapper.", flush=True)
                 return 130
             student += 1
-            # Alternate between A and C after each session. If a different
-            # variant (e.g. B) was passed in, switch into the A/C rotation
-            # starting from A on the next session.
-            variant = "C" if variant == "A" else "A"
+            # Alternate between A and B after each session.
+            variant = "B" if variant == "A" else "A"
             _write_loop_state(student, variant)
             print(f"[loop] next session will use student={student} "
                   f"variant={variant}", flush=True)

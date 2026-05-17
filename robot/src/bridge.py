@@ -3,10 +3,8 @@
 
 from __future__ import print_function
 
-from collections import deque
 import os
 import socket
-import struct
 import sys
 import time
 import threading
@@ -41,10 +39,7 @@ from config import (
     LIFE_BASIC_AWARENESS,
     LIFE_LISTENING_MOVEMENT,
     LIFE_SPEAKING_MOVEMENT,
-    PEPPER_CHUNK_LIMIT_FRAMES,
-    PEPPER_MAX_BUFFER_FRAMES,
     PEPPER_OUTPUT_VOLUME,
-    PEPPER_PLAYBACK_BATCH_FRAMES,
     PEPPER_QI_URL,
     PEPPER_STREAM_RATE,
     STATE_FILE,
@@ -59,19 +54,12 @@ from config import (
     TABLET_REPORTER_QUEUE_SIZE,
     TABLET_SPLIT_CHAT_HTML_TEMPLATE,
     TOUCH_AUTONOMOUS_LIFE,
-    TCP_PORT,
 )
 from utils import (
-    CONTROL_FRAME_FLUSH,
-    CONTROL_FRAME_PING,
-    CONTROL_FRAME_DRAIN_REQ,
-    CONTROL_FRAME_DRAIN_ACK,
     capture_camera_snapshot,
     connect_session,
     load_animations_map,
-    mono16_to_stereo16,
     normalize_output_volume,
-    recv_all,
     resolve_animation_name,
     to_text,
     wait_for_service,
@@ -1033,8 +1021,6 @@ class TabletOverlayHttpServer(threading.Thread):
                         "animation_available": (
                             server_self._bm is not None or server_self._anim is not None
                         ),
-                        "audio_bind_host": BRIDGE_BIND_HOST,
-                        "audio_port": TCP_PORT,
                     },
                 )
 
@@ -1397,22 +1383,21 @@ def main():
 
     Startup sequence:
       1. Connect to Pepper via `qi.Session` (blocks until reachable).
-      2. Resolve NAOqi services — `ALAudioDevice` is required; the
-         rest (`ALBehaviorManager`, `ALAnimationPlayer`,
-         `ALAutonomousLife`, `ALAudioPlayer`, `ALTextToSpeech`,
-         `ALLeds`, `ALVideoDevice`, `ALBasicAwareness`,
-         `ALTabletService`) are best-effort.
+      2. Resolve NAOqi services — `ALAudioDevice` is required (used
+         for `setOutputVolume` and animation-sound mute); the rest
+         (`ALBehaviorManager`, `ALAnimationPlayer`, `ALAutonomousLife`,
+         `ALAudioPlayer`, `ALTextToSpeech`, `ALLeds`, `ALVideoDevice`,
+         `ALBasicAwareness`, `ALTabletService`) are best-effort.
       3. Apply the autonomous-life ability profile from config.
-      4. Configure audio: open outputs, set output sample rate,
-         set default volume, compute playback batch + buffer sizes.
+      4. Configure audio output: open the device, set output volume.
+         Streaming audio to Pepper's speaker is now handled entirely
+         by `services/src/live/audio_bridge.py` via ssh+paplay — this
+         process no longer touches `sendRemoteBufferToOutput`.
       5. Start auxiliary threads: `LedEffectManager`,
          `TabletDebugReporter`, `TabletOverlayHttpServer` (HTTP).
-      6. Bind the TCP audio socket on `BRIDGE_BIND_HOST:TCP_PORT` and
-         loop forever, accepting one `audio-bridge` client at a time
-         and streaming its mono PCM into Pepper's speakers.
-
-    The outer loop never exits on client disconnect — it just waits
-    for the next client.
+      6. Idle: the HTTP control plane runs in a daemon thread; main
+         just stays alive so the qi.Session and auxiliary threads
+         keep running. Shut down on SIGINT/SIGTERM.
     """
     qi_url = PEPPER_QI_URL
     print("[pepper_audio] Python version:", sys.version)
@@ -1650,345 +1635,40 @@ def main():
     )
     experiment_state_watcher.start()
 
-    if PEPPER_PLAYBACK_BATCH_FRAMES > PEPPER_CHUNK_LIMIT_FRAMES:
-        print(
-            "[pepper_audio] PEPPER_PLAYBACK_BATCH_FRAMES too high, clamping to",
-            PEPPER_CHUNK_LIMIT_FRAMES,
-        )
-    batch_frames = min(PEPPER_PLAYBACK_BATCH_FRAMES, PEPPER_CHUNK_LIMIT_FRAMES)
-    batch_bytes = batch_frames * 4  # int16 stereo => 4 bytes per frame
-    max_buffer_frames = max(PEPPER_MAX_BUFFER_FRAMES, batch_frames)
-    max_buffer_bytes = max_buffer_frames * 4
-    send_warn_threshold_ms = (float(batch_frames) / float(PEPPER_STREAM_RATE)) * 2000.0
-    print(
-        "[pepper_audio] buffering:",
-        "batch_frames=", batch_frames,
-        "max_buffer_frames=", max_buffer_frames,
-    )
-
-    # TCP server: receive mono 48kHz PCM from Python 3 process
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((BRIDGE_BIND_HOST, TCP_PORT))
-    server.listen(1)
-    print("[pepper_audio] Waiting for Python3 client on %s:%d..." % (BRIDGE_BIND_HOST, TCP_PORT))
+    # Audio streaming used to live here: a TCP server that received
+    # mono PCM from `services/src/live/audio_bridge.py` and pushed it
+    # to `ALAudioDevice.sendRemoteBufferToOutput`. That path imposed
+    # ~1.3 s of NAOqi-side buffer latency. Audio now flows directly
+    # from audio-bridge → ssh+paplay → Pepper PulseAudio (~120 ms
+    # end-to-end), so the TCP server, pacing, drain protocol, and
+    # batching constants are all gone from this process. This bridge
+    # is now strictly a NAOqi-side control plane (HTTP, tablet,
+    # animations, LEDs, life, motion).
+    print("[bridge] audio path: ssh+paplay (NAOqi audio queue bypassed)")
     tablet.publish(
-        "Pepper audio ready",
-        "waiting bridge on {}:{}".format(BRIDGE_BIND_HOST, TCP_PORT),
+        "Bridge ready",
+        "audio via ssh+paplay\nHTTP control plane on {}".format(BRIDGE_URL),
         force=True,
     )
 
     try:
+        # Idle loop. The HTTP control plane, tablet reporter, LED
+        # manager, runtime-volume watcher, and experiment-state watcher
+        # all run in daemon threads. Main just stays alive so the
+        # qi.Session and those threads keep running until SIGINT/TERM.
         while True:
-            conn, addr = server.accept()
-            print("[pepper_audio] Client connected:", addr)
-            tablet.publish(
-                "Bridge client connected",
-                "from={}{}".format(addr[0], ":" + str(addr[1]) if len(addr) > 1 else ""),
-                force=True,
-            )
-            frames_sent_total = 0
-            recv_chunks_total = 0
-            send_calls_total = 0
-            last_chunk_ts = time.time()
-            recv_intervals_ms_sum = 0.0
-            send_durations_ms_sum = 0.0
-            max_recv_interval_ms = 0.0
-            max_send_duration_ms = 0.0
-            dropped_frames_total = 0
-            queued_bytes = 0
-            stereo_queue = deque()
-
-            # Real-time pacing for sendRemoteBufferToOutput. Without this,
-            # the drain loop hands audio to NAOqi as fast as it can,
-            # which lets ALAudioDevice accumulate seconds of internal
-            # buffer. That broke end-of-speech detection: the bridge
-            # reported DRAIN_ACK as soon as the local stereo_queue
-            # emptied, but Pepper's speaker still had ~2 s of buffered
-            # audio left to play (which fed back into the mic).
-            #
-            # Strategy: schedule each batch at exactly batch_duration
-            # apart. NAOqi's internal buffer never grows past one batch,
-            # so when stereo_queue empties + one batch tail in
-            # _drain_watcher, the speaker really is silent.
-            batch_duration_sec = float(batch_frames) / float(PEPPER_STREAM_RATE)
-            # If the gap since last send exceeds this, treat as a fresh
-            # speaking window and reset the pacing clock — otherwise
-            # after a long silence we'd "catch up" by sending a burst,
-            # re-creating the same backlog problem.
-            pacing_reset_gap_sec = max(0.5, batch_duration_sec * 10.0)
-            next_send_ts = None
-
-            try:
-                while True:
-                    # region: tcp_wire_decode
-                    # Read 4-byte length header
-                    header = recv_all(conn, 4)
-                    if not header:
-                        print("[pepper_audio] client disconnected (no header)")
-                        break
-
-                    size = struct.unpack(">I", header)[0]
-
-                    # Control frame: flush any queued audio without dropping the TCP session.
-                    if size == 0:
-                        stereo_queue = deque()
-                        queued_bytes = 0
-                        try:
-                            audio.flushAudioOutputs()
-                        except Exception:
-                            pass
-                        print("[pepper_audio] control flush: cleared buffered audio")
-                        continue
-
-                    if size == CONTROL_FRAME_PING:
-                        continue
-
-                    # Drain-handshake: audio-bridge asks "is the speaker
-                    # actually idle?" after wait_for_playout(). Reply with
-                    # DRAIN_ACK once the buffered stereo queue is empty
-                    # AND one batch-duration of tail elapsed (covers
-                    # NAOqi's internal ALAudioDevice buffer). Done in a
-                    # short-lived thread so the main loop stays responsive
-                    # to follow-up audio chunks.
-                    if size == CONTROL_FRAME_DRAIN_REQ:
-                        _drain_conn = conn
-                        _drain_queue_ref = [stereo_queue]
-                        _drain_tail_sec = float(batch_frames) / float(PEPPER_STREAM_RATE)
-                        _drain_start = time.time()
-                        print(
-                            "[pepper_audio] drain_req_received queued_frames=",
-                            queued_bytes // 4,
-                        )
-
-                        def _drain_watcher():
-                            # Poll the queue length until empty, then
-                            # wait one batch of tail. Cheap (~20 iters
-                            # at 10ms each in the worst case).
-                            while True:
-                                try:
-                                    q = _drain_queue_ref[0]
-                                    if len(q) == 0:
-                                        break
-                                except Exception:
-                                    break
-                                time.sleep(0.01)
-                            time.sleep(_drain_tail_sec)
-                            elapsed_ms = (time.time() - _drain_start) * 1000.0
-                            try:
-                                _drain_conn.sendall(
-                                    struct.pack(">I", CONTROL_FRAME_DRAIN_ACK)
-                                )
-                                print(
-                                    "[pepper_audio] drain_ack_sent",
-                                    "tail_wait_ms=", round(_drain_tail_sec * 1000.0, 1),
-                                    "total_elapsed_ms=", round(elapsed_ms, 1),
-                                )
-                            except Exception as _drain_exc:
-                                print(
-                                    "[pepper_audio] drain_ack send failed:",
-                                    repr(_drain_exc),
-                                )
-
-                        threading.Thread(target=_drain_watcher).start()
-                        continue
-
-                    # Sanity check
-                    if size > 2 ** 20:
-                        print("[pepper_audio] invalid size:", size)
-                        break
-                    # endregion
-
-                    # Read 'size' bytes of mono PCM
-                    chunk = recv_all(conn, size)
-                    if not chunk:
-                        print("[pepper_audio] client disconnected (no chunk)")
-                        break
-                    now_ts = time.time()
-                    recv_interval_ms = (now_ts - last_chunk_ts) * 1000.0
-                    last_chunk_ts = now_ts
-
-                    # mono int16 -> stereo int16 interleaved
-                    stereo = mono16_to_stereo16(chunk)
-
-                    nb_frames = len(stereo) // 4  # 2 channels * 2 bytes
-                    if nb_frames > PEPPER_CHUNK_LIMIT_FRAMES:
-                        stereo = stereo[:PEPPER_CHUNK_LIMIT_FRAMES * 4]
-                        nb_frames = PEPPER_CHUNK_LIMIT_FRAMES
-
-                    stereo_queue.append(stereo)
-                    queued_bytes += len(stereo)
-                    recv_chunks_total += 1
-                    recv_intervals_ms_sum += recv_interval_ms
-                    if recv_interval_ms > max_recv_interval_ms:
-                        max_recv_interval_ms = recv_interval_ms
-
-                    # region: tcp_playback_drain
-                    if queued_bytes > max_buffer_bytes:
-                        overflow_bytes = queued_bytes - max_buffer_bytes
-                        dropped_bytes = 0
-                        while stereo_queue and dropped_bytes < overflow_bytes:
-                            head = stereo_queue[0]
-                            need = overflow_bytes - dropped_bytes
-                            if len(head) <= need:
-                                dropped_bytes += len(head)
-                                queued_bytes -= len(head)
-                                stereo_queue.popleft()
-                            else:
-                                stereo_queue[0] = head[need:]
-                                dropped_bytes += need
-                                queued_bytes -= need
-                                break
-
-                        dropped_frames = dropped_bytes // 4
-                        dropped_frames_total += dropped_frames
-                        try:
-                            audio.flushAudioOutputs()
-                        except Exception:
-                            pass
-                        print(
-                            "[pepper_audio] WARNING buffer overflow:",
-                            "dropped_frames=", dropped_frames,
-                            "dropped_frames_total=", dropped_frames_total,
-                            "buffered_frames=", queued_bytes // 4,
-                        )
-
-                    while queued_bytes >= batch_bytes:
-                        need_bytes = batch_bytes
-                        parts = []
-                        while need_bytes > 0 and stereo_queue:
-                            head = stereo_queue[0]
-                            if len(head) <= need_bytes:
-                                parts.append(head)
-                                need_bytes -= len(head)
-                                queued_bytes -= len(head)
-                                stereo_queue.popleft()
-                            else:
-                                parts.append(head[:need_bytes])
-                                stereo_queue[0] = head[need_bytes:]
-                                queued_bytes -= need_bytes
-                                need_bytes = 0
-
-                        payload = b"".join(parts)
-
-                        # Real-time pacing. Sleep until the schedule
-                        # says it's time to hand the next batch to
-                        # NAOqi. Skipped on a fresh speaking window
-                        # (next_send_ts=None) and after a long silence
-                        # gap (handled by the reset below). This keeps
-                        # NAOqi's internal buffer at ~one batch so
-                        # end-of-speech detection is honest.
-                        now_ts = time.time()
-                        if next_send_ts is not None:
-                            if now_ts - next_send_ts > pacing_reset_gap_sec:
-                                # The schedule is stale (long silence).
-                                # Fresh start.
-                                next_send_ts = None
-                            else:
-                                wait_sec = next_send_ts - now_ts
-                                if wait_sec > 0:
-                                    time.sleep(wait_sec)
-
-                        send_start_ts = time.time()
-                        audio.sendRemoteBufferToOutput(batch_frames, payload)
-
-                        # Schedule the next batch exactly one batch
-                        # duration after this one. We use the previous
-                        # target as the reference (not "now") so jitter
-                        # in send_duration_ms doesn't compound.
-                        if next_send_ts is None:
-                            next_send_ts = send_start_ts + batch_duration_sec
-                        else:
-                            next_send_ts = next_send_ts + batch_duration_sec
-                    # endregion
-                        send_duration_ms = (time.time() - send_start_ts) * 1000.0
-                        send_calls_total += 1
-                        frames_sent_total += batch_frames
-                        send_durations_ms_sum += send_duration_ms
-                        if send_duration_ms > max_send_duration_ms:
-                            max_send_duration_ms = send_duration_ms
-                        if send_calls_total == 1:
-                            print(
-                                "[pepper_audio] First playback batch sent:",
-                                "batch_frames=", batch_frames,
-                                "recv_interval_ms=", round(recv_interval_ms, 2),
-                                "send_duration_ms=", round(send_duration_ms, 2),
-                            )
-                        if send_duration_ms > send_warn_threshold_ms:
-                            print(
-                                "[pepper_audio] WARNING slow sendRemoteBufferToOutput:",
-                                "send_duration_ms=", round(send_duration_ms, 2),
-                                "batch_frames=", batch_frames,
-                            )
-
-                    if recv_chunks_total == 1:
-                        print(
-                            "[pepper_audio] First chunk received:",
-                            "bytes=", len(chunk),
-                            "frames=", nb_frames,
-                            "recv_interval_ms=", round(recv_interval_ms, 2),
-                        )
-                        tablet.publish(
-                            "Audio stream active",
-                            "first_chunk bytes={}\nframes={}".format(len(chunk), nb_frames),
-                            force=True,
-                        )
-                    elif recv_chunks_total % 200 == 0:
-                        avg_recv_interval_ms = recv_intervals_ms_sum / float(recv_chunks_total)
-                        avg_send_duration_ms = (
-                            send_durations_ms_sum / float(send_calls_total)
-                            if send_calls_total
-                            else 0.0
-                        )
-                        print(
-                            "[pepper_audio] stream heartbeat:",
-                            "recv_chunks=", recv_chunks_total,
-                            "send_calls=", send_calls_total,
-                            "frames_total=", frames_sent_total,
-                            "buffered_frames=", queued_bytes // 4,
-                            "dropped_frames_total=", dropped_frames_total,
-                            "avg_recv_interval_ms=", round(avg_recv_interval_ms, 2),
-                            "avg_send_duration_ms=", round(avg_send_duration_ms, 2),
-                            "max_recv_interval_ms=", round(max_recv_interval_ms, 2),
-                            "max_send_duration_ms=", round(max_send_duration_ms, 2),
-                        )
-                        tablet.publish(
-                            "Audio heartbeat",
-                            "recv={}\nsent_frames={}\nbuffered={}".format(
-                                recv_chunks_total,
-                                frames_sent_total,
-                                queued_bytes // 4,
-                            ),
-                        )
-
-                    # No explicit sleep: recv_all() already blocks on incoming real-time chunks.
-                    # Additional sleeps can cause underruns/overruns and "freeze then catch-up".
-            finally:
-                try:
-                    conn.close()
-                except Exception:
-                    pass
-                try:
-                    audio.flushAudioOutputs()
-                except Exception:
-                    pass
-                print("[pepper_audio] waiting for next Python3 client...")
-                tablet.publish(
-                    "Pepper audio ready",
-                    "waiting bridge on {}:{}".format(BRIDGE_BIND_HOST, TCP_PORT),
-                    force=True,
-                )
+            time.sleep(1.0)
+            _stay_alive_marker = True  # noqa: F841  (kept to make the loop body non-trivial)
     finally:
-        server.close()
         if runtime_volume_watcher is not None:
             runtime_volume_watcher.stop()
         experiment_state_watcher.stop()
         if led_manager is not None:
             led_manager.stop()
         tablet_http.stop()
-        tablet.publish("Pepper audio server stopped", force=True)
+        tablet.publish("Pepper bridge stopped", force=True)
         tablet.stop()
-        print("[pepper_audio] server shut down")
+        print("[bridge] shut down")
 
 
 if __name__ == "__main__":

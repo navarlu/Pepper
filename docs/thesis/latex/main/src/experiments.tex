@@ -1,21 +1,211 @@
 \chapter{Experiments and Results}
 \label{ch:experiments}
 
-\section{Evaluation Objectives}
+% ============================================================
+% LAB GUIDE — Experiments and Results (Ch.4) should contain:
+%   • The experimental setup and methodology.
+%   • The results, both quantitative and qualitative.
+% Self-check: a reader should be able to understand what was measured, how,
+% and what the numbers / observations were — independently of interpretation
+% (interpretation belongs in Chapter~\ref{ch:discussion}).
+% ============================================================
 
-\section{Experimental Setup}
-\subsection{Environment and Hardware}
-\subsection{Scenarios and Test Cases}
-\subsection{System Variants}
+This chapter describes the user study that evaluates the receptionist system built in Chapter~\ref{ch:methods}.
+The system is deployed at a real reception desk, visitors interact with it, and their experience is measured with a short questionnaire whose answers are linked back to the recorded session log via a unique conversation identifier.
+The design and procedure are described in this draft; the results from the study itself will be reported once data collection is complete.
 
-\section{Evaluation Methodology}
-\subsection{Metrics}
-\subsection{Procedure}
 
+% ============================================================
+\section{Research Questions and Design}
+\label{sec:exp_design}
+
+The study addresses three research questions:
+
+\begin{itemize}
+    \item \textbf{RQ1.} How does an LLM-driven receptionist on the SoftBank Pepper robot perform in a real institutional setting, both in terms of objective interaction quality (latency, tool-call success, speech recognition accuracy) and in terms of the subjective experience reported by visitors?
+    \item \textbf{RQ2.} How do the two voice backends --- Condition~A, the locally hosted cascade, and Condition~B, the cloud-hosted cascade --- compare in the same deployment and on the same task?
+    \item \textbf{RQ3.} What qualitative themes emerge from open-ended feedback about the receptionist scenario, and what would visitors most want such a robot to be able to do?
+\end{itemize}
+
+The study uses a \textbf{between-subjects} design.
+Each visitor interacts with the system once, in exactly one of the two conditions, and provides a single questionnaire response.
+The condition is assigned by the experimental loop wrapper (see \secref{sec:experiment_loop}), which alternates between Condition~A and Condition~B on each new session.
+
+A between-subjects design was chosen over within-subjects for two reasons.
+First, a receptionist interaction is naturally a single-visit interaction: a visitor walks up, asks something, gets an answer, and leaves.
+Asking the same visitor to talk to the robot twice would break this realism and would expose them to the technical detail of two competing backends, which the design deliberately hides from them.
+Second, after a first interaction the novelty effect that strongly shapes initial impressions of social robots~\cite{salem2013err,herath2025firstimpressions} is partly spent; a second interaction with the same visitor is no longer directly comparable to a fresh visitor's first interaction.
+
+
+% ============================================================
+\section{Procedure}
+\label{sec:exp_procedure}
+
+\subsection{Setting}
+\label{sec:exp_setting}
+
+The deployment site is the reception of Building~E at Karlovo n\'am\v{e}st\'i, the main building of the Faculty of Electrical Engineering at CTU in Prague.
+Pepper is placed at the standard reception desk, facing visitors who approach from the entrance corridor.
+A pane of glass separates Pepper from the visitor side of the desk.
+The external USB microphone described in \secref{sec:pepper_robot} is mounted on the visitor side of the glass to keep speech capture close to the visitor, since the distance and the glass would otherwise make Pepper's built-in microphones unreliable.
+A printed instructions board (see \secref{sec:exp_materials}) sits next to Pepper and explains in a short half-page what Pepper can help with, how to talk to her, and how to fill in the questionnaire after the interaction.
+
+% TODO figure: deployment scene --- the reception desk, Pepper, the
+% microphone on the glass, the instructions board, and the visitor's POV.
+
+
+\subsection{Visitor Flow}
+\label{sec:exp_visitor_flow}
+
+A typical session proceeds as follows:
+
+\begin{enumerate}
+    \item The visitor reads the instructions board and decides whether to engage.
+    Speaking into the microphone is treated as informed consent for audio recording, as stated on the board.
+    \item The visitor speaks to Pepper.
+    The tablet on Pepper's chest displays her current state (listening, thinking, speaking), a live transcript of the conversation, and a small participant-identifier chip at the top of the screen.
+    \item The session ends either when Pepper detects the visitor is done and calls her closing tool, or when the visitor walks away and a silence timeout elapses.
+    \item At end of session, Pepper's tablet shows a QR code that opens the questionnaire form pre-filled with this session's participant identifier.
+    \item The visitor (optionally) scans the QR code with their phone and completes the questionnaire.
+\end{enumerate}
+
+Each session is logged with a unique participant identifier of the form \texttt{T\textit{NN}} (e.g.\ \texttt{T07}).
+The same identifier is shown on Pepper's tablet at the end of the session and is required as the first answer of the questionnaire.
+This identifier is the join key that links the visitor's subjective answers to the objective system log of the interaction, including the assigned condition.
+
+
+\subsection{Recruitment}
+\label{sec:exp_recruitment}
+
+Recruitment is by self-selection from passers-by.
+There is no pre-screening: anyone who walks past the reception desk during the experimental window may decide to engage with Pepper.
+This recruitment mode introduces a self-selection bias --- visitors who choose to engage are likely more positively disposed toward robots than the average passer-by --- which is addressed explicitly in \secref{sec:exp_validity}.
+
+
+% ============================================================
+\section{Materials}
+\label{sec:exp_materials}
+
+\subsection{Instructions Board}
+\label{sec:exp_board}
+
+The instructions board displayed next to Pepper is the only briefing a visitor receives before interacting with the robot.
+It is one printed page (reproduced verbatim in Appendix~B) and covers four things:
+
+\begin{itemize}
+    \item The topic of the thesis and the informed-consent statement for audio recording.
+    \item The kinds of questions Pepper can answer (navigation by room code, lecture schedule by subject code, staff contacts, canteen menu, general conversation).
+    \item Short usage tips: watch the tablet for the current state, speak when she is listening, prepare the question first and say it clearly, note the participant identifier from the tablet.
+    \item A printed QR code that links to the questionnaire form as a backup, so that visitors who walk away without scanning the on-tablet QR still have a path to the questionnaire.
+\end{itemize}
+
+
+\subsection{Questionnaire}
+\label{sec:exp_questionnaire}
+
+The questionnaire is hosted on Google Forms, takes approximately three minutes to complete, and contains 33 items in five blocks.
+The full questionnaire is reproduced in Appendix~C; this section describes its structure and the rationale for each block.
+
+\paragraph{Identification and demographics.}
+Four items: the participant identifier (free text), gender (multiple choice with a ``prefer not to say'' option), age (free text), and self-reported familiarity with robots on a 5-point scale.
+The participant identifier is the only mandatory linking field; the demographic items are used only for describing the sample.
+
+\paragraph{Custom Likert items.}
+Three 5-point Likert items (``strongly disagree'' to ``strongly agree'') targeted at concrete deployment concerns that the Godspeed instrument does not address directly:
+whether the visitor got the information they were looking for,
+whether Pepper responded quickly enough,
+and whether her hand and arm gestures felt natural and fit what she was saying.
+
+\paragraph{Categorical and open-ended items.}
+Four items about the interaction content and the visitor's perspective:
+what topic the visitor talked about (multiple choice mapped to the categories from the tool surface in \secref{sec:tool_surface}, with an ``other'' free-text option),
+what problems occurred during the interaction (multiple choice covering the most likely failure modes such as slow response, missing reply, false information, hard-to-understand speech, hard-to-read transcript, with ``other''),
+what the visitor would like Pepper to be able to help with in future (free text),
+and who they would prefer at the reception desk in general (``human'', ``Pepper'', ``no one'', or ``other'').
+
+\paragraph{Godspeed scales.}
+Twenty-one items from the Godspeed questionnaire~\cite{bartneck2009godspeed}, presented as bipolar adjective pairs on a 5-point scale.
+The items cover four of the five Godspeed subscales:
+\textbf{Anthropomorphism} (five items: fake--natural, machinelike--humanlike, unconscious--conscious, artificial--lifelike, moving rigidly--moving elegantly);
+\textbf{Animacy} (six items: dead--alive, stagnant--lively, mechanical--organic, artificial--lifelike, inert--interactive, apathetic--responsive --- of which ``artificial--lifelike'' is intentionally shared with Anthropomorphism in the standard Godspeed instrument);
+\textbf{Likeability} (five items: dislike--like, unfriendly--friendly, unkind--kind, unpleasant--pleasant, awful--nice);
+and \textbf{Perceived Intelligence} (five items: incompetent--competent, ignorant--knowledgeable, irresponsible--responsible, unintelligent--intelligent, foolish--sensible).
+
+The fifth Godspeed subscale, Perceived Safety, was \emph{not} included.
+Its items measure the respondent's self-reported emotional state (anxious--relaxed, agitated--calm, quiescent--surprised) as an indirect proxy for how safe the robot feels, which is most informative when there is a real possibility of physical risk from the robot.
+In the receptionist scenario the visitor is separated from Pepper by a desk and a pane of glass and there is no path to physical contact; safety in that sense is not a meaningful axis to ask about.
+
+\paragraph{Open comment.}
+A single final free-text item invites the visitor to share anything else about their experience that the structured items did not capture.
+
+
+% ============================================================
 \section{Results}
-\subsection{Quantitative Results}
-\subsection{Qualitative Observations}
+\label{sec:exp_results}
 
-\section{Analysis}
-\subsection{Error Analysis}
-\subsection{Limitations of the Evaluation}
+% TODO (after data collection): fill these subsections with the analysis of
+% the study described above. The structure is in place; only the prose and
+% the figures / tables need to be added.
+
+\subsection{Objective Measures}
+\label{sec:results_objective}
+
+% TODO: End-to-end latency per condition (user turn end --> first agent audio
+%       out), distribution and median.
+% TODO: Speech recognition accuracy on Condition A (faster-whisper); the
+%       Condition B cloud cascade is opaque to direct measurement, so report
+%       only the failure cases visible in the logs (timeouts, empty
+%       transcripts).
+% TODO: Tool-call success rate per tool (8 tools, see Table~\ref{tab:tools}).
+% TODO: Gesture trigger rate (proportion of spoken replies that fired a
+%       gesture).
+
+\subsection{Subjective Measures}
+\label{sec:results_subjective}
+
+% TODO: Godspeed subscale means per condition (table + plot).
+% TODO: Custom-item means per condition (information delivered, response
+%       speed, gesture naturalness).
+% TODO: Descriptive comparison between Condition A and Condition B.
+%       Inferential test only if the sample size per condition warrants it.
+% TODO: Demographics summary (gender, age, robot familiarity distributions).
+
+\subsection{Qualitative Observations}
+\label{sec:results_qualitative}
+
+% TODO: Themes from the free-text answers --- what visitors would like Pepper
+%       to be able to do in future, what they wrote in the open comment.
+% TODO: Problems reported on the structured ``what went wrong'' item, grouped
+%       by failure mode and cross-tabulated with condition.
+% TODO: Human-vs-robot-at-reception preference, with brief reflection on what
+%       the distribution suggests.
+
+
+% ============================================================
+\section{Threats to Validity}
+\label{sec:exp_validity}
+
+The study design has several known limitations that constrain how strongly any result from it can be interpreted.
+
+\begin{itemize}
+    \item \textbf{Self-selection.}
+    Visitors who choose to engage with the robot are likely more positively disposed toward robots than the average passer-by.
+    This is expected to inflate subjective ratings across both conditions and limits the generalisability of the absolute scores.
+
+    \item \textbf{Novelty effect.}
+    For most visitors the interaction is their first with a humanoid robot, which is known to shape initial impressions strongly~\cite{salem2013err,herath2025firstimpressions}.
+
+    \item \textbf{Single language, single site.}
+    Pepper speaks English only, the questionnaire is in English, and the deployment is in a single building.
+    This restricts external validity to comparable academic settings and to visitors who are comfortable conversing in English.
+
+    \item \textbf{Modest sample size.}
+    Each visitor sees only one condition.
+    Even with a full data-collection window the sample size per condition is expected to be in the low tens, which means subjective comparisons between the two conditions will be reported as descriptive statistics rather than as inferential tests in most cases.
+
+    \item \textbf{Non-blinded backend assignment.}
+    The experimenter knows which backend is currently in rotation; only the visitor is blinded.
+
+    \item \textbf{Single experimenter.}
+    Setup, dispatch, and data handling are all done by the thesis author, which is an unavoidable constraint of a master's project but is worth naming explicitly because it can introduce experimenter effects that a multi-person team would mitigate.
+\end{itemize}

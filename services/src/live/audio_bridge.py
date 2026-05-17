@@ -1,10 +1,31 @@
 """
-Audio Bridge — subscribes to agent audio in LiveKit and forwards PCM
-to the Pepper robot via TCP.
+Audio Bridge — subscribes to agent audio in LiveKit and streams PCM
+directly into Pepper's PulseAudio daemon via a persistent ssh+paplay
+subprocess.
 
-Non-blocking: starts and joins LiveKit even if the robot bridge is
-unavailable. Logs a warning and retries the TCP connection periodically.
-Audio frames are silently dropped while the bridge is disconnected.
+Bypasses NAOqi's `ALAudioDevice` queue (the ~1.3 s latency source
+identified in Phase 2 transport-probe work). Pepper-side latency is
+~25 ms inside PA + ~100 ms end-to-end (LAN + ALSA + speaker), versus
+~1300 ms via the previous TCP→bridge→sendRemoteBufferToOutput path.
+
+Non-blocking on every axis:
+  - The ssh+paplay subprocess is respawned in the background if it
+    dies (SSH disconnect, paplay crash); LiveKit streams keep running
+    and audio is silently dropped while the pipe is down.
+  - Token rotations from the orchestrator are picked up via
+    `SessionWatcher` and trigger a clean room reconnect.
+  - Multiple concurrent agent streams are coalesced so only one
+    feeds paplay at a time (old streams cancelled on new one).
+
+Flush / drain semantics are entirely internal now — there is no longer
+a separate robot-side bridge for audio:
+  - `flush`  : close paplay stdin so PA drains immediately, then
+               respawn paplay for the next utterance (used on barge-in
+               and stream-end).
+  - `drain`  : wait `PEPPER_DRAIN_TAIL_MS` after the last PCM write,
+               then publish `pepper.speech speaker_drained` over
+               LiveKit so the worker's `send_message_to_user` can
+               return at true end-of-speech.
 """
 
 from __future__ import annotations
@@ -12,7 +33,8 @@ from __future__ import annotations
 import asyncio
 import audioop
 import contextlib
-import socket
+import shutil
+import subprocess
 import time
 
 from livekit import rtc
@@ -21,62 +43,58 @@ from config import (
     AGENT_TRACK_IDENTITY,
     LISTENER_IDENTITY,
     LIVEKIT_URL,
+    PEPPER_DRAIN_TAIL_MS,
+    PEPPER_PAPLAY_LATENCY_MS,
+    PEPPER_SSH_HOST,
+    PEPPER_SSH_PASSWORD,
+    PEPPER_SSH_USER,
     PEPPER_STREAM_ATTENUATION,
     PEPPER_STREAM_RATE,
     SILENCE_GATE_HANGOVER_MS,
     SILENCE_GATE_RMS,
     SILENCE_GATE_TRACE,
-    TCP_HOST,
-    TCP_PORT,
     TOKEN_POLL_INTERVAL,
 )
 from session import SessionWatcher, post_debug_event
 
-# PEPPER_STREAM_RATE is already validated against ALLOWED_STREAM_RATES by config.py.
-BRIDGE_RETRY_SEC = 5
-
-# Control frames over the bridge socket. The first two mirror
-# robot/src/utils.py and are pre-existing protocol — do not change.
-# DRAIN_REQ/DRAIN_ACK are new: round-trip "is Pepper's speaker really
-# idle?" signal so the worker's send_message_to_user can return at
-# true end-of-speech instead of when LiveKit's emitter drains.
-CONTROL_FRAME_FLUSH = 0
-CONTROL_FRAME_PING = 0xFFFFFFFF
-CONTROL_FRAME_DRAIN_REQ = 0xFFFFFFFE   # service → robot
-CONTROL_FRAME_DRAIN_ACK = 0xFFFFFFFD   # robot → service
-
+PAPLAY_RESPAWN_BACKOFF_SEC = 2.0
 TOPIC_SPEECH = "pepper.speech"
 
 
-def _recv_exact(sock: socket.socket, n: int) -> bytes:
-    """Receive exactly n bytes from a blocking socket. Returns b'' on
-    EOF or shorter buffer if the peer closed mid-frame. Run in a
-    thread executor so the event loop isn't blocked.
+def _build_ssh_cmd() -> list[str]:
+    """Construct the ssh+paplay command list.
+
+    `paplay --raw --format=s16le` reads raw mono int16 PCM from stdin.
+    `--latency-msec=<n>` is honoured by PA on Pepper. ServerAliveInterval
+    keeps the SSH session alive across long idle periods so the next
+    utterance reuses the same pipe.
     """
-    buf = bytearray()
-    while len(buf) < n:
-        try:
-            chunk = sock.recv(n - len(buf))
-        except OSError:
-            return bytes(buf)
-        if not chunk:
-            return bytes(buf)
-        buf.extend(chunk)
-    return bytes(buf)
+    paplay_remote = (
+        f"paplay --raw --format=s16le --rate={PEPPER_STREAM_RATE} "
+        f"--channels=1 --latency-msec={PEPPER_PAPLAY_LATENCY_MS}"
+    )
+    ssh_opts = [
+        "-o", "StrictHostKeyChecking=no",
+        "-o", "UserKnownHostsFile=/dev/null",
+        "-o", "ServerAliveInterval=30",
+        "-o", "ServerAliveCountMax=3",
+    ]
+    target = f"{PEPPER_SSH_USER}@{PEPPER_SSH_HOST}"
+    if PEPPER_SSH_PASSWORD:
+        # Required because we authenticate by password; key-based auth
+        # would skip sshpass and use the same command with no prefix.
+        return ["sshpass", "-p", PEPPER_SSH_PASSWORD, "ssh", *ssh_opts, target, paplay_remote]
+    return ["ssh", *ssh_opts, target, paplay_remote]
 
 
 class AudioBridge:
-    """Joins LiveKit as the `listener`, forwards the agent's audio to
-    the robot bridge over a long-lived TCP connection.
+    """Joins LiveKit as the `listener`, forwards the agent's audio
+    straight into Pepper's PulseAudio via ssh+paplay.
 
-    Non-blocking on every axis:
-      - The TCP bridge connection retries in the background; LiveKit
-        streams keep running even when the bridge is offline (frames
-        are silently dropped).
-      - Token rotations from the orchestrator are picked up via
-        `SessionWatcher` and trigger a clean room reconnect.
-      - Multiple concurrent agent streams are coalesced so only one
-        feeds the bridge at a time (old streams cancelled on new one).
+    The single long-lived paplay subprocess is opened lazily on the
+    first audio frame and respawned if it dies. Silence between
+    utterances does NOT close the pipe — paplay just waits on stdin.
+    The pipe is only torn down on barge-in / stream-end / shutdown.
     """
 
     def __init__(self):
@@ -84,86 +102,180 @@ class AudioBridge:
         self.token_watcher = SessionWatcher("listener", TOKEN_POLL_INTERVAL)
         self.target_identity = AGENT_TRACK_IDENTITY or None
         self.explicit_target_identity = bool(self.target_identity)
-        self.tcp_socket: socket.socket | None = None
         self.room: rtc.Room | None = None
         self._connect_lock = asyncio.Lock()
-        self._socket_send_lock = asyncio.Lock()
+        self._paplay_lock = asyncio.Lock()
         self._watch_task: asyncio.Task | None = None
         self._active_stream_keys: set[str] = set()
         self._stream_tasks: dict[str, asyncio.Task] = {}
-        self._bridge_warn_logged = False
-        # Background reader for control frames coming back from the robot
-        # (currently only DRAIN_ACK). Restarted on every new socket.
-        self._drain_reader_task: asyncio.Task | None = None
+        # Persistent ssh+paplay subprocess. `None` until first audio
+        # frame, and between respawns.
+        self._paplay_proc: subprocess.Popen | None = None
+        self._paplay_warn_logged = False
+        # Monotonic timestamp of the last PCM byte handed to paplay.
+        # Used by the drain handler to compute when PA has actually
+        # finished playing the buffered tail.
+        self._last_write_ts: float = 0.0
 
-    # ── TCP bridge (non-blocking) ──
+    # ── paplay subprocess management ────────────────────────────────
 
-    def _try_connect_bridge(self) -> bool:
-        """Single attempt to connect to the robot bridge. Returns True on success."""
-        if self.tcp_socket is not None:
+    def _spawn_paplay(self) -> bool:
+        """Launch one ssh+paplay subprocess. Returns True on success.
+
+        Logs the first failure verbosely; subsequent failures are quiet
+        until the next successful spawn (avoids log spam when Pepper
+        is off).
+        """
+        if self._paplay_proc is not None and self._paplay_proc.poll() is None:
             return True
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            sock.connect((TCP_HOST, TCP_PORT))
-            self.tcp_socket = sock
-            self._bridge_warn_logged = False
-            print(f"[audio-bridge] Connected to bridge {TCP_HOST}:{TCP_PORT}")
-            self._restart_drain_reader()
-            return True
-        except Exception as exc:
-            if not self._bridge_warn_logged:
-                print(
-                    f"[audio-bridge] Bridge unavailable at {TCP_HOST}:{TCP_PORT} "
-                    f"({exc}) — audio will not be forwarded until connected"
-                )
-                self._bridge_warn_logged = True
+
+        if not PEPPER_SSH_PASSWORD and shutil.which("ssh") is None:
+            print("[audio-bridge] ERROR: ssh binary missing and no password configured")
+            return False
+        if PEPPER_SSH_PASSWORD and shutil.which("sshpass") is None:
+            print(
+                "[audio-bridge] ERROR: sshpass binary missing. "
+                "Install with `apt install sshpass` or remove "
+                "PEPPER_SSH_PASSWORD to use key auth."
+            )
             return False
 
-    def _restart_drain_reader(self) -> None:
-        """Spawn a background reader for 4-byte control frames coming
-        back from the robot. Only DRAIN_ACK is handled today; any
-        other value is logged and ignored. Cancelled and restarted on
-        every new socket so a stale reader can't keep reading from a
-        dead fd.
-        """
-        if self._drain_reader_task and not self._drain_reader_task.done():
-            self._drain_reader_task.cancel()
-        self._drain_reader_task = asyncio.create_task(self._drain_reader_loop())
+        cmd = _build_ssh_cmd()
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
+                # stderr=PIPE so we can surface SSH errors on respawn;
+                # PIPE buffers fill fast though, so we drain in a
+                # background task.
+                stderr=subprocess.PIPE,
+                bufsize=0,
+            )
+        except FileNotFoundError as exc:
+            if not self._paplay_warn_logged:
+                print(f"[audio-bridge] ssh/sshpass not found: {exc!r}")
+                self._paplay_warn_logged = True
+            return False
+        except Exception as exc:
+            if not self._paplay_warn_logged:
+                print(f"[audio-bridge] paplay spawn failed: {exc!r}")
+                self._paplay_warn_logged = True
+            return False
 
-    async def _drain_reader_loop(self) -> None:
-        """Read 4-byte big-endian frames from the bridge socket until
-        the socket dies, publishing `pepper.speech speaker_drained`
-        on DRAIN_ACK. The recv is done in a thread executor so the
-        blocking socket doesn't stall the event loop.
-        """
+        self._paplay_proc = proc
+        self._paplay_warn_logged = False
+        print(
+            f"[audio-bridge] paplay spawned pid={proc.pid} "
+            f"target={PEPPER_SSH_USER}@{PEPPER_SSH_HOST} "
+            f"latency_ms={PEPPER_PAPLAY_LATENCY_MS}"
+        )
+        # Drain stderr so a chatty SSH banner doesn't block paplay.
+        asyncio.create_task(self._drain_stderr(proc))
+        return True
+
+    async def _drain_stderr(self, proc: subprocess.Popen) -> None:
+        """Read paplay/ssh stderr in a background thread executor and
+        log meaningful lines. Stops when the proc exits."""
         loop = asyncio.get_running_loop()
-        sock = self.tcp_socket
-        if sock is None:
-            return
-        while self.tcp_socket is sock:
+        try:
+            while proc.poll() is None:
+                line = await loop.run_in_executor(
+                    None, proc.stderr.readline if proc.stderr else (lambda: b"")
+                )
+                if not line:
+                    break
+                text = line.decode("utf-8", errors="replace").rstrip()
+                if not text:
+                    continue
+                # SSH host-key chatter is noisy and expected on first
+                # connect; downgrade to a single info line.
+                if "Permanently added" in text or "Warning: " in text:
+                    continue
+                print(f"[audio-bridge] paplay stderr: {text}")
+        except Exception as exc:
+            print(f"[audio-bridge] paplay stderr drain failed: {exc!r}")
+
+    async def _ensure_paplay(self) -> bool:
+        """Make sure paplay is up. Called before each PCM write."""
+        proc = self._paplay_proc
+        if proc is not None and proc.poll() is None:
+            return True
+        # Subprocess is missing or died — try one quick respawn.
+        async with self._paplay_lock:
+            proc = self._paplay_proc
+            if proc is not None and proc.poll() is None:
+                return True
+            if proc is not None:
+                # Reap the dead process.
+                with contextlib.suppress(Exception):
+                    proc.wait(timeout=0.1)
+                self._paplay_proc = None
+            return self._spawn_paplay()
+
+    async def _write_paplay(self, pcm: bytes) -> bool:
+        """Write one chunk of mono int16 PCM to paplay. Returns False
+        if the pipe died and a respawn didn't recover."""
+        if not pcm:
+            return True
+        if not await self._ensure_paplay():
+            return False
+        proc = self._paplay_proc
+        if proc is None or proc.stdin is None:
+            return False
+        try:
+            proc.stdin.write(pcm)
+            proc.stdin.flush()
+            self._last_write_ts = time.monotonic()
+            return True
+        except (BrokenPipeError, OSError) as exc:
+            print(f"[audio-bridge] paplay pipe broken: {exc!r} — will respawn")
+            with contextlib.suppress(Exception):
+                proc.kill()
+            self._paplay_proc = None
+            return False
+
+    async def _close_paplay(self, reason: str) -> None:
+        """Close paplay's stdin so PA drains, then wait briefly and
+        kill the subprocess if it doesn't exit on its own. Used on
+        flush, stream-cancel, shutdown."""
+        async with self._paplay_lock:
+            proc = self._paplay_proc
+            if proc is None:
+                return
+            self._paplay_proc = None
+            print(f"[audio-bridge] closing paplay reason={reason} pid={proc.pid}")
             try:
-                data = await loop.run_in_executor(None, _recv_exact, sock, 4)
-            except Exception as exc:
-                print(f"[audio-bridge] drain_reader recv failed: {exc!r}")
-                return
-            if not data or len(data) < 4:
-                # Socket closed by peer.
-                return
-            value = int.from_bytes(data, "big")
-            if value == CONTROL_FRAME_DRAIN_ACK:
-                print(f"[audio-bridge] drain_ack_received bytes=4")
-                post_debug_event("agent_speaking", active=False)
-                await self._publish_speaker_drained(reason="robot_ack")
-            else:
-                # Unknown control frame — log and ignore. Don't kill the
-                # reader: a stray value shouldn't take EOS reporting offline.
-                print(f"[audio-bridge] drain_reader unknown_frame value=0x{value:08x}")
+                if proc.stdin is not None:
+                    proc.stdin.close()
+            except Exception:
+                pass
+            loop = asyncio.get_running_loop()
+            try:
+                await asyncio.wait_for(
+                    loop.run_in_executor(None, proc.wait), timeout=2.0
+                )
+            except asyncio.TimeoutError:
+                with contextlib.suppress(Exception):
+                    proc.kill()
+            except Exception:
+                with contextlib.suppress(Exception):
+                    proc.kill()
+
+    async def _flush_audio(self, reason: str) -> None:
+        """Drop everything in-flight. Closing+respawning paplay flushes
+        PA's ~30 ms buffer instantly and gives us a fresh stream for
+        the next utterance.
+
+        Cheap: ssh handshake stays warm via ControlMaster-free reuse
+        on Pepper's sshd, paplay cold-start is <100 ms in practice."""
+        await self._close_paplay(reason)
 
     async def _publish_speaker_drained(self, reason: str) -> None:
         """Tell the worker that Pepper's speaker has actually drained.
 
         Published over LiveKit so the experiment worker's data_received
-        handler (in _pipeline.py) can wake send_message_to_user. If
+        handler (in `_pipeline.py`) can wake `send_message_to_user`. If
         the room isn't connected yet (very early in startup), the
         publish is silently skipped.
         """
@@ -179,58 +291,28 @@ class AudioBridge:
         except Exception as exc:
             print(f"[audio-bridge] publish speaker_drained failed: {exc!r}")
 
-    async def _send_bridge_drain_req(self) -> bool:
-        """Ask the robot bridge to ACK once ALAudioDevice's queue
-        drains. The robot writes back a single 4-byte DRAIN_ACK frame
-        which our background reader picks up.
+    async def _handle_drain_request(self) -> None:
+        """Wait for paplay's buffer to drain and signal speaker_drained.
+
+        With paplay, "drained" is just `last_write + drain_tail_ms`.
+        No round-trip to Pepper needed — we own the only buffer in
+        the chain (PA's 30 ms ring) so we know exactly when it's empty.
         """
-        if not self.tcp_socket:
-            return False
-        try:
-            async with self._socket_send_lock:
-                if not self.tcp_socket:
-                    return False
-                self.tcp_socket.sendall(CONTROL_FRAME_DRAIN_REQ.to_bytes(4, "big"))
-            print(f"[audio-bridge] drain_req_sent socket_connected=True")
-            return True
-        except (BrokenPipeError, ConnectionError, OSError) as exc:
-            print(f"[audio-bridge] drain_req send failed err={exc!r}")
-            self._close_socket()
-            return False
-
-    async def _send_bridge_flush(self, reason: str) -> None:
-        if not self.tcp_socket:
+        if self._paplay_proc is None or self._paplay_proc.poll() is not None:
+            # Nothing playing; ack immediately.
+            await self._publish_speaker_drained(reason="no_pipe")
             return
-        try:
-            async with self._socket_send_lock:
-                if not self.tcp_socket:
-                    return
-                self.tcp_socket.sendall((0).to_bytes(4, "big"))
-            print(f"[audio-bridge] Sent bridge flush reason={reason}")
-        except (BrokenPipeError, ConnectionError, OSError) as exc:
-            print(f"[audio-bridge] Bridge flush failed reason={reason} err={exc}")
-            self._close_socket()
-
-    async def _send_bridge_ping(self) -> bool:
-        if not self.tcp_socket:
-            return False
-        try:
-            async with self._socket_send_lock:
-                if not self.tcp_socket:
-                    return False
-                self.tcp_socket.sendall((0xFFFFFFFF).to_bytes(4, "big"))
-            return True
-        except (BrokenPipeError, ConnectionError, OSError) as exc:
-            print(f"[audio-bridge] Bridge ping failed err={exc}")
-            self._close_socket()
-            return False
-
-    def _close_socket(self) -> None:
-        try:
-            if self.tcp_socket:
-                self.tcp_socket.close()
-        finally:
-            self.tcp_socket = None
+        tail_sec = max(0.0, PEPPER_DRAIN_TAIL_MS / 1000.0)
+        # Wait at least `tail_sec` past the last byte we handed paplay.
+        while True:
+            elapsed = time.monotonic() - self._last_write_ts
+            remaining = tail_sec - elapsed
+            if remaining <= 0:
+                break
+            await asyncio.sleep(min(remaining, 0.05))
+            if self._paplay_proc is None or self._paplay_proc.poll() is not None:
+                break
+        await self._publish_speaker_drained(reason="paplay_tail_elapsed")
 
     # ── LiveKit ──
 
@@ -269,20 +351,15 @@ class AudioBridge:
                 await task
             self._stream_tasks.pop(key, None)
             self._active_stream_keys.discard(key)
-        await self._send_bridge_flush(reason)
+        await self._flush_audio(reason)
 
     def _register_speech_handler(self, room: rtc.Room) -> None:
         """Listen for `pepper.speech` data messages from the worker.
 
         The worker publishes `{"kind": "request_drain"}` after every
-        `send_message_to_user` finishes its TTS playout. We turn that
-        into a DRAIN_REQ over the bridge TCP socket so the on-robot
-        bridge can ACK once ALAudioDevice's queue has actually drained.
-
-        If the bridge socket is down, we publish speaker_drained
-        immediately with reason=no_robot_bridge so the worker doesn't
-        hang on the DRAIN_TIMEOUT (typical dev-mode scenario:
-        audio-bridge container up, robot off).
+        `send_message_to_user` finishes its TTS playout. With paplay
+        we resolve the drain locally (last write + tail) — no round
+        trip to a robot-side bridge.
         """
         import json as _json
 
@@ -297,17 +374,7 @@ class AudioBridge:
                 return
             if str(msg.get("kind", "")).lower() != "request_drain":
                 return
-
-            async def _handle_request() -> None:
-                sent = await self._send_bridge_drain_req()
-                if not sent:
-                    print(
-                        "[audio-bridge] no_bridge_socket — publishing "
-                        "speaker_drained immediately"
-                    )
-                    await self._publish_speaker_drained(reason="no_robot_bridge")
-
-            asyncio.create_task(_handle_request())
+            asyncio.create_task(self._handle_drain_request())
 
     def _register_track_handler(self, room: rtc.Room) -> None:
         @room.on("track_subscribed")
@@ -339,21 +406,12 @@ class AudioBridge:
                 bytes_sent = 0
                 start_ts = time.monotonic()
                 # Silence-gate state. LiveKit AgentSession publishes a
-                # continuous audio track (silence frames between TTS
-                # utterances), so without gating NAOqi receives ~1.6×
-                # real-time audio and `sendRemoteBufferToOutput` backs
-                # up — the audible 60-s delay before this fix.
-                #
-                # Strategy: forward frames whose RMS is above
-                # SILENCE_GATE_RMS, plus a long hangover after the last
-                # loud frame so we don't clamp shut during natural
-                # within-utterance pauses. Below threshold beyond
-                # hangover, drop the frame WITHOUT flushing — flushing
-                # mid-stream would discard legitimate audio still on
-                # its way to the speaker (an earlier version did this
-                # and it cut off words).
+                # continuous audio track; below the threshold past
+                # hangover we drop the frame so paplay's stdin doesn't
+                # see continuous silence (cheap, but keeps the wire
+                # quiet and makes barge-in detection more reliable).
                 gate_enabled = SILENCE_GATE_RMS > 0
-                gate_open = True  # forward on startup; closes after first hangover
+                gate_open = True
                 last_voiced_ts = time.monotonic()
                 silence_dropped = 0
                 voiced_forwarded = 0
@@ -367,16 +425,7 @@ class AudioBridge:
                         if not raw:
                             continue
 
-                        # If bridge not connected, drop frames silently
-                        if not self.tcp_socket:
-                            if frame_count == 0:
-                                print(f"[audio-bridge] Dropping audio — bridge not connected")
-                            frame_count += 1
-                            continue
-
                         # Silence-gate (cheap RMS on raw 16-bit mono).
-                        # Compute before attenuation so the threshold
-                        # is independent of PEPPER_STREAM_ATTENUATION.
                         if gate_enabled:
                             rms = audioop.rms(raw, 2)
                             if SILENCE_GATE_TRACE:
@@ -397,11 +446,6 @@ class AudioBridge:
                                     silence_dropped = 0
                                 gate_open = True
                             elif (time.monotonic() - last_voiced_ts) > hangover_sec:
-                                # Past the hangover window — close the
-                                # gate. Note: NO flush here. NAOqi will
-                                # finish playing whatever it received
-                                # naturally; flushing would chop the
-                                # tail of the last utterance.
                                 gate_open = False
                             if not gate_open:
                                 silence_dropped += 1
@@ -414,7 +458,6 @@ class AudioBridge:
 
                         sampwidth = 2
                         mono = audioop.mul(raw, sampwidth, PEPPER_STREAM_ATTENUATION)
-                        size_bytes = len(mono).to_bytes(4, "big")
 
                         frame_count += 1
                         voiced_forwarded += 1
@@ -435,14 +478,12 @@ class AudioBridge:
                                 f"kbps={kbps:.1f}"
                             )
 
-                        try:
-                            async with self._socket_send_lock:
-                                if not self.tcp_socket:
-                                    continue
-                                self.tcp_socket.sendall(size_bytes + mono)
-                        except (BrokenPipeError, ConnectionError, OSError) as exc:
-                            print(f"[audio-bridge] TCP send failure: {exc}")
-                            self._close_socket()
+                        ok = await self._write_paplay(mono)
+                        if not ok and frame_count <= 1:
+                            print(
+                                f"[audio-bridge] dropping audio — paplay unavailable "
+                                f"(retry on next frame)"
+                            )
 
                 except asyncio.CancelledError:
                     print(f"[audio-bridge] Cancelled stream for '{participant_identity}' key={stream_key}")
@@ -452,7 +493,9 @@ class AudioBridge:
                     self._stream_tasks.pop(stream_key, None)
                     print(f"[audio-bridge] Audio OFF from '{participant_identity}' frames={frame_count} bytes={bytes_sent}")
                     post_debug_event("agent_speaking", active=False)
-                    await self._send_bridge_flush("stream_end")
+                    # Flush on stream-end so the next utterance opens
+                    # a fresh paplay pipe. Cheap (<100 ms).
+                    await self._flush_audio("stream_end")
 
             self._stream_tasks[stream_key] = asyncio.create_task(stream_task())
 
@@ -479,33 +522,21 @@ class AudioBridge:
                 self.room = None
 
             while True:
-                if current_ws_url:
-                    self.livekit_url = str(current_ws_url).strip() or self.livekit_url
-                room = rtc.Room()
-                self._register_track_handler(room)
-                self._register_speech_handler(room)
+                self.room = rtc.Room()
+                self._register_speech_handler(self.room)
+                self._register_track_handler(self.room)
                 try:
-                    await room.connect(self.livekit_url, current_token)
+                    await self.room.connect(self.livekit_url, current_token)
+                    print(f"[audio-bridge] Connected to LiveKit room '{room_name}' via {self.livekit_url}")
+                    return
                 except Exception as exc:
-                    print(f"[audio-bridge] Failed to connect to LiveKit: {exc} - retrying in 3s")
-                    latest = self.token_watcher.latest_token_info()
-                    if latest and latest.get("token") and latest["token"] != current_token:
-                        current_token = latest["token"]
-                        current_ws_url = latest.get("wsUrl") or current_ws_url
-                    await asyncio.sleep(3)
-                    continue
-
-                self.room = room
-                identity = getattr(room.local_participant, "identity", "unknown")
-                print(f"[audio-bridge] Connected to room '{room.name}' as {identity}")
-                if self.target_identity:
-                    mode = "strict" if self.explicit_target_identity else "hint"
-                    print(f"[audio-bridge] Agent identity filter ({mode}) = '{self.target_identity}'")
-                break
+                    print(f"[audio-bridge] LiveKit connect failed: {exc} — retrying in 3s")
+                    self.room = None
+                    await asyncio.sleep(3.0)
 
     async def _on_token_change(self, info: dict) -> None:
-        room_name = info.get("roomName") or "<unknown>"
-        print(f"[audio-bridge] Detected new token for room '{room_name}', reconnecting...")
+        print(f"[audio-bridge] Token change detected — reconnecting room")
+        await self._cancel_existing_streams(reason="token_change")
         await self._connect_room(
             info["token"],
             info.get("roomName"),
@@ -515,9 +546,6 @@ class AudioBridge:
 
     async def run(self) -> None:
         print("[audio-bridge] Starting audio bridge...")
-
-        # Non-blocking bridge attempt
-        self._try_connect_bridge()
 
         info = await self.token_watcher.wait_for_initial_token()
         print(f"[audio-bridge] Using identity '{info.get('identity')}' for room '{info.get('roomName')}'")
@@ -532,15 +560,12 @@ class AudioBridge:
         )
 
         try:
+            # Idle loop. paplay is spawned lazily on first audio frame
+            # and managed inside `_write_paplay` / `_flush_audio`; the
+            # only thing we do here is keep the event loop alive and
+            # let token rotations fire.
             while True:
-                # Retry bridge connection periodically
-                if self.tcp_socket is None:
-                    self._try_connect_bridge()
-                else:
-                    ping_ok = await self._send_bridge_ping()
-                    if not ping_ok:
-                        self._try_connect_bridge()
-                await asyncio.sleep(BRIDGE_RETRY_SEC)
+                await asyncio.sleep(PAPLAY_RESPAWN_BACKOFF_SEC)
         finally:
             await self._cancel_existing_streams(reason="audio_bridge_shutdown")
             if self._watch_task:
@@ -549,7 +574,7 @@ class AudioBridge:
                     await self._watch_task
             if self.room:
                 await self.room.disconnect()
-            self._close_socket()
+            await self._close_paplay("shutdown")
             print("[audio-bridge] Stopped.")
 
 

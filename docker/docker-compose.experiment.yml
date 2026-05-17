@@ -78,11 +78,10 @@ services:
       - redis
     restart: unless-stopped
 
-  # Mode B (realtime) and Mode C (4o-chained) workers run on woska,
-  # not on the RPi — launcher.py dispatches them remotely via the
-  # `pepper-experiment-realtime` / `pepper-experiment-4o` agent names.
-  # They are intentionally NOT defined in this compose file. Mode A
-  # (`pepper-experiment`) also runs on woska.
+  # Both experiment workers (Mode A `pepper-experiment` and Mode B
+  # `pepper-experiment-4o`) run on woska, not on the RPi — launcher.py
+  # dispatches them remotely via their agent names. They are
+  # intentionally NOT defined in this compose file.
 
   bridge:
     build:

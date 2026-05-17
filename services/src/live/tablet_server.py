@@ -415,14 +415,14 @@ class TabletDisplay:
         "initializing": "Starting up…",
     }
 
-    # Experiment blinding: "realtime" is the GPT-realtime variant
-    # (Mode B). On the tablet it must be indistinguishable from the
-    # production OpenAI variant — same label "B", same blue pill.
-    _MODE_LABELS = {"local": "A", "openai": "B", "realtime": "B", "4o-chained": "C"}
+    # The 4o-chained experiment variant shares its tablet appearance
+    # with the production OpenAI variant — same label "B", same blue
+    # pill — so the participant can't tell them apart.
+    _MODE_LABELS = {"local": "A", "openai": "B", "4o-chained": "B"}
 
     def _render_html(self) -> str:
         mode = self._state.get("agent_mode") or "?"
-        if mode in ("realtime", "4o-chained"):
+        if mode == "4o-chained":
             mode_cls = "mode-openai"
         elif mode in ("openai", "local"):
             mode_cls = "mode-" + mode

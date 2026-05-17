@@ -81,20 +81,17 @@ ROOT_ENV_PATH = VOICE_AGENT_DIR.parent / ".env"
 if ROOT_ENV_PATH.exists():
     load_dotenv(dotenv_path=ROOT_ENV_PATH, override=False)
 
-VARIANTS = ("A", "B", "C")
+VARIANTS = ("A", "B")
 EXPERIMENT_AGENT_NAME = "pepper-experiment"
-EXPERIMENT_AGENT_NAME_REALTIME = "pepper-experiment-realtime"
 EXPERIMENT_AGENT_NAME_4O = "pepper-experiment-4o"
 # Variant → agent_name. A uses the local-stack worker on woska
-# (agent.py). B uses the OpenAI Realtime worker on the RPi
-# (agent_realtime.py). C uses the OpenAI 4o-chained worker on the
-# RPi (agent_4o.py: silero VAD + gpt-4o-transcribe + gpt-4o-mini +
-# gpt-4o-mini-tts). All three share the same room + recorder +
-# JSONL schema — only the dispatch target differs.
+# (agent.py). B uses the OpenAI 4o-chained worker on woska
+# (agent_4o.py: silero VAD + gpt-4o-mini-transcribe + gpt-4o-mini +
+# gpt-4o-mini-tts). Both share the same room + recorder + JSONL
+# schema — only the dispatch target differs.
 AGENT_NAME_BY_VARIANT = {
     "A": EXPERIMENT_AGENT_NAME,
-    "B": EXPERIMENT_AGENT_NAME_REALTIME,
-    "C": EXPERIMENT_AGENT_NAME_4O,
+    "B": EXPERIMENT_AGENT_NAME_4O,
 }
 EXPERIMENT_ROOM_NAME = "pepper-experiment"  # matches experiment-orchestrator
 RECORDER_IDENTITY = "experimenter-recorder"
@@ -363,16 +360,7 @@ async def run(args: argparse.Namespace) -> int:
                   f"dispatch_id={dispatch_id}")
         except Exception as exc:
             print(f"[experiment] dispatch failed: {exc!r}", file=sys.stderr)
-            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
-                print(
-                    "[experiment] is the voice-agent-realtime container running?\n"
-                    "    docker compose -f docker/docker-compose.experiment.yml "
-                    "up -d voice-agent-realtime\n"
-                    "    docker compose -f docker/docker-compose.experiment.yml "
-                    "logs -f voice-agent-realtime",
-                    file=sys.stderr,
-                )
-            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+            if agent_name == EXPERIMENT_AGENT_NAME_4O:
                 print(
                     "[experiment] is agent_4o.py running on woska in tmux "
                     "'pepper-experiment-4o'?\n"
@@ -436,11 +424,7 @@ async def run(args: argparse.Namespace) -> int:
         agents = await _wait_for_agents(room, timeout=60.0)
         agent_idents = sorted(a.identity for a in agents)
         if not agents:
-            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
-                hint = ("Is voice-agent-realtime running on the RPi? "
-                        "`docker compose -f docker/docker-compose.experiment.yml "
-                        "logs -f voice-agent-realtime`")
-            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+            if agent_name == EXPERIMENT_AGENT_NAME_4O:
                 hint = ("Is agent_4o.py running on woska in tmux "
                         "'pepper-experiment-4o'? "
                         "`ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska` "
@@ -452,10 +436,7 @@ async def run(args: argparse.Namespace) -> int:
             exit_reason = "no_agent_joined"
             return 4
         if len(agents) > 1:
-            if agent_name == EXPERIMENT_AGENT_NAME_REALTIME:
-                cleanup = ("docker compose -f docker/docker-compose.experiment.yml "
-                           "restart voice-agent-realtime")
-            elif agent_name == EXPERIMENT_AGENT_NAME_4O:
+            if agent_name == EXPERIMENT_AGENT_NAME_4O:
                 # agent_4o.py runs on woska in tmux 'pepper-experiment-4o'.
                 # Restart the worker there to drop all stale jobs.
                 cleanup = ("ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "

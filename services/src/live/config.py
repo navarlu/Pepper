@@ -99,7 +99,7 @@ USER_MIC_DEVICE = os.getenv("USER_MIC_DEVICE")
 USER_CLIENT_TEST_MODE = _env_str("USER_CLIENT_TEST_MODE", "publish")
 
 
-# ── Audio-bridge (LiveKit → TCP → robot bridge) ─────────────────────────────
+# ── Audio-bridge (LiveKit → ssh+paplay → Pepper PulseAudio) ─────────────────
 ALLOWED_STREAM_RATES = {16000, 22050, 44100, 48000}
 _raw_stream_rate = _env_int("PEPPER_STREAM_RATE", 16000)
 if _raw_stream_rate not in ALLOWED_STREAM_RATES:
@@ -134,8 +134,22 @@ SILENCE_GATE_RMS = _env_int("SILENCE_GATE_RMS", 20)
 SILENCE_GATE_HANGOVER_MS = _env_int("SILENCE_GATE_HANGOVER_MS", 1500)
 SILENCE_GATE_TRACE = _env_int("SILENCE_GATE_TRACE", 0) == 1
 
-TCP_HOST = _env_str("TCP_HOST", "127.0.0.1")
-TCP_PORT = _env_int("TCP_PORT", 55555)
+# Pepper SSH credentials. audio-bridge opens a persistent ssh+paplay
+# subprocess to stream PCM directly into Pepper's PulseAudio daemon,
+# bypassing NAOqi's ~1.3 s ALAudioDevice queue (Phase 2 work). Default
+# password matches Pepper's stock `nao` account; set PEPPER_SSH_PASSWORD
+# explicitly via .env if changed.
+PEPPER_SSH_HOST = _env_str("PEPPER_SSH_HOST", "10.42.0.205")
+PEPPER_SSH_USER = _env_str("PEPPER_SSH_USER", "nao")
+PEPPER_SSH_PASSWORD = _env_str("PEPPER_SSH_PASSWORD", "Argus")
+# Target paplay latency (ms). 30 ms is what `transport_probe.py`
+# benchmarked at ~123 ms end-to-end. Smaller values give lower latency
+# but risk underruns under jitter.
+PEPPER_PAPLAY_LATENCY_MS = _env_int("PEPPER_PAPLAY_LATENCY_MS", 30)
+# Drain wait after the last PCM write before signalling speaker_drained
+# to the worker. Covers paplay's internal buffer (~30 ms) + the SSH/PA
+# scheduling tail. 80 ms is conservative; tune down if EOS feels late.
+PEPPER_DRAIN_TAIL_MS = _env_int("PEPPER_DRAIN_TAIL_MS", 80)
 
 
 # ── Tablet display ──────────────────────────────────────────────────────────

@@ -118,8 +118,6 @@ uv run python voice-agent/src/experiment/launcher.py \
 # Same student, next variant:
 uv run python voice-agent/src/experiment/launcher.py \
     --student 1 --variant B
-uv run python voice-agent/src/experiment/launcher.py \
-    --student 1 --variant C
 # Next student:
 uv run python voice-agent/src/experiment/launcher.py \
     --student 2 --variant A

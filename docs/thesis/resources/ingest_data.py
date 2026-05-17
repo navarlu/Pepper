@@ -10,7 +10,7 @@ from weaviate.classes.config import Configure, DataType, Property
 
 BASE_DIR = Path(__file__).resolve().parent
 TO_INGEST_DIR = BASE_DIR / "data" / "to_ingest"
-INGESTED_DIR = BASE_DIR / "data" / "ingested"
+INGESTED_DIR = BASE_DIR / "data" / "used"
 
 WEAVIATE_HOST = "localhost"
 WEAVIATE_HTTP_PORT = 8080

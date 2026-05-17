@@ -2,7 +2,7 @@
 
 agent_name = "pepper-experiment-4o". Audio path:
 
-    silero VAD  →  gpt-4o-transcribe (STT)
+    silero VAD  →  gpt-4o-mini-transcribe (STT)
                 →  gpt-4o-mini (LLM)
                 →  gpt-4o-mini-tts (TTS)
 
@@ -79,7 +79,7 @@ logging.getLogger("asyncio").setLevel(logging.WARNING)
 AGENT_NAME = os.environ.get("PEPPER_EXPERIMENT_4O_AGENT_NAME", "pepper-experiment-4o")
 LANG = os.environ.get("AGENT_LANG", "en").strip().lower() or "en"
 
-STT_MODEL = os.environ.get("OPENAI_STT_MODEL", "gpt-4o-transcribe")
+STT_MODEL = os.environ.get("OPENAI_STT_MODEL", "gpt-4o-mini-transcribe")
 LLM_MODEL = os.environ.get("OPENAI_LLM_MODEL", "gpt-4o-mini")
 TTS_MODEL = os.environ.get("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
 TTS_VOICE = os.environ.get("OPENAI_TTS_VOICE", "nova")

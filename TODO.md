@@ -24,29 +24,16 @@
 
 ## Repo:
 
-- student-tools -> main
 
 ## Bugs:
 
-autonomous life turning off
+
 update reame
-happy making too much sound
 add listening on VAD
-
-
-
-
-
-
-Bigger TTS and STT?
 
 
 lookup_person
 return all numbers or filter just one?
-
-
-
-
 
 tools o first round
 animation

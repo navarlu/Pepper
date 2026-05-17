@@ -6,14 +6,66 @@ from __future__ import print_function, unicode_literals
 import time
 import wave
 import os
+import sys
+
+SRC_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src"))
+if SRC_DIR not in sys.path:
+    sys.path.insert(0, SRC_DIR)
+
+QI_PY_PATH = os.environ.get(
+    "PEPPER_QI_PY_PATH",
+    "/home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release",
+)
+BOOST_LIB = os.environ.get(
+    "PEPPER_BOOST_LIB",
+    "/home/lucas/.conan2/p/b/boost00dddf9f5dc9e/p/lib",
+)
+QI_NATIVE = os.environ.get(
+    "PEPPER_QI_NATIVE_LIB",
+    "/home/lucas/Projects/FEL/QI_test/local_qi/lib",
+)
+
+
+def ensure_qi_runtime():
+    """Make the host-side ARM64 libqi build visible before importing utils."""
+    try:
+        import qi  # noqa: F401
+        return
+    except ImportError:
+        pass
+
+    if os.path.isdir(QI_PY_PATH) and QI_PY_PATH not in sys.path:
+        sys.path.insert(0, QI_PY_PATH)
+
+    ld_paths = [p for p in (BOOST_LIB, QI_NATIVE) if os.path.isdir(p)]
+    current_ld = os.environ.get("LD_LIBRARY_PATH", "")
+    missing_ld = [p for p in ld_paths if p not in current_ld.split(":")]
+
+    current_pythonpath = os.environ.get("PYTHONPATH", "")
+    missing_pythonpath = (
+        os.path.isdir(QI_PY_PATH) and QI_PY_PATH not in current_pythonpath.split(":")
+    )
+
+    if (missing_ld or missing_pythonpath) and not os.environ.get("PEPPER_QI_BOOTSTRAPPED"):
+        env = os.environ.copy()
+        if missing_ld:
+            env["LD_LIBRARY_PATH"] = ":".join(missing_ld + ([current_ld] if current_ld else []))
+        if missing_pythonpath:
+            env["PYTHONPATH"] = QI_PY_PATH + (":" + current_pythonpath if current_pythonpath else "")
+        env["PEPPER_QI_BOOTSTRAPPED"] = "1"
+        os.execvpe(sys.executable, [sys.executable] + sys.argv, env)
+
+
+ensure_qi_runtime()
+
 import audioop
 
 from utils import connect_session, to_text
-from config import PEPPER_QI_URL as DEFAULT_QI_URL
 
 # WAV to play
 WAV_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "hello.wav")
 
+PEPPER_QI_URL = "tcp://10.42.0.205:9559"
 TARGET_RATE = 48000      # Pepper output rate
 CHUNK_MS = 20            # chunk size in ms
 ATTENUATION = 0.1        # 1.0 = normal volume, <1 = quieter
@@ -64,7 +116,7 @@ def iter_wav_chunks(path, chunk_ms=CHUNK_MS):
 
 
 def play_on_pepper(wav_path, qi_url=None, chunk_ms=CHUNK_MS):
-    qi_url = qi_url or os.environ.get("PEPPER_URL") or DEFAULT_QI_URL
+    qi_url = qi_url or PEPPER_QI_URL
     print("[player] Using qi_url:", qi_url)
     print("[player] WAV file:", wav_path)
 

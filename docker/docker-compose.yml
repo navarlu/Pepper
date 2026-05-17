@@ -95,7 +95,6 @@ services:
       PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-30}
       PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-30}
       BRIDGE_BIND_HOST: "0.0.0.0"
-      TCP_PORT: "55555"
       BRIDGE_URL: http://0.0.0.0:5000
       # Wake/sleep is driven by the ExperimentStateWatcher polling
       # services/data/state.json.experiment_active (written by
@@ -137,8 +136,13 @@ services:
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
-      TCP_HOST: 127.0.0.1
-      TCP_PORT: 55555
+      # Audio path is LiveKit → ssh+paplay → Pepper PulseAudio.
+      # Override the SSH target / credentials via .env if your Pepper
+      # is at a different IP or has a non-default password.
+      PEPPER_SSH_HOST: ${PEPPER_SSH_HOST:-10.42.0.205}
+      PEPPER_SSH_USER: ${PEPPER_SSH_USER:-nao}
+      PEPPER_SSH_PASSWORD: ${PEPPER_SSH_PASSWORD:-Argus}
+      PEPPER_PAPLAY_LATENCY_MS: ${PEPPER_PAPLAY_LATENCY_MS:-30}
     network_mode: host
     restart: unless-stopped
 

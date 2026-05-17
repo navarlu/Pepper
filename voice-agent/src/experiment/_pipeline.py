@@ -2,7 +2,7 @@
 
 Both Mode A (local: silero VAD + FasterWhisper STT + vLLM Llama + Piper
 TTS, [agent.py](agent.py)) and Mode C (cloud: silero VAD +
-gpt-4o-transcribe + gpt-4o-mini + gpt-4o-mini-tts,
+gpt-4o-mini-transcribe + gpt-4o-mini + gpt-4o-mini-tts,
 [agent_4o.py](agent_4o.py)) are chained STT->LLM->TTS pipelines that
 share ~80 % of their wiring. Before this module they each carried a
 near-identical copy of:
