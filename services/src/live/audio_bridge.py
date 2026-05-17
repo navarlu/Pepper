@@ -116,6 +116,18 @@ class AudioBridge:
         # Used by the drain handler to compute when PA has actually
         # finished playing the buffered tail.
         self._last_write_ts: float = 0.0
+        # Monotonic timestamp of the first PCM byte of the current
+        # utterance. Reset to None on each stream-end / drain so the
+        # next utterance triggers a fresh `speaker_first_sound`
+        # publish. Used by the experiment recorder to measure
+        # `pepper_first_sound` latency end-to-end.
+        self._first_sound_ts: float | None = None
+        # Post-drain cooldown — after a drain completes, silence
+        # gate hangover frames can leak through and would otherwise
+        # spuriously fire `speaker_first_sound` immediately. Frames
+        # arriving within this window are still played (don't break
+        # tail audio) but don't reset the first-sound marker.
+        self._first_sound_suppress_until: float = 0.0
 
     # ── paplay subprocess management ────────────────────────────────
 
@@ -226,7 +238,21 @@ class AudioBridge:
         try:
             proc.stdin.write(pcm)
             proc.stdin.flush()
-            self._last_write_ts = time.monotonic()
+            now = time.monotonic()
+            self._last_write_ts = now
+            # Only fire `speaker_first_sound` if (a) this is the first
+            # byte since the last drain, AND (b) we're past the
+            # post-drain cooldown window. The cooldown rejects
+            # silence-gate hangover frames that otherwise produce a
+            # spurious `pepper_first_sound` immediately after each
+            # `pepper_drain_ack`.
+            first_of_utterance = (
+                self._first_sound_ts is None
+                and now >= self._first_sound_suppress_until
+            )
+            if first_of_utterance:
+                self._first_sound_ts = now
+                asyncio.create_task(self._publish_speaker_first_sound(len(pcm)))
             return True
         except (BrokenPipeError, OSError) as exc:
             print(f"[audio-bridge] paplay pipe broken: {exc!r} — will respawn")
@@ -244,6 +270,10 @@ class AudioBridge:
             if proc is None:
                 return
             self._paplay_proc = None
+            # Closing the pipe ends the current utterance — the next
+            # one starts a fresh paplay process and must re-publish
+            # `speaker_first_sound`.
+            self._first_sound_ts = None
             print(f"[audio-bridge] closing paplay reason={reason} pid={proc.pid}")
             try:
                 if proc.stdin is not None:
@@ -270,6 +300,26 @@ class AudioBridge:
         Cheap: ssh handshake stays warm via ControlMaster-free reuse
         on Pepper's sshd, paplay cold-start is <100 ms in practice."""
         await self._close_paplay(reason)
+
+    async def _publish_speaker_first_sound(self, first_chunk_bytes: int) -> None:
+        """Tell the worker that PA has accepted the first PCM byte of
+        the current agent utterance. Published over LiveKit so the
+        experiment recorder can timestamp `pepper_first_sound`."""
+        if self.room is None:
+            return
+        import json
+        try:
+            payload = json.dumps(
+                {
+                    "kind": "speaker_first_sound",
+                    "ts": time.time(),
+                    "first_chunk_bytes": first_chunk_bytes,
+                },
+                ensure_ascii=False,
+            ).encode("utf-8")
+            await self.room.local_participant.publish_data(payload, topic=TOPIC_SPEECH)
+        except Exception as exc:
+            print(f"[audio-bridge] publish speaker_first_sound failed: {exc!r}")
 
     async def _publish_speaker_drained(self, reason: str) -> None:
         """Tell the worker that Pepper's speaker has actually drained.
@@ -300,6 +350,7 @@ class AudioBridge:
         """
         if self._paplay_proc is None or self._paplay_proc.poll() is not None:
             # Nothing playing; ack immediately.
+            self._first_sound_ts = None
             await self._publish_speaker_drained(reason="no_pipe")
             return
         tail_sec = max(0.0, PEPPER_DRAIN_TAIL_MS / 1000.0)
@@ -312,6 +363,14 @@ class AudioBridge:
             await asyncio.sleep(min(remaining, 0.05))
             if self._paplay_proc is None or self._paplay_proc.poll() is not None:
                 break
+        # End of utterance — reset the first-sound marker so the next
+        # agent utterance re-emits `speaker_first_sound`. The paplay
+        # pipe stays open (no flush) to avoid the ~100 ms cold-start
+        # cost on the next utterance. A 400 ms cooldown rejects any
+        # silence-gate hangover frames that arrive in the post-drain
+        # window — those should not re-trigger first-sound.
+        self._first_sound_ts = None
+        self._first_sound_suppress_until = time.monotonic() + 0.4
         await self._publish_speaker_drained(reason="paplay_tail_elapsed")
 
     # ── LiveKit ──

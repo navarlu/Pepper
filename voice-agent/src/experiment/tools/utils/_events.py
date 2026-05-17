@@ -27,6 +27,11 @@ from ._common import _json
 
 _external_tool_listener: Any = None
 _external_tool_result_listener: Any = None
+# Generic experiment-event listener. Used by sub-components (animation
+# queue, filler TTS, …) that aren't tools but still want to push a
+# structured event onto the per-session JSONL. Signature:
+# listener(event_kind: str, data: dict). Errors are swallowed.
+_external_experiment_listener: Any = None
 
 # Per-task context: which tool is currently executing. Set by
 # _emit_tool_event at entry, read by _heartbeat_or_none at exit. A
@@ -55,6 +60,34 @@ def set_tool_result_listener(listener) -> None:
     listener(name, result_dict_or_None)."""
     global _external_tool_result_listener
     _external_tool_result_listener = listener
+
+
+def set_experiment_event_listener(listener) -> None:
+    """Register a callback for generic experiment events fired by
+    sub-components (animation queue, filler TTS, …).
+
+    Signature: listener(event_kind: str, data: dict). Errors in the
+    listener are swallowed — observability must never break the
+    underlying behaviour.
+    """
+    global _external_experiment_listener
+    _external_experiment_listener = listener
+
+
+def emit_experiment_event(event_kind: str, data: dict[str, Any]) -> None:
+    """Forward a generic experiment event to the registered listener.
+
+    Public so non-tool helpers (`_animation`, `_filler`, future hooks)
+    can publish into the per-session JSONL without depending on the
+    worker module directly.
+    """
+    if _external_experiment_listener is None:
+        return
+    try:
+        _external_experiment_listener(event_kind, data)
+    except Exception as exc:  # noqa: BLE001
+        # Cosmetic — never let a recorder crash a producer.
+        print(f"  [exp-event:{event_kind}] listener error: {exc!r}")
 
 
 def _emit_tool_event(name: str, args: dict[str, Any]) -> None:

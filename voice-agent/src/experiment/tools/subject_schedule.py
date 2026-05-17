@@ -31,26 +31,22 @@ async def subject_schedule(
 ) -> Any:
     """Look up the public timetable for a course / subject.
 
-    Use this when the user asks when or where a subject's lecture,
+    Call this when the user asks when or where a subject's lecture,
     lab, exercise, or tutorial happens.
 
     The `subject` argument MUST be a short course code: 2 to 4
     letters with an optional single trailing digit (e.g. XYZ, AB,
     WXYZ, XYZ1, AB2). Course names or long codes like A1B23CDE are
-    NOT accepted — ask the user via send_message_to_user for the
-    short code.
-
-    activity: SESSION-TYPE filter. Pass "lecture" / "exercise" /
-    "laboratory" if the user named the kind, else "".
-    day: optional weekday filter — empty, Monday, ..., Friday.
+    NOT accepted — ask the user for the short code instead.
 
     Always read the `instruction` field of the result and follow it.
 
     subject: short intranet course code, 2 to 4 letters with optional digit.
-    activity: session-type filter or "".
-    day: optional weekday filter.
+    activity: session-type filter — "lecture" / "exercise" / "laboratory" or "".
+    day: optional weekday filter — empty, Monday, ..., Friday.
     emotion: body language while fetching. Default 'think'.
-    request_heartbeat: True (default) to continue.
+    request_heartbeat: True (default) to continue the turn so you
+        can read the schedule to the user.
     """
     asyncio.create_task(_speak_filler(context, "Checking the schedule, one moment."))
     del context
@@ -76,7 +72,7 @@ async def subject_schedule(
                 "The `subject` argument must be a short intranet "
                 "course code: 2 to 4 letters with an optional single "
                 f"trailing digit. You passed '{subject_q}'. Ask the "
-                "user via send_message_to_user for the correct code."
+                "user for the correct code."
             ),
         }, request_heartbeat)
 
@@ -91,8 +87,8 @@ async def subject_schedule(
             "error": "subject_schedule_failed",
             "message": str(exc),
             "instruction": (
-                "The timetable service errored. Apologise via "
-                "send_message_to_user and ask the user to try again."
+                "The timetable service errored. Apologise to the "
+                "user and ask them to try again."
             ),
         }, request_heartbeat)
 
@@ -103,8 +99,8 @@ async def subject_schedule(
     if status == "not_found":
         slim["instruction"] = (
             f"No subject with code '{subject_q.upper()}' was found. "
-            "Tell the user via send_message_to_user the code is "
-            "unknown and ask them to double-check the short code."
+            "Tell the user the code is unknown and ask them to "
+            "double-check the short code."
         )
     elif status == "ambiguous":
         matches = result.get("matches") or []
@@ -113,8 +109,8 @@ async def subject_schedule(
         ]
         slim["instruction"] = (
             "Several subjects share that short code. Read 2–3 "
-            "candidate names back to the user via "
-            "send_message_to_user and ask which one they meant."
+            "candidate names back to the user and ask which one "
+            "they meant."
         )
     elif status == "ok":
         events = result.get("events") or []
@@ -135,13 +131,13 @@ async def subject_schedule(
         elif slim["count"] == 0:
             slim["instruction"] = (
                 "Subject exists but no event matches the filters. "
-                "Tell the user via send_message_to_user."
+                "Tell the user."
             )
         else:
             slim["instruction"] = (
-                "In your send_message_to_user, mention day, start "
-                "time (only the hour), room, and teachers. No end "
-                "times, no week ranges unless the user asks."
+                "Reply mentioning day, start time (only the hour), "
+                "room, and teachers. No end times, no week ranges "
+                "unless the user asks."
             )
     else:
         slim["instruction"] = result.get("message", "")

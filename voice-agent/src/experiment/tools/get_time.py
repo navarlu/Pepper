@@ -20,17 +20,15 @@ async def get_time(
     emotion: Emotion = "think",
     request_heartbeat: bool = True,
 ) -> Any:
-    """Return the current local time. Use only when the user
-    explicitly asks what time it is.
+    """Return the current local time, weekday, and date.
 
-    emotion: body language while checking the clock. Default
-        'think'; override freely if a different mood fits.
-    request_heartbeat: True (default) to continue.
+    Call this when the user asks what time it is, what day it is,
+    or what today's date is.
+
+    emotion: body language while checking the clock. Default 'think'.
+    request_heartbeat: True (default) to continue the turn so you
+        can read the time to the user.
     """
-    #context.session.say(
-        #"Let me check the time for you.",
-        #add_to_chat_ctx=False,
-    #)
     del context
     print(f"  [tool] get_time(emotion={emotion!r}, hb={request_heartbeat})")
     _emit_tool_event("get_time", {
@@ -39,5 +37,10 @@ async def get_time(
     if emotion:
         asyncio.create_task(trigger_animation(emotion))
     now = datetime.now(ZoneInfo("Europe/Prague"))
-    payload = {"time": now.strftime("%Y-%m-%d %H:%M %Z")}
+    payload = {
+        "time": now.strftime("%H:%M"),
+        "weekday": now.strftime("%A"),
+        "date": now.strftime("%Y-%m-%d"),
+        "timezone": now.strftime("%Z"),
+    }
     return _heartbeat_or_none(payload, request_heartbeat)

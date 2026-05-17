@@ -14,8 +14,11 @@ whole reason this layer exists.
 from __future__ import annotations
 
 import os
+import time
 
 from livekit.agents import RunContext
+
+from ._events import emit_experiment_event, _current_tool_name
 
 # Master switch — set TOOL_FILLERS=0 to silence every tool filler at
 # once without touching the call sites. Default: enabled.
@@ -30,8 +33,21 @@ async def _speak_filler(context: RunContext, text: str) -> None:
     text = (text or "").strip()
     if not text:
         return
+    source_tool = _current_tool_name.get()
+    started = time.monotonic()
     try:
         handle = context.session.say(text, allow_interruptions=False)
         await handle.wait_for_playout()
+        emit_experiment_event("filler_spoken", {
+            "tool": source_tool,
+            "filler_text": text,
+            "playout_ms": int((time.monotonic() - started) * 1000),
+        })
     except Exception as exc:
         print(f"  [filler] playout error: {exc!r}")
+        emit_experiment_event("error", {
+            "component": "filler",
+            "message": f"playout error: {exc!r}",
+            "tool": source_tool,
+            "recovered": True,
+        })

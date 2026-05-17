@@ -31,11 +31,22 @@ async def query_search(
     emotion: Emotion = "think",
     request_heartbeat: bool = True,
 ) -> Any:
-    """Search the knowledge base.
+    """Search the school's internal document knowledge base.
 
-    query: copy the user's factual question, 3-10 words.
-    emotion: body language. Default 'think'.
-    request_heartbeat: True (default) to continue.
+    Call this when the user asks about university rules, study
+    regulations, official procedures, deadlines, scholarships, exam
+    rules, enrolment, dorm info, or any other internal-document
+    topic — and ONLY when no other tool fits.
+
+    Do NOT call this for greetings, smalltalk, opinions, or for
+    questions another tool already handles (people → lookup_person,
+    rooms → find_path_to_room, course timetable → subject_schedule,
+    canteen → mensa_menu, current time → get_time).
+
+    query: a short paraphrase of the user's question, 3-10 words.
+    emotion: body language while searching. Default 'think'.
+    request_heartbeat: True (default) to continue the turn so you
+        can read the answer to the user.
     """
     del context
     query_text = (query or "").strip()

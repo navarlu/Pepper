@@ -39,12 +39,19 @@ import datetime as dt
 import json
 import logging
 import os
+import statistics
 import sys
 import time
+from collections import Counter
 from pathlib import Path
 
 from dotenv import load_dotenv
 from livekit import api, rtc
+
+# Audio capture lives in the same package; import after sys.path
+# manipulation in case the launcher is run with cwd ≠ project root.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from audio_capture import AudioCapture  # noqa: E402
 
 
 # ── Paths + env ──────────────────────────────────────────────────────
@@ -113,45 +120,134 @@ def _parse_args() -> argparse.Namespace:
     return p.parse_args()
 
 
-def _make_log_path(student_id: str, variant: str) -> Path:
+def _make_session_dir(student_id: str, variant: str) -> Path:
+    """Per-session directory under ``results/experiments/<date>/``.
+
+    Layout (one tree per conversation):
+
+        results/experiments/2026-05-17/
+          student22_streamingA_174650/
+            events.jsonl
+            metrics.json
+            audio/
+              T22_turn1_user.wav
+              T22_turn1_agent.wav
+              …
+
+    Keeping each session in its own folder makes mixed-day exports
+    trivial (just `cp -r` one directory), keeps audio next to its
+    JSONL, and avoids any "did THIS sidecar belong to THAT jsonl?"
+    ambiguity when scanning a day with dozens of sessions.
+    """
     now = dt.datetime.now()
     date_dir = RESULTS_ROOT / now.strftime("%Y-%m-%d")
-    date_dir.mkdir(parents=True, exist_ok=True)
-    return date_dir / f"student{student_id}_streaming{variant}_{now:%H%M%S}.jsonl"
+    session_dir = date_dir / f"student{student_id}_streaming{variant}_{now:%H%M%S}"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    return session_dir
+
+
+def _format_conv_id(student_id: str) -> str:
+    """Map student id (1, 2, …, s12345) to the experiment's `T07`-form
+    conversation id. Mirrors `tools/end_conversation_streaming.py`
+    so the QR + JSONL agree on a single label."""
+    try:
+        return f"T{int(student_id):02d}"
+    except (TypeError, ValueError):
+        # Non-numeric student id (e.g. "s12345") — fall through to a
+        # stripped variant. Still unique within a day's experiments.
+        return f"T{str(student_id).strip() or '??'}"
 
 
 # ── Recorder ─────────────────────────────────────────────────────────
 class Recorder:
     """Subscribes to `pepper.experiment` and writes JSONL.
 
-    Each line is one event:
-      {"kind": "session_start", ...}
-      {"kind": "user_turn", "text": "...", "input": "speech"|"typed"}
-      {"kind": "tool_call", "name": "...", "args": {...}}
-      {"kind": "tool_result", "name": "...", "result": {...}}
-      {"kind": "agent_speech", "text": "..."}
-      {"kind": "session_end"}
+    Envelope (one line per event):
+        {
+          "ts":       1731768612.347531,   # wall clock, time.time()
+          "ts_mono":  12.4567,             # seconds since session-start
+                                           # monotonic anchor (wall-clock-
+                                           # derived; see below)
+          "conv_id":  "T07",
+          "variant":  "A" or "B",
+          "event":    "<kind>",
+          "data":     { …payload… }
+        }
+
+    The worker publishes raw `{kind, ts, ...payload}`; this class
+    rewrites each incoming dict into the target envelope, computes
+    `ts_mono` from a one-shot `mono_anchor` event emitted by the
+    worker just after `session_start`, and stamps every line with
+    the shared `conv_id` / `variant`.
+
+    `recorded_at` is no longer written into the envelope but kept
+    available via `_last_recorded_at` for debug log lines.
     """
 
-    def __init__(self, log_path: Path) -> None:
+    def __init__(self, log_path: Path, *, conv_id: str, variant: str) -> None:
         self.log_path = log_path
         self._fh = log_path.open("a", buffering=1)  # line-buffered
+        self.conv_id = conv_id
+        self.variant = variant
         self.event_counts: dict[str, int] = {}
         self.ready_event = asyncio.Event()
         self.session_end_event = asyncio.Event()
+        # `mono_anchor` arrives once, right after session_start. Its
+        # `ts` defines ts_mono=0 for the session; every subsequent
+        # event's ts_mono is `ts - anchor_wall`. If we receive events
+        # BEFORE the anchor (header, session_start) they get
+        # ts_mono=0 retroactively pinned to their own ts.
+        self._anchor_wall: float | None = None
+
+    def _envelope(self, event_kind: str, ts: float, data: dict) -> dict:
+        if self._anchor_wall is None:
+            ts_mono = 0.0
+        else:
+            ts_mono = round(ts - self._anchor_wall, 6)
+        return {
+            "ts": ts,
+            "ts_mono": ts_mono,
+            "conv_id": self.conv_id,
+            "variant": self.variant,
+            "event": event_kind,
+            "data": data,
+        }
 
     def write(self, event: dict) -> None:
-        event = {**event, "recorded_at": time.time()}
-        line = json.dumps(event, ensure_ascii=False, default=str)
-        self._fh.write(line + "\n")
+        """Accept a worker-side `{kind, ts, ...payload}` dict (or a
+        launcher-synthesised event with the same shape), rewrite it
+        into the envelope, write one JSON line."""
         kind = str(event.get("kind", "?"))
+        ts = float(event.get("ts") or time.time())
+
+        # `mono_anchor` is a meta-event — capture the worker's wall
+        # clock at "now" so subsequent ts_mono can be derived.
+        if kind == "mono_anchor" and self._anchor_wall is None:
+            anchor_wall = event.get("worker_wall")
+            if isinstance(anchor_wall, (int, float)):
+                self._anchor_wall = float(anchor_wall)
+            else:
+                self._anchor_wall = ts
+
+        # Strip envelope-meta keys out of the payload.
+        data = {
+            k: v for k, v in event.items()
+            if k not in {"kind", "ts"}
+        }
+
+        envelope = self._envelope(kind, ts, data)
+        line = json.dumps(envelope, ensure_ascii=False, default=str)
+        self._fh.write(line + "\n")
         self.event_counts[kind] = self.event_counts.get(kind, 0) + 1
 
         if kind == "session_start" and not self.ready_event.is_set():
             self._print_ready_banner(event)
             self.ready_event.set()
-            return
 
+        # Operator-facing one-liner. `[record] {kind}{tail}` MUST stay
+        # byte-identical for `loop_launcher_streaming.py`'s idle
+        # watchdog (it greps stdout for `[record] user_turn` and
+        # `[record] session_end`).
         if kind == "session_end":
             self.session_end_event.set()
             print("[record] session_end", flush=True)
@@ -193,6 +289,7 @@ class Recorder:
                      started: dt.datetime) -> None:
         self.write({
             "kind": "header",
+            "ts": time.time(),
             "student_id": student_id,
             "variant": f"streaming{variant}",
             "room": room,
@@ -200,14 +297,169 @@ class Recorder:
             "host": os.uname().nodename,
         })
 
-    def write_footer(self, *, ended: dt.datetime, started: dt.datetime, exit_reason: str) -> None:
+    def write_footer(self, *, ended: dt.datetime, started: dt.datetime,
+                     exit_reason: str) -> None:
+        """Post-pass: stream-read the JSONL we just wrote, compute
+        per-turn latency aggregates + counts, write one final
+        envelope line, and dump a `<basename>.metrics.json` sidecar
+        with the same data so the analysis notebook can read N
+        sessions with a single `pandas.read_json` glob."""
+        metrics = self._compute_aggregates(
+            ended=ended, started=started, exit_reason=exit_reason,
+        )
         self.write({
             "kind": "footer",
+            "ts": time.time(),
+            **metrics,
+        })
+        # Sidecar: same payload as the footer's `data`, written to
+        # `metrics.json` alongside the events.jsonl. Optional —
+        # best-effort; analysis works without it (the footer line is
+        # canonical).
+        try:
+            sidecar = self.log_path.parent / "metrics.json"
+            with sidecar.open("w", encoding="utf-8") as fh:
+                json.dump({
+                    "conv_id": self.conv_id,
+                    "variant": self.variant,
+                    **metrics,
+                }, fh, ensure_ascii=False, indent=2, default=str)
+        except OSError as exc:
+            print(
+                f"[launcher-streaming] metrics sidecar write failed: {exc!r}",
+                file=sys.stderr,
+            )
+
+    def _compute_aggregates(
+        self, *, ended: dt.datetime, started: dt.datetime, exit_reason: str,
+    ) -> dict:
+        """Stream-read the JSONL we just wrote and compute per-turn
+        latency pairs + counts. Stateless — re-runnable post-hoc on an
+        unchanged file."""
+        # Per-turn timestamps (ts_mono seconds) for every latency event.
+        # Each key holds {turn_id: ts_mono}.
+        per_turn: dict[str, dict[int, float]] = {
+            "vad_user_speech_end": {},
+            "llm_request_start": {},
+            "llm_response_end": {},
+            "tts_request_start": {},
+            "tts_first_audio": {},
+            "pepper_first_sound": {},
+            "pepper_drain_ack": {},
+        }
+        tools_used: list[str] = []
+        emotions_used: Counter[str] = Counter()
+        n_user_turns = n_tool_calls = n_animation_requests = 0
+        n_animation_dropped = n_errors = n_warnings = 0
+        n_typed_input = 0
+
+        try:
+            with self.log_path.open("r", encoding="utf-8") as fh:
+                for raw in fh:
+                    raw = raw.strip()
+                    if not raw:
+                        continue
+                    try:
+                        line = json.loads(raw)
+                    except json.JSONDecodeError:
+                        continue
+                    event_kind = line.get("event")
+                    data = line.get("data") or {}
+                    ts_mono = float(line.get("ts_mono") or 0.0)
+                    if event_kind in per_turn:
+                        turn_id = data.get("turn_id")
+                        if isinstance(turn_id, int):
+                            # First occurrence wins — preemptive
+                            # generation can fire llm_request_start
+                            # twice for the same turn; the user-
+                            # facing latency is the first one.
+                            per_turn[event_kind].setdefault(turn_id, ts_mono)
+                    if event_kind == "user_turn":
+                        n_user_turns += 1
+                    elif event_kind == "tool_call":
+                        n_tool_calls += 1
+                        name = data.get("name")
+                        if name:
+                            tools_used.append(name)
+                    elif event_kind == "animation_requested":
+                        n_animation_requests += 1
+                        emo = data.get("emotion") or data.get("group")
+                        if emo:
+                            emotions_used[str(emo)] += 1
+                    elif event_kind == "animation_dropped":
+                        n_animation_dropped += 1
+                    elif event_kind == "error":
+                        n_errors += 1
+                    elif event_kind == "warn":
+                        n_warnings += 1
+                    elif event_kind == "typed_input":
+                        n_typed_input += 1
+        except OSError as exc:
+            print(
+                f"[launcher-streaming] footer read-back failed: {exc!r}",
+                file=sys.stderr,
+            )
+
+        def _pair_delta(key_start: str, key_end: str) -> list[float]:
+            starts = per_turn.get(key_start, {})
+            ends = per_turn.get(key_end, {})
+            out: list[float] = []
+            for tid, t_start in starts.items():
+                t_end = ends.get(tid)
+                if t_end is None or t_end < t_start:
+                    continue
+                out.append(t_end - t_start)
+            return out
+
+        def _summarise(samples: list[float]) -> dict:
+            if not samples:
+                return {}
+            ordered = sorted(samples)
+
+            def _pct(p: float) -> float:
+                # Nearest-rank percentile — small-N robust, stdlib only.
+                idx = max(0, min(len(ordered) - 1, int(round(p * (len(ordered) - 1)))))
+                return ordered[idx]
+            return {
+                "n": len(ordered),
+                "min": round(ordered[0], 4),
+                "max": round(ordered[-1], 4),
+                "median": round(statistics.median(ordered), 4),
+                "p90": round(_pct(0.90), 4),
+            }
+
+        return {
+            "conv_id": self.conv_id,
+            "variant": self.variant,
             "ended": ended.isoformat(timespec="seconds"),
             "duration_seconds": round((ended - started).total_seconds(), 2),
             "exit_reason": exit_reason,
+            "n_user_turns": n_user_turns,
+            "n_typed_input": n_typed_input,
+            "n_tool_calls": n_tool_calls,
+            "n_animation_requests": n_animation_requests,
+            "n_animation_dropped": n_animation_dropped,
+            "n_errors": n_errors,
+            "n_warnings": n_warnings,
+            "tools_used": sorted(set(tools_used)),
+            "emotions_used": dict(emotions_used),
             "event_counts": self.event_counts,
-        })
+            "latency_first_audio_s": _summarise(
+                _pair_delta("vad_user_speech_end", "pepper_first_sound"),
+            ),
+            "llm_latency_s": _summarise(
+                _pair_delta("llm_request_start", "llm_response_end"),
+            ),
+            "tts_first_audio_s": _summarise(
+                _pair_delta("tts_request_start", "tts_first_audio"),
+            ),
+            "playback_duration_s": _summarise(
+                _pair_delta("pepper_first_sound", "pepper_drain_ack"),
+            ),
+            "total_turn_s": _summarise(
+                _pair_delta("vad_user_speech_end", "pepper_drain_ack"),
+            ),
+        }
 
     def close(self) -> None:
         self._fh.close()
@@ -464,18 +716,27 @@ async def run(args: argparse.Namespace) -> int:
     variant = args.variant
     agent_name = AGENT_NAME_BY_VARIANT[variant]
     room_name = args.room
-    log_path = _make_log_path(student_id, variant)
+    session_dir = _make_session_dir(student_id, variant)
+    log_path = session_dir / "events.jsonl"
+    conv_id = _format_conv_id(student_id)
     started = dt.datetime.now()
 
-    print(f"[launcher-streaming] student_id = {student_id}")
-    print(f"[launcher-streaming] variant    = {variant}  (agent={agent_name})")
-    print(f"[launcher-streaming] room       = {room_name}")
-    print(f"[launcher-streaming] log file   = {log_path}")
+    print(f"[launcher-streaming] student_id  = {student_id}")
+    print(f"[launcher-streaming] conv_id     = {conv_id}")
+    print(f"[launcher-streaming] variant     = {variant}  (agent={agent_name})")
+    print(f"[launcher-streaming] room        = {room_name}")
+    print(f"[launcher-streaming] session_dir = {session_dir}")
 
-    recorder = Recorder(log_path)
+    recorder = Recorder(log_path, conv_id=conv_id, variant=variant)
     recorder.write_header(
         student_id=student_id, variant=variant, room=room_name, started=started,
     )
+
+    # Per-session audio dir — sits inside `session_dir/audio/` so the
+    # session is self-contained (events.jsonl + metrics.json + audio
+    # under one tree).
+    audio_dir = session_dir / "audio"
+    audio_capture: AudioCapture | None = None
 
     exit_reason = "ok"
     room: rtc.Room | None = None
@@ -543,8 +804,48 @@ async def run(args: argparse.Namespace) -> int:
             except (ValueError, TypeError):
                 return
             recorder.write(event)
+            # Route turn-boundary events into AudioCapture so per-turn
+            # WAVs roll in lockstep with the JSONL. Agent rotation is
+            # NOT per-TTS-utterance — multiple `session.say()` calls
+            # within one turn (e.g. the end-of-conversation farewell)
+            # must accumulate into ONE `T<id>_turn{N}_agent.wav`.
+            # So we rotate the agent WAV only on (a) the NEXT user
+            # turn boundary, or (b) session_end.
+            if audio_capture is None:
+                return
+            kind = str(event.get("kind") or "")
+            if kind == "vad_user_speech_end":
+                turn_id = event.get("turn_id")
+                if isinstance(turn_id, int):
+                    audio_capture.close_user_turn(turn_id)
+                    # Close the agent's response to the previous turn
+                    # (its audio was captured between two user-end
+                    # markers). Turn 1's agent file gets closed on
+                    # session_end.
+                    if turn_id > 1:
+                        audio_capture.close_agent_turn(turn_id - 1)
+            elif kind == "session_end":
+                # Final agent file: the response to the LAST user
+                # turn. The launcher doesn't track turn_id locally,
+                # so peek at the recorder's last-seen turn (best
+                # effort — recorder.event_counts doesn't carry it,
+                # but the worker re-emits turn_id on every event so
+                # the value below is set elsewhere). Fall back to
+                # using the recorder's count of vad ends.
+                final_turn = recorder.event_counts.get("vad_user_speech_end", 0)
+                if final_turn > 0:
+                    audio_capture.close_agent_turn(final_turn)
 
         await room.connect(args.livekit_url, token)
+        # Start audio capture AFTER room.connect so the `track_subscribed`
+        # handler is registered in time for the agent's audio publish.
+        audio_capture = AudioCapture(
+            room=room,
+            audio_dir=audio_dir,
+            conv_id=conv_id,
+            user_identity=os.environ.get("USER_IDENTITY", "user"),
+        )
+        audio_capture.start()
         print(f"[launcher-streaming] recorder joined room={room_name} "
               f"identity={RECORDER_IDENTITY}")
         print("[launcher-streaming] waiting for agent to warm up...", flush=True)
@@ -649,6 +950,17 @@ async def run(args: argparse.Namespace) -> int:
                 file=sys.stderr,
             )
 
+        # Finalise any in-flight audio FIRST — once we disconnect the
+        # room the track subscription drops and we lose tail frames.
+        if audio_capture is not None:
+            try:
+                await audio_capture.shutdown()
+            except Exception as exc:
+                print(
+                    f"[launcher-streaming] audio_capture shutdown failed: {exc!r}",
+                    file=sys.stderr,
+                )
+
         if room is not None:
             try:
                 await room.disconnect()
@@ -661,10 +973,13 @@ async def run(args: argparse.Namespace) -> int:
             pass
 
         ended = dt.datetime.now()
+        # Post-pass: streams back through the JSONL we just wrote,
+        # computes per-turn latency aggregates + counts, appends one
+        # `footer` event, and dumps a sidecar `.metrics.json`.
         recorder.write_footer(ended=ended, started=started, exit_reason=exit_reason)
         recorder.close()
         print(f"[launcher-streaming] done exit_reason={exit_reason} "
-              f"log={recorder.log_path}")
+              f"session_dir={recorder.log_path.parent}")
 
     return 0
 

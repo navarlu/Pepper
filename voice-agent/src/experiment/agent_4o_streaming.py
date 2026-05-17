@@ -93,12 +93,16 @@ from tools.lookup_person import lookup_person  # noqa: E402
 from tools.mensa_menu import mensa_menu  # noqa: E402
 from tools.subject_schedule import subject_schedule  # noqa: E402
 from tools.get_time import get_time  # noqa: E402
+from tools.query_search import query_search  # noqa: E402
 from tools.end_conversation_streaming import end_conversation_streaming  # noqa: E402
 from tools.utils._events import (  # noqa: E402
     set_tool_event_listener,
     set_tool_result_listener,
+    set_experiment_event_listener,
 )
 import _streaming_runtime  # noqa: E402
+
+from src.live.bridge_client import post_head_lock  # noqa: E402
 
 STREAMING_TOOLS = [
     find_path_to_room,
@@ -106,8 +110,23 @@ STREAMING_TOOLS = [
     mensa_menu,
     subject_schedule,
     get_time,
+    query_search,
     end_conversation_streaming,
 ]
+
+
+def _format_tool_summary(tools_list) -> str:
+    """One line per tool: `- name: first-line of description`.
+    Used by the per-session LLM-context dump (parity with agent_streaming.py)."""
+    lines: list[str] = []
+    for t in tools_list:
+        info = getattr(t, "info", None)
+        name = getattr(info, "name", None) or getattr(t, "__name__", "?")
+        desc = (getattr(info, "description", None)
+                or (getattr(t, "__doc__", "") or "").strip())
+        first = desc.splitlines()[0].strip() if desc else "(no doc)"
+        lines.append(f"  - {name}: {first}")
+    return "\n".join(lines)
 
 
 # ── Logging ──────────────────────────────────────────────────────────
@@ -143,6 +162,15 @@ RECORDER_IDENTITY = os.environ.get("RECORDER_IDENTITY", "experimenter-recorder")
 TOPIC_EXPERIMENT = "pepper.experiment"
 TOPIC_TEXT = "pepper.text"
 TOPIC_CONTROL = "pepper.control"
+# `pepper.state` is what `tablet_server.py` listens on (field
+# `agent_state`). The streaming worker deliberately doesn't publish
+# the full state stream — it only pins `agent_state` to "listening"
+# because the mic is hot for the whole session (allow_interruptions).
+TOPIC_STATE = "pepper.state"
+# Audio bridge publishes `speaker_first_sound` + `speaker_drained` on
+# this topic. Worker re-emits them as `pepper_first_sound` /
+# `pepper_drain_ack` on TOPIC_EXPERIMENT.
+TOPIC_SPEECH = "pepper.speech"
 
 
 # VAD is prewarmed once per worker process so first-dispatch isn't
@@ -187,7 +215,16 @@ class StreamingAgent(Agent):
     drop back to the plain system prompt for subsequent turns.
     """
 
-    def __init__(self, system_prompt: str, greeting_instructions: str, tools_list) -> None:
+    def __init__(
+        self,
+        system_prompt: str,
+        greeting_instructions: str,
+        tools_list,
+        *,
+        event_emitter=None,
+        turn_state: dict | None = None,
+        model_id: str = "",
+    ) -> None:
         super().__init__(instructions=system_prompt, tools=tools_list)
         self._system_prompt = system_prompt
         self._greeting_instructions = greeting_instructions
@@ -196,6 +233,19 @@ class StreamingAgent(Agent):
         # whenever the user actually speaks. No auto-greet at session
         # start.
         self._greeting_done = False
+        self._event_emitter = event_emitter
+        # Shared mutable dict — `entrypoint` bumps `turn_id` on VAD end
+        # and llm_node / tts_node read it for their latency events.
+        self._turn_state = turn_state if turn_state is not None else {"turn_id": 0}
+        self._model_id = model_id
+
+    def _emit(self, kind: str, data: dict) -> None:
+        if self._event_emitter is None:
+            return
+        try:
+            self._event_emitter({"kind": kind, "ts": time.time(), **data})
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("StreamingAgent._emit failed kind=%s err=%r", kind, exc)
 
     async def llm_node(self, chat_ctx, tools, model_settings):
         user_msgs = sum(
@@ -204,7 +254,8 @@ class StreamingAgent(Agent):
             if getattr(item, "type", None) == "message"
             and getattr(item, "role", None) == "user"
         )
-        if user_msgs == 1 and not self._greeting_done:
+        greeting_turn = user_msgs == 1 and not self._greeting_done
+        if greeting_turn:
             # First-turn `tools=[]` parity with agent_streaming.py.
             # 4o doesn't suffer from the Llama-style tool-on-greeting
             # bug, but the rule is universal: a first-turn greeting
@@ -213,8 +264,40 @@ class StreamingAgent(Agent):
             merged = f"{self._system_prompt}\n\n{self._greeting_instructions}"
             update_instructions(chat_ctx, instructions=merged, add_if_missing=True)
             self._greeting_done = True
-            return Agent.default.llm_node(self, chat_ctx, [], model_settings)
-        return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
+            tools_passed: list = []
+        else:
+            tools_passed = tools
+        print(
+            f"  [LLM] turn user_msgs={user_msgs} "
+            f"tools_passed={len(tools_passed)} "
+            f"greeting_spliced={greeting_turn}",
+            flush=True,
+        )
+        turn_id = int(self._turn_state.get("turn_id", 0))
+        n_messages = sum(
+            1 for item in chat_ctx.items if getattr(item, "type", None) == "message"
+        )
+        self._emit("llm_request_start", {
+            "turn_id": turn_id,
+            "model": self._model_id,
+            "n_messages": n_messages,
+            "n_tools": len(tools_passed) if tools_passed is not None else 0,
+            "greeting_splice": greeting_turn,
+        })
+        t0 = time.monotonic()
+        chunks = 0
+        try:
+            async for chunk in Agent.default.llm_node(
+                self, chat_ctx, tools_passed, model_settings,
+            ):
+                chunks += 1
+                yield chunk
+        finally:
+            self._emit("llm_response_end", {
+                "turn_id": turn_id,
+                "elapsed_ms": int((time.monotonic() - t0) * 1000),
+                "chunks": chunks,
+            })
 
     async def tts_node(
         self,
@@ -224,14 +307,16 @@ class StreamingAgent(Agent):
         """Wrap the default TTS node with first-text / first-frame
         timestamps. Lets us see at-a-glance whether a slow utterance
         is the LLM stalling tokens or the TTS API hanging."""
+        turn_id = int(self._turn_state.get("turn_id", 0))
         t0 = time.monotonic()
         first_text_at: float | None = None
         first_frame_at: float | None = None
         text_chars = 0
         frames = 0
+        request_emitted = False
 
         async def _instrumented_text():
-            nonlocal first_text_at, text_chars
+            nonlocal first_text_at, text_chars, request_emitted
             async for chunk in text:
                 if first_text_at is None:
                     first_text_at = time.monotonic()
@@ -241,6 +326,12 @@ class StreamingAgent(Agent):
                         f"chunk={chunk!r}",
                         flush=True,
                     )
+                    if not request_emitted:
+                        self._emit("tts_request_start", {
+                            "turn_id": turn_id,
+                            "first_chunk": chunk[:80],
+                        })
+                        request_emitted = True
                 text_chars += len(chunk)
                 yield chunk
 
@@ -259,6 +350,11 @@ class StreamingAgent(Agent):
                         f"text_to_audio_ms={text_to_audio_ms:.1f}",
                         flush=True,
                     )
+                    self._emit("tts_first_audio", {
+                        "turn_id": turn_id,
+                        "dt_ms": int((first_frame_at - t0) * 1000),
+                        "text_to_audio_ms": int(text_to_audio_ms),
+                    })
                 frames += 1
                 yield frame
         finally:
@@ -269,6 +365,12 @@ class StreamingAgent(Agent):
                     f"total_ms={total_ms:.1f} NO_AUDIO_PRODUCED",
                     flush=True,
                 )
+                self._emit("warn", {
+                    "component": "tts",
+                    "message": "no audio produced",
+                    "turn_id": turn_id,
+                    "text_chars": text_chars,
+                })
             else:
                 stream_ms = (time.monotonic() - first_frame_at) * 1000.0
                 print(
@@ -276,6 +378,13 @@ class StreamingAgent(Agent):
                     f"total_ms={total_ms:.1f} stream_ms={stream_ms:.1f}",
                     flush=True,
                 )
+                self._emit("agent_audio_saved", {
+                    "turn_id": turn_id,
+                    "frames": frames,
+                    "text_chars": text_chars,
+                    "stream_ms": int(stream_ms),
+                    "total_ms": int(total_ms),
+                })
 
 
 # ── Entrypoint ───────────────────────────────────────────────────────
@@ -310,6 +419,50 @@ async def entrypoint(ctx: JobContext) -> None:
             )
         except Exception as exc:
             logger.debug("publish_event submit failed: %s", exc)
+        # Side-effect: ask the audio bridge to drain its paplay buffer
+        # after each TTS utterance ends. The bridge replies on
+        # TOPIC_SPEECH with `speaker_drained`, which the data handler
+        # re-emits as `pepper_drain_ack`. Without this prompt the
+        # bridge has no signal that an utterance has ended (the agent
+        # audio track stays open for the whole session).
+        if event.get("kind") == "agent_audio_saved":
+            try:
+                drain_payload = json.dumps(
+                    {"kind": "request_drain", "ts": time.time()},
+                ).encode("utf-8")
+                asyncio.run_coroutine_threadsafe(
+                    ctx.room.local_participant.publish_data(
+                        drain_payload, topic=TOPIC_SPEECH,
+                    ),
+                    main_loop,
+                )
+            except Exception as exc:
+                logger.debug("publish request_drain failed: %s", exc)
+
+    def _publish_agent_state(state: str) -> None:
+        """Push `{"agent_state": state}` onto `pepper.state` so the
+        tablet's state pill updates. Mirrors `_pipeline.py`'s
+        `_publish_sync_topic(TOPIC_STATE, ...)` call but without the
+        rest of the production state payload (mode/mic/lang/etc) since
+        streaming workers don't own those fields."""
+        try:
+            payload = json.dumps({"agent_state": state}).encode("utf-8")
+        except Exception as exc:
+            logger.debug("publish_agent_state encode failed: %s", exc)
+            return
+        try:
+            asyncio.run_coroutine_threadsafe(
+                ctx.room.local_participant.publish_data(payload, topic=TOPIC_STATE),
+                main_loop,
+            )
+        except Exception as exc:
+            logger.debug("publish_agent_state submit failed: %s", exc)
+
+    # ── Per-session turn counter (shared with the agent's nodes) ─────
+    # Bumped on VAD end-of-speech (or on typed input). Every event in
+    # a turn's latency chain stamps the same turn_id for analysis
+    # groupby.
+    turn_state: dict = {"turn_id": 0}
 
     # ── Tool event listeners (forward to the launcher's recorder) ────
     def _on_tool_event(name: str, args: dict) -> None:
@@ -318,7 +471,13 @@ async def entrypoint(ctx: JobContext) -> None:
         except Exception:
             args_preview = repr(args)
         print(f"  [TOOL] {name}({args_preview})", flush=True)
-        _publish_event({"kind": "tool_call", "name": name, "args": args, "ts": time.time()})
+        _publish_event({
+            "kind": "tool_call",
+            "name": name,
+            "args": args,
+            "turn_id": turn_state["turn_id"],
+            "ts": time.time(),
+        })
 
     def _on_tool_result(name: str, result) -> None:
         try:
@@ -328,10 +487,39 @@ async def entrypoint(ctx: JobContext) -> None:
         if len(preview) > 300:
             preview = preview[:300] + "…"
         print(f"  [TOOL-RESULT] {name} -> {preview}", flush=True)
-        _publish_event({"kind": "tool_result", "name": name, "result": result, "ts": time.time()})
+        _publish_event({
+            "kind": "tool_result",
+            "name": name,
+            "result": result,
+            "turn_id": turn_state["turn_id"],
+            "ts": time.time(),
+        })
+        try:
+            err = result.get("error") if isinstance(result, dict) else None
+        except Exception:
+            err = None
+        if err:
+            _publish_event({
+                "kind": "tool_failed",
+                "name": name,
+                "error": err,
+                "turn_id": turn_state["turn_id"],
+                "ts": time.time(),
+            })
 
     set_tool_event_listener(_on_tool_event)
     set_tool_result_listener(_on_tool_result)
+
+    # Generic experiment events from sub-components (animation/filler/QR).
+    def _on_experiment_event(event_kind: str, data: dict) -> None:
+        _publish_event({
+            "kind": event_kind,
+            "turn_id": turn_state["turn_id"],
+            "ts": time.time(),
+            **(data or {}),
+        })
+
+    set_experiment_event_listener(_on_experiment_event)
 
     # ── Streaming runtime: shared with end_conversation_streaming ────
     _streaming_runtime.reset()
@@ -400,27 +588,79 @@ async def entrypoint(ctx: JobContext) -> None:
 
     ctx.add_shutdown_callback(_log_usage_summary)
 
-    @session.on("user_started_speaking")
-    def _on_user_started(_ev) -> None:
-        print(f"  [VAD] user_started_speaking", flush=True)
+    # Head-lock fires on the FIRST user_started_speaking and stays
+    # locked until the teardown release below. While we're still in the
+    # warm-ready idle window (no user speech yet), Pepper keeps her
+    # autonomous basic awareness on so she looks around naturally.
+    head_locked = {"v": False}
 
-    @session.on("user_stopped_speaking")
-    def _on_user_stopped(_ev) -> None:
-        print(f"  [VAD] user_stopped_speaking", flush=True)
+    # Current livekit-agents emits a single `user_state_changed`
+    # event for VAD transitions; `user_started_speaking` /
+    # `user_stopped_speaking` were removed in this version. We split
+    # the head-lock and end-of-speech logic across the two
+    # transitions.
+    @session.on("user_state_changed")
+    def _on_user_state(event) -> None:
+        old_state = str(getattr(event, "old_state", "?") or "?")
+        new_state = str(getattr(event, "new_state", "?") or "?")
+        print(f"  [VAD] user_state {old_state}->{new_state}", flush=True)
+        if old_state != "speaking" and new_state == "speaking":
+            if not head_locked["v"]:
+                head_locked["v"] = True
+                asyncio.create_task(asyncio.to_thread(post_head_lock, True))
+        elif old_state == "speaking" and new_state != "speaking":
+            turn_state["turn_id"] = int(turn_state.get("turn_id", 0)) + 1
+            _publish_event({
+                "kind": "vad_user_speech_end",
+                "turn_id": turn_state["turn_id"],
+                "prev_state": old_state,
+                "new_state": new_state,
+                "ts": time.time(),
+            })
 
     @session.on("user_input_transcribed")
     def _on_user_speech(event) -> None:
         text = (getattr(event, "text", "") or "").strip()
-        if not text:
-            return
         is_final = bool(getattr(event, "is_final", True))
         tag = "STT" if is_final else "STT-partial"
+        if not text:
+            if is_final:
+                _publish_event({
+                    "kind": "warn",
+                    "component": "stt",
+                    "message": "empty final transcript",
+                    "turn_id": turn_state["turn_id"],
+                    "ts": time.time(),
+                })
+            return
         print(f"  [{tag}] {text!r}", flush=True)
+        if is_final:
+            _publish_event({
+                "kind": "asr_result",
+                "text": text,
+                "is_final": True,
+                "turn_id": turn_state["turn_id"],
+                "ts": time.time(),
+            })
 
     @session.on("agent_state_changed")
     def _on_agent_state(event) -> None:
+        # Streaming mode has `allow_interruptions=True`, so the mic is
+        # always hot — Pepper is effectively always listening. Show
+        # the real LiveKit state in the worker log for debugging, but
+        # pin the tablet to "listening" so the pill doesn't flicker
+        # between thinking/speaking within a single turn.
         new_state = getattr(event, "new_state", None) or getattr(event, "state", "?")
-        print(f"  [STATE] agent_state={new_state}", flush=True)
+        print(f"  [STATE] agent_state={new_state} (tablet pinned to listening)", flush=True)
+        # Telemetry copy on pepper.experiment for the launcher's JSONL.
+        _publish_event({
+            "kind": "tablet_state",
+            "state": "listening",
+            "turn_id": turn_state["turn_id"],
+            "ts": time.time(),
+        })
+        # The real one — pepper.state is what tablet_server reads.
+        _publish_agent_state("listening")
 
     @session.on("conversation_item_added")
     def _on_item_added(event) -> None:
@@ -435,14 +675,32 @@ async def entrypoint(ctx: JobContext) -> None:
                 _typed_inputs.discard(text)
             print(f"  [USER:{input_kind}] {text!r}", flush=True)
             _publish_event({
-                "kind": "user_turn", "text": text, "input": input_kind, "ts": time.time(),
+                "kind": "user_turn",
+                "text": text,
+                "input": input_kind,
+                "turn_id": turn_state["turn_id"],
+                "ts": time.time(),
             })
+            # Reliable per-turn transcript event — the
+            # `user_input_transcribed` path is unreliable in this
+            # livekit version (we frequently see empty finals).
+            if input_kind == "speech":
+                _publish_event({
+                    "kind": "asr_result",
+                    "text": text,
+                    "is_final": True,
+                    "turn_id": turn_state["turn_id"],
+                    "ts": time.time(),
+                })
         elif role == "assistant":
             # Plain-text assistant utterance — what the user actually
             # hears (the streaming TTS reads this verbatim).
             print(f"  [ASSISTANT] {text!r}", flush=True)
             _publish_event({
-                "kind": "agent_speech", "text": text, "ts": time.time(),
+                "kind": "agent_speech",
+                "text": text,
+                "turn_id": turn_state["turn_id"],
+                "ts": time.time(),
             })
 
     # ── Room data handler: typed input + cooperative shutdown ───────
@@ -478,11 +736,55 @@ async def entrypoint(ctx: JobContext) -> None:
             sender = str(getattr(getattr(packet, "participant", None), "identity", "") or "?")
             logger.info("[pepper.text] from=%s text=%s", sender, text[:120])
             _typed_inputs.add(text)
+            # Typed input is a turn boundary; bump turn_id so the
+            # downstream LLM/TTS events for this generation correlate.
+            turn_state["turn_id"] = int(turn_state.get("turn_id", 0)) + 1
+            _publish_event({
+                "kind": "typed_input",
+                "text": text,
+                "by": sender or "operator",
+                "turn_id": turn_state["turn_id"],
+                "ts": time.time(),
+            })
             try:
                 session.interrupt()
                 session.generate_reply(user_input=text)
             except Exception as exc:
                 logger.warning("pepper.text dispatch failed err=%s", exc)
+                _publish_event({
+                    "kind": "error",
+                    "component": "typed_input_dispatch",
+                    "message": repr(exc),
+                    "turn_id": turn_state["turn_id"],
+                    "recovered": True,
+                    "ts": time.time(),
+                })
+            return
+
+        if topic == TOPIC_SPEECH:
+            # Audio bridge publishes `speaker_first_sound` /
+            # `speaker_drained` here. Re-emit as
+            # `pepper_first_sound` / `pepper_drain_ack` on
+            # TOPIC_EXPERIMENT so the launcher sees one unified stream.
+            try:
+                msg = json.loads(getattr(packet, "data", b"") or b"")
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                return
+            kind = str(msg.get("kind", "")).lower()
+            if kind == "speaker_first_sound":
+                _publish_event({
+                    "kind": "pepper_first_sound",
+                    "turn_id": turn_state["turn_id"],
+                    "ts": time.time(),
+                    "first_chunk_bytes": msg.get("first_chunk_bytes"),
+                })
+            elif kind == "speaker_drained":
+                _publish_event({
+                    "kind": "pepper_drain_ack",
+                    "turn_id": turn_state["turn_id"],
+                    "reason": msg.get("reason"),
+                    "ts": time.time(),
+                })
             return
 
         if topic == TOPIC_CONTROL:
@@ -531,6 +833,9 @@ async def entrypoint(ctx: JobContext) -> None:
         system_prompt=SYSTEM_PROMPT,
         greeting_instructions=GREETING_INSTRUCTIONS,
         tools_list=STREAMING_TOOLS,
+        event_emitter=_publish_event,
+        turn_state=turn_state,
+        model_id=LLM_MODEL,
     )
     await session.start(
         agent=agent,
@@ -545,10 +850,43 @@ async def entrypoint(ctx: JobContext) -> None:
         f"total_setup={(time.monotonic() - t_entry) * 1000.0:.0f}ms room={ctx.room.name}",
         flush=True,
     )
+    # One-shot LLM-context dump so we can confirm by reading stdout
+    # exactly which SYSTEM_PROMPT, greeting splice, and tool
+    # descriptions the model receives this session.
+    print(
+        f"[experiment-4o-streaming] === LLM CONTEXT DUMP ===\n"
+        f"--- SYSTEM_PROMPT ({len(SYSTEM_PROMPT)} chars) ---\n"
+        f"{SYSTEM_PROMPT}\n"
+        f"--- GREETING_INSTRUCTIONS (spliced on turn 1) ---\n"
+        f"{GREETING_INSTRUCTIONS}\n"
+        f"--- TOOLS ({len(STREAMING_TOOLS)}) ---\n"
+        f"{_format_tool_summary(STREAMING_TOOLS)}\n"
+        f"=== END DUMP ===",
+        flush=True,
+    )
     # Publish session_start NOW that the room is fully connected — the
     # launcher's recorder uses this event to print its "AGENT WARM AND
     # READY" banner.
     _publish_event(session_start_payload)
+    # Pin tablet to "listening" the moment we're ready. The mic is hot
+    # for the entire session (allow_interruptions=True), so the UI
+    # should never display thinking/speaking — see `_on_agent_state`.
+    _publish_event({
+        "kind": "tablet_state",
+        "state": "listening",
+        "turn_id": turn_state["turn_id"],
+        "ts": time.time(),
+    })
+    _publish_agent_state("listening")
+    # Monotonic anchor — pairs the worker's `time.monotonic()` with
+    # wall-clock for the launcher's `ts_mono` derivation. See
+    # `agent_streaming.py` for the full rationale.
+    _publish_event({
+        "kind": "mono_anchor",
+        "ts": time.time(),
+        "worker_mono": time.monotonic(),
+        "worker_wall": time.time(),
+    })
 
     # No auto-greet: Pepper waits silently until the user first speaks.
     # The first user turn triggers `llm_node`'s greeting splice, so the
@@ -573,6 +911,12 @@ async def entrypoint(ctx: JobContext) -> None:
     )
 
     _publish_event({"kind": "session_end", "ts": time.time()})
+
+    # Release the head BEFORE draining the session so awareness resumes
+    # during the (possibly multi-second) final-sentence playback. Safe
+    # to call unconditionally — `resumeAwareness()` is idempotent and
+    # `post_head_lock` swallows transport errors.
+    await asyncio.to_thread(post_head_lock, False)
 
     # Discriminated tear-down — see agent_streaming.py. `shutdown` is
     # sync; wait briefly on the close event, then aclose as safety.

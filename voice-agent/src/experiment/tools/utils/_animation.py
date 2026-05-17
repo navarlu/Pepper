@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import random
+import time
 
 from tools.utils._common import _VOICE_AGENT_DIR  # noqa: F401  (path side-effect)
 
@@ -27,6 +28,7 @@ from src.live.config import (  # noqa: E402
     ANIMATION_TOOL_ALIASES,
     ANIMATION_TOOL_ALLOWED,
 )
+from ._events import emit_experiment_event, _current_tool_name
 
 # Reserved for benchmark-only overrides on top of the production alias
 # map in `voice-agent/src/live/config.py`. Empty by default — the
@@ -92,8 +94,23 @@ _ANIM_DURATION_SEC = 2.5
 # the relevant speech is over is worse than no gesture at all.
 _QUEUE_MAX = 2
 
-_anim_queue: asyncio.Queue[str] | None = None
+_anim_queue: asyncio.Queue[tuple[str, str, str | None]] | None = None
 _worker_task: asyncio.Task[None] | None = None
+
+
+def _resolve_group(raw_name: str) -> str:
+    """Best-effort: report which canonical group a raw name maps to,
+    for event payloads. Returns the group key if the raw name resolves
+    cleanly; otherwise the raw lowercased input."""
+    clean = str(raw_name or "").strip().lower().replace("-", "_").replace(" ", "_")
+    clean = "".join(ch for ch in clean if ch.isalnum() or ch == "_")
+    clean = _LOCAL_GESTURE_ALIASES.get(clean, clean)
+    if clean in ANIMATION_GROUPS:
+        return clean
+    mapped = ANIMATION_TOOL_ALIASES.get(clean)
+    if mapped:
+        return mapped
+    return clean
 
 
 async def _animation_worker() -> None:
@@ -106,20 +123,40 @@ async def _animation_worker() -> None:
     assert _anim_queue is not None
     print("[anim] worker started")
     while True:
-        resolved = await _anim_queue.get()
+        item = await _anim_queue.get()
+        resolved, group, source_tool = item
+        dispatch_started = time.monotonic()
         try:
             status, body = await asyncio.to_thread(post_animation, resolved)
             print(
                 f"[anim] dispatched variant={resolved} status={status} "
                 f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
             )
+            emit_experiment_event("animation_dispatched", {
+                "variant_name": resolved,
+                "group": group,
+                "status": int(status) if isinstance(status, (int, float)) else status,
+                "source_tool": source_tool,
+                "expected_duration_ms": int(_ANIM_DURATION_SEC * 1000),
+            })
         except Exception as exc:
             print(f"[anim] dispatch failed variant={resolved} err={exc!r}")
+            emit_experiment_event("error", {
+                "component": "animation",
+                "message": f"dispatch failed variant={resolved}: {exc!r}",
+                "recovered": True,
+            })
         finally:
             _anim_queue.task_done()
         # Hold the slot for the estimated runtime so the next gesture
         # starts after the current one is roughly done on the robot.
         await asyncio.sleep(_ANIM_DURATION_SEC)
+        emit_experiment_event("animation_done", {
+            "variant_name": resolved,
+            "group": group,
+            "source_tool": source_tool,
+            "actual_duration_ms": int((time.monotonic() - dispatch_started) * 1000),
+        })
 
 
 def _ensure_worker() -> None:
@@ -143,17 +180,32 @@ async def trigger_animation(name: str) -> bool:
     gate a reply on the return value.
     """
     print(f"[anim] trigger called name={name!r}")
+    source_tool = _current_tool_name.get()
+    group = _resolve_group(name)
     resolved = _normalize_animation_name(name)
     if not resolved:
         print(f"[anim] reject name={name!r} reason=unknown_or_unmapped")
+        emit_experiment_event("animation_dropped", {
+            "emotion": name,
+            "group": group,
+            "reason": "unknown_or_unmapped",
+            "source_tool": source_tool,
+            "queue_max": _QUEUE_MAX,
+        })
         return False
     print(f"[anim] resolved name={name!r} -> variant={resolved}")
+    emit_experiment_event("animation_requested", {
+        "emotion": name,
+        "group": group,
+        "variant_name": resolved,
+        "source_tool": source_tool,
+    })
 
     _ensure_worker()
     assert _anim_queue is not None
 
     try:
-        _anim_queue.put_nowait(resolved)
+        _anim_queue.put_nowait((resolved, group, source_tool))
         print(
             f"[anim] enqueued variant={resolved} "
             f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
@@ -163,4 +215,12 @@ async def trigger_animation(name: str) -> bool:
         print(
             f"[anim] dropped variant={resolved} reason=queue_full(max={_QUEUE_MAX})"
         )
+        emit_experiment_event("animation_dropped", {
+            "emotion": name,
+            "group": group,
+            "variant_name": resolved,
+            "reason": "queue_full",
+            "source_tool": source_tool,
+            "queue_max": _QUEUE_MAX,
+        })
         return False

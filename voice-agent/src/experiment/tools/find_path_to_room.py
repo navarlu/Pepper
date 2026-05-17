@@ -30,19 +30,18 @@ async def find_path_to_room(
     emotion: Emotion = "think",
     request_heartbeat: bool = True,
 ) -> Any:
-    """Get directions to a room in this building. The user is already
-    standing with you at the main entrance.
+    """Get directions to a room in this building.
 
-    Call this when the user asks how to get to a room or where a
-    room is.
+    Call this when the user asks where a room is, or how to get to
+    one. The user is already standing with you at the main entrance.
 
-    room: copy the user's room number VERBATIM. The user's "230" is
-        "230" — not "23". Examples: '101', 'A-205', 'B-310'.
-    emotion: body language while looking up the route. Default
-        'think'; pick whatever fits the moment (e.g. 'happy' if
-        the user asked enthusiastically).
-    request_heartbeat: True (default) to continue the loop so you
-        can read the directions via send_message_to_user.
+    Copy the room number VERBATIM — the user's "230" is "230", not
+    "23". Examples: '101', 'A-205', 'B-310'.
+
+    room: room number exactly as the user said it.
+    emotion: body language while looking up. Default 'think'.
+    request_heartbeat: True (default) to continue the turn so you
+        can read the directions to the user.
     """
     asyncio.create_task(_speak_filler(context, "Let me find that room for you."))
     del context
@@ -70,8 +69,7 @@ async def find_path_to_room(
                 "room": room_norm,
                 "instruction": (
                     f"Room {room_norm} was not found in Building E. "
-                    "Tell the user via send_message_to_user and ask "
-                    "them to confirm the room code."
+                    "Tell the user and ask them to confirm the room code."
                 ),
             }, request_heartbeat)
         directions = _render_floor_only(room_norm, floor)
@@ -81,8 +79,8 @@ async def find_path_to_room(
         "floor": floor,
         "directions": directions,
         "instruction": (
-            "Read the `directions` field via send_message_to_user "
-            "in plain prose, naturally. The user is already with you "
-            "at the entrance — don't tell them to start there."
+            "Read the `directions` field to the user in plain prose, "
+            "naturally. The user is already with you at the entrance "
+            "— don't tell them to start there."
         ),
     }, request_heartbeat)

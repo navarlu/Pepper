@@ -45,7 +45,7 @@ export PYTHONUNBUFFERED=1
 # the worker dies on first STT call with `Library libcublas.so.12 is
 # not found or cannot be loaded`.
 export LD_LIBRARY_PATH="$(python -c 'import glob, nvidia; print(":".join(glob.glob(nvidia.__path__[0] + "/*/lib")))')${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-python voice-agent/src/experiment/agent.py dev
+python voice-agent/src/experiment/agent_streaming.py dev
 # PYTHONUNBUFFERED reaches the watchfiles-spawned worker subprocess
 # (plain `python -u` does not). Without it, prewarm logs sit in a pipe
 # buffer and the pane looks silent until the buffer fills (~4 KB).

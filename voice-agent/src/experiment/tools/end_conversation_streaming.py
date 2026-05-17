@@ -50,7 +50,7 @@ from src.live.config import (  # noqa: E402
 
 from .utils._animation import trigger_animation
 from .utils._emotion import Emotion
-from .utils._events import _emit_tool_event
+from .utils._events import _emit_tool_event, emit_experiment_event
 
 # Streaming-mode shared state lives one level up from the tools package.
 # Absolute import (rather than a relative ..) because tools are loaded
@@ -214,11 +214,22 @@ async def end_conversation_streaming(
             f"  [TOOL] end_conversation tablet_posted",
             flush=True,
         )
+        emit_experiment_event("tablet_qr_shown", {
+            "conv_id_on_qr": conv_id,
+            "display_seconds": display_seconds,
+            "feedback_url": EXPERIMENT_FEEDBACK_URL,
+        })
     except Exception as exc:
         print(
             f"  [TOOL] end_conversation tablet_post_failed err={exc!r}",
             flush=True,
         )
+        emit_experiment_event("error", {
+            "component": "tablet",
+            "message": f"tablet_post_failed: {exc!r}",
+            "conv_id_on_qr": conv_id,
+            "recovered": False,
+        })
 
     # Animation is fire-and-forget — same pattern as production
     # send_message_to_user.
