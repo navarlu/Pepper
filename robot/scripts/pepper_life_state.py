@@ -4,7 +4,7 @@
 
 Run inside the bridge container:
 
-    docker compose -f docker/docker-compose.yml exec bridge \
+    docker compose -f docker/docker-compose.experiment.yml exec bridge \
         python robot/scripts/pepper_life_state.py
 """
 

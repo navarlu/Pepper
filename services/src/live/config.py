@@ -1,8 +1,8 @@
 """Env-backed configuration for every service under `services/src/`.
 
 One module, all the tunables — there's no per-service config file.
-Each service (`orchestrator`, `audio_bridge`, `user_client`,
-`tablet_server`, `text_chat`) imports exactly what it needs.
+Each service (`audio_bridge`, `user_client`, `tablet_server`, and the
+experiment orchestrator) imports exactly what it needs.
 """
 
 from __future__ import annotations

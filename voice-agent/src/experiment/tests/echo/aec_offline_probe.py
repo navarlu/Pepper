@@ -35,7 +35,7 @@ What this script does:
 How to run, on the RPi (the mic and the robot bridge both have to
 be reachable):
 
-    docker compose -f docker/docker-compose.yml stop audio-bridge
+    docker compose -f docker/docker-compose.experiment.yml stop audio-bridge
     uv run python voice-agent/src/experiment/tests/echo/aec_offline_probe.py
 
 Drop your own test WAV at:
@@ -47,7 +47,7 @@ AEC than speech because it has energy across all frequencies, but
 running it once with a real TTS phrase is the most representative.
 
 When done, restart audio-bridge:
-    docker compose -f docker/docker-compose.yml start audio-bridge
+    docker compose -f docker/docker-compose.experiment.yml start audio-bridge
 """
 
 from __future__ import annotations
@@ -431,7 +431,7 @@ class MicCapture:
             # Dump the FULL device list so the user can see exactly what
             # PortAudio found. Common causes when this returns 0 devices:
             #   - production user-client container has the mic exclusively
-            #     (stop it: `docker compose -f docker/docker-compose.yml
+            #     (stop it: `docker compose -f docker/docker-compose.experiment.yml
             #     stop user-client`)
             #   - user not in `audio` group → can't read /dev/snd/*
             #   - no mic plugged in (check `arecord -l`)
@@ -469,9 +469,9 @@ class MicCapture:
                 "[probe] Diagnose with:\n"
                 "    arecord -l\n"
                 "    groups | grep audio\n"
-                "    docker compose -f docker/docker-compose.yml ps user-client\n"
+                "    docker compose -f docker/docker-compose.experiment.yml ps user-client\n"
                 "  If user-client is up, stop it first:\n"
-                "    docker compose -f docker/docker-compose.yml stop user-client\n"
+                "    docker compose -f docker/docker-compose.experiment.yml stop user-client\n"
                 "  Or pin the mic explicitly:\n"
                 "    MIC_DEVICE=2 uv run python ...\n"
                 "    MIC_DEVICE='USB' uv run python ...",
@@ -593,7 +593,7 @@ def main() -> int:
             f"[probe] ERROR cannot connect to robot bridge: {exc!r}\n"
             "  - Is Pepper on?\n"
             "  - Is production audio-bridge stopped? "
-            "(`docker compose -f docker/docker-compose.yml stop audio-bridge`)\n"
+            "(`docker compose -f docker/docker-compose.experiment.yml stop audio-bridge`)\n"
             f"  - Is {TCP_HOST}:{TCP_PORT} the right host/port?",
             flush=True,
         )

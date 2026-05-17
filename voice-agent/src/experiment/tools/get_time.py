@@ -27,6 +27,10 @@ async def get_time(
         'think'; override freely if a different mood fits.
     request_heartbeat: True (default) to continue.
     """
+    #context.session.say(
+        #"Let me check the time for you.",
+        #add_to_chat_ctx=False,
+    #)
     del context
     print(f"  [tool] get_time(emotion={emotion!r}, hb={request_heartbeat})")
     _emit_tool_event("get_time", {

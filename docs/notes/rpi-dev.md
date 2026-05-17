@@ -43,18 +43,17 @@ Container env: `PYTHONPATH=/opt/qi`, `LD_LIBRARY_PATH=/opt/boost-lib:/opt/qi-nat
 
 ```bash
 # Start everything (no profiles — every service runs by default):
-docker compose -f docker/docker-compose.yml --env-file .env up -d
+docker compose -f docker/docker-compose.experiment.yml --env-file .env up -d
 
 # Rebuild and recreate all services:
-docker compose -f docker/docker-compose.yml --env-file .env up -d --force-recreate --build
+docker compose -f docker/docker-compose.experiment.yml --env-file .env up -d --force-recreate --build
 ```
 
 The `.env` file is in the project root (not `docker/`), must be passed with `--env-file .env`.
 
-## Orchestrator (formerly Session Manager)
+## Orchestrator
 
-- **Ubuntu (main)**: still has the older `session_manager` HTTP service with operator dashboard.
-- **RPi**: replaced by the lightweight `orchestrator` ([services/src/live/orchestrator.py](../../services/src/live/orchestrator.py)) — no HTTP server, no dashboard, no health probing. Mode switching is driven by [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) (polled every 3s). Re-dispatch on failure is handled via a simple retry loop.
+- The experiment uses [services/src/experiment/orchestrator.py](../../services/src/experiment/orchestrator.py) — creates the fixed `pepper-experiment` room and writes tokens to `livekit_session.json`. No agent dispatch (the launcher dispatches per session), no mode switching.
 
 ## Pepper IP / Network
 

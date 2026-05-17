@@ -1,39 +1,28 @@
-# Experiment stack — minimal sibling of docker-compose.yml.
+# Experiment stack — the sole compose file for the study.
 #
 # What this compose runs:
-#   livekit + redis              — same as production
-#   weaviate                     — same as production (tools may use it)
-#   reverse-tunnel               — same as production (exposes RPi's
-#                                  LiveKit on woska's localhost so the
-#                                  pepper-experiment worker reaches it)
+#   livekit + redis              — LiveKit server + state store
+#   weaviate                     — RAG vector DB (tools may query it)
+#   reverse-tunnel               — exposes RPi's LiveKit on woska's
+#                                  localhost so the experiment workers
+#                                  on woska can reach it
 #   bridge                       — Pepper hardware (animations / LEDs)
 #   audio-bridge                 — Pepper mic/speaker into LiveKit
-#   experiment-orchestrator      — REPLACES production orchestrator.
-#                                  Creates the fixed `pepper-experiment`
-#                                  room and writes tokens to the same
-#                                  livekit_session.json file the bridge
-#                                  + audio-bridge already poll. No
-#                                  agent dispatch, no state polling.
+#   experiment-orchestrator      — creates the fixed `pepper-experiment`
+#                                  room and writes tokens to
+#                                  livekit_session.json (which bridge +
+#                                  audio-bridge already poll). No agent
+#                                  dispatch, no state polling.
+#   tablet-server                — Pepper's tablet UI (chat + state
+#                                  pills) during the experiment.
+#   safe-startup                 — boot-time pose watchdog (hands down,
+#                                  neutral, baseline volume).
 #
-# What this compose does NOT run (intentional):
-#   voice-agent (production agent) — replaced by experiment/agent.py on
-#                                    woska, dispatched by experiment/launcher.py
-#   tablet-server                — included so Pepper's tablet shows the
-#                                  live chat + state pills during the
-#                                  experiment (same definition as the
-#                                  production stack).
-#   ssh-tunnel                   — only needed for production flows
-#
-# safe-startup IS included (added because Pepper would otherwise boot
-# in whatever pose the previous session left her in — often arms up).
-#
-# Toggle:
-#   docker compose -f docker/docker-compose.yml down
+# Bring everything up:
 #   docker compose -f docker/docker-compose.experiment.yml up -d
 #
-# Restore production:
+# Bring everything down:
 #   docker compose -f docker/docker-compose.experiment.yml down
-#   docker compose -f docker/docker-compose.yml up -d
 
 services:
   livekit:
@@ -101,25 +90,19 @@ services:
       PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-100}
       PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
       BRIDGE_BIND_HOST: "0.0.0.0"
-      TCP_PORT: "55555"
       HEAD_LOCK_PITCH_RAD: "-0.23"
       BRIDGE_URL: http://0.0.0.0:5000
-      # Slightly faster first-chunk than the production default 1600 =
-      # 100 ms gather. At 800 (50 ms) we shave ~50 ms off the audio
-      # pre-roll while staying above NAOqi's per-call overhead floor.
-      # Going lower (e.g. 320) flooded the bridge with `WARNING slow
-      # sendRemoteBufferToOutput` because each `sendRemoteBufferToOutput`
-      # call costs ~30–40 ms regardless of payload — at 20 ms batches
-      # you can't keep up with realtime.
-      PEPPER_PLAYBACK_BATCH_FRAMES: "800"
+      # Audio is now streamed via ssh+paplay from audio-bridge directly
+      # to Pepper's PulseAudio — bridge.py no longer accepts TCP audio
+      # or calls sendRemoteBufferToOutput. TCP_PORT and
+      # PEPPER_PLAYBACK_BATCH_FRAMES are intentionally absent.
     network_mode: host
     restart: unless-stopped
 
   # Watchdog that puts Pepper into a known-safe pose on boot (hands
   # down, neutral stance, baseline volume) before the bridge takes
   # over. Without this, she can boot in whatever pose the previous
-  # session left her in — often arms in the air. Same definition as
-  # the production stack.
+  # session left her in — often arms in the air.
   safe-startup:
     build:
       context: ..
@@ -150,8 +133,13 @@ services:
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
-      TCP_HOST: 127.0.0.1
-      TCP_PORT: 55555
+      # Audio path is LiveKit → ssh+paplay → Pepper PulseAudio.
+      # Override the SSH target / credentials via .env if Pepper's IP
+      # changes or its `nao` password is not the stock value.
+      PEPPER_SSH_HOST: ${PEPPER_SSH_HOST:-10.42.0.205}
+      PEPPER_SSH_USER: ${PEPPER_SSH_USER:-nao}
+      PEPPER_SSH_PASSWORD: ${PEPPER_SSH_PASSWORD:-Argus}
+      PEPPER_PAPLAY_LATENCY_MS: ${PEPPER_PAPLAY_LATENCY_MS:-30}
     network_mode: host
     depends_on:
       - experiment-orchestrator
@@ -171,13 +159,11 @@ services:
       - ..:/workspace
     devices:
       - /dev/snd:/dev/snd
-    # group_add (audio) inherited from base docker-compose.yml — don't redeclare,
-    # compose concatenates list overrides and rejects duplicate group_add entries.
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
       LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
       USER_MIC_DEVICE: "DJI"
-      USER_MIC_BLOCKSIZE: "2400"   # 50 ms @ 48 kHz; production default is 4800 (100 ms)
+      USER_MIC_BLOCKSIZE: "2400"   # 50 ms @ 48 kHz (was 4800 / 100 ms historically)
     network_mode: host
     pid: host
     privileged: true

@@ -30,13 +30,14 @@ ssh -J "$JUMP" "$REMOTE" "mkdir -p '$REMOTE_BASE/$SUBDIR'"
 
 scp -r -J "$JUMP" \
   "$SUBDIR/agent.py" \
-  "$SUBDIR/agent_cs.py" \
   "$SUBDIR/agent_4o.py" \
+  "$SUBDIR/agent_streaming.py" \
+  "$SUBDIR/agent_4o_streaming.py" \
   "$SUBDIR/_pipeline.py" \
+  "$SUBDIR/_streaming_runtime.py" \
   "$SUBDIR/prompt.py" \
-  "$SUBDIR/prompt_cs.py" \
+  "$SUBDIR/prompt_streaming.py" \
   "$SUBDIR/tools" \
-  "$SUBDIR/tools_cs" \
   "$REMOTE:$REMOTE_BASE/$SUBDIR/"
 
 echo

@@ -21,12 +21,13 @@ Run order for a study session:
 
     cd /home/lucas/Projects/FEL/Pepper
 
-    # 1. Production stack stays up (one-time):
-    docker compose -f docker/docker-compose.yml up -d
+    # 1. Stack up (one-time):
+    docker compose -f docker/docker-compose.experiment.yml up -d
 
     # 2. Sync experiment files to woska + start the worker on woska in
-    #    a tmux session named `pepper-experiment`. See cmd.md for the
-    #    full ssh+tmux block. tl;dr:
+    #    a tmux session named `pepper-experiment` (Variant A) or
+    #    `pepper-experiment-4o` (Variant B). See cmd.md for the full
+    #    ssh+tmux block. tl;dr:
     ./services/scripts/experiment/sync_to_woska.sh
     # then on woska:
     #   tmux new-session -s pepper-experiment
@@ -34,24 +35,15 @@ Run order for a study session:
     #   python voice-agent/src/experiment/agent.py dev
 
     # 3. Per conversation — only this command runs in the foreground:
-    uv run python voice-agent/tests/local_llm_benchmark/experiment.py \
+    uv run python voice-agent/src/experiment/launcher.py \
         --student 1 --variant A
     # …converse, type `/done` + Enter to end…
-    uv run python voice-agent/tests/local_llm_benchmark/experiment.py \
+    uv run python voice-agent/src/experiment/launcher.py \
         --student 1 --variant B
     # …etc.
 
-Local-only fallback (worker runs on the RPi inside Docker — slower,
-but no woska needed):
-    docker compose -f docker/docker-compose.yml stop voice-agent
-    docker compose -f docker/docker-compose.yml --profile experiment \
-        up -d voice-agent-experiment
-    # then run the launcher as above; restore with:
-    docker compose -f docker/docker-compose.yml stop voice-agent-experiment
-    docker compose -f docker/docker-compose.yml start voice-agent
-
 Logs are written to:
-    voice-agent/tests/local_llm_benchmark/results/experiments/<YYYY-MM-DD>/
+    voice-agent/src/experiment/results/experiments/<YYYY-MM-DD>/
         student<id>_variant<X>_<HHMMSS>.jsonl
 """
 

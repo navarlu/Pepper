@@ -54,7 +54,7 @@ dispatches one of them at a time, based on the configured mode.
 | File | Purpose |
 |------|---------|
 | [docker/livekit/livekit.yaml](../../docker/livekit/livekit.yaml) | LiveKit server config: `node_ip=127.0.0.1`, `tcp_port=7881`, `use_ice_lite=true` |
-| [docker/docker-compose.yml](../../docker/docker-compose.yml) | All RPi services, LiveKit on bridge network with loopback port maps |
+| [docker/docker-compose.experiment.yml](../../docker/docker-compose.experiment.yml) | All RPi services, LiveKit on bridge network with loopback port maps |
 | [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json) | Current agent mode (`openai` or `local`) |
 | `.env` | API keys (OPENAI_API_KEY, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_KEYS) |
 
@@ -63,7 +63,7 @@ dispatches one of them at a time, based on the configured mode.
 ### 1. Start RPi services
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose -f docker/docker-compose.experiment.yml up -d
 ```
 
 Both voice-agents (pepper-openai on RPi, and the spot for pepper-local on woska)
@@ -108,35 +108,22 @@ vllm serve Qwen/Qwen2.5-7B-Instruct \
   --max-model-len 8192
 ```
 
-### 5. Switch mode (no service restart needed)
+### 5. Pick the variant per session
 
-The orchestrator polls [services/src/orchestrator_config.json](../../services/src/orchestrator_config.json)
-every 3 seconds. Change the mode either from the chat CLI or directly:
-
-```bash
-# From the chat CLI:
-uv run python services/src/live/text_chat.py
-# Then: /mode openai  or  /mode local
-
-# Or directly:
-echo '{"agent_mode": "local"}' > services/src/orchestrator_config.json
-```
-
-The orchestrator handles the rest: shuts down the current agent, deletes the
-room, creates a new room, dispatches a warm agent of the new mode, writes
-fresh tokens to [services/data/token-latest.json](../../services/data/token-latest.json).
+There is no live mode switch — variants are chosen per session via the
+launcher's `--variant A|B` flag. See `docs/notes/cmd.md` for the full
+operator flow.
 
 ## Deploy code changes to woska
 
 ```bash
-# Quick path (just the agent source files):
-scp -J navarlu2@halmos.felk.cvut.cz \
-  voice-agent/src/{agent.py,tools.py,config.py} \
-  navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/
+# Sync experiment worker source files RPi → woska:
+./services/scripts/experiment/sync_to_woska.sh
 
-# Then restart agent in tmux on woska:
-ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-agent2'
-# Ctrl+C, then re-run: python -m voice-agent.src.live.agent dev
+# Then restart the worker in tmux on woska:
+ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska -t 'tmux attach -t pepper-experiment'
+# Ctrl+C, then re-run: python voice-agent/src/experiment/agent.py dev
+# (or agent_4o.py in the pepper-experiment-4o tmux for Variant B)
 ```
 
 The RPi voice-agent (Docker) auto-reloads via watchfiles — no manual restart.
@@ -153,8 +140,8 @@ uv run python voice-agent/tests/test_livekit_connection.py
 
 **Agent shows `wait_pc_connection timed out` in the woska tmux:**
 - Check tunnel is up: `ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska 'ss -tlnp | grep 7881'`
-- Check LiveKit advertises `nodeIP=127.0.0.1`: `docker compose -f docker/docker-compose.yml logs livekit | head -30`
-- Restart the tunnel: `docker compose -f docker/docker-compose.yml restart reverse-tunnel`
+- Check LiveKit advertises `nodeIP=127.0.0.1`: `docker compose -f docker/docker-compose.experiment.yml logs livekit | head -30`
+- Restart the tunnel: `docker compose -f docker/docker-compose.experiment.yml restart reverse-tunnel`
 
 **Orchestrator says `agent not in room yet — will retry`:**
 - The dispatched warm agent isn't joining. For openai mode, check
@@ -163,5 +150,5 @@ uv run python voice-agent/tests/test_livekit_connection.py
 
 **Both agents seem to reply at once / multiple agent participants:**
 - Stale dispatches accumulated across mode toggles. Restart the voice-agent:
-  `docker compose -f docker/docker-compose.yml restart voice-agent`. See
+  `docker compose -f docker/docker-compose.experiment.yml restart voice-agent`. See
   the "two agents" note in [text-chat-cli.md](text-chat-cli.md).

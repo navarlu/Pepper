@@ -328,7 +328,7 @@ class TabletDisplay:
                 return
 
             if topic == TOPIC_TEXT:
-                # Text typed into text_chat.py / debug-cli. The agent receives
+                # Text typed into the experiment launcher. The agent receives
                 # it as a user utterance, so mirror that on the tablet.
                 try:
                     payload = json.loads(raw)

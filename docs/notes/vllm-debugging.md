@@ -56,5 +56,5 @@ ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska "tmux capture-pane -t pepper-
 The OpenAI mode voice agent (`pepper-openai`) runs as a Docker container on the RPi:
 
 ```bash
-docker compose -f docker/docker-compose.yml logs --tail=50 voice-agent
+docker compose -f docker/docker-compose.experiment.yml logs --tail=50 voice-agent
 ```

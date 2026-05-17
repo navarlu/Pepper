@@ -1,8 +1,8 @@
-"""Production / live services.
+"""Shared long-running services.
 
-Long-running orchestrator + audio/tablet/user bridges + the text_chat
-CLI. Sibling of `services/src/experiment/`, which holds the slim
-orchestrator used by the student-study compose file.
+Audio bridge, user-client (mic), and tablet-server — used by the
+experiment compose file. The orchestrator lives in
+`services/src/experiment/`.
 """
 
 from __future__ import annotations

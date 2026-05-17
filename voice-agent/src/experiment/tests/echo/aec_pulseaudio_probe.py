@@ -68,15 +68,15 @@ handle Pepper's 1-second buffer without an explicit hint.
 
 Run
 ---
-1. Stop the production audio path so /dev/snd and the robot bridge are free:
-       docker compose -f docker/docker-compose.yml stop audio-bridge user-client
+1. Stop the experiment audio path so /dev/snd and the robot bridge are free:
+       docker compose -f docker/docker-compose.experiment.yml stop audio-bridge user-client
 2. Confirm Pepper's outputSampleRate is 16 kHz (see
    project_naoqi_outputsamplerate.md — bridge.py sets it in the wrong
    order, so it sometimes sticks at 48 kHz).
 3. Run:
        uv run python voice-agent/src/experiment/tests/echo/aec_pulseaudio_probe.py
-4. Restart production when done:
-       docker compose -f docker/docker-compose.yml start audio-bridge user-client
+4. Restart the audio path when done:
+       docker compose -f docker/docker-compose.experiment.yml start audio-bridge user-client
 """
 
 from __future__ import annotations

@@ -9,7 +9,7 @@ group so NAOqi's mood painter regains control.
 
 Usage (from bridge container, or any host with `qi` available):
 
-    docker compose -f docker/docker-compose.yml exec bridge \
+    docker compose -f docker/docker-compose.experiment.yml exec bridge \
         python robot/scripts/pepper_shoulder_white.py
 
     # or pick a color:

@@ -28,14 +28,14 @@ How to run, on the RPi. Production must be stopped so two qi
 clients don't fight over the audio device AND user-client doesn't
 hold the USB mic open:
 
-    docker compose -f docker/docker-compose.yml stop bridge audio-bridge user-client
+    docker compose -f docker/docker-compose.experiment.yml stop bridge audio-bridge user-client
     uv run python voice-agent/src/experiment/tests/echo/transport_probe.py
 
 Drop your own test WAV at:
     voice-agent/src/experiment/tests/echo/inputs/test_phrase.wav
 
 When done, restart production:
-    docker compose -f docker/docker-compose.yml start bridge audio-bridge user-client
+    docker compose -f docker/docker-compose.experiment.yml start bridge audio-bridge user-client
 """
 
 from __future__ import annotations
@@ -382,7 +382,7 @@ class MicCapture:
                 pass
             print(
                 "[probe] Stop user-client first:\n"
-                "    docker compose -f docker/docker-compose.yml stop user-client\n"
+                "    docker compose -f docker/docker-compose.experiment.yml stop user-client\n"
                 "  Or pin the mic explicitly: MIC_DEVICE=2 uv run python ...",
                 flush=True,
             )

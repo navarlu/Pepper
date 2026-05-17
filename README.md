@@ -241,17 +241,22 @@ voice-agent/
                                     # mensa_menu, get_time, adjust_volume,
                                     # send_message_to_user
       results/                      # JSONL logs + loop_state.json
-    live/                           # non-experiment "production" agent
-      agent.py, tools.py, local_speech.py, rag.py, ...
+    live/                           # shared infra used by experiment workers
+      bridge_client.py              #   HTTP clients for Pepper bridge
+      config.py                     #   shared constants
+      local_speech.py               #   FasterWhisper STT + Piper TTS plugins
+      qwen_compat.py                #   LLM JSON-arg sanitization
+      rag.py                        #   Weaviate RAG client
+      mensa.py, timetable.py, udb.py, _person_helpers.py, _room_directions.py
   data/FEL/                         # RAG source documents
   models/piper/                     # Piper TTS ONNX model
 
 services/
   src/
     experiment/orchestrator.py      # creates pepper-experiment room + tokens
-    live/                           # bridge clients, audio bridge, tablet
-      orchestrator.py, audio_bridge.py, user_client.py,
-      tablet_server.py, text_chat.py
+    live/                           # shared services run by experiment compose
+      audio_bridge.py, user_client.py, tablet_server.py,
+      session.py, config.py
 
 robot/
   src/
@@ -262,8 +267,7 @@ robot/
     capabilities.py, generate_animations_config.py
 
 docker/
-  docker-compose.yml                # "production" stack (live mode)
-  docker-compose.experiment.yml     # study stack (experiment workers + orchestrator)
+  docker-compose.experiment.yml     # study stack (sole compose file)
   Dockerfile.runtime
   livekit/livekit.yaml
 ```
@@ -281,7 +285,6 @@ checklist.
 | GPU server (woska) setup | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) |
 | Local LLM (vLLM) | [docs/notes/local-llm-setup.md](docs/notes/local-llm-setup.md) |
 | RPi vs Ubuntu dev differences | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) |
-| Debug chat CLI | [docs/notes/text-chat-cli.md](docs/notes/text-chat-cli.md) |
 | All debugging/investigation notes | [docs/notes/](docs/notes/) |
 | Connection test journal | [docs/logs/connection-test-journal.md](docs/logs/connection-test-journal.md) |
 

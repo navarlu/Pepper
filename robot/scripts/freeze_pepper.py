@@ -10,7 +10,7 @@ streamed audio) will move her.
 Designed to be run inside the bridge container (which already has qi
 on the path and a route to PEPPER_QI_URL):
 
-    docker compose -f docker/docker-compose.yml exec bridge \\
+    docker compose -f docker/docker-compose.experiment.yml exec bridge \\
         python robot/scripts/freeze_pepper.py
 
 Pass --rest to also crouch and remove stiffness so the motors go

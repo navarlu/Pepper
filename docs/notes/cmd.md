@@ -1,71 +1,18 @@
 ## Common commands
 
-Copy agent files to woska (after editing voice-agent code in local mode):
-```bash
-scp -J navarlu2@halmos.felk.cvut.cz \
-  voice-agent/src/live/{agent.py,tools.py,config.py} \
-  navarlu2@woska:/mnt/data_personal/navarlu2/work/Pepper/voice-agent/src/live/
-```
-
 SSH to halmos (jump host):
 ```bash
 ssh navarlu2@halmos.felk.cvut.cz
 ```
 
-Restart a service after compose env changes (formerly session-manager — now orchestrator):
+Restart a service after compose env changes:
 ```bash
-docker compose -f docker/docker-compose.yml restart orchestrator
+docker compose -f docker/docker-compose.experiment.yml restart experiment-orchestrator
 ```
-## Starting the CLI
-
-```bash
-tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
-uv run python services/src/live/text_chat.py
-```
-
-```bash
-ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
-tmux attach -t pepper-agent2 2>/dev/null || tmux new-session -s pepper-agent2
-
-# Inside tmux:
-cd /mnt/data_personal/navarlu2/work/Pepper
-source .venv3/bin/activate
-export PEPPER_AGENT_NAME=pepper-local
-export PEPPER_AGENT_MODE=local
-python -m voice-agent.src.live.agent dev
-```
-
-Detach without stopping: `Ctrl+B` then `D`.
 
 ## Run the experiment (student study)
 
-The experiment uses its own clean stack — **two compose files**, you
-toggle between them. There's no surgical service swap; production is
-fully off during experiments.
-
-```
-Production stack            ←→            Experiment stack
-docker-compose.yml                        docker-compose.experiment.yml
-  • orchestrator                            • experiment-orchestrator
-  • voice-agent (production)                • (no agent — runs on woska)
-  • bridge, audio-bridge                    • bridge, audio-bridge
-  • user-client, tablet-server              • (omitted)
-  • livekit, redis, weaviate                • livekit, redis, weaviate
-  • reverse-tunnel                          • reverse-tunnel
-  Room: pepper-<timestamp>                  Room: pepper-experiment (fixed)
-```
-
-Both stacks share the same `services/data/token-latest.json` — the
-two orchestrators are mutually exclusive, you only run one at a time.
-
-### One-time per study session
-
 ```bash
-# 1. Stop production stack:
-cd /home/lucas/Projects/FEL/Pepper
-docker compose -f docker/docker-compose.yml down
-
-# 2. Start experiment stack:
 docker compose -f docker/docker-compose.experiment.yml up -d
 docker compose -f docker/docker-compose.experiment.yml ps
 # Expect: livekit, redis, weaviate, reverse-tunnel, bridge,
@@ -81,7 +28,7 @@ docker compose -f docker/docker-compose.experiment.yml ps
 #    different agent_names so they don't collide.
 ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux attach -t pepper-experiment 2>/dev/null || tmux new-session -s pepper-experiment
-
+tmux attach -t pepper-experiment_40_streaming 2>/dev/null || tmux new-session -s pepper-experiment_40_streaming
 # Inside tmux on woska:
 cd /mnt/data_personal/navarlu2/work/Pepper
 source .venv3/bin/activate
@@ -127,14 +74,13 @@ Logs land in
 `voice-agent/src/experiment/results/experiments/<YYYY-MM-DD>/`,
 one JSONL file per conversation.
 
-### End of study — restore production
+### End of study — bring everything down
 
 ```bash
 docker compose -f docker/docker-compose.experiment.yml down
-docker compose -f docker/docker-compose.yml up -d
 # Optional: stop the woska tmux (Ctrl+C in pepper-experiment pane).
-# Leaving it running is harmless — without the experiment compose,
-# nothing dispatches to it.
+# Leaving it running is harmless — without the experiment compose
+# online, nothing dispatches to it.
 ```
 
 ## 3. Start vLLM on woska (only for `local` mode)
@@ -147,12 +93,6 @@ tmux attach -t LLM 2>/dev/null || tmux new-session -s LLM
 curl -X POST http://127.0.0.1:5000/audio/volume \
   -H "Content-Type: application/json" \
   -d '{"volume":60}'
-## Starting the CLI
-
-```bash
-tmux attach -t pepper-chat 2>/dev/null || tmux new-session -s pepper-chat
-uv run python services/src/live/text_chat.py
-```
 
  vllm serve hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4   --host 0.0.0.0 --port 8000   --quantization awq_marlin   --dtype half   --max-model-len 8192   --gpu-memory-utilization 0.85   --enable-auto-tool-choice   --tool-call-parser llama3_json   --chat-template ~/vllm-templates/tool_chat_template_llama3.1_json.jinja
 
