@@ -287,9 +287,21 @@ class StreamingAgent(Agent):
             and getattr(item, "role", None) == "user"
         )
         if user_msgs == 1 and not self._greeting_done:
+            # First-turn safety net for Llama 3.1 8B (variant A): the
+            # model otherwise confidently calls `end_conversation` on
+            # any first user message it cannot easily classify — even
+            # "hi" — because tool selection on small instruct models
+            # is biased toward the "most decisive" option when the
+            # prompt is ambiguous. Forcing tools=[] on this single
+            # turn removes the option entirely: the model can ONLY
+            # respond with plain text, which is what greeting_instructions
+            # tells it to do. From turn 2 onwards, the full tool
+            # surface is restored — by then the conversation context
+            # disambiguates and the WHEN gates in the docstrings hold.
             merged = f"{self._system_prompt}\n\n{self._greeting_instructions}"
             update_instructions(chat_ctx, instructions=merged, add_if_missing=True)
             self._greeting_done = True
+            return Agent.default.llm_node(self, chat_ctx, [], model_settings)
         return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
 
     async def tts_node(
@@ -445,16 +457,14 @@ async def entrypoint(ctx: JobContext) -> None:
         # Start the LLM as soon as VAD endpoints — saves ~200-500 ms
         # per turn when the user pauses cleanly.
         preemptive_generation=True,
-        # Voice barge-in DISABLED. Without AEC, Pepper's own audio
-        # leaks from the chest speaker back into the user-client mic
-        # → VAD trips on the agent's own voice → TTS cancelled before
-        # any frame plays. Symptom: `[TTS] done frames=0
-        # NO_AUDIO_PRODUCED` repeating on every utterance. Mirrors the
-        # same flag on `agent_4o_streaming.py`. Re-enable once AEC is
-        # wired into user_client.py so the mic stops hearing Pepper.
-        # Typed `/...` from the launcher still works as a deliberate
-        # barge-in because it calls `session.interrupt()` explicitly.
-        allow_interruptions=False,
+        # Voice barge-in ENABLED. WebRTC AEC3 (in user_client.py) now
+        # cancels the chest-speaker leak before it reaches the mic, so
+        # VAD only trips on real user speech. If you ever see the
+        # `[TTS] done frames=0 NO_AUDIO_PRODUCED` self-interrupt
+        # pattern come back, that means AEC residual is leaking past
+        # silero's 0.6 threshold — raise LOCAL_VAD_THRESHOLD to 0.75
+        # or temporarily flip this back to False.
+        allow_interruptions=True,
     )
 
     # ── Track typed vs spoken user turns ─────────────────────────────

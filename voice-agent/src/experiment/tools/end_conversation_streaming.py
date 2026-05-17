@@ -137,12 +137,11 @@ async def end_conversation_streaming(
     text: str | None = None,
     emotion: Emotion | None = None,
 ) -> None:
-    """End the conversation: speak a brief farewell + display the
-    feedback QR on Pepper's tablet, then end the session.
+    """End the conversation: speak a brief farewell + show feedback QR.
 
-    Call this when the user has clearly signalled they are done —
-    "bye", "thanks that is all", "see you", etc. Do NOT call this
-    just because the user paused or said "thanks" mid-conversation.
+    Call this ONLY when the user has clearly signalled they are done —
+    "bye", "thanks that is all", "see you", "goodbye". Do NOT call
+    this on greetings, mid-conversation pauses, or a passing "thanks".
     Wait for an unambiguous farewell.
 
     text: optional short personal sign-off (1 short sentence,
@@ -154,8 +153,6 @@ async def end_conversation_streaming(
         used as the sign-off.
     emotion: optional body language for the farewell. Defaults to
         "goodbye"; only override if a different gesture clearly fits.
-
-    This tool ENDS the session — do not try to keep talking after it.
     """
     prefix = (text or "").strip() or DEFAULT_GOODBYE_PREFIX
     gesture: Emotion = emotion or "goodbye"

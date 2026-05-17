@@ -205,9 +205,15 @@ class StreamingAgent(Agent):
             and getattr(item, "role", None) == "user"
         )
         if user_msgs == 1 and not self._greeting_done:
+            # First-turn `tools=[]` parity with agent_streaming.py.
+            # 4o doesn't suffer from the Llama-style tool-on-greeting
+            # bug, but the rule is universal: a first-turn greeting
+            # has zero legitimate reason to call any tool, so we
+            # eliminate the possibility outright.
             merged = f"{self._system_prompt}\n\n{self._greeting_instructions}"
             update_instructions(chat_ctx, instructions=merged, add_if_missing=True)
             self._greeting_done = True
+            return Agent.default.llm_node(self, chat_ctx, [], model_settings)
         return Agent.default.llm_node(self, chat_ctx, tools, model_settings)
 
     async def tts_node(
@@ -342,7 +348,7 @@ async def entrypoint(ctx: JobContext) -> None:
     session = AgentSession(
         vad=_get_vad(),
         stt=openai.STT(model=STT_MODEL, language=LANG),
-        llm=openai.LLM(model=LLM_MODEL, temperature=0.2, parallel_tool_calls=False),
+        llm=openai.LLM(model=LLM_MODEL, temperature=0.2),
         tts=openai.TTS(
             model=TTS_MODEL,
             voice=TTS_VOICE,
@@ -352,16 +358,11 @@ async def entrypoint(ctx: JobContext) -> None:
         # Start the LLM as soon as VAD endpoints — saves ~200-500 ms
         # per turn when the user pauses cleanly.
         preemptive_generation=True,
-        # Voice barge-in DISABLED. Without AEC, Pepper's own audio
-        # leaks from the chest speaker back into the user-client mic
-        # → VAD trips on the agent's own voice → TTS cancelled before
-        # any frame plays. The smoking gun: log line `[TTS] done
-        # frames=0 NO_AUDIO_PRODUCED` repeating on every utterance.
-        # Re-enable this flag once AEC is wired into user_client.py
-        # so the mic stops hearing Pepper. Typed `/...` from the
-        # launcher still works as a deliberate barge-in because it
-        # calls `session.interrupt()` explicitly.
-        allow_interruptions=False,
+        # Voice barge-in ENABLED. WebRTC AEC3 (in user_client.py) now
+        # cancels the chest-speaker leak before it reaches the mic,
+        # so VAD only trips on real user speech. Mirrors the same
+        # flag in `agent_streaming.py`.
+        allow_interruptions=True,
     )
 
     # ── Track typed vs spoken user turns ─────────────────────────────

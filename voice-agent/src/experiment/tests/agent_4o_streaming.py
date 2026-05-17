@@ -267,7 +267,6 @@ async def entrypoint(ctx: JobContext) -> None:
         llm=openai.LLM(
             model=LLM_MODEL,
             temperature=0.2,
-            parallel_tool_calls=False,
         ),
         tts=openai.TTS(
             model=TTS_MODEL,
