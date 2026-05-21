@@ -4,107 +4,133 @@
 % ============================================================
 % LAB GUIDE — Materials and Methods (Ch.3) should contain:
 %   • Robot setup / hardware.
-%   • Data processing.
+%   • Data processing / system architecture.
 %   • Anything else needed to repeat the experiment and reproduce the results.
 % Self-check: another researcher should be able to rebuild this system from
-% this chapter + the repository alone. No hand-wavy "the agent does X" ---
-% name the model, the library, the parameter, or point at the repo.
-%
-% NAMING NOTE: in the thesis we call the two conditions A (local cascade)
-% and B (cloud cascade). Internally the launcher uses --variant A and
-% --variant C (not B); this mapping is a deployment detail kept out of the
-% rendered prose. See voice-agent/src/experiment/loop_launcher.py.
+% this chapter + the repository alone.
 % ============================================================
 
-All code used in this thesis is available at the project repository~\cite{github-repo-thesis}.
-
-This chapter describes the receptionist system that is evaluated in Chapter~\ref{ch:experiments}.
-\secref{sec:hardware} introduces the hardware platform.
-\secref{sec:architecture} presents the service architecture and the way the services talk to each other.
-\secref{sec:voice_pipeline} describes the two voice backends compared in this work.
-\secref{sec:knowledge} covers the knowledge-grounding layer that lets the robot answer institutional questions.
-\secref{sec:nonverbal} describes the gesture and tablet feedback shown during a session.
-\secref{sec:orchestration} explains how sessions are managed end to end.
-\secref{sec:implementation} closes with a short implementation and deployment note.
+All code used in this thesis is available at the project repository~\cite{github-repo-thesis}; file and directory paths in this chapter are given relative to the repository root.
+This chapter is organized so that the overview comes first, the non-obvious design choices come next, and the lower-level details follow.
+\secref{sec:system_overview} gives a high-level picture of what runs where.
+\secref{sec:arch_decisions} explains the key architecture decisions that shaped the system.
+The remaining sections (\secref{sec:hardware}--\secref{sec:implementation}) fill in the hardware, the service architecture, the voice pipeline, the agent's behavior, the non-verbal channel, the session lifecycle, and the deployment details.
 
 
+% ============================================================
+\section{System Overview}
+\label{sec:system_overview}
+
+The deployed system spans three physical machines (Figure~\ref{fig:architecture}).
+A Raspberry~Pi~5 is located next to Pepper at the reception desk and hosts most of the supporting services: the LiveKit media server, the robot bridge that talks to NAOqi, an audio-bridge that pipes synthesized speech onto Pepper's speakers, a user-client that captures the visitor's microphone, a tablet-server that renders the on-chest tablet, the experiment orchestrator, a per-session driver, and a few utility services (startup watchdog, reverse SSH tunnel, vector database).
+A departmental GPU server hosts the language-model inference (vLLM serving Llama~3.1~8B Instruct) and runs the two voice-agent processes themselves.
+Pepper itself embodies the agent: its speakers carry the synthesized voice, its chest tablet displays dialogue state and tool results, and its animated body provides the gestures the visitor sees.
+
+The split is driven by hardware: the local voice cascade needs a GPU that the Raspberry~Pi does not have, and the GPU server is on the faculty network which cannot reach the Raspberry~Pi inbound, so an \texttt{autossh}-managed reverse SSH tunnel is opened from the Raspberry~Pi to the GPU server and the LiveKit ports are forwarded back over it.
+The cloud cascade is hosted on the same GPU server for operational uniformity, even though it does not need the GPU itself.
+
+Three transports glue everything together: WebRTC via LiveKit for the real-time audio between the visitor, the voice agent, and the playback bridge; HTTP REST for tool calls, gesture dispatch, and tablet updates; and a long-lived SSH connection feeding \texttt{paplay} on Pepper for the actual playback (see \secref{sec:dec_audio}).
+
+\begin{figure}[h]
+    \centering
+    \input{src/figures/architecture.tex}
+    \caption{System architecture. Three physical machines and the transports between them. WebRTC carries real-time audio (LiveKit room); HTTP REST carries tool calls from the voice agent to the bridge and animation/tablet updates from the bridge to NAOqi; SSH+\texttt{paplay} streams the agent's synthesized reply directly to Pepper's PulseAudio daemon, bypassing NAOqi (see \secref{sec:dec_audio}). The Raspberry~Pi initiates an \texttt{autossh}-managed reverse tunnel to the GPU server because the GPU server cannot reach the Raspberry~Pi inbound.}
+    \label{fig:architecture}
+\end{figure}
+
+
+% ============================================================
+\section{Architecture Decisions}
+\label{sec:arch_decisions}
+
+This section explains the four design choices that most shaped the deployed system.
+Each of them was made under a concrete constraint --- latency, the location of microphone and speaker, or the assignment's requirements --- and each has visible consequences in the rest of the chapter.
+
+\subsection{Audio playback}
+\label{sec:dec_audio}
+
+An earlier version of the audio bridge fed PCM frames over a TCP socket into NAOqi's \texttt{ALAudioDevice} service.
+That path added roughly one second of playback buffer that could not be reduced from outside NAOqi, which dominated the perceived response time.
+The deployed system therefore bypasses NAOqi for real-time TTS playback: the \texttt{audio-bridge} service spawns a persistent \texttt{ssh + paplay} subprocess into Pepper's PulseAudio daemon and writes the agent's synthesized audio directly to its stdin (\texttt{services/src/live/audio\_bridge.py}).
+
+\subsection{Custom acoustic echo cancellation}
+\label{sec:dec_aec}
+
+The microphone is on the visitor's side of the reception desk; the speakers are on Pepper, on the other side of a pane of glass.
+Without echo cancellation, the microphone picks up Pepper's own voice loud enough that the voice activity detector treats it as a visitor turn, so the agent ends up replying to itself.
+An early workaround was to mute the visitor's microphone while Pepper was speaking; this prevented the self-reply but made the interaction feel unnatural, because visitors could not interrupt or speak over her.
+LiveKit's built-in echo cancellation would have been the obvious alternative, but it assumes that microphone and speaker share one physical device, which is not the case here.
+Echo cancellation is therefore done in the \texttt{user-client} service before the microphone audio is published into the LiveKit room: a WebRTC AEC3 module is fed both the microphone capture and the agent's reply track as a reference, and the cleaned-up signal is what the speech-to-text component sees.
+With the echo removed, the visitor can interrupt Pepper mid-reply without her own voice being mistaken for the interruption.
+
+\subsection{Streaming reply, gestures via tool calls}
+\label{sec:dec_streaming}
+
+An earlier design followed the tool-only pattern of the Letta agent framework~\cite{packer2023memgpt}: the language model could only speak by calling a \texttt{send\_message\_to\_user} tool with the reply text and a gesture label as arguments.
+This had the appealing property that every spoken sentence carried an explicit gesture chosen by the same reasoning step that produced the text, so the visible body language matched the words in a fine-grained way.
+The problem was latency: a tool call cannot be issued until the language model has finished writing its arguments, so the entire reply text has to be generated before the text-to-speech component sees the first character.
+
+The deployed system streams the reply directly: the language model emits tokens, the text-to-speech component consumes them as they arrive, and Pepper begins to speak as soon as the first sentence is ready.
+Gestures still exist, but they are dispatched only when the model calls one of the non-speaking tools (\texttt{lookup}, \texttt{navigation}, \texttt{schedule}, \texttt{time}, \texttt{query\_search}, \texttt{end-of-conversation}), each of which takes an \texttt{emotion} argument.
+The trade-off is honest: the surface of gesture intents is narrower than under the tool-only design --- most gestures are now ``thinking'' on the way to a tool result, and the open-ended ``explaining'' or ``offering'' gestures that the older design could produce during the reply itself are missing.
+First-audio latency was the deciding factor.
+
+\subsection{Tools and prompt as the only extension points}
+\label{sec:dec_extensibility}
+
+Pepper's behavior and knowledge are defined entirely by two things: the system prompt and the set of registered tools.
+Changing the persona means editing the identity and personality sections of the prompt; adding a new capability --- a database lookup, a new robot motion, an integration with a third-party service --- means writing one Python function, decorating it with the LiveKit Agents \texttt{@function\_tool} decorator, and naming it in the prompt.
+Nothing else in the pipeline needs to change.
+
+The same modularity extends to the dialogue model itself.
+In Condition~A the language model runs on the GPU server under vLLM, and switching to a different local model is a matter of pointing vLLM at another checkpoint.
+In Condition~B the cloud model is selected by a single configuration string, so swapping \texttt{gpt-4o-mini} for any other OpenAI chat-completion model is a one-line change.
 % ============================================================
 \section{Hardware Platform}
 \label{sec:hardware}
 
-The system runs on a small computer placed next to Pepper.
-This computer hosts the services that make the receptionist work, provides the wireless network that Pepper joins, and reaches out to a remote GPU server when the language model needs to be run.
-
-\subsection{Pepper Humanoid Robot}
+\subsection{Pepper}
 \label{sec:pepper_robot}
 
-Pepper is a 1.2~m semi-humanoid robot manufactured by SoftBank Robotics~\cite{pandey2018pepper}, equipped with an onboard Intel Atom computer running NAOqi~OS.
-Programmatic access to the robot is provided through the \texttt{qi} framework.
+Pepper is a 1.2~m semi-humanoid robot manufactured by SoftBank Robotics~\cite{pandey2018pepper}.
+The receptionist scenario uses Pepper's speakers, the chest-mounted tablet for the current-state display, and the animation player for gesture playback.
+Pepper's autonomous-life service is left enabled while the robot is idle so that small head and body movements give a lifelike presence; during a session the head is locked to a forward-and-slightly-upward pose so that the apparent gaze stays on the visitor.
 
-For the receptionist scenario the following Pepper capabilities are used:
-\begin{itemize}
-    \item \textbf{Speakers} in the ears, addressed through NAOqi's audio device service for spoken-response playback.
-    \item \textbf{Tablet} (chest-mounted touchscreen, with a diagonal of about 25~cm), used to display the current dialogue state, a live transcript, and the farewell QR code linking to the experiment questionnaire.
-    \item \textbf{Animation player}, used to dispatch one of the predefined gesture sequences during each spoken reply.
-\end{itemize}
+The robot's onboard microphone array is not used; speech is captured with an external USB microphone connected to the Raspberry~Pi.
+One bottom laser-range sensor on the particular Pepper unit developed a fault during the project and caused the start-up self-test to fail; a small \texttt{safe-startup} service suppresses the offending check and clears the resulting error notification on every boot.
 
-Pepper's autonomous-life service is left enabled during the idle state so that the robot makes small natural head and body movements while waiting for a visitor; this gives a more lifelike presence than a fully static pose.
-During an active dialogue the head is locked to a forward-and-slightly-upward pose, which gives a stable apparent gaze in the direction of the visitor and avoids distracting micro-movements while she is speaking.
-
-The robot's onboard microphones are \emph{not} used in this deployment.
-The built-in array is not robust enough for the receptionist setting, a limitation observed in prior work with the platform.
-Speech input is captured instead with an external USB microphone (DJI~Mic) connected to the Raspberry Pi.
-The precise placement of the microphone in the deployment is described together with the experimental procedure in \secref{sec:exp_procedure}.
-
-A second deployment-specific workaround concerns the boot sequence of the particular Pepper unit used in this work.
-One of the bottom laser-range sensors developed a fault during the project, which caused the start-up self-test to fail and prevented the robot from entering its normal operating state.
-The \texttt{safe-startup} service (\tabref{tab:services}) intercepts the boot sequence, suppresses the offending self-test, and clears the resulting error notification so that the red shoulder LEDs stop blinking.
-This is a workaround for a hardware fault on the specific unit rather than part of the system design.
-
-% TODO figure: a portrait-style photo of Pepper as a platform reference for
-% this chapter (head, tablet, arms visible). The deployment-scene photo
-% (reception desk, microphone on the glass, visitor's POV) belongs in
-% Chapter~\ref{ch:experiments} where the procedure is described.
-
-
-\subsection{Compute Infrastructure}
+\subsection{Compute infrastructure}
 \label{sec:compute_infra}
 
-Two compute nodes run the system, in addition to Pepper itself:
+Two compute nodes run the system in addition to Pepper itself:
 
 \begin{enumerate}
-    \item \textbf{Raspberry Pi~5 (8\,GB)} sits next to Pepper at the reception desk.
-    It runs a local wireless hotspot that Pepper joins on startup, and it is also connected to the faculty network.
-    The Raspberry Pi hosts most of the deployed system: the LiveKit media server, the supporting services (robot bridge, audio bridge, user-client capture, tablet server, experiment orchestrator, startup watchdog, vector database, state backend), and the experimental session driver \texttt{loop\_launcher.py}.
+    \item \textbf{Raspberry~Pi~5 8GB RAM.}
+    Sits next to Pepper at the reception desk.
+    It runs a local wireless hotspot that Pepper joins on startup, and is also connected to the faculty network.
+    The Raspberry~Pi hosts the LiveKit media server, the supporting services listed in \tabref{tab:services}, and the per-session driver.
 
-    \item \textbf{A departmental GPU server}, reachable through the faculty network.
-    It hosts both voice agents --- the local cascade described in \secref{sec:local_mode} and the cloud cascade described in \secref{sec:cloud_mode} --- together with a vLLM~\cite{kwon2023vllm} server running Llama~3.1~8B Instruct~\cite{grattafiori2024llama3} on a localhost port; vLLM is used by the local cascade for language-model inference.
+    \item \textbf{Departmental GPU server.}
+    Reachable through the faculty network.
+    It hosts both voice-agent processes --- the local cascade described in \secref{sec:local_mode} and the cloud cascade described in \secref{sec:cloud_mode} --- together with a vLLM~\cite{kwon2023vllm} server running Llama~3.1~8B Instruct~\cite{grattafiori2024llama3} that the local cascade calls.
 \end{enumerate}
 
-Because the GPU server cannot open an inbound connection to the Raspberry Pi over the faculty network, an \texttt{autossh}-managed reverse SSH tunnel is opened from the Raspberry Pi.
-The LiveKit ports are forwarded over this tunnel so that the voice-agent processes on the GPU server can join the LiveKit media server running on the Raspberry Pi.
-
-The two-node split is driven by the local cascade, which needs GPU resources that only the departmental server provides.
-The cloud cascade is hosted on the same machine for operational convenience and uniformity across conditions.
-
-% TODO figure: network topology --- Pepper on the RPi's wireless hotspot,
-% RPi on the faculty network, GPU server reachable through that network,
-% and the reverse SSH tunnel highlighted.
+Because the GPU server cannot reach the Raspberry~Pi inbound, a reverse SSH tunnel is opened from the Raspberry~Pi.
+The LiveKit ports are forwarded over this tunnel, and the audio path of \secref{sec:dec_audio} reuses the same SSH connection.
 
 
 % ============================================================
 \section{System Architecture}
 \label{sec:architecture}
 
-The system is built as a set of loosely coupled services that communicate through three transports.
-The decomposition was driven by three practical needs: runtime isolation of components with conflicting Python dependencies (in particular the \texttt{qi} bindings for Pepper, which are tied to a specific Python version and platform-specific native libraries), independent restartability during development and demonstrations, and the ability to run the local-side voice agent on a different physical machine than the rest of the stack.
+The system is a set of loosely coupled services that talk to each other over three transports.
+The decomposition was driven by two practical needs: independent restartability during development and demonstrations, and the ability to run the voice agents on a different physical machine from the rest of the stack.
 
 \subsection{Services}
 \label{sec:services}
 
 \tabref{tab:services} lists the services that make up the deployed system.
-Services on the Raspberry Pi run as containers managed by Docker Compose.
-The two voice agents and the vLLM language-model server on the GPU server, together with the session-driver script on the Raspberry Pi, run as plain Python processes inside \texttt{tmux} sessions so that they survive disconnections from the experimenter's terminal.
+Services on the Raspberry~Pi run as containers managed by Docker Compose; the two voice agents and the vLLM language-model server on the GPU server, together with the session driver on the Raspberry~Pi, run as plain Python processes inside \texttt{tmux} sessions so that they survive disconnections from the experimenter's terminal.
 
 \begin{table}[h]
 \centering
@@ -113,51 +139,46 @@ The two voice agents and the vLLM language-model server on the GPU server, toget
 \hline
 \textbf{Service} & \textbf{Purpose} & \textbf{Node} \\
 \hline
-\texttt{livekit} & WebRTC SFU and agent dispatch (LiveKit Server v1.10) & RPi \\
+\texttt{livekit} & WebRTC media server and agent dispatch & RPi \\
 \texttt{redis} & State backend for LiveKit & RPi \\
-\texttt{weaviate} & Vector database (provisioned, see \secref{sec:knowledge}) & RPi \\
+\texttt{weaviate} & Vector database used by \texttt{query\_search} (\secref{sec:tool_surface}) & RPi \\
 \texttt{experiment-orchestrator} & Creates the LiveKit room and issues access tokens & RPi \\
-\texttt{bridge} & Robot-control gateway (animation, tablet, LEDs, audio) & RPi \\
-\texttt{audio-bridge} & Forwards the agent's audio track to Pepper's speakers & RPi \\
-\texttt{user-client} & Captures USB-microphone audio for the visitor input track & RPi \\
-\texttt{tablet-server} & Renders dialogue-state HTML and sends it to Pepper's tablet & RPi \\
-\texttt{safe-startup} & One-shot pose and volume normaliser on Pepper boot & RPi \\
-\texttt{reverse-tunnel}, \texttt{ssh-tunnel} & \texttt{autossh} tunnels to the GPU server & RPi \\
-\texttt{vllm} & Language-model inference server & GPU server \\
-\texttt{voice-agent-A} & Local cascade  & GPU server \\
-\texttt{voice-agent-B} & Cloud cascade  & GPU server \\
-\texttt{loop\_launcher.py} & Per-session driver; rotates Condition~A and Condition~B & RPi \\
+\texttt{bridge} & Robot-control gateway (animation, tablet, LEDs, volume) & RPi \\
+\texttt{audio-bridge} & Pipes the agent's audio track into ssh + paplay on Pepper & RPi \\
+\texttt{user-client} & Captures the USB microphone, runs AEC, publishes to LiveKit & RPi \\
+\texttt{tablet-server} & Renders dialogue-state HTML and pushes it to Pepper's tablet & RPi \\
+\texttt{safe-startup} & One-shot pose and volume normalizer on Pepper boot & RPi \\
+\texttt{reverse-tunnel} & \texttt{autossh} tunnel from RPi to the GPU server & RPi \\
+\texttt{vllm} & Language-model inference server for Condition~A & GPU server \\
+\texttt{voice-agent-A} & Local cascade voice agent (\secref{sec:local_mode}) & GPU server \\
+\texttt{voice-agent-B} & Cloud cascade voice agent (\secref{sec:cloud_mode}) & GPU server \\
+\texttt{loop\_launcher\_streaming.py} & Per-session driver; alternates Condition~A and Condition~B & RPi \\
 \hline
 \end{tabular}
 \caption{Services that make up the deployed system.}
 \label{tab:services}
 \end{table}
 
-\subsection{Communication Model}
+\subsection{Communication}
 \label{sec:communication_model}
 
 Three transports bind the services together, each chosen for what it does well:
 
 \begin{enumerate}
     \item \textbf{WebRTC via LiveKit.}
-    All real-time audio between the visitor, the voice agent, and the robot passes through the LiveKit media server.
-    The user-client publishes the microphone audio into the room, the active voice agent subscribes to it, the agent publishes its synthesised reply, and the audio-bridge subscribes to the agent's reply track on Pepper's behalf.
-    LiveKit was chosen for its built-in acoustic echo cancellation, codec handling, room-level participant management, and data-channel support for short control messages.
+    Real-time audio between the visitor's microphone, the voice agent, and the audio-bridge passes through the LiveKit media server.
+    LiveKit was chosen for its room-level participant management and codec handling; echo cancellation is \emph{not} delegated to LiveKit and is performed in the user-client instead (see \secref{sec:dec_aec}).
 
     \item \textbf{HTTP REST.}
-    Tool calls from the language model, gesture dispatch, tablet updates, and miscellaneous control commands all use synchronous HTTP.
-    The robot-control endpoints (\texttt{/animation}, \texttt{/tablet/*}, \texttt{/led/*}, \texttt{/head/lock}, \texttt{/audio/volume}) are served by the bridge on a local port.
-    Handlers validate the request, dispatch the action in a background thread, and return an immediate acknowledgement so that gesture dispatch does not block the current dialogue turn.
+    Tool calls from the language model, gesture dispatch, tablet updates, and miscellaneous control commands all use synchronous HTTP to the bridge.
 
-    \item \textbf{Raw TCP.}
-    Audio playback on Pepper uses a custom length-prefixed protocol between the audio-bridge and the bridge.
-    The bridge buffers 16-bit PCM frames and feeds them into NAOqi's audio device service.
-    A short request/acknowledgement handshake at end-of-utterance lets the agent know when Pepper has finished speaking, which is needed so that the next user turn is not opened while audio is still playing out.
+    \item \textbf{SSH + \texttt{paplay}.}
+    The audio path from the agent's synthesized reply to Pepper's speakers, described in \secref{sec:dec_audio}.
 \end{enumerate}
 
 % TODO figure: service architecture diagram --- nodes, services, the three
-% transports, host placement (RPi vs woska), and the LiveKit room as the
-% central hub.
+% transports, host placement (RPi vs GPU server), and the LiveKit room as
+% the central hub.
 
 
 % ============================================================
@@ -165,39 +186,32 @@ Three transports bind the services together, each chosen for what it does well:
 \label{sec:voice_pipeline}
 
 The system supports two voice interaction backends, the two compared in this work.
-Both expose the same tool interface, session lifecycle, and robot-control interface to the rest of the architecture; they differ in \emph{where} the speech is processed and \emph{which} language model handles the dialogue.
+Both expose the same tool interface, session lifecycle, and robot-control interface to the rest of the architecture; they differ only in \emph{where} the speech is processed and \emph{which} models handle the dialogue.
 
-Both backends are cascaded pipelines: a voice activity detector segments the user's turn, a speech-to-text component transcribes the utterance, a language model produces the reply, and a text-to-speech component synthesises the audio.
-End-to-end speech-to-speech models such as Moshi~\cite{defossez2024moshi} or the OpenAI Realtime API are an alternative architecture and would be valid choices for either condition, but using cascades for both conditions isolates the local-versus-cloud comparison from any confound introduced by an architectural difference between the two.
+Both backends are cascaded streaming pipelines: a voice activity detector segments the user's turn, a speech-to-text component transcribes the utterance, a language model generates the reply token by token, and a text-to-speech component synthesizes the audio incrementally so that Pepper begins to speak as soon as the first sentence is ready.
+End-to-end speech-to-speech models such as Moshi~\cite{defossez2024moshi} or the OpenAI Realtime API are an alternative architecture.
+Using cascades for both conditions is a study-design decision: it isolates the local-versus-cloud comparison from any confound introduced by an architectural difference between the two, and is not a claim that cascades are generally preferable to end-to-end audio models.
 
-Both worker processes are built on the LiveKit Agents SDK and share most of their wiring through a common pipeline-construction routine: the same agent class, the same tool surface, the same recording schema.
-They differ only in the concrete component instances chosen when the pipeline is built.
-They register with LiveKit under different agent names so that the session driver can dispatch the correct one for each visitor.
+Both voice-agent worker processes are built on the LiveKit Agents SDK and share most of their wiring through a common pipeline-construction routine: the same agent class, the same tool surface, the same recording schema.
+They differ only in the concrete component instances chosen when the pipeline is built, and they register with LiveKit under different agent names so that the session driver can dispatch the correct one for each visitor.
 
-\subsection{Condition~A: Local Cascade}
+\subsection{Condition A: local cascade}
 \label{sec:local_mode}
 
 The local cascade runs on the GPU server.
 Its components are:
 
 \begin{itemize}
-    \item \textbf{Voice activity detection.} Silero VAD, used to segment the user's turn.
-    \item \textbf{Speech-to-text.} \texttt{faster-whisper}~\cite{radford2023whisper}, an optimised CTranslate2 port of OpenAI's Whisper, running with the \texttt{tiny} model and INT8 quantisation as the default configuration.
-    \item \textbf{Language model.} Llama~3.1~8B Instruct~\cite{grattafiori2024llama3}, AWQ-quantised and served by vLLM~\cite{kwon2023vllm} at a localhost port.
-    The model is reached from the agent process over the OpenAI-compatible REST API exposed by vLLM.
-    \item \textbf{Text-to-speech.} Piper, a fast neural TTS engine based on VITS, running an English female voice in ONNX format.
+    \item \textbf{Voice activity detection.} Silero VAD.
+    \item \textbf{Speech-to-text.} \texttt{faster-whisper}~\cite{radford2023whisper}, a fast port of OpenAI's Whisper, running the small model.
+    \item \textbf{Language model.} Llama~3.1~8B Instruct~\cite{grattafiori2024llama3}, served by vLLM~\cite{kwon2023vllm}. Llama~3.1~8B was chosen because it is the largest model that fits on the available GPU together with the speech components and because its tool-calling ability is competitive with small frontier models on the Berkeley Function Calling Leaderboard~\cite{patil2025bfcl}.
+    \item \textbf{Text-to-speech.} Piper, a fast open neural TTS engine, with an English female voice.
 \end{itemize}
 
-The agent process reaches the LiveKit media server on the Raspberry Pi through the reverse SSH tunnel described in \secref{sec:compute_infra}; LiveKit's TURN relay (TLS over TCP) is used to transport the WebRTC media, because SSH does not forward UDP natively.
-
-Earlier development used Qwen~2.5~7B as the local language model, which required several application-level workarounds to reach acceptable tool-calling reliability: JSON-argument sanitisation, careful tool-docstring phrasing, and single-line system prompts that the parser would not choke on.
-Llama~3.1~8B handles the same tool surface without most of these workarounds, although a defensive JSON-sanitisation patch is still installed for safety.
-The Berkeley Function Calling Leaderboard~\cite{patil2025bfcl} places Llama~3.1~8B Instruct in the upper range of tool-calling-capable open models at this size, which was the main reason for the switch.
-
-\subsection{Condition~B: Cloud Cascade}
+\subsection{Condition B: cloud cascade}
 \label{sec:cloud_mode}
 
-The cloud cascade runs on the same GPU server as Condition~A.
+The cloud cascade runs on the same GPU server as Condition~A; it does not use the GPU itself. So it could run on the Raspberry~Pi, but hosting it on the GPU server keeps the deployment more uniform and avoids adding extra load to the Raspberry~Pi.
 Its components are:
 
 \begin{itemize}
@@ -207,54 +221,42 @@ Its components are:
     \item \textbf{Text-to-speech.} OpenAI \texttt{gpt-4o-mini-tts}, using the \texttt{nova} voice with a short instruction asking the model to speak in a warm, conversational receptionist tone.
 \end{itemize}
 
-The cloud cascade shares every other element of the pipeline with Condition~A: the same tool definitions, the same system prompt, the same session lifecycle, and the same recording schema.
-The only external dependency that differs is the OpenAI API itself, which adds variable network latency depending on server load.
 
-\subsection{Turn-Taking}
+\subsection{Turn-taking}
 \label{sec:turn_taking}
 
-Both backends use Silero VAD to determine when the user has finished speaking.
-Once the VAD declares end-of-turn, the cascade runs to completion before the agent listens again.
-The agent session is explicitly configured to disallow interruptions: user speech captured while Pepper is talking is discarded rather than cutting her off.
-The only intentional barge-in is an operator command on a dedicated data channel, which lets the experimenter inject a typed utterance during the session if Pepper needs to be redirected.
+Both backends use the voice activity detector to determine when the visitor has finished speaking.
+Once end-of-turn is declared, the cascade generates a reply.
+Visitors are free to interrupt Pepper mid-reply: with the echo cancellation of \secref{sec:dec_aec} in place, Pepper's own voice is removed from the captured microphone signal, so the voice activity detector can still pick out a genuine visitor utterance while Pepper is speaking and cut her off cleanly.
 
 
 % ============================================================
-\section{Agent Tools and Knowledge Sources}
+\section{Agent Behaviour: Prompt and Tools}
 \label{sec:knowledge}
 
-The agent's behaviour is shaped by two things: a \emph{system prompt} that tells the language model who Pepper is and how to behave, and a \emph{tool surface} that lets the language model act on the world.
-These two surfaces are the only places where domain knowledge and persona live in the system; the rest of the pipeline --- the speech components, the LiveKit transport, the robot bridge, the session driver --- is plumbing that does not change when the agent is adapted to a different scenario.
-Adding a new ability (a database lookup, a new robot motion, an integration with a third-party service) is a matter of writing a tool and naming it in the prompt; changing the persona is a matter of editing the prompt's identity and personality sections.
-This separation is a deliberate design choice and is the main reason the same code path supports two interchangeable backends without changes elsewhere in the system.
+The agent's behavior is shaped by two surfaces: a \emph{system prompt} that tells the language model who Pepper is and how to behave, and a \emph{tool surface} that lets the language model act on the world.
+These two surfaces are the only places where domain knowledge and persona live; the rest of the pipeline is plumbing that does not change when the agent is adapted to a different scenario (see \secref{sec:dec_extensibility}).
 
-
-\subsection{System Prompt}
+\subsection{System prompt}
 \label{sec:system_prompt}
 
-The system prompt is a single text document that tells the language model who Pepper is, what tools are available, how to use them, and how to phrase its replies.
-It is organised into named sections so that any one of them can be revised without disturbing the others:
+The system prompt is a single text document organized into three named sections:
 
 \begin{itemize}
-    \item \textbf{Identity} --- the robot's persona and the institutional setting.
-    \item \textbf{Personality} --- the tone the model should adopt (warm, brief, slightly playful, not a search engine).
-    \item \textbf{Hard-coded facts} --- a short list of facility facts that are stable enough and short enough to inline (example room codes such as \texttt{E-107}), so that the model does not waste a tool call on them.
-    \item \textbf{Communication model} --- the critical rule that plain assistant text is never heard by the visitor; only the \texttt{text} argument of \texttt{send\_message\_to\_user} is spoken.
-    \item \textbf{Body language vocabulary} --- the enumerated emotion labels (see \secref{sec:animations}) with a one-line intent for each.
-    \item \textbf{Reply style} --- output-formatting rules (one or two short sentences, plain conversational prose, no markdown or stage directions).
-    \item \textbf{Closing the conversation} --- when to call \texttt{end\_conversation} and how to phrase the farewell.
+    \item \textbf{Identity, personality, and known facts} --- who Pepper is, the tone she should adopt (warm, brief, slightly playful), and a short list of facility facts that are stable enough and short enough to include directly in the prompt (example room codes, opening hours of nearby facilities) so that she does not waste a tool call on them.
+    \item \textbf{Reply style} --- one or two short sentences, plain conversational prose, no markdown, no stage directions, and an explicit rule that the model never mentions tools or function names in its reply.
+    \item \textbf{When to call tools} --- a positive-framed trigger for each tool of the form ``call \emph{tool-name} when the user asks for X''.
 \end{itemize}
 
-A second, much shorter, block of greeting instructions is merged into the system prompt only on the first user turn of a session.
-It tells the agent to open with a fixed greeting line and the appropriate gesture; from the second turn onward this block is dropped, which keeps the prompt context tidy and prevents the model from re-greeting the same visitor.
+The opening greeting is not part of the system prompt.
+The moment a session starts, Pepper speaks a fixed greeting line directly through the text-to-speech component, before the language model is called at all.
+This turned out to be a small but visible mistake in the field. The greeting plays unconditionally before the language model is involved, so a visitor who walked up and asked a question on the first turn got ``Hello, how can I help you today?'' instead of an answer. 
 
-
-\subsection{Tool Surface}
+\subsection{Tool surface}
 \label{sec:tool_surface}
 
-The deployed agent exposes eight tools, listed in \tabref{tab:tools}.
+The deployed agent exposes seven tools, listed in \tabref{tab:tools}.
 Both Condition~A and Condition~B see exactly the same tool surface so that the resulting transcripts are directly comparable.
-Each tool's docstring carries a positive-framing trigger of the form ``call \emph{tool-name} when the user asks for X'', which the language model uses to decide when the tool is the right thing to call.
 
 \begin{table}[h]
 \centering
@@ -263,35 +265,42 @@ Each tool's docstring carries a positive-framing trigger of the form ``call \emp
 \hline
 \textbf{Tool} & \textbf{Purpose} & \textbf{Data source} \\
 \hline
-\texttt{send\_message\_to\_user} & Speaks the agent's reply to the visitor via text-to-speech; the only path by which the agent's words reach the visitor. & Text-to-speech sink. \\
-\texttt{find\_path\_to\_room} & Returns walking directions from the building entrance to a given room code. & Curated dictionary in the repository, with a live floor-plan endpoint as a fallback for unknown room codes. \\
-\texttt{lookup\_person} & Returns the office, phone, and email of a staff member, looked up by surname. & Live HTTPS scrape of the public faculty staff directory. \\
-\texttt{subject\_schedule} & Returns the next session of a course, optionally filtered by session type or day. & Live HTTP fetch of the public faculty timetable. \\
-\texttt{mensa\_menu} & Returns the canteen menu for the current and following week, tagged by category. & Live HTTP fetch of the canteen menu page. \\
-\texttt{get\_time} & Returns the current local time. & Local system clock. \\
-\texttt{adjust\_volume} & Steps Pepper's speaker volume up or down for future replies. & HTTP call to the robot bridge. \\
-\texttt{end\_conversation} & Speaks a short farewell, shows the feedback QR on the tablet, mutes the microphone, and signals end of session. & Control-flow tool; renders the QR locally. \\
+\texttt{find\_path\_to\_room} & Walking directions from the entrance to a given room code. & Manually prepared dictionary. \\
+\texttt{lookup\_person} & Office, phone, and email of a staff member by surname. & Live HTTPS scrape of the public faculty directory. \\
+\texttt{subject\_schedule} & Next session of a course, optionally filtered by type or day. & Live HTTP fetch of the public faculty timetable. \\
+\texttt{mensa\_menu} & Canteen menu for the current and next week. & Live HTTP fetch of the canteen page. \\
+\texttt{get\_time} & Current local time. & Local system clock. \\
+\texttt{query\_search} & Retrieval-augmented search over institutional documents. & Weaviate vector database. \\
+\texttt{end\_conversation} & Speaks a short farewell, resets the session. & Control-flow tool. \\
 \hline
 \end{tabular}
-\caption{The eight tools exposed to the language model. Both conditions share the same tool surface.}
+\caption{The seven tools exposed to the language model. Both conditions share the same surface.}
 \label{tab:tools}
 \end{table}
 
-A Weaviate vector database is provisioned in the deployment with the intention of supporting retrieval-augmented generation over an institutional document corpus, but the live tool surface used in the experiment does not query it.
-The reasoning behind a small, sharply-typed tool surface is twofold.
-First, the dominant queries a faculty visitor brings to the desk --- a room, a person, a lecture, lunch --- all have an underlying authoritative source that is easier and more accurate to query directly than to summarise from a vector index.
-Second, a smaller and more sharply-typed surface keeps tool-call reliability high on a local 8B-parameter model: each tool's docstring carries a clear ``call when X'' trigger that the model complies with reliably, whereas a single broad-trigger search tool tends to be over-fired and to hijack early turns.
+The initial design used \texttt{query\_search} as the only knowledge backend: a Weaviate vector store would hold institutional documents and the agent would retrieve from them for any factual question.
+This design was inspired by \emph{FELChat}~\cite{felchat-repo}, an earlier team project that answers questions from the same set of CTU and FEE documents, and the same corpus was uploaded into the Pepper deployment.
 
-\paragraph{Dispatch and multi-step reasoning.}
-A tool call from the language model goes through the LiveKit Agents framework: arguments are deserialised against a schema derived from the Python type annotations, the tool coroutine runs, and the structured return value is fed back into the model context as a tool-result message.
-Tools that return information return a dictionary; tools that terminate the turn --- such as \texttt{send\_message\_to\_user} and \texttt{end\_conversation} --- return nothing and end the turn.
-This two-state distinction between non-terminal and terminal tools is inspired by the request-heartbeat pattern introduced in the Letta agent framework~\cite{packer2023memgpt}, implemented here as a thin wrapper on top of the LiveKit Agents SDK.
-The agent session is capped at four tool calls per visitor turn, which bounds runaway tool chaining without preventing the typical pattern of one lookup followed by one spoken reply.
-Two operations run in the background: gesture dispatch (see \secref{sec:nonverbal}) is fire-and-forget so the agent does not wait for the animation to finish, and for the tools that hit external HTTP endpoints a short filler utterance (``Let me check'') is dispatched in parallel with the network call so the visitor hears immediate audio feedback while the lookup is in flight.
+During development it became clear that the institutional information visitors actually need at a reception desk --- room locations, staff contacts, course schedules, the canteen menu --- is already available behind public faculty endpoints, and that fetching it directly is more reliable than retrieving paragraphs about it from a PDF.
+The system was therefore extended with four targeted live HTTP endpoints --- \texttt{find\_path\_to\_room}, \texttt{lookup\_person}, \texttt{subject\_schedule}, and \texttt{mensa\_menu} --- that fetch the current data on demand and return short, prompt-friendly results.
+The advantage over a static vector store is freshness: when a room is reassigned or a lecture moves to a different time, the next visitor automatically gets the new value with no maintenance step.
 
-\paragraph{Failure handling.}
+\texttt{query\_search} remains in the tool surface for what the live endpoints do not cover: domain-specific knowledge such as internal regulations, institutional procedures, or faculty-specific documents.
+Extending Pepper along this axis is a single drop-in operation (details in the next paragraph).
+
+The knowledge base used by \texttt{query\_search} is a small set of CTU and FEE official documents: the Czech Higher Education Act 111/1998 (English version), the CTU Statute, and the Accommodation, Career, Disciplinary, Scholarship, and Doctoral Study codes, together with one CTU rector's directive (SD 2015/02).
+Each PDF is split into overlapping character chunks (3000 characters per chunk, 300-character overlap), and each chunk is stored as one Weaviate object together with its title, source file, and an OpenAI \texttt{text-embedding-3-large} vector --- the eight source documents yield 329 chunks in total.
+The OpenAI embedder was chosen for convenience and is interchangeable with a local model.
+Retrieval is hybrid (vector + BM25) with a configurable mix parameter $\alpha = 0.7$, returning the top-$k$ chunks back to the language model as the tool result.
+Adding a new document is intentionally a single operation: drop the PDF (or plain-text file) into \texttt{voice-agent/src/data/FEL/} and restart the agent --- the seeding routine in \texttt{voice-agent/src/live/rag.py} ingests every new file on the next boot, so extending Pepper's institutional knowledge does not require touching any code.
+
+
+A tool call from the language model goes through the LiveKit Agents framework: the tool runs, and its return value is fed back into the model context as a tool-result message.
+Two operations run in the background: gesture dispatch (\secref{sec:nonverbal}) does not block the agent on the animation finishing, and for tools that hit external HTTP endpoints a short filler utterance (``Let me check'') is played in parallel with the network call so the visitor hears immediate audio feedback while the lookup is in flight.
+
+
 Every tool that can fail returns a structured payload with an \texttt{error} field and an \texttt{instruction} field telling the language model how to phrase the failure --- for example, room-not-found yields an instruction to ask the visitor to confirm the room code.
-The language model paraphrases the instruction and speaks the result through \texttt{send\_message\_to\_user}.
+The language model paraphrases the instruction in its next streamed sentence.
 There is no automatic fallback to a free language-model answer when an external service is down: the failure mode is always an explicit apology or follow-up question rather than a fabricated reply.
 
 
@@ -302,94 +311,59 @@ There is no automatic fallback to a free language-model answer when an external 
 \subsection{Gestures}
 \label{sec:animations}
 
-Pepper accompanies every reply with a short body gesture.
-Rather than expose a separate \texttt{play\_animation} tool to the language model, the gesture is bound to the act of speaking: every tool in the speaking and lookup surface takes an extra \texttt{emotion} argument of an enumerated type.
-When the language model calls one of these tools, the agent picks a random concrete animation from the group corresponding to the chosen emotion and sends an HTTP request to the robot bridge, which plays it through NAOqi's animation player.
-The gesture dispatch is a fire-and-forget background coroutine, so the agent does not wait for the animation to finish before continuing with the spoken reply.
+Pepper accompanies tool calls with a short body gesture.
+Each non-speaking tool in the surface of \secref{sec:tool_surface} takes an extra \texttt{emotion} argument; when the language model calls the tool, the agent triggers the corresponding animation on Pepper without blocking on it.
 
-Binding the gesture to the spoken tool call --- rather than to a separate tool --- has two practical consequences.
-First, the language model cannot speak without specifying an emotion, which makes gesture coverage essentially complete: every reply is accompanied by some movement.
-Second, the gesture is chosen by the same reasoning step that decides what to say, so the emotion label and the spoken content are produced in a single language-model turn rather than in two consecutive turns that the model would have to keep in sync.
+Fifteen emotion labels are exposed to the language model.
+They cover social openings and closings (greet, bow, goodbye), short reactions (affirm, deny, question), cognitive states the robot wants to show (think, don't-know), explanatory dialogue (explain, emphasis, offer, address-user, calm), and a neutral fallback.
+Each label maps to a group of concrete animations, and the variant is picked at random on each call to avoid the obvious repetition that a single fixed animation per label would produce.
+Only silent animations are used so that canned vocalizations do not clash with the synthesized speech.
 
-Fifteen emotion labels are currently exposed to the language model.
-They cover social openings and closings (\texttt{greet}, \texttt{bow}, \texttt{goodbye}); short reactions (\texttt{affirm}, \texttt{deny}, \texttt{question}); cognitive states the robot wants to show (\texttt{think}, \texttt{dont\_know}); explanatory dialogue (\texttt{explain}, \texttt{emphasis}, \texttt{offer}, \texttt{address\_user}, \texttt{calm}); a softer \texttt{whisper} variant; and a \texttt{speak\_neutral} fallback for routine speech.
-Each label maps to a group of concrete Pepper animation sequences (e.g.\ several variants of a greeting wave), and the variant is picked uniformly at random when the gesture fires.
-The random pick avoids the obvious repetition that a single canonical animation per label would produce.
-Only silent animations are used: variants that embed canned vocalisations were excluded so as not to clash with the synthesised speech.
-
+Because gestures fire on tool calls rather than on the streamed reply (\secref{sec:dec_streaming}), the gestures actually seen during a session lean toward the ``thinking'' and ``looking up'' part of the emotion vocabulary; the more expressive ``explaining'', ``offering'', or ``emphasizing'' gestures that the abandoned tool-only design could produce during the spoken reply itself are absent.
+This is a known trade-off in favour of streaming latency.
 
 \subsection{Tablet}
 \label{sec:tablet}
 
 Pepper's chest-mounted tablet is used as a secondary visual channel.
-During a session it displays:
+During a session it shows a live transcript of the conversation --- both what Pepper heard the visitor say and what Pepper said back --- so the visitor can check that her question was understood correctly.
+When a tool returns concrete data such as a phone number, an office number, or a course code, that data stays on the tablet after Pepper has finished speaking, which gives the visitor time to read it or write it down.
 
-\begin{itemize}
-    \item The session's participant code shown as a small chip at the top of the screen, used to link this session's log with the questionnaire response (see \secref{sec:exp_procedure}).
-    \item A current-state indicator (listening, thinking, speaking) that updates as the dialogue progresses, plus a small ``mic muted'' indicator when the microphone is not currently accepting speech.
-    \item A live transcript of the conversation, showing both the visitor's recognised speech and Pepper's replies.
-    \item At the end of the session, a QR code linking to the experiment questionnaire, pre-filled with the participant code so the visitor does not have to type it. A short countdown is shown alongside the QR so that it stays visible for a known interval after the conversation ends.
-\end{itemize}
+The tablet state is owned by the \texttt{tablet-server} service, which renders the current view as HTML and pushes it to Pepper's tablet through the robot bridge.
 
-The tablet state is owned by the \texttt{tablet-server} service, which renders the appropriate HTML and sends it to the bridge as a \texttt{data:text/html} payload.
-The bridge in turn pushes the HTML to NAOqi's tablet service, which renders it on the on-device browser.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.55\linewidth]{src/figures/tablet.jpeg}
+    \caption{The live transcript helps users detect recognition errors. Here, the speech recognizer mistranscribed the surname of MSc.~Jason Khoury as \emph{Curry}.}
+    \label{fig:tablet}
+\end{figure}
 
 
 % ============================================================
-\section{Session Management and Orchestration}
+\section{Session Management}
 \label{sec:orchestration}
 
-\subsection{Session Lifecycle}
-\label{sec:session_lifecycle}
-
 A receptionist session is the unit of interaction with a single visitor.
-Sessions proceed through three states:
+The voice-agent worker for the currently scheduled condition is connected to the LiveKit room as a warm participant during idle: speech-processing models are already loaded, the LiveKit transport is established, and the agent is waiting for an activation signal.
+When a visitor arrives, the session driver sends an activation signal over a LiveKit data channel; the agent greets the visitor, and dialogue begins.
+The session ends when the agent fires \texttt{end\_conversation}, or after a silence timeout if the visitor does not respond.
+The warm-agent design is a deliberate choice driven by first-response latency: loading the speech-processing models takes several seconds on the target hardware, and keeping the worker alive across the idle state amortizes this cost.
 
-\begin{enumerate}
-    \item \textbf{Idle.}
-    No visitor is in the room.
-    The voice-agent worker for the currently scheduled condition is connected to the LiveKit room as a warm participant: speech-processing models are loaded, the LiveKit transport is established, and the agent is waiting for an activation signal.
-
-    \item \textbf{Active.}
-    A visitor is present.
-    The session driver sends an activation signal to the agent over a LiveKit data channel, the agent greets the visitor, and dialogue begins.
-
-    \item \textbf{Reset.}
-    The visitor leaves, the agent calls its \texttt{end\_conversation} tool, or a silence timeout elapses.
-    The current worker is shut down and the session driver dispatches a fresh worker for the next scheduled condition.
-\end{enumerate}
-
-The warm-agent design is a deliberate choice driven by first-response latency.
-Loading the speech-processing models takes several seconds on the target hardware; keeping the agent process alive across the idle state amortises this cost so that the first reply after a visitor arrives is fast.
-
-\subsection{Experimental Loop}
+\subsection{Experimental loop}
 \label{sec:experiment_loop}
 
-For the experiment, sessions are dispatched in a loop on the Raspberry Pi by the script \texttt{loop\_launcher.py}.
-The loop runs one session at a time, alternates the assigned condition between sessions (Condition~A and Condition~B in alternation), and persists the next-up condition and student identifier to a small JSON state file so the loop can resume after a restart.
-A heartbeat written every two seconds to the shared state file keeps Pepper awake during the experiment; if the loop is killed, the heartbeat ages out and Pepper falls asleep on her own.
-
-Each session ends naturally when the agent fires \texttt{end\_conversation}, or after a silence timeout if the visitor walks away without a closing turn.
-The next session begins as soon as the previous worker has exited cleanly.
-
-\subsection{Audio Delivery to the Robot}
-\label{sec:audio_delivery}
-
-The voice agent generates synthesised speech inside the LiveKit room, but Pepper's speakers are not directly reachable from LiveKit.
-The \texttt{audio-bridge} service closes this gap.
-It joins the LiveKit room as a non-agent participant, subscribes to the active agent's audio track, resamples the PCM stream to 16~kHz mono (Pepper's expected input format), and forwards the frames over the raw TCP audio protocol to the bridge, which feeds them into NAOqi's audio device service for playback.
-The audio-bridge follows the active agent automatically across condition switches: when the previous worker exits and the next worker joins the room, the subscription is redirected to the new audio track without manual intervention.
+For the experiment, sessions are dispatched in a loop on the Raspberry~Pi.
+The loop runs one session at a time, alternates the assigned condition (Condition~A and Condition~B), and persists the next-up condition and participant identifier to a small JSON state file so the loop can resume after a restart.
+A periodic heartbeat keeps Pepper awake during the experiment.
 
 
 % ============================================================
 \section{Implementation and Deployment}
 \label{sec:implementation}
 
-All code is implemented in Python and orchestrated through Docker Compose.
-Containers on the Raspberry Pi share a base image built on Python~3.12 with the \texttt{uv} package manager; the project source is bind-mounted into each container so that code changes are live on disk and require only a container restart, not an image rebuild.
-The \texttt{qi} library required by the bridge to talk to Pepper is compiled from source for ARM64 and supplied as a host-mounted volume because no pre-built package exists for this platform.
-
-\tabref{tab:software_stack} summarises the principal third-party components used in the deployed system.
+All code is implemented in Python.
+The Raspberry~Pi services run as Docker containers; the voice agents and the language-model server on the GPU server run as plain processes.
+\tabref{tab:software_stack} summarizes the principal third-party components used in the deployed system.
 
 \begin{table}[h]
 \centering
@@ -398,23 +372,20 @@ The \texttt{qi} library required by the bridge to talk to Pepper is compiled fro
 \hline
 \textbf{Role} & \textbf{Component} \\
 \hline
-WebRTC and room management & LiveKit Server + LiveKit Agents SDK \\
-Robot SDK & libqi / NAOqi \\
+WebRTC and room management & LiveKit \\
+Acoustic echo cancellation & WebRTC AEC3 (\secref{sec:dec_aec}) \\
+Pepper audio playback & SSH + \texttt{paplay} into PulseAudio (\secref{sec:dec_audio}) \\
 Voice activity detection & Silero VAD \\
-Speech-to-text (Condition~A) & faster-whisper (CTranslate2) \\
+Speech-to-text (Condition~A) & faster-whisper \\
 Speech-to-text (Condition~B) & OpenAI \texttt{gpt-4o-mini-transcribe} \\
-Language model (Condition~A) & vLLM serving Llama~3.1~8B Instruct (AWQ) \\
+Language model (Condition~A) & Llama~3.1~8B Instruct (served by vLLM) \\
 Language model (Condition~B) & OpenAI \texttt{gpt-4o-mini} \\
-Text-to-speech (Condition~A) & Piper (VITS-based, ONNX) \\
+Text-to-speech (Condition~A) & Piper \\
 Text-to-speech (Condition~B) & OpenAI \texttt{gpt-4o-mini-tts} \\
-Vector database & Weaviate \\
+Vector database (\texttt{query\_search}) & Weaviate \\
 Container orchestration & Docker Compose \\
 \hline
 \end{tabular}
 \caption{Principal third-party components of the deployed system.}
 \label{tab:software_stack}
 \end{table}
-
-Bringing the system up from scratch requires the Raspberry Pi to be provisioned with the \texttt{qi} library, an \texttt{.env} file with the required API keys, and an SSH key authorised for the faculty jump host.
-Once those prerequisites are in place, the deployment reduces to three commands: bringing up the Compose stack on the Raspberry Pi, starting the vLLM server and both voice agents on the GPU server under \texttt{tmux}, and launching the session driver on the Raspberry Pi.
-Full setup instructions, configuration details, and the exact command sequence are kept in the project repository~\cite{github-repo-thesis}; see Appendix~A.

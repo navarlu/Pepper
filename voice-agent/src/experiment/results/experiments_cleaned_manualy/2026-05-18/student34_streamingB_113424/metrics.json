@@ -1,0 +1,78 @@
+{
+  "conv_id": "T34",
+  "variant": "B",
+  "ended": "2026-05-18T11:36:38",
+  "duration_seconds": 133.88,
+  "exit_reason": "session_end",
+  "n_user_turns": 7,
+  "n_typed_input": 0,
+  "n_tool_calls": 2,
+  "n_animation_requests": 2,
+  "n_animation_dropped": 0,
+  "n_errors": 0,
+  "n_warnings": 9,
+  "tools_used": [
+    "end_conversation",
+    "mensa_menu"
+  ],
+  "emotions_used": {
+    "think": 1,
+    "goodbye": 1
+  },
+  "event_counts": {
+    "header": 1,
+    "tablet_state": 30,
+    "session_start": 1,
+    "mono_anchor": 1,
+    "pepper_first_sound": 7,
+    "vad_user_speech_end": 10,
+    "warn": 9,
+    "llm_request_start": 8,
+    "user_turn": 7,
+    "asr_result": 7,
+    "tts_request_start": 10,
+    "llm_response_end": 8,
+    "tts_first_audio": 10,
+    "agent_audio_saved": 10,
+    "agent_speech": 9,
+    "pepper_drain_ack": 8,
+    "tool_call": 2,
+    "animation_requested": 2,
+    "animation_dispatched": 2,
+    "tool_result": 1,
+    "animation_done": 2,
+    "filler_spoken": 1,
+    "tablet_qr_shown": 1,
+    "session_end": 1,
+    "footer": 1
+  },
+  "latency_first_audio_s": {
+    "n": 6,
+    "min": 2.3652,
+    "max": 7.326,
+    "median": 2.8928,
+    "p90": 3.7947
+  },
+  "llm_latency_s": {
+    "n": 7,
+    "min": 0.9709,
+    "max": 1.8829,
+    "median": 1.1793,
+    "p90": 1.5025
+  },
+  "tts_first_audio_s": {
+    "n": 7,
+    "min": 0.7468,
+    "max": 1.4678,
+    "median": 0.9777,
+    "p90": 1.2022
+  },
+  "playback_duration_s": {},
+  "total_turn_s": {
+    "n": 6,
+    "min": 0.5726,
+    "max": 8.2364,
+    "median": 2.3207,
+    "p90": 6.9189
+  }
+}

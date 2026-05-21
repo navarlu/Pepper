@@ -1,0 +1,13 @@
+==============================================================================
+student50_streamingA_161803
+  conv_id=T50  variant=A  started=2026-05-18T16:18:03  user_turns=4  duration=54.6s
+==============================================================================
+  [user (speech)]  Hello.
+  [pepper]  Welcome to the university
+  [user (speech)]  Oh
+  [pepper]  Silence.
+  [user (speech)]  Silence, you're not a superstar.
+  [pepper]  I'm just a receptionist robot, here to help with any questions or concerns you might have.
+  [user (speech)]  What is going to be for lunch on Friday?
+  [pepper]  Let me pull up today's menu.
+  [pepper]  On Friday, you can enjoy Honey-glazed chicken pieces with mashed potatoes and crispy fried onions or Beef ragout Frankfurt style, bread dumplings.

@@ -1,0 +1,17 @@
+==============================================================================
+student34_streamingB_114628
+  conv_id=34  variant=B  started=2026-05-18T11:46:28  user_turns=?  duration=?
+==============================================================================
+  [user (speech)]  Wiedersehen.
+  [user (speech)]  Kolik je hodin?
+  [user (speech)]  What's the time?
+  [pepper]  It's 11:47.
+  [user (speech)]  Сейчас с нами не слышат.
+  [user (speech)]  Ja.
+  [pepper]  Tschüss!
+  [user (speech)]  Jo, anglicky to nepochopil.
+  [user (speech)]  Tam chytila nejakú...
+  [pepper]  Môžem vám nejako pomôcť?
+  [user (speech)]  Słoneczko funkuje, widzisz?
+  [user (speech)]  打勾
+  [user (speech)]  Wir müssen eine Pause einlegen.

@@ -1,0 +1,14 @@
+==============================================================================
+student45_streamingA_143846
+  conv_id=T45  variant=A  started=2026-05-18T14:38:46  user_turns=4  duration=75.2s
+==============================================================================
+  [user (speech)]  Hi, can you hear me?
+  [pepper]  I can hear you just fine. How can I
+  [user (speech)]  Can you tell me where the gym is?
+  [pepper]  The gym is in the basement, right behind the main staircase.
+  [user (speech)]  Thank you, and can you tell me where the cafeteria is?
+  [pepper]  The cafeteria is right above the main staircase (first floor).
+  [user (speech)]  Thank you, that's all
+  [pepper]  Goodbye!
+  [pepper]  Your conversation ID is T four five.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

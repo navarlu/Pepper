@@ -1,0 +1,13 @@
+==============================================================================
+student30_streamingB_104429
+  conv_id=T30  variant=B  started=2026-05-18T10:44:29  user_turns=3  duration=50.9s
+==============================================================================
+  [user (speech)]  Phone
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  odtudaj meno in menza.
+  [pepper]  Let me pull up today's menu.
+  [pepper]  For lunch today, you can enjoy dishes like honey-glazed chicken with mashed potatoes or beef ragout Frankfurt style. Let me know if you need anything else!
+  [user (speech)]  No, thank you, goodbye.
+  [pepper]  Have a great day!
+  [pepper]  Your conversation ID is T three zero.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

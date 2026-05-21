@@ -9,13 +9,44 @@
 % pick it up. Avoid vague "more evaluation needed".
 % ============================================================
 
-% TODO: Multilingual support, especially Czech (current system is English-only,
-% which the pilot questionnaire showed even non-technical users default away
-% from when free-typing).
-% TODO: Larger or differently-deployed local backend — do the tool-calling
-% workarounds documented in \secref{sec:local_mode} disappear with a 32B+ model?
-% TODO: Longer-term / longitudinal deployment beyond single-visit interactions.
-% TODO: Richer tablet integration — search-result rendering, navigation map
-% rather than only state + transcript.
-% TODO: Memory of returning users / lightweight personalisation.
-% TODO: Closed-loop active perception — head/gaze tracking of the speaker.
+The deployment in Chapter~\ref{ch:experiments} and the field observations in \secref{sec:exp_field} surfaced a number of concrete follow-up items.
+They are grouped here into two categories: small implementation fixes for issues seen in the field, and larger directions that would meaningfully extend the work.
+
+\section{Implementation Fixes Surfaced by the Field Study}
+\label{sec:fw_fixes}
+
+\begin{itemize}
+    \item \textbf{Make visitor-side capabilities more discoverable.}
+    Visitors who approached Pepper without a verbal briefing tended to ask for things outside the tool surface and ended in apologies (\secref{sec:exp_field}).
+    Two concrete remedies, in increasing engineering effort:
+    a richer tablet display that shows the available capabilities as quickly-readable chips while Pepper is idle;
+    and a short spoken self-introduction by Pepper on visitor approach (``I can help you find a room, a person, a course, or the canteen menu''), triggered by a simple presence cue.
+
+    \item \textbf{Better microphone capture.}
+    A single omnidirectional microphone on the visitor's side of the glass occasionally forwarded background corridor chatter into the pipeline (\secref{sec:exp_field}).
+    This could be solved, for example, by a push-to-talk button on the visitor's side of the desk so that the microphone is gated on only while a visitor is actively speaking to Pepper, which would also prevent Pepper from picking up unrelated conversation during the rest of the day.
+\end{itemize}
+
+
+\section{Larger Directions}
+\label{sec:fw_larger}
+
+\begin{itemize}
+    \item \textbf{Multilingual support, especially Czech.}
+    The current system speaks English only.
+    Switching to a multilingual speech-to-text model and a multilingual text-to-speech voice, and prompting the language model to detect and follow the visitor's language, would broaden the audience significantly.
+
+    \item \textbf{Memory of returning visitors.}
+    The current agent has no persistent memory across sessions.
+    Lightweight personalization --- recognizing a returning face or accepting a name once and remembering it across visits --- would be a natural extension and would interact with the previous item.
+
+    \item \textbf{Unattended all-day operation.}
+    The deployment described in Chapter~\ref{ch:experiments} ran for one day with the experimenter present.
+    A permanent installation would need to stand on its own: starting in the morning, recovering by itself from a stuck session or a network blip, sleeping when no one is around to save power, and re-initialising the agent on idle so the next visitor's first turn is not affected by accumulated state from the previous conversation.
+
+    \item \textbf{Vision input for richer context.}
+    The current agent is blind: it knows nothing about the visitor's appearance, where they are looking, or what is happening around the reception desk.
+    A natural extension is to add an additional tool, for example \texttt{look\_around}, that captures a still image from one of Pepper's cameras and sends it to a small vision-language model running alongside the local cascade; the model returns a short textual description of the scene that is fed back to the agent as the tool result.
+    The agent could call this tool when context is unclear (``is the visitor still there?'', ``does the visitor look confused?'', ``is there a queue building up behind them?''), without changing anything else in the pipeline.
+
+\end{itemize}

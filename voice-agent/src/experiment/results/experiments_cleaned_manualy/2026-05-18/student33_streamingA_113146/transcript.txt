@@ -1,0 +1,13 @@
+==============================================================================
+student33_streamingA_113146
+  conv_id=T33  variant=A  started=2026-05-18T11:31:46  user_turns=3  duration=82.5s
+==============================================================================
+  [user (speech)]  Hello Pepper, could you please tell me when does the HRO lecture start?
+  [pepper]  I'll need to look that up for you. Can you please tell me the course code for the HRO lecture?
+  [user (speech)]  The code is HRO.
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  The HRO lecture starts at 12:45 on Wednesday in room E-301.
+  [user (speech)]  Thank you so much. Have a nice day. Goodbye.
+  [pepper]  Goodbye!
+  [pepper]  Your conversation ID is T three three.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

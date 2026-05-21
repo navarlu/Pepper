@@ -90,7 +90,7 @@ services:
       PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-100}
       PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
       BRIDGE_BIND_HOST: "0.0.0.0"
-      HEAD_LOCK_PITCH_RAD: "-0.23"
+      HEAD_LOCK_PITCH_RAD: "-0.30"
       BRIDGE_URL: http://0.0.0.0:5000
       # Audio is now streamed via ssh+paplay from audio-bridge directly
       # to Pepper's PulseAudio — bridge.py no longer accepts TCP audio

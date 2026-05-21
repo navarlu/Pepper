@@ -12,13 +12,18 @@
 % Interpretation and reflection belong in Chapter~\ref{ch:discussion}.
 % ============================================================
 
-% TODO: 1--2 short paragraphs.
-%   • Restate the problem and the goal of the thesis.
-%   • Summarise the implemented system (Pepper + LLM pipeline with two
-%     interchangeable backends).
-%   • State the headline experimental finding from Chapter~\ref{ch:experiments}.
-%   • One paragraph on the thesis contribution: side-by-side comparison of
-%     a local and a cloud LLM backend on the same receptionist task, real-site
-%     deployment, combined objective + subjective evaluation. Position
-%     against \cite{gockley2005longterm}, \cite{kanda2010shoppingmall},
-%     \cite{chen2024relatable}, \cite{herath2025firstimpressions}.
+This thesis presents the design and evaluation of an LLM-driven receptionist robot for social interaction.
+The implemented system runs on a SoftBank Pepper robot.
+A cascaded speech-to-text $\to$ language model $\to$ text-to-speech pipeline handles the conversation, a small fixed set of tools covers the questions a faculty visitor is likely to ask (room directions, staff lookup, lecture schedule, canteen menu), and short body gestures together with a live tablet transcript accompany every spoken reply.
+The same agent code supports two interchangeable backends: a fully local cascade built around \texttt{faster-whisper}, Llama~3.1~8B Instruct served by vLLM, and a Piper voice; and a cloud cascade built around OpenAI's \texttt{gpt-4o-mini} family of models.
+The design also keeps the system easy to extend: a new capability is added by writing a single tool and naming it in the system prompt, Pepper's persona can be changed by editing the prompt itself, and new institutional knowledge can be added by dropping a PDF into the seed folder.
+
+The system was deployed at the real reception desk of Building~E at FEE CTU for one day, alternating between the two backends across visitors.
+Twenty-six visitors completed a short questionnaire combining four Godspeed subscales and three custom Likert items, and a closing categorical question on whom they would prefer at the desk.
+The headline finding is a two-sided trade-off.
+Condition~B (cloud) was rated at least as highly as Condition~A (local) on every subjective item, with gaps of 0.1 to 0.3 points on the Godspeed subscales and up to 0.8 on the gesture item.
+Condition~A was descriptively about twice as fast on the median session (1.56~s vs 3.53~s session-median time-to-first-audio across 10 sessions per condition) and does not incur per-token inference fees once the hardware is available, against the cloud cascade's metered USD~0.29 per active conversation hour.
+Of the 26 respondents, 19 (73~\%) preferred Pepper at the reception over a human.
+
+The thesis delivers the full LLM-driven receptionist system specified by the assignment (\secref{sec:goals}), including the side-by-side comparison of a local and a cloud voice cascade on the same task. Because the two conditions differ in speech recognition, language model, and speech synthesis simultaneously, the comparison is best read as a comparison of complete cascades rather than as an isolated test of the language model alone (see \secref{sec:limitations}).
+Interpretation of the local-vs-cloud trade-off and the limitations of the study are discussed in Chapter~\ref{ch:discussion}; concrete next steps surfaced by the deployment are listed in Chapter~\ref{ch:future_work}.

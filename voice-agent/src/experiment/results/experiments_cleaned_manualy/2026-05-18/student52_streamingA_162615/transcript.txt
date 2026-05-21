@@ -1,0 +1,9 @@
+==============================================================================
+student52_streamingA_162615
+  conv_id=T52  variant=A  started=2026-05-18T16:26:15  user_turns=2  duration=21.4s
+==============================================================================
+  [user (speech)]  But it was already dark.
+  [user (speech)]  Yeah, yeah, yeah. He told me about the location and the department.
+  [pepper]  See you!
+  [pepper]  Your conversation ID is T five two.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

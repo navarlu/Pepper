@@ -1,0 +1,15 @@
+==============================================================================
+student14_streamingB_100523
+  conv_id=T14  variant=B  started=2026-05-18T10:05:23  user_turns=4  duration=295.5s
+==============================================================================
+  [user (speech)]  Ahoj, jak se dostanu do místnosti tři sta jedna?
+  [pepper]  Ahoj! Místnost 301 neznám, ale mohu ti pomoci s informacemi o jiných místnostech nebo zařízeních. Jak ti mohu pomoci?
+  [user (speech)]  Potřebuji se dostat do místnosti přednáškové.
+  [pepper]  Let me find that room for you.
+  [pepper]  Jdi nahoru na první patro a pokračuj rovně — místnost E-107 je podél toho chodníku.
+  [user (speech)]  Dobře, díky.
+  [pepper]  Není zač! Kdybys potřeboval další pomoc, dej vědět.
+  [user (speech)]  Už nic dalšího nepotřebuje.
+  [pepper]  Měj se hezky!
+  [pepper]  Your conversation ID is T one four.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

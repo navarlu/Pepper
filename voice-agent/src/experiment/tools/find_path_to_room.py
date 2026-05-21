@@ -43,7 +43,7 @@ async def find_path_to_room(
     request_heartbeat: True (default) to continue the turn so you
         can read the directions to the user.
     """
-    asyncio.create_task(_speak_filler(context, "Let me find that room for you."))
+    #asyncio.create_task(_speak_filler(context, "Let me find that room for you."))
     del context
     room_norm = _normalize_room(room)
     print(

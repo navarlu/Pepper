@@ -1,0 +1,13 @@
+==============================================================================
+student8_streamingB_091946
+  conv_id=T08  variant=B  started=2026-05-18T09:19:46  user_turns=3  duration=226.6s
+==============================================================================
+  [user (speech)]  Čau.
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  Is the class number one hundred three open?
+  [pepper]  Let me find that room for you.
+  [pepper]  It looks like room E-103 isn't found in this building. Could you please double-check the room number?
+  [user (speech)]  Have a nice day.
+  [pepper]  You too!
+  [pepper]  Your conversation ID is T zero eight.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

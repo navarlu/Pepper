@@ -1,0 +1,33 @@
+==============================================================================
+student49_streamingB_153328
+  conv_id=T49  variant=B  started=2026-05-18T15:33:28  user_turns=12  duration=190.5s
+==============================================================================
+  [user (speech)]  Hello.
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  How are you today?
+  [pepper]  I'm doing great, thank you! How about you?
+  [user (speech)]  Yeah, I'm doing great as well, but I'm lost in the building.
+  [pepper]  No worries! Just let me know where you need to go, and I'll help you find your way.
+  [user (speech)]  I would like to go to E210.
+  [pepper]  Just head up to the second floor, then go left and take another left. Room E-210 will be along that corridor. Safe travels!
+  [user (speech)]  OK, thanks. And do you know if there is any lecture in that room?
+  [pepper]  Could you please provide me with the course code for the lecture you're interested in?
+  [user (speech)]  OK, so, for example...
+  [user (speech)]  MPV
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  There are a few subjects with that code. It could be "Computer Vision Methods," "Metody pocitacoveho videni," or "Teamwork." Which one are you referring to?
+  [user (speech)]  The first one.
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  It seems that the code I tried isn't valid. Could you please provide a short course code, just 2 to 4 letters?
+  [user (speech)]  MPV
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  It looks like there are still multiple subjects with that code. Besides "Computer Vision Methods," there's also "Metody pocitacoveho videni" and "Teamwork." Which one are you asking about?
+  [user (speech)]  The computer vision method.
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  It seems I'm having trouble with that code again. Could you please provide a short course code, just 2 to 4 letters?
+  [user (speech)]  OK, that was helpful. Thank you, Pepper.
+  [pepper]  You're welcome! If you need anything else, just let me know. Have a great day!
+  [user (speech)]  Yeah, that was probably all. Have a great day too. Bye.
+  [pepper]  See you!
+  [pepper]  Your conversation ID is T four nine.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

@@ -1,0 +1,25 @@
+==============================================================================
+student49_streamingA_152026
+  conv_id=49  variant=A  started=2026-05-18T15:20:26  user_turns=?  duration=?
+==============================================================================
+  [user (speech)]  Hello?
+  [pepper]  Welcome to the university building E. How can I help you today?
+  [user (speech)]  How is it going today?
+  [pepper]  It's a lovely day here at the university. The sun is shining, and the campus is bustling with students. How about you, how's your day going so far?
+  [user (speech)]  Yeah, good good good as well. Can you tell me something more about this building?
+  [pepper]  This building E is one of our main academic buildings. It houses several departments, including mathematics, physics, and computer science. You'll also find a few lecture halls and some research labs on the upper floors. Would you like to know more about a specific department or facility?
+  [user (speech)]  Yeah, I want to know more about now skin lab. Do you know something?
+  [pepper]  I'm not familiar with a "now skin lab" in this building. We have a few research labs, but I don't have information on a lab by that name. Can you check the directory or ask someone else if you're looking for something specific?
+  [user (speech)]  Okay, thank you. I see.
+  [pepper]  You're
+  [user (speech)]  Can you tell me where the man says?
+  [pepper]  The canteen, also known as the mensa, is located right above the main staircase (first floor). It's open weekdays from 9am to 4:30pm.
+  [user (speech)]  And where can I find the daily menu of the canteen?
+  [pepper]  Let me pull up today's menu.
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  I'm not sure what you're looking for. Can you please rephrase your question?
+  [user (speech)]  the menu of the canteen.
+  [pepper]  Let me pull up today's menu.
+  [pepper]  Here's the menu for today. Would you like me to recommend something?
+  [user (speech)]  Yeah, sure
+  [pepper]  Let me look that up in the directory.

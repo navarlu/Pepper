@@ -1,0 +1,15 @@
+==============================================================================
+student7_streamingA_091842
+  conv_id=T07  variant=A  started=2026-05-18T09:18:42  user_turns=5  duration=56.7s
+==============================================================================
+  [user (speech)]  I'll be back in a minute.
+  [pepper]  Take your time, I'll be here when you get back.
+  [user (speech)]  Hi, where does my AI lecture start?
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  Checking the schedule, one moment.
+  [user (speech)]  Yeah, yeah, yeah, yeah.
+  [pepper]  See you!
+  [pepper]  Your
+  [pepper]  Please help me improve by scanning
+  [user (speech)]  Good morning, Alex.
+  [user (speech)]  Okay.

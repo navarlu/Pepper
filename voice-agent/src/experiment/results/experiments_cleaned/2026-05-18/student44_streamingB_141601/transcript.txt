@@ -1,0 +1,22 @@
+==============================================================================
+student44_streamingB_141601
+  conv_id=T44  variant=B  started=2026-05-18T14:16:01  user_turns=8  duration=127.1s
+==============================================================================
+  [user (speech)]  हॅलो पेपर
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  What is the time right now?
+  [pepper]  It's currently 14:16 on this lovely Monday!
+  [user (speech)]  And what day comes three days after Monday?
+  [pepper]  That would be Thursday!
+  [user (speech)]  Thank you. Can you tell me when...
+  [user (speech)]  The HRO course is held and in what room?
+  [pepper]  Checking the schedule, one moment.
+  [pepper]  The HRO course has a lecture on Wednesday at 12:45 in room KN:E-301, and two exercises at 14:30 and 16:15, both in room KN:A-427.
+  [user (speech)]  And can you direct me to E301?
+  [pepper]  Room E-301 is right next to the staircase, on your way up to the third floor. Enjoy your class!
+  [user (speech)]  थँक्यू पेपर.
+  [pepper]  You're welcome! If you need anything else, just let me know.
+  [user (speech)]  Goodbye.
+  [pepper]  See you!
+  [pepper]  Your conversation ID is T four four.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

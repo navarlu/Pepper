@@ -2,11 +2,11 @@
 
 The `query_search` tool calls `search_vectors()` to do a hybrid
 (vector + BM25) lookup over the `WEAVIATE_COLLECTION` collection.
-On first run (empty collection) `seed_collection()` ingests the
-`.txt` files under `SEED_DATA_PATHS` so the agent has something to
-retrieve. Vectors are produced server-side by Weaviate's
-`text2vec-openai` module using the embedding model configured in
-`voice-agent/src/config.py`.
+On first run (empty collection) `seed_collection()` ingests `.txt`
+and `.pdf` files under `SEED_DATA_PATHS`, splitting them into
+overlapping character chunks (`CHUNK_MAX_CHARS` / `CHUNK_OVERLAP_CHARS`).
+Vectors are produced server-side by Weaviate's `text2vec-openai`
+module using the embedding model configured in `voice-agent/src/config.py`.
 """
 
 from __future__ import annotations
@@ -15,11 +15,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from pypdf import PdfReader
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property
 from weaviate.classes.query import MetadataQuery
 
 from .config import (
+    CHUNK_MAX_CHARS,
+    CHUNK_OVERLAP_CHARS,
     DOC_CONTENT_FIELD,
     DOC_CREATED_AT_FIELD,
     DOC_SOURCE_FIELD,
@@ -77,25 +80,126 @@ def ensure_collection(client) -> bool:
     return True
 
 
+def _extract_pdf_text(pdf_path: Path) -> str:
+    reader = PdfReader(str(pdf_path))
+    pages: list[str] = []
+    for page in reader.pages:
+        page_text = page.extract_text() or ""
+        if page_text.strip():
+            pages.append(page_text.strip())
+    return "\n\n".join(pages).strip()
+
+
+def _split_long_text(text: str, max_chars: int) -> list[str]:
+    words = text.split()
+    if not words:
+        return []
+    chunks: list[str] = []
+    current_words: list[str] = []
+    for word in words:
+        candidate = " ".join(current_words + [word]).strip()
+        if current_words and len(candidate) > max_chars:
+            chunks.append(" ".join(current_words).strip())
+            current_words = [word]
+        else:
+            current_words.append(word)
+    if current_words:
+        chunks.append(" ".join(current_words).strip())
+    return [chunk for chunk in chunks if chunk]
+
+
+def _tail_for_overlap(text: str, overlap_chars: int) -> str:
+    if overlap_chars <= 0:
+        return ""
+    if len(text) <= overlap_chars:
+        return text.strip()
+    return text[-overlap_chars:].strip()
+
+
+def _split_text_into_chunks(
+    text: str,
+    max_chars: int = CHUNK_MAX_CHARS,
+    overlap_chars: int = CHUNK_OVERLAP_CHARS,
+) -> list[str]:
+    text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not text:
+        return []
+    if overlap_chars >= max_chars:
+        overlap_chars = max(0, max_chars // 10)
+
+    pieces: list[str] = []
+    for paragraph in (part.strip() for part in text.split("\n\n")):
+        if not paragraph:
+            continue
+        if len(paragraph) <= max_chars:
+            pieces.append(paragraph)
+        else:
+            pieces.extend(_split_long_text(paragraph, max_chars=max_chars))
+    if not pieces:
+        return []
+
+    chunks: list[str] = []
+    current = ""
+    for piece in pieces:
+        candidate = f"{current}\n\n{piece}".strip() if current else piece
+        if current and len(candidate) > max_chars:
+            chunks.append(current.strip())
+            overlap = _tail_for_overlap(current, overlap_chars)
+            current = f"{overlap}\n\n{piece}".strip() if overlap else piece
+            while len(current) > max_chars:
+                split_parts = _split_long_text(current, max_chars=max_chars)
+                if len(split_parts) <= 1:
+                    break
+                chunks.append(split_parts[0].strip())
+                overlap = _tail_for_overlap(split_parts[0], overlap_chars)
+                current = (
+                    f"{overlap}\n\n{split_parts[1]}".strip()
+                    if overlap
+                    else split_parts[1]
+                )
+        else:
+            current = candidate
+    if current.strip():
+        chunks.append(current.strip())
+    return chunks
+
+
 def _iter_seed_texts(paths: list[Path]) -> list[dict[str, str]]:
+    """Walk seed paths, returning one record per chunk for `.txt` and `.pdf` files."""
     items: list[dict[str, str]] = []
+    supported_suffixes = {".txt", ".pdf"}
+
+    candidates: list[Path] = []
     for base in paths:
-        path = Path(base)
-        candidates = sorted(path.rglob("*.txt")) if path.is_dir() else [path]
-        for file_path in candidates:
-            if file_path.suffix.lower() != ".txt":
-                continue
-            try:
+        base_path = Path(base)
+        if base_path.is_dir():
+            candidates.extend(sorted(base_path.rglob("*")))
+        elif base_path.is_file():
+            candidates.append(base_path)
+
+    for file_path in candidates:
+        suffix = file_path.suffix.lower()
+        if suffix not in supported_suffixes:
+            continue
+        try:
+            if suffix == ".pdf":
+                text = _extract_pdf_text(file_path)
+            else:
                 text = file_path.read_text(encoding="utf-8", errors="ignore").strip()
-            except OSError:
-                continue
-            if not text:
-                continue
+        except OSError:
+            continue
+        if not text:
+            continue
+        chunks = _split_text_into_chunks(text)
+        if not chunks:
+            continue
+        total = len(chunks)
+        for index, chunk in enumerate(chunks, start=1):
             items.append(
                 {
-                    "title": file_path.stem,
-                    "content": text,
-                    "source": str(file_path),
+                    "title": f"{file_path.stem} (chunk {index}/{total})",
+                    "content": chunk,
+                    "source": f"{file_path}#chunk={index}",
                 }
             )
     return items

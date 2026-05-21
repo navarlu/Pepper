@@ -1,0 +1,16 @@
+==============================================================================
+student63_streamingB_173931
+  conv_id=63  variant=B  started=2026-05-18T17:39:31  user_turns=?  duration=?
+==============================================================================
+  [user (speech)]  Hi Pepper.
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  Can you tell me where is the nearest bathroom?
+  [pepper]  The nearest toilets are right above the main staircase, next to the café.
+  [user (speech)]  Okay, and can you tell me something about...
+  [user (speech)]  Čevetafel
+  [pepper]  I'm not sure what you're referring to with "Čevetafel." Could you provide a bit more context or clarify what you mean?
+  [user (speech)]  I'm in about čevé
+  [user (speech)]  te
+  [pepper]  It seems like you might be referring to "čevapi," a popular dish in some cuisines. They're small, grilled minced meat sausages, often served with bread and onions. Is that what
+  [user (speech)]  Can you tell me what is one plus one?
+  [user (speech)]  Ikote?

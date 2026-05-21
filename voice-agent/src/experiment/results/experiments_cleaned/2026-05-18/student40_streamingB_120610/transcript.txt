@@ -1,0 +1,22 @@
+==============================================================================
+student40_streamingB_120610
+  conv_id=T40  variant=B  started=2026-05-18T12:06:10  user_turns=10  duration=100.2s
+==============================================================================
+  [user (speech)]  Hello.
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  What can I get in University canteen today for lunch? Just simply.
+  [pepper]  Let me pull up today's menu.
+  [pepper]  Today for lunch, you can enjoy pork mixture with bamboo shoots and steamed rice, or try the chicken risotto topped with cheese. Enjoy your meal!
+  [user (speech)]  Which one would you like?
+  [pepper]  Oh, I think I'd go for the chicken risotto topped with cheese! Sounds delicious, doesn't it? What about you?
+  [user (speech)]  OK, I will bring you.
+  [user (speech)]  Sam?
+  [pepper]  I'm not Sam, but I'm Pepper! How can I assist you today?
+  [user (speech)]  No, I mean, I will bring you that risotto.
+  [pepper]  Oh, that's so kind of you! Thank you! Enjoy your lunch!
+  [user (speech)]  You too.
+  [pepper]  Thanks! If
+  [user (speech)]  Goodbye.
+  [pepper]  Your conversation
+  [user (speech)]  Hurry, guys.
+  [user (speech)]  之前

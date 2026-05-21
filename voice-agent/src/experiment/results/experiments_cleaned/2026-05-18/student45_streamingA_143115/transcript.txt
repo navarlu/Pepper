@@ -1,0 +1,46 @@
+==============================================================================
+student45_streamingA_143115
+  conv_id=45  variant=A  started=2026-05-18T14:31:15  user_turns=?  duration=?
+==============================================================================
+  [user (speech)]  I-I come here.
+  [pepper]  Welcome to the university building E. How can I help you today?
+  [user (speech)]  Hello?
+  [pepper]  Hello! It's nice to meet you. Is there something I can help you with or would you like to take a look at our facilities map?
+  [user (speech)]  Yes, I want to see the MIPE.
+  [pepper]  I'm not familiar with the MIPE. Could you please tell me more about it?
+  [user (speech)]  It's a myper of this building.
+  [pepper]  I think you might be referring to the Zengers auditorium, which is located in room E-107. Would you like to know how to get there?
+  [user (speech)]  No, no, I want to see the map of this building.
+  [pepper]  You can find the facilities map on the wall near the main entrance. It shows the location of all the rooms, including the gym, café, toilets, and lockers. Would you like me to point it out to you?
+  [user (speech)]  Okay, I want to go to the toilet. Can you point that?
+  [pepper]  The toilets are right above the main staircase, next to the café. You can't miss them.
+  [user (speech)]  But I don't know the cafe where is the cafe.
+  [pepper]  The café is right above the main staircase (first floor).
+  [user (speech)]  Yeah, I want to go to the office of the human noise.
+  [pepper]  I think you mean the human receptionists. They are located in building A, over the courtyard from here.
+  [user (speech)]  No, no, it's the...
+  [user (speech)]  All face off of the human noise
+  [pepper]  I think you're having a bit of trouble with the names. I'm Pepper, the humanoid receptionist robot, and I'm here to help. If you're looking for the human receptionists, they're in building A, over the courtyard from here. If you need help with anything else, feel free to ask!
+  [user (speech)]  Yeah, a little trouble. It's the office of the lab. It's in the E218.
+  [pepper]  I think you might be thinking of the lab in building E. However, I don't have information on a lab in room E-218. Could you please tell me more about what you're looking for?
+  [user (speech)]  I'm looking for a sitting and a robot called iCup.
+  [pepper]  I'm not familiar with a robot called iCup in our building. However, I can suggest that you might be thinking of the study room, which is located in room E-125. It has two microwaves and a sitting area. Would you like to know how to get there?
+  [user (speech)]  Yeah, I don't know exactly where is the study room. Can you...
+  [user (speech)]  Tell me
+  [pepper]  The study room is located in room E-125.
+  [user (speech)]  Can you say something else about this building?
+  [pepper]  Building E has a basement where you can find the gym, and a first floor with the café and toilets, right above the main staircase.
+  [user (speech)]  And the else...
+  [pepper]  There are also lockers located right next to the main staircase, on the right side.
+  [user (speech)]  Okay.
+  [pepper]  Is there anything else I can help you with?
+  [user (speech)]  I want to find a
+  [pepper]  It looks like you're about to
+  [user (speech)]  classroom
+  [pepper]  I'm not sure what you're looking for. Could you please tell me more about the classroom you're trying to find?
+  [user (speech)]  a free classroom.
+  [pepper]  I'm
+  [user (speech)]  Hi, everything is okay.
+  [pepper]  It was nice chatting with you. Have a great day!
+  [user (speech)]  Can you say goodbye? Goodbye.
+  [pepper]  Goodbye!

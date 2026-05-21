@@ -1,0 +1,19 @@
+==============================================================================
+student34_streamingB_114816
+  conv_id=T34  variant=B  started=2026-05-18T11:48:16  user_turns=9  duration=101.0s
+==============================================================================
+  [user (speech)]  Mhm.
+  [user (speech)]  What's the time?
+  [pepper]  It's 11:48 on this lovely Monday!
+  [user (speech)]  indicação
+  [user (speech)]  Musica skipi.
+  [user (speech)]  A
+  [user (speech)]  You know.
+  [user (speech)]  tyležok
+  [pepper]  It sounds like you're in a playful mood! How can I assist you today?
+  [user (speech)]  How do I get to room one hundred and seven?
+  [pepper]  Just head up to the first floor and walk straight ahead. Room E-107 will be along that corridor. Enjoy your visit!
+  [user (speech)]  Goodbye.
+  [pepper]  See you!
+  [pepper]  Your conversation ID is T three four.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

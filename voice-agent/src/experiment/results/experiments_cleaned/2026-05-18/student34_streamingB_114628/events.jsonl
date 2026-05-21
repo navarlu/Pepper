@@ -1,0 +1,136 @@
+{"ts": 1779097588.4848447, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "header", "data": {"student_id": "34", "variant": "streamingB", "room": "pepper-experiment", "started": "2026-05-18T11:46:28", "host": "lucas-rpi-5-8gb"}}
+{"ts": 1779097590.733763, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779097590.2963183, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "session_start", "data": {"room": "pepper-experiment", "mode": "4o-streaming", "stt_model": "gpt-4o-mini-transcribe", "llm_model": "gpt-4o-mini", "tts_model": "gpt-4o-mini-tts", "tts_voice": "nova", "tts_response_format": "pcm", "lang": "en"}}
+{"ts": 1779097590.7343569, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779097590.7344081, "ts_mono": -1e-06, "conv_id": "T34", "variant": "B", "event": "mono_anchor", "data": {"worker_mono": 11219804.233313195, "worker_wall": 1779097590.7344089}}
+{"ts": 1779097591.0826445, "ts_mono": 0.348236, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 0, "first_chunk_bytes": 320}}
+{"ts": 1779097643.738701, "ts_mono": 53.004292, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 1, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097644.7571864, "ts_mono": 54.022778, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 1}}
+{"ts": 1779097644.7615726, "ts_mono": 54.027164, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 1, "model": "gpt-4o-mini", "n_messages": 2, "n_tools": 0, "greeting_splice": true}}
+{"ts": 1779097645.1886995, "ts_mono": 54.454291, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 2, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097645.1967297, "ts_mono": 54.462321, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Wiedersehen.", "input": "speech", "turn_id": 2}}
+{"ts": 1779097645.1968608, "ts_mono": 54.462452, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Wiedersehen.", "is_final": true, "turn_id": 2}}
+{"ts": 1779097645.1977034, "ts_mono": 54.463295, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097645.5340636, "ts_mono": 54.799655, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 2}}
+{"ts": 1779097645.534673, "ts_mono": 54.800264, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097645.5541017, "ts_mono": 54.819693, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 1, "elapsed_ms": 792, "chunks": 0}}
+{"ts": 1779097645.5580807, "ts_mono": 54.823672, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 1, "text_chars": 0}}
+{"ts": 1779097646.039516, "ts_mono": 55.305107, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 2, "model": "gpt-4o-mini", "n_messages": 3, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097646.0777206, "ts_mono": 55.343312, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Kolik je hodin?", "input": "speech", "turn_id": 2}}
+{"ts": 1779097646.077886, "ts_mono": 55.343477, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Kolik je hodin?", "is_final": true, "turn_id": 2}}
+{"ts": 1779097646.0780895, "ts_mono": 55.343681, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097649.3700342, "ts_mono": 58.635625, "conv_id": "T34", "variant": "B", "event": "tool_call", "data": {"name": "get_time", "args": {"emotion": "think", "request_heartbeat": true}, "turn_id": 2}}
+{"ts": 1779097649.3707073, "ts_mono": 58.636298, "conv_id": "T34", "variant": "B", "event": "tool_result", "data": {"name": "get_time", "result": {"time": "11:47", "weekday": "Monday", "date": "2026-05-18", "timezone": "CEST"}, "turn_id": 2}}
+{"ts": 1779097649.3714268, "ts_mono": 58.637018, "conv_id": "T34", "variant": "B", "event": "animation_requested", "data": {"turn_id": 2, "emotion": "think", "group": "think", "variant_name": "Thinking_4", "source_tool": "get_time"}}
+{"ts": 1779097649.3762636, "ts_mono": 58.641855, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 2, "elapsed_ms": 3336, "chunks": 2}}
+{"ts": 1779097649.379978, "ts_mono": 58.645569, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 2, "text_chars": 0}}
+{"ts": 1779097649.3836355, "ts_mono": 58.649227, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 2, "model": "gpt-4o-mini", "n_messages": 3, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097649.4202228, "ts_mono": 58.685814, "conv_id": "T34", "variant": "B", "event": "animation_dispatched", "data": {"turn_id": 2, "variant_name": "Thinking_4", "group": "think", "status": 200, "source_tool": "get_time", "expected_duration_ms": 2500}}
+{"ts": 1779097649.938365, "ts_mono": 59.203956, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097650.0044646, "ts_mono": 59.270056, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 2, "first_chunk": "Je"}}
+{"ts": 1779097650.2991118, "ts_mono": 59.564703, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 2, "elapsed_ms": 915, "chunks": 15}}
+{"ts": 1779097650.8398314, "ts_mono": 60.105422, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 3, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097651.1920714, "ts_mono": 60.457663, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 2, "dt_ms": 1776, "text_to_audio_ms": 1187}}
+{"ts": 1779097651.4300873, "ts_mono": 60.695678, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 3}}
+{"ts": 1779097651.4349627, "ts_mono": 60.700554, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 2, "frames": 20, "text_chars": 26, "stream_ms": 242, "total_ms": 2019}}
+{"ts": 1779097651.4755166, "ts_mono": 60.741108, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 3, "model": "gpt-4o-mini", "n_messages": 4, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097651.4883764, "ts_mono": 60.753968, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "What's the time?", "input": "speech", "turn_id": 3}}
+{"ts": 1779097651.488414, "ts_mono": 60.754005, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "What's the time?", "is_final": true, "turn_id": 3}}
+{"ts": 1779097651.488515, "ts_mono": 60.754106, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779097651.5437462, "ts_mono": 60.809337, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 3, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097651.9211736, "ts_mono": 61.186765, "conv_id": "T34", "variant": "B", "event": "animation_done", "data": {"turn_id": 3, "variant_name": "Thinking_4", "group": "think", "source_tool": "get_time", "actual_duration_ms": 2548}}
+{"ts": 1779097652.0049853, "ts_mono": 61.270576, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 3, "first_chunk": "It's"}}
+{"ts": 1779097652.0832415, "ts_mono": 61.348833, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 3, "elapsed_ms": 607, "chunks": 7}}
+{"ts": 1779097652.7269275, "ts_mono": 61.992519, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 3, "dt_ms": 1239, "text_to_audio_ms": 721}}
+{"ts": 1779097652.7290697, "ts_mono": 61.994661, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779097652.9342308, "ts_mono": 62.199822, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 3, "frames": 12, "text_chars": 11, "stream_ms": 207, "total_ms": 1447}}
+{"ts": 1779097652.956584, "ts_mono": 62.222175, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 3, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097653.3499079, "ts_mono": 62.615499, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 3, "first_chunk_bytes": 320}}
+{"ts": 1779097654.8000247, "ts_mono": 64.065616, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "It's 11:47.", "turn_id": 3}}
+{"ts": 1779097654.800465, "ts_mono": 64.066056, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779097657.4384835, "ts_mono": 66.704075, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 4, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097657.8041987, "ts_mono": 67.06979, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 4}}
+{"ts": 1779097657.8083649, "ts_mono": 67.073956, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 4, "model": "gpt-4o-mini", "n_messages": 6, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097658.492842, "ts_mono": 67.758433, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 4, "first_chunk": "Похоже"}}
+{"ts": 1779097658.538715, "ts_mono": 67.804306, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 5, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097658.5413249, "ts_mono": 67.806916, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Сейчас с нами не слышат.", "input": "speech", "turn_id": 5}}
+{"ts": 1779097658.5414531, "ts_mono": 67.807044, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Сейчас с нами не слышат.", "is_final": true, "turn_id": 5}}
+{"ts": 1779097658.5417879, "ts_mono": 67.807379, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097658.7475245, "ts_mono": 68.013116, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 5}}
+{"ts": 1779097658.7480748, "ts_mono": 68.013666, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097658.76186, "ts_mono": 68.027451, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 4, "elapsed_ms": 953, "chunks": 20}}
+{"ts": 1779097658.7660956, "ts_mono": 68.031687, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 4, "text_chars": 64}}
+{"ts": 1779097659.252016, "ts_mono": 68.517607, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 5, "model": "gpt-4o-mini", "n_messages": 7, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097659.2847567, "ts_mono": 68.550348, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Ja.", "input": "speech", "turn_id": 5}}
+{"ts": 1779097659.2848413, "ts_mono": 68.550432, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Ja.", "is_final": true, "turn_id": 5}}
+{"ts": 1779097659.2850783, "ts_mono": 68.550669, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097659.8395686, "ts_mono": 69.10516, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 5, "first_chunk": "Tschüss"}}
+{"ts": 1779097659.863554, "ts_mono": 69.129145, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 5, "elapsed_ms": 611, "chunks": 5}}
+{"ts": 1779097660.4264917, "ts_mono": 69.692083, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 5, "dt_ms": 1143, "text_to_audio_ms": 587}}
+{"ts": 1779097660.4286108, "ts_mono": 69.694202, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097660.62175, "ts_mono": 69.887341, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 5, "frames": 13, "text_chars": 8, "stream_ms": 195, "total_ms": 1338}}
+{"ts": 1779097660.6358068, "ts_mono": 69.901398, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 5, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097661.0397437, "ts_mono": 70.305335, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 5, "first_chunk_bytes": 320}}
+{"ts": 1779097662.64965, "ts_mono": 71.915241, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "Tschüss!", "turn_id": 5}}
+{"ts": 1779097662.6500833, "ts_mono": 71.915674, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097667.437617, "ts_mono": 76.703208, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 6, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097669.3172739, "ts_mono": 78.582865, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 6}}
+{"ts": 1779097669.321457, "ts_mono": 78.587048, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 6, "model": "gpt-4o-mini", "n_messages": 9, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097669.3501325, "ts_mono": 78.615724, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Jo, anglicky to nepochopil.", "input": "speech", "turn_id": 6}}
+{"ts": 1779097669.3501768, "ts_mono": 78.615768, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Jo, anglicky to nepochopil.", "is_final": true, "turn_id": 6}}
+{"ts": 1779097669.350605, "ts_mono": 78.616196, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779097670.2710109, "ts_mono": 79.536602, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 6, "first_chunk": "No"}}
+{"ts": 1779097670.4876862, "ts_mono": 79.753277, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 6, "elapsed_ms": 1165, "chunks": 15}}
+{"ts": 1779097671.188276, "ts_mono": 80.453867, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779097671.4434538, "ts_mono": 80.709045, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 6, "dt_ms": 2094, "text_to_audio_ms": 1172}}
+{"ts": 1779097671.6804724, "ts_mono": 80.946064, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 6, "frames": 21, "text_chars": 56, "stream_ms": 237, "total_ms": 2331}}
+{"ts": 1779097671.7105896, "ts_mono": 80.976181, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 6, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097672.7395952, "ts_mono": 82.005186, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 7, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097673.094223, "ts_mono": 82.359814, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 7}}
+{"ts": 1779097673.1027758, "ts_mono": 82.368367, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 7, "model": "gpt-4o-mini", "n_messages": 10, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097673.1300993, "ts_mono": 82.39569, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Tam chytila nejakú...", "input": "speech", "turn_id": 7}}
+{"ts": 1779097673.1301515, "ts_mono": 82.395743, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Tam chytila nejakú...", "is_final": true, "turn_id": 7}}
+{"ts": 1779097673.13032, "ts_mono": 82.395911, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097673.7445016, "ts_mono": 83.010093, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 7, "first_chunk": "Môžem"}}
+{"ts": 1779097673.8444004, "ts_mono": 83.109992, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 7, "elapsed_ms": 741, "chunks": 13}}
+{"ts": 1779097674.577523, "ts_mono": 83.843114, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 7, "dt_ms": 1448, "text_to_audio_ms": 833}}
+{"ts": 1779097674.5792365, "ts_mono": 83.844828, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097674.7953198, "ts_mono": 84.060911, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 7, "first_chunk_bytes": 320}}
+{"ts": 1779097674.9015677, "ts_mono": 84.167159, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 7, "frames": 19, "text_chars": 24, "stream_ms": 323, "total_ms": 1772}}
+{"ts": 1779097678.049647, "ts_mono": 87.315238, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "Môžem vám nejako pomôcť?", "turn_id": 7}}
+{"ts": 1779097678.0500622, "ts_mono": 87.315653, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097678.8600414, "ts_mono": 88.125633, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 7, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097681.7381504, "ts_mono": 91.003742, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 8, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097682.1338658, "ts_mono": 91.399457, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 8}}
+{"ts": 1779097682.1385562, "ts_mono": 91.404147, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 8, "model": "gpt-4o-mini", "n_messages": 12, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097682.1710823, "ts_mono": 91.436673, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Słoneczko funkuje, widzisz?", "input": "speech", "turn_id": 8}}
+{"ts": 1779097682.1711338, "ts_mono": 91.436725, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Słoneczko funkuje, widzisz?", "is_final": true, "turn_id": 8}}
+{"ts": 1779097682.1712816, "ts_mono": 91.436873, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779097683.1627128, "ts_mono": 92.428304, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 8, "first_chunk": "Tak"}}
+{"ts": 1779097683.639135, "ts_mono": 92.904726, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 8, "elapsed_ms": 1500, "chunks": 20}}
+{"ts": 1779097683.6445112, "ts_mono": 92.910102, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779097684.1885371, "ts_mono": 93.454128, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 9, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097684.2519627, "ts_mono": 93.517554, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 8, "dt_ms": 2083, "text_to_audio_ms": 1089}}
+{"ts": 1779097684.5485604, "ts_mono": 93.814152, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 9}}
+{"ts": 1779097684.55863, "ts_mono": 93.824221, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 8, "frames": 17, "text_chars": 50, "stream_ms": 306, "total_ms": 2389}}
+{"ts": 1779097684.594614, "ts_mono": 93.860205, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 9, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097686.0380816, "ts_mono": 95.303673, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 10, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097686.0424519, "ts_mono": 95.308043, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 10, "model": "gpt-4o-mini", "n_messages": 13, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097686.087766, "ts_mono": 95.353357, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "打勾", "input": "speech", "turn_id": 10}}
+{"ts": 1779097686.0878494, "ts_mono": 95.353441, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "打勾", "is_final": true, "turn_id": 10}}
+{"ts": 1779097686.0881186, "ts_mono": 95.35371, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779097686.5282316, "ts_mono": 95.793823, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 10}}
+{"ts": 1779097686.5288255, "ts_mono": 95.794417, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779097686.546622, "ts_mono": 95.812213, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 10, "elapsed_ms": 503, "chunks": 0}}
+{"ts": 1779097686.5499532, "ts_mono": 95.815544, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 10, "text_chars": 0}}
+{"ts": 1779097687.0325103, "ts_mono": 96.298101, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 10, "model": "gpt-4o-mini", "n_messages": 14, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097687.064611, "ts_mono": 96.330202, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Wir müssen eine Pause einlegen.", "input": "speech", "turn_id": 10}}
+{"ts": 1779097687.0646532, "ts_mono": 96.330244, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Wir müssen eine Pause einlegen.", "is_final": true, "turn_id": 10}}
+{"ts": 1779097687.0647962, "ts_mono": 96.330387, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779097687.6293197, "ts_mono": 96.894911, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 10, "first_chunk": "Klingt"}}
+{"ts": 1779097687.9812717, "ts_mono": 97.246863, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 10, "elapsed_ms": 948, "chunks": 18}}
+{"ts": 1779097688.8831477, "ts_mono": 98.148739, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 10, "dt_ms": 1819, "text_to_audio_ms": 1253}}
+{"ts": 1779097688.8859596, "ts_mono": 98.151551, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779097689.2161, "ts_mono": 98.481691, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 10, "frames": 27, "text_chars": 66, "stream_ms": 332, "total_ms": 2152}}
+{"ts": 1779097689.2442288, "ts_mono": 98.50982, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 10, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097689.6419325, "ts_mono": 98.907524, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 10, "first_chunk_bytes": 320}}

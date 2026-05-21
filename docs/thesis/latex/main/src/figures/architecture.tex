@@ -1,0 +1,91 @@
+% System architecture diagram for Section "System Overview".
+% Three physical machines (Pepper, Raspberry Pi 5, GPU server) and the
+% transports between them. Arrow colour encodes the transport type;
+% the legend at the top decodes the colours.
+\begin{tikzpicture}[
+  every node/.style={font=\small},
+  machine/.style={
+    draw, thick, rounded corners=3pt, fill=blue!4,
+    minimum width=40mm, minimum height=42mm, align=center,
+    inner sep=4pt, text width=38mm
+  },
+  external/.style={
+    draw, thick, rounded corners=2pt, fill=gray!10,
+    align=center, inner sep=4pt, minimum width=30mm
+  },
+  webrtc/.style={Latex-Latex, line width=0.8pt, draw=blue!60!black},
+  http/.style={-Latex, line width=0.8pt, draw=orange!75!black},
+  ssh/.style={-Latex, line width=0.8pt, draw=teal!70!black},
+  micwire/.style={-Latex, thick, draw=gray!60!black},
+]
+
+% --- Three machines, left to right ----------------------------------
+\node[machine] (pepper) at (0,0) {
+  \textbf{Pepper}\\[2pt]
+  \scriptsize
+  speakers \\
+  chest tablet \\
+  animation player \\
+  NAOqi \\
+  PulseAudio
+};
+
+\node[machine, right=24mm of pepper] (rpi) {
+  \textbf{Raspberry Pi 5}\\[2pt]
+  \scriptsize
+  livekit \\
+  bridge \\
+  audio-bridge \\
+  user-client \\
+  tablet-server \\
+  weaviate \\
+  redis \\
+  session-driver
+};
+
+\node[machine, right=24mm of rpi] (gpu) {
+  \textbf{GPU server}\\[2pt]
+  \scriptsize
+  voice-agent-A \\
+  voice-agent-B \\
+  vLLM \\
+};
+
+% --- Arrows between Pepper and RPi (two transports) -----------------
+% SSH + paplay (top): RPi -> Pepper
+\draw[ssh] ($(rpi.west)+(0,6mm)$) -- ($(pepper.east)+(0,6mm)$);
+% HTTP (NAOqi animations + tablet pushes, bottom): RPi -> Pepper
+\draw[http] ($(rpi.west)+(0,-6mm)$) -- ($(pepper.east)+(0,-6mm)$);
+
+% --- Arrows between RPi and GPU (two transports) --------------------
+% WebRTC (top): RPi <-> GPU
+\draw[webrtc] ($(rpi.east)+(0,6mm)$) -- ($(gpu.west)+(0,6mm)$);
+% HTTP tool calls (bottom): GPU -> RPi
+\draw[http] ($(gpu.west)+(0,-6mm)$) -- ($(rpi.east)+(0,-6mm)$);
+
+% --- Visitor microphone --------------------------------------------
+\node[external, below=18mm of rpi.south] (mic) {%
+  USB microphone\\
+};
+\draw[micwire] (mic) -- (rpi.south);
+
+% --- Reverse SSH tunnel annotation ---------------------------------
+\node[draw=teal!60!black, thick, dotted, rounded corners=2pt,
+      fill=teal!5, inner sep=5pt, align=center, font=\scriptsize,
+      below=5mm of mic, text width=120mm]
+  (tunnel) {%
+    \textbf{Reverse SSH tunnel} (\texttt{autossh})\,:\;
+    Raspberry~Pi $\to$ GPU server, LiveKit ports forwarded back so the GPU server can reach LiveKit inbound.
+  };
+
+% --- Legend (above the machines) -----------------------------------
+\node[draw, thin, rounded corners=2pt, fill=white,
+      inner sep=5pt, font=\scriptsize, align=left,
+      above=4mm of rpi.north]
+  (legend) {%
+    \textcolor{blue!60!black}{\rule[0.4ex]{8mm}{0.9pt}}\,WebRTC \quad
+    \textcolor{orange!75!black}{\rule[0.4ex]{8mm}{0.9pt}}\,HTTP \quad
+    \textcolor{teal!70!black}{\rule[0.4ex]{8mm}{0.9pt}}\,SSH+paplay%
+  };
+
+\end{tikzpicture}

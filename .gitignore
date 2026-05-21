@@ -86,3 +86,5 @@ voice-agent/tests/local_llm_benchmark/results/
 
 # Experiment session logs.
 voice-agent/src/experiment/results/experiments/
+voice-agent/src/experiment/results/experiments_backup/
+*.wav

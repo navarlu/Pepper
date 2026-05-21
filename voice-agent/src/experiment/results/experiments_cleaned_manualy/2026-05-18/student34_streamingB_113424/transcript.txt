@@ -1,0 +1,20 @@
+==============================================================================
+student34_streamingB_113424
+  conv_id=T34  variant=B  started=2026-05-18T11:34:24  user_turns=7  duration=133.9s
+==============================================================================
+  [user (speech)]  Hello, what can I today eat in Mensa?
+  [pepper]  Let me check the menu for you! One moment, please.
+  [user (speech)]  Please repeat that.
+  [pepper]  Let me pull up today's menu.
+  [pepper]  Today in the Mensa, you can enjoy honey-glazed chicken pieces with mashed potatoes or beef ragout Frankfurt style with bread dumplings. Bon appétit!
+  [user (speech)]  Labi.
+  [user (speech)]  And how much it cost?
+  [pepper]  I'm not sure about the prices, but you can check them directly at the Mensa. They usually have the menu displayed there!
+  [user (speech)]  And where is the men's oven? I can't find it.
+  [pepper]  The men's toilets are right above the main staircase, next to the café. Just head up the stairs, and you should find them easily!
+  [user (speech)]  Ale to ví?
+  [pepper]  Ano, to vím! Ráda pomohu s informacemi o budově. Co dalšího potřebujete vědět?
+  [user (speech)]  Bye-bye, nice to meet you.
+  [pepper]  It was great meeting you too!
+  [pepper]  Your conversation ID is T three four.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

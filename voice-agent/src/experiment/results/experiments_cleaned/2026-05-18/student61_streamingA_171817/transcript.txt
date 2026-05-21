@@ -1,0 +1,19 @@
+==============================================================================
+student61_streamingA_171817
+  conv_id=T61  variant=A  started=2026-05-18T17:18:17  user_turns=5  duration=91.8s
+==============================================================================
+  [user (speech)]  Hello.
+  [pepper]  Welcome to the university building E. How can I help you today?
+  [user (speech)]  I'm looking for Vojta von Asec. His name is spelled V-O-N.
+  [pepper]  Let me look that up in the directory.
+  [pepper]  I couldn't find anyone by that name in our staff directory. Could you please confirm or spell the surname again?
+  [user (speech)]  V-O-N-K-S-E-K
+  [pepper]  Let me look that up in the directory.
+  [pepper]  Let me check again. I couldn't find anyone by that name in our staff directory. Could you please confirm or spell the surname again?
+  [user (speech)]  V-O-N-A-S-E-K
+  [pepper]  Let me look that up in the directory.
+  [pepper]  Ing. Vojtech Vonasek, Ph.D. is a member of the Multi-robot Systems department and can be found in room E-121. His contact information is +420 22435 7384 and vonasvoj@fel.cvut.cz.
+  [user (speech)]  Okay, thank you.
+  [pepper]  Goodbye!
+  [pepper]  Your conversation ID is T six one.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

@@ -22,7 +22,7 @@ For a receptionist this is a big shift: a visitor can simply ask a question inst
 
 Compared to a human at a reception desk, a robot offers some practical advantages.
 It can work around the clock without breaks, hold a large and up-to-date set of facts about the building and the people in it, and does not get tired or impatient after the hundredth question of the day.
-A human receptionist, of course, still has clear strengths: intuition, social judgement, and the ability to handle situations that the system has not been prepared for.
+A human receptionist, of course, still has clear strengths: intuition, social judgment, and the ability to handle situations that the system has not been prepared for.
 As the underlying technology improves this gap may narrow, but for now it remains real.
 
 
@@ -53,7 +53,8 @@ The goal of this thesis is to design an LLM-driven receptionist robot for social
 % here.
 
 The rest of the thesis is structured as follows.
-Chapter~\ref{ch:related_work} reviews the related work: large language models and how their behaviour is shaped through prompting, tool calling, and retrieval-augmented generation; speech interfaces for human--robot interaction; the trade-offs between locally hosted and cloud-hosted LLM deployment; and the questionnaires used to evaluate social robots.
+Chapter~\ref{ch:related_work} reviews the related work: prior receptionist and guide robots, recent LLM-driven social robots, the role of gestures in human--robot interaction, and the questionnaire instruments used to evaluate social robots.
+Chapter~\ref{ch:background} gives the conceptual background a reader needs to follow Chapter~\ref{ch:methods}: large language models and how their behavior is shaped through prompting, tool calling, and retrieval-augmented generation; speech interfaces for human--robot interaction; and the trade-offs between locally hosted and cloud-hosted LLM deployment.
 Chapter~\ref{ch:methods} describes the system: the Pepper robot and the compute behind it, the service architecture, the two voice backends compared in this work (a locally hosted cascade and a cloud-hosted cascade), the knowledge-grounding layer that lets the robot answer questions about the institution, and the gesture and tablet feedback shown during the conversation.
 Chapter~\ref{ch:experiments} presents the user study: the between-subjects design contrasting the two backends, the recruitment and procedure at the chosen reception desk, the questionnaire and custom items used to measure the interaction, and the objective, subjective, and qualitative results.
 Chapter~\ref{ch:conclusion} gives a short summary of what was built and what was found.

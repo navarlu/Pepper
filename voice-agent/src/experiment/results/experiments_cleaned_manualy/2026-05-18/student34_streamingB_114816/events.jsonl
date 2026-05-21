@@ -1,0 +1,154 @@
+{"ts": 1779097696.2651606, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "header", "data": {"student_id": "34", "variant": "streamingB", "room": "pepper-experiment", "started": "2026-05-18T11:48:16", "host": "lucas-rpi-5-8gb"}}
+{"ts": 1779097698.507826, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779097698.090647, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "session_start", "data": {"room": "pepper-experiment", "mode": "4o-streaming", "stt_model": "gpt-4o-mini-transcribe", "llm_model": "gpt-4o-mini", "tts_model": "gpt-4o-mini-tts", "tts_voice": "nova", "tts_response_format": "pcm", "lang": "en"}}
+{"ts": 1779097698.5087345, "ts_mono": 0.0, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779097698.5087824, "ts_mono": -1e-06, "conv_id": "T34", "variant": "B", "event": "mono_anchor", "data": {"worker_mono": 11219912.007687284, "worker_wall": 1779097698.508783}}
+{"ts": 1779097698.818194, "ts_mono": 0.309411, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 0, "first_chunk_bytes": 320}}
+{"ts": 1779097701.7593853, "ts_mono": 3.250602, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 1, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097702.5535138, "ts_mono": 4.044731, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 1}}
+{"ts": 1779097702.5587897, "ts_mono": 4.050007, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 1, "model": "gpt-4o-mini", "n_messages": 2, "n_tools": 0, "greeting_splice": true}}
+{"ts": 1779097702.5760636, "ts_mono": 4.067281, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Mhm.", "input": "speech", "turn_id": 1}}
+{"ts": 1779097702.5763772, "ts_mono": 4.067594, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Mhm.", "is_final": true, "turn_id": 1}}
+{"ts": 1779097702.5765526, "ts_mono": 4.06777, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 1}}
+{"ts": 1779097703.1048949, "ts_mono": 4.596112, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 1, "first_chunk": "Hello"}}
+{"ts": 1779097703.2553248, "ts_mono": 4.746542, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 1, "elapsed_ms": 696, "chunks": 10}}
+{"ts": 1779097703.6574867, "ts_mono": 5.148704, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 1}}
+{"ts": 1779097704.067485, "ts_mono": 5.558702, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 1, "dt_ms": 1497, "text_to_audio_ms": 962}}
+{"ts": 1779097704.2940502, "ts_mono": 5.785267, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 1, "frames": 15, "text_chars": 32, "stream_ms": 226, "total_ms": 1724}}
+{"ts": 1779097704.384718, "ts_mono": 5.875935, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 1, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097704.660776, "ts_mono": 6.151993, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 2, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097705.2272725, "ts_mono": 6.718489, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 2}}
+{"ts": 1779097705.2362103, "ts_mono": 6.727427, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 2, "model": "gpt-4o-mini", "n_messages": 3, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097705.2720819, "ts_mono": 6.763299, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "What's the time?", "input": "speech", "turn_id": 2}}
+{"ts": 1779097705.272141, "ts_mono": 6.763358, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "What's the time?", "is_final": true, "turn_id": 2}}
+{"ts": 1779097705.272241, "ts_mono": 6.763458, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097706.450009, "ts_mono": 7.941226, "conv_id": "T34", "variant": "B", "event": "tool_call", "data": {"name": "get_time", "args": {"emotion": "think", "request_heartbeat": true}, "turn_id": 2}}
+{"ts": 1779097706.4506962, "ts_mono": 7.941913, "conv_id": "T34", "variant": "B", "event": "tool_result", "data": {"name": "get_time", "result": {"time": "11:48", "weekday": "Monday", "date": "2026-05-18", "timezone": "CEST"}, "turn_id": 2}}
+{"ts": 1779097706.45127, "ts_mono": 7.942487, "conv_id": "T34", "variant": "B", "event": "animation_requested", "data": {"turn_id": 2, "emotion": "think", "group": "think", "variant_name": "Remember_1", "source_tool": "get_time"}}
+{"ts": 1779097706.4582634, "ts_mono": 7.94948, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 2, "elapsed_ms": 1221, "chunks": 2}}
+{"ts": 1779097706.4647589, "ts_mono": 7.955976, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 2, "text_chars": 0}}
+{"ts": 1779097706.4684496, "ts_mono": 7.959666, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 2, "model": "gpt-4o-mini", "n_messages": 3, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097706.4951882, "ts_mono": 7.986405, "conv_id": "T34", "variant": "B", "event": "animation_dispatched", "data": {"turn_id": 2, "variant_name": "Remember_1", "group": "think", "status": 200, "source_tool": "get_time", "expected_duration_ms": 2500}}
+{"ts": 1779097707.2417476, "ts_mono": 8.732965, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 2, "first_chunk": "It's"}}
+{"ts": 1779097707.5275702, "ts_mono": 9.018787, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 2, "elapsed_ms": 1059, "chunks": 11}}
+{"ts": 1779097708.2049482, "ts_mono": 9.696165, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 2, "dt_ms": 1712, "text_to_audio_ms": 963}}
+{"ts": 1779097708.2072132, "ts_mono": 9.69843, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097708.301711, "ts_mono": 9.792928, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 2, "first_chunk_bytes": 320}}
+{"ts": 1779097708.5278637, "ts_mono": 10.019081, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 2, "frames": 18, "text_chars": 33, "stream_ms": 322, "total_ms": 2035}}
+{"ts": 1779097708.9958572, "ts_mono": 10.487074, "conv_id": "T34", "variant": "B", "event": "animation_done", "data": {"turn_id": 2, "variant_name": "Remember_1", "group": "think", "source_tool": "get_time", "actual_duration_ms": 2542}}
+{"ts": 1779097711.4781113, "ts_mono": 12.969328, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "It's 11:48 on this lovely Monday!", "turn_id": 2}}
+{"ts": 1779097711.4783957, "ts_mono": 12.969613, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 2}}
+{"ts": 1779097712.6997867, "ts_mono": 14.191004, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 2, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097720.058437, "ts_mono": 21.549654, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 3, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097720.4216375, "ts_mono": 21.912854, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 3}}
+{"ts": 1779097720.426104, "ts_mono": 21.917321, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 3, "model": "gpt-4o-mini", "n_messages": 5, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097722.008866, "ts_mono": 23.500083, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 4, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097722.0164557, "ts_mono": 23.507673, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "indicação", "input": "speech", "turn_id": 4}}
+{"ts": 1779097722.0165555, "ts_mono": 23.507772, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "indicação", "is_final": true, "turn_id": 4}}
+{"ts": 1779097722.0167294, "ts_mono": 23.507946, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779097722.563561, "ts_mono": 24.054778, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 4}}
+{"ts": 1779097722.56393, "ts_mono": 24.055147, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779097722.57891, "ts_mono": 24.070127, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 3, "elapsed_ms": 2152, "chunks": 0}}
+{"ts": 1779097722.580798, "ts_mono": 24.072015, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 3, "text_chars": 0}}
+{"ts": 1779097723.0673082, "ts_mono": 24.558525, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 4, "model": "gpt-4o-mini", "n_messages": 6, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097723.105057, "ts_mono": 24.596274, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Musica skipi.", "input": "speech", "turn_id": 4}}
+{"ts": 1779097723.1052225, "ts_mono": 24.596439, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Musica skipi.", "is_final": true, "turn_id": 4}}
+{"ts": 1779097723.1053782, "ts_mono": 24.596595, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779097725.0992267, "ts_mono": 26.590444, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 4, "first_chunk": "Parece"}}
+{"ts": 1779097725.2095406, "ts_mono": 26.700758, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779097725.46022, "ts_mono": 26.951437, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 5, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097725.587398, "ts_mono": 27.078615, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 4, "elapsed_ms": 2519, "chunks": 20}}
+{"ts": 1779097725.8282168, "ts_mono": 27.319434, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 5}}
+{"ts": 1779097725.8357158, "ts_mono": 27.326933, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 4, "text_chars": 80}}
+{"ts": 1779097725.839934, "ts_mono": 27.331151, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 5, "model": "gpt-4o-mini", "n_messages": 7, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097725.880075, "ts_mono": 27.371292, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "A", "input": "speech", "turn_id": 5}}
+{"ts": 1779097725.8802419, "ts_mono": 27.371459, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "A", "is_final": true, "turn_id": 5}}
+{"ts": 1779097725.8803604, "ts_mono": 27.371577, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097727.0595572, "ts_mono": 28.550774, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779097727.6082313, "ts_mono": 29.099448, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 6, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097728.6385005, "ts_mono": 30.129717, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 6}}
+{"ts": 1779097728.6464555, "ts_mono": 30.137672, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 5, "elapsed_ms": 2806, "chunks": 0}}
+{"ts": 1779097728.6536376, "ts_mono": 30.144855, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 5, "text_chars": 0}}
+{"ts": 1779097728.6581004, "ts_mono": 30.149317, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 6, "model": "gpt-4o-mini", "n_messages": 8, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097728.6975214, "ts_mono": 30.188738, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "You know.", "input": "speech", "turn_id": 6}}
+{"ts": 1779097728.6975675, "ts_mono": 30.188784, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "You know.", "is_final": true, "turn_id": 6}}
+{"ts": 1779097728.6976433, "ts_mono": 30.18886, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779097730.3071432, "ts_mono": 31.79836, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779097730.663408, "ts_mono": 32.154625, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 6, "first_chunk": "I"}}
+{"ts": 1779097731.1584103, "ts_mono": 32.649627, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 7, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097731.5030475, "ts_mono": 32.994264, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 6, "elapsed_ms": 2844, "chunks": 26}}
+{"ts": 1779097731.5781715, "ts_mono": 33.069388, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 7}}
+{"ts": 1779097731.5865536, "ts_mono": 33.07777, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 6, "text_chars": 110}}
+{"ts": 1779097731.5924153, "ts_mono": 33.083632, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 7, "model": "gpt-4o-mini", "n_messages": 9, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097731.6253803, "ts_mono": 33.116597, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "tyležok", "input": "speech", "turn_id": 7}}
+{"ts": 1779097731.625531, "ts_mono": 33.116748, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "tyležok", "is_final": true, "turn_id": 7}}
+{"ts": 1779097731.6258087, "ts_mono": 33.117026, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097733.2570946, "ts_mono": 34.748312, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 7, "first_chunk": "It"}}
+{"ts": 1779097733.7010794, "ts_mono": 35.192296, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 7, "elapsed_ms": 2108, "chunks": 17}}
+{"ts": 1779097734.7858658, "ts_mono": 36.277083, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 7, "dt_ms": 3162, "text_to_audio_ms": 1528}}
+{"ts": 1779097734.7886176, "ts_mono": 36.279835, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097735.3651295, "ts_mono": 36.856346, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 7, "first_chunk_bytes": 320}}
+{"ts": 1779097735.6884322, "ts_mono": 37.179649, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 7, "frames": 27, "text_chars": 68, "stream_ms": 902, "total_ms": 4064}}
+{"ts": 1779097739.8190417, "ts_mono": 41.310259, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "It sounds like you're in a playful mood! How can I assist you today?", "turn_id": 7}}
+{"ts": 1779097739.8193157, "ts_mono": 41.310533, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779097741.1403759, "ts_mono": 42.631593, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 7, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097750.407538, "ts_mono": 51.898755, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 8, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097750.8771188, "ts_mono": 52.368336, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 8}}
+{"ts": 1779097750.8837786, "ts_mono": 52.374995, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 8, "model": "gpt-4o-mini", "n_messages": 11, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097750.9265735, "ts_mono": 52.41779, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "How do I get to room one hundred and seven?", "input": "speech", "turn_id": 8}}
+{"ts": 1779097750.9266448, "ts_mono": 52.417862, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "How do I get to room one hundred and seven?", "is_final": true, "turn_id": 8}}
+{"ts": 1779097750.9267652, "ts_mono": 52.417982, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779097751.8679442, "ts_mono": 53.359161, "conv_id": "T34", "variant": "B", "event": "tool_call", "data": {"name": "find_path_to_room", "args": {"room": "E-107", "emotion": "think", "request_heartbeat": true}, "turn_id": 8}}
+{"ts": 1779097751.8681588, "ts_mono": 53.359376, "conv_id": "T34", "variant": "B", "event": "tool_result", "data": {"name": "find_path_to_room", "result": {"room": "E-107", "floor": 1, "directions": "Head up to the first floor. Walk straight ahead — Room E-107 is along that corridor.", "instruction": "Read the `directions` field to the user in plain prose, naturally. The user is already with you at the entrance — don't tell them to start there."}, "turn_id": 8}}
+{"ts": 1779097751.8686993, "ts_mono": 53.359916, "conv_id": "T34", "variant": "B", "event": "animation_requested", "data": {"turn_id": 8, "emotion": "think", "group": "think", "variant_name": "Thinking_1", "source_tool": "find_path_to_room"}}
+{"ts": 1779097751.877968, "ts_mono": 53.369185, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 8, "elapsed_ms": 993, "chunks": 2}}
+{"ts": 1779097751.88072, "ts_mono": 53.371937, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 8, "text_chars": 0}}
+{"ts": 1779097751.8846915, "ts_mono": 53.375908, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 8, "model": "gpt-4o-mini", "n_messages": 11, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097751.9237473, "ts_mono": 53.414964, "conv_id": "T34", "variant": "B", "event": "animation_dispatched", "data": {"turn_id": 8, "variant_name": "Thinking_1", "group": "think", "status": 200, "source_tool": "find_path_to_room", "expected_duration_ms": 2500}}
+{"ts": 1779097752.4828546, "ts_mono": 53.974072, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 8, "first_chunk": "Just"}}
+{"ts": 1779097752.8631313, "ts_mono": 54.354348, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 8, "elapsed_ms": 978, "chunks": 27}}
+{"ts": 1779097753.5082653, "ts_mono": 54.999482, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 8, "dt_ms": 1594, "text_to_audio_ms": 1025}}
+{"ts": 1779097753.5101192, "ts_mono": 55.001336, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779097754.1790733, "ts_mono": 55.67029, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 8, "first_chunk_bytes": 320}}
+{"ts": 1779097754.4244616, "ts_mono": 55.915679, "conv_id": "T34", "variant": "B", "event": "animation_done", "data": {"turn_id": 8, "variant_name": "Thinking_1", "group": "think", "source_tool": "find_path_to_room", "actual_duration_ms": 2551}}
+{"ts": 1779097755.7263331, "ts_mono": 57.21755, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 8, "frames": 52, "text_chars": 114, "stream_ms": 2217, "total_ms": 3811}}
+{"ts": 1779097763.4511635, "ts_mono": 64.94238, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "Just head up to the first floor and walk straight ahead. Room E-107 will be along that corridor. Enjoy your visit!", "turn_id": 8}}
+{"ts": 1779097763.4514432, "ts_mono": 64.94266, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779097764.2110023, "ts_mono": 65.702219, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 8, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097779.8079658, "ts_mono": 81.299183, "conv_id": "T34", "variant": "B", "event": "vad_user_speech_end", "data": {"turn_id": 9, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779097780.430618, "ts_mono": 81.921835, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 9}}
+{"ts": 1779097780.4362745, "ts_mono": 81.927491, "conv_id": "T34", "variant": "B", "event": "llm_request_start", "data": {"turn_id": 9, "model": "gpt-4o-mini", "n_messages": 13, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779097780.4687555, "ts_mono": 81.959972, "conv_id": "T34", "variant": "B", "event": "user_turn", "data": {"text": "Goodbye.", "input": "speech", "turn_id": 9}}
+{"ts": 1779097780.4688623, "ts_mono": 81.960079, "conv_id": "T34", "variant": "B", "event": "asr_result", "data": {"text": "Goodbye.", "is_final": true, "turn_id": 9}}
+{"ts": 1779097780.4690378, "ts_mono": 81.960255, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097781.371063, "ts_mono": 82.86228, "conv_id": "T34", "variant": "B", "event": "tool_call", "data": {"name": "end_conversation", "args": {"text": "See you! Your conversation ID is T three four. Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!", "emotion": "goodbye", "conv_id": "T34"}, "turn_id": 9}}
+{"ts": 1779097781.4106066, "ts_mono": 82.901824, "conv_id": "T34", "variant": "B", "event": "llm_response_end", "data": {"turn_id": 9, "elapsed_ms": 973, "chunks": 2}}
+{"ts": 1779097781.4147718, "ts_mono": 82.905989, "conv_id": "T34", "variant": "B", "event": "warn", "data": {"component": "tts", "message": "no audio produced", "turn_id": 9, "text_chars": 0}}
+{"ts": 1779097781.4542224, "ts_mono": 82.945439, "conv_id": "T34", "variant": "B", "event": "tablet_qr_shown", "data": {"turn_id": 9, "conv_id_on_qr": "T34", "display_seconds": 30, "feedback_url": "https://docs.google.com/forms/d/e/1FAIpQLSfCO5Z9cbQsEfodz6oBXe2umM6A0uzTgPntF3kPQXpjQf_MSg/viewform"}}
+{"ts": 1779097781.4548283, "ts_mono": 82.946045, "conv_id": "T34", "variant": "B", "event": "animation_requested", "data": {"turn_id": 9, "emotion": "goodbye", "group": "goodbye", "variant_name": "BowShort_3", "source_tool": "end_conversation"}}
+{"ts": 1779097781.4594133, "ts_mono": 82.95063, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 9, "first_chunk": "See you"}}
+{"ts": 1779097781.4979818, "ts_mono": 82.989199, "conv_id": "T34", "variant": "B", "event": "animation_dispatched", "data": {"turn_id": 9, "variant_name": "BowShort_3", "group": "goodbye", "status": 200, "source_tool": "end_conversation", "expected_duration_ms": 2500}}
+{"ts": 1779097782.369351, "ts_mono": 83.860568, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 9, "dt_ms": 911, "text_to_audio_ms": 909}}
+{"ts": 1779097782.3709767, "ts_mono": 83.862194, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097782.5837443, "ts_mono": 84.074961, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 9, "frames": 13, "text_chars": 8, "stream_ms": 214, "total_ms": 1125}}
+{"ts": 1779097782.6093342, "ts_mono": 84.100551, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 9, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097783.0103528, "ts_mono": 84.50157, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 9, "first_chunk_bytes": 320}}
+{"ts": 1779097783.9990938, "ts_mono": 85.490311, "conv_id": "T34", "variant": "B", "event": "animation_done", "data": {"turn_id": 9, "variant_name": "BowShort_3", "group": "goodbye", "source_tool": "end_conversation", "actual_duration_ms": 2543}}
+{"ts": 1779097784.6424134, "ts_mono": 86.13363, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "See you!", "turn_id": 9}}
+{"ts": 1779097784.642678, "ts_mono": 86.133895, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097784.6506007, "ts_mono": 86.141818, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 9, "first_chunk": "Your conversation ID is T three four"}}
+{"ts": 1779097785.5915773, "ts_mono": 87.082794, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 9, "dt_ms": 943, "text_to_audio_ms": 941}}
+{"ts": 1779097785.5938878, "ts_mono": 87.085105, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097785.8333056, "ts_mono": 87.324522, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 9, "frames": 16, "text_chars": 37, "stream_ms": 241, "total_ms": 1185}}
+{"ts": 1779097788.5644042, "ts_mono": 90.055621, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "Your conversation ID is T three four.", "turn_id": 9}}
+{"ts": 1779097788.5646706, "ts_mono": 90.055887, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097788.5720427, "ts_mono": 90.06326, "conv_id": "T34", "variant": "B", "event": "tts_request_start", "data": {"turn_id": 9, "first_chunk": "Please help me improve by scanning the QR code on my tablet or on the board and "}}
+{"ts": 1779097789.8662214, "ts_mono": 91.357438, "conv_id": "T34", "variant": "B", "event": "tts_first_audio", "data": {"turn_id": 9, "dt_ms": 1296, "text_to_audio_ms": 1294}}
+{"ts": 1779097789.868605, "ts_mono": 91.359822, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097789.9395072, "ts_mono": 91.430724, "conv_id": "T34", "variant": "B", "event": "pepper_drain_ack", "data": {"turn_id": 9, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779097790.2232757, "ts_mono": 91.714493, "conv_id": "T34", "variant": "B", "event": "agent_audio_saved", "data": {"turn_id": 9, "frames": 35, "text_chars": 106, "stream_ms": 357, "total_ms": 1653}}
+{"ts": 1779097790.3391016, "ts_mono": 91.830318, "conv_id": "T34", "variant": "B", "event": "pepper_first_sound", "data": {"turn_id": 9, "first_chunk_bytes": 320}}
+{"ts": 1779097796.5889182, "ts_mono": 98.080135, "conv_id": "T34", "variant": "B", "event": "agent_speech", "data": {"text": "Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!", "turn_id": 9}}
+{"ts": 1779097796.5892112, "ts_mono": 98.080428, "conv_id": "T34", "variant": "B", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779097796.5960379, "ts_mono": 98.087255, "conv_id": "T34", "variant": "B", "event": "session_end", "data": {}}
+{"ts": 1779097797.2133317, "ts_mono": 98.704549, "conv_id": "T34", "variant": "B", "event": "footer", "data": {"conv_id": "T34", "variant": "B", "ended": "2026-05-18T11:49:57", "duration_seconds": 100.95, "exit_reason": "session_end", "n_user_turns": 9, "n_typed_input": 0, "n_tool_calls": 3, "n_animation_requests": 3, "n_animation_dropped": 0, "n_errors": 0, "n_warnings": 16, "tools_used": ["end_conversation", "find_path_to_room", "get_time"], "emotions_used": {"think": 2, "goodbye": 1}, "event_counts": {"header": 1, "tablet_state": 28, "session_start": 1, "mono_anchor": 1, "pepper_first_sound": 6, "vad_user_speech_end": 9, "warn": 16, "llm_request_start": 11, "user_turn": 9, "asr_result": 9, "tts_request_start": 9, "llm_response_end": 11, "tts_first_audio": 7, "agent_audio_saved": 7, "pepper_drain_ack": 6, "tool_call": 3, "tool_result": 2, "animation_requested": 3, "animation_dispatched": 3, "animation_done": 3, "agent_speech": 6, "tablet_qr_shown": 1, "session_end": 1}, "latency_first_audio_s": {"n": 4, "min": 3.2024, "max": 4.2067, "median": 3.7062, "p90": 4.2067}, "llm_latency_s": {"n": 9, "min": 0.6965, "max": 2.8449, "median": 2.1087, "p90": 2.8065}, "tts_first_audio_s": {"n": 5, "min": 0.9099, "max": 1.5288, "median": 0.9632, "p90": 1.5288}, "playback_duration_s": {"n": 3, "min": 4.3981, "max": 10.0319, "median": 5.7752, "p90": 10.0319}, "total_turn_s": {"n": 5, "min": 2.6253, "max": 13.8035, "median": 8.039, "p90": 13.8035}}}

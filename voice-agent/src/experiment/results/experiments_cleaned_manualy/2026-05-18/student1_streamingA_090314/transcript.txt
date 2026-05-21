@@ -1,0 +1,21 @@
+==============================================================================
+student1_streamingA_090314
+  conv_id=T01  variant=A  started=2026-05-18T09:03:14  user_turns=6  duration=203.7s
+==============================================================================
+  [user (speech)]  I'm glad to be here.
+  [pepper]  It's great to meet you too. How can I help you today?
+  [user (speech)]  Hey, so could I ask you where's the room KN11?
+  [pepper]  Let me find that room for you.
+  [pepper]  Sorry, I couldn't find room KN11 in Building E. Could you please confirm the room code?
+  [user (speech)]  So how about E107?
+  [pepper]  Let me find that room for you.
+  [pepper]  To get to room E-107, head up to the first floor. Walk straight ahead — room E-107 is along that corridor.
+  [user (speech)]  and the room E11
+  [pepper]  Let me find that room for you.
+  [pepper]  Let me find that room for you.
+  [user (speech)]  Could you do that again, please?
+  [pepper]  To get to room E-11, go left, then right — room E-11 is along that corridor.
+  [user (speech)]  Okay, thank you very much. Goodbye.
+  [pepper]  Goodbye!
+  [pepper]  Your conversation ID is T zero one.
+  [pepper]  Please help me improve by scanning the QR code on my tablet or on the board and filling the questionnaire!

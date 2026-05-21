@@ -1,0 +1,13 @@
+==============================================================================
+student63_streamingA_173821
+  conv_id=63  variant=A  started=2026-05-18T17:38:21  user_turns=?  duration=?
+==============================================================================
+  [user (speech)]  Hi Pepper!
+  [pepper]  It's nice to meet you. How can I help you today?
+  [user (speech)]  How can I help you today?
+  [pepper]  That's a clever question, but I'm the one who's supposed to be helping you!
+  [user (speech)]  Can you tell me what is in the menu today?
+  [pepper]  Let me pull up today's menu.
+  [pepper]  Checking the schedule, one moment.
+  [user (speech)]  Can you repeat that?
+  [pepper]  Sorry, I didn't quite catch that. Can you repeat the question?

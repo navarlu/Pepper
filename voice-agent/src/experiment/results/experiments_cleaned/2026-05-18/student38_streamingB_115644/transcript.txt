@@ -1,0 +1,21 @@
+==============================================================================
+student38_streamingB_115644
+  conv_id=T38  variant=B  started=2026-05-18T11:56:44  user_turns=10  duration=178.5s
+==============================================================================
+  [user (speech)]  Anglický musí?
+  [pepper]  Hello, how can I help you today?
+  [user (speech)]  How can I find the nearest toilets for men?
+  [pepper]  The men's toilets are right above the main staircase, next to the café. Just head up there, and you'll find them!
+  [user (speech)]  oke, aku...
+  [user (speech)]  Агатекслата
+  [pepper]  I'm not sure what that means. Can you please clarify or let me know how I can assist you?
+  [user (speech)]  Where can I find the Zenger's lecture?
+  [user (speech)]  Place
+  [user (speech)]  room
+  [pepper]  The Zengers auditorium is in room E-107. Enjoy the lecture!
+  [user (speech)]  Thanks, have a great day.
+  [pepper]  You too!
+  [pepper]  Your conversation ID is T
+  [pepper]  Please
+  [user (speech)]  Já jsem chtěl říct lidi, jenom... Super rychle, jenom jsme se bavili, jak to šlo a jak...
+  [user (speech)]  Ja, ja, ja, erstmal.

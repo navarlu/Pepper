@@ -99,7 +99,7 @@ curl -X POST http://127.0.0.1:5000/audio/volume \
 
  uv run python voice-agent/tests/local_llm_benchmark/livekit_console.py console --text
 
- uv run python voice-agent/src/experiment/loop_launcher.py \
+ uv run python voice-agent/src/experiment/loop_launcher_streaming.py \
     --student 1 --variant A
 
 ./services/scripts/experiment/sync_to_woska.sh

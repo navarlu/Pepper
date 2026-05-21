@@ -1,0 +1,332 @@
+{"ts": 1779107475.192435, "ts_mono": 0.0, "conv_id": "T45", "variant": "A", "event": "header", "data": {"student_id": "45", "variant": "streamingA", "room": "pepper-experiment", "started": "2026-05-18T14:31:15", "host": "lucas-rpi-5-8gb"}}
+{"ts": 1779107478.9457145, "ts_mono": 0.0, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779107478.51238, "ts_mono": 0.0, "conv_id": "T45", "variant": "A", "event": "session_start", "data": {"room": "pepper-experiment", "mode": "local-streaming", "stt_model": "small", "llm_model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "tts_model": "piper", "stt_device": "cuda", "stt_compute": "float16", "tts_cuda": true, "lang": "en"}}
+{"ts": 1779107478.9467707, "ts_mono": 0.0, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 0}}
+{"ts": 1779107478.9468274, "ts_mono": -1e-06, "conv_id": "T45", "variant": "A", "event": "mono_anchor", "data": {"worker_mono": 11229692.445732404, "worker_wall": 1779107478.9468284}}
+{"ts": 1779107479.232579, "ts_mono": 0.285751, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 0, "first_chunk_bytes": 320}}
+{"ts": 1779107487.420031, "ts_mono": 8.473203, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 1, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107496.118452, "ts_mono": 17.171624, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 2, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107497.869194, "ts_mono": 18.922366, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 3, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107497.9592743, "ts_mono": 19.012446, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 3}}
+{"ts": 1779107497.9640045, "ts_mono": 19.017176, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 3, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 2, "n_tools": 0, "greeting_splice": true}}
+{"ts": 1779107498.4149659, "ts_mono": 19.468138, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "I-I come here.", "input": "speech", "turn_id": 3}}
+{"ts": 1779107498.416215, "ts_mono": 19.469387, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "I-I come here.", "is_final": true, "turn_id": 3}}
+{"ts": 1779107498.4164135, "ts_mono": 19.469585, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779107498.5175357, "ts_mono": 19.570707, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 3, "first_chunk": "Welcome"}}
+{"ts": 1779107498.8761728, "ts_mono": 19.929344, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 3, "elapsed_ms": 912, "chunks": 15}}
+{"ts": 1779107498.9416542, "ts_mono": 19.994826, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 3, "dt_ms": 530, "text_to_audio_ms": 424}}
+{"ts": 1779107498.9611735, "ts_mono": 20.014345, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779107499.0498161, "ts_mono": 20.102988, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 3, "frames": 19, "text_chars": 63, "stream_ms": 108, "total_ms": 638}}
+{"ts": 1779107499.0594876, "ts_mono": 20.112659, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 3, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107499.4609356, "ts_mono": 20.514107, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 3, "first_chunk_bytes": 320}}
+{"ts": 1779107502.3996131, "ts_mono": 23.452785, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "Welcome to the university building E. How can I help you today?", "turn_id": 3}}
+{"ts": 1779107502.3998978, "ts_mono": 23.453069, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 3}}
+{"ts": 1779107508.9694037, "ts_mono": 30.022575, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 4, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107509.0479033, "ts_mono": 30.101075, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 4}}
+{"ts": 1779107509.0519118, "ts_mono": 30.105083, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 4, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 4, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107509.0657763, "ts_mono": 30.118948, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Hello?", "input": "speech", "turn_id": 4}}
+{"ts": 1779107509.0658095, "ts_mono": 30.118981, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Hello?", "is_final": true, "turn_id": 4}}
+{"ts": 1779107509.0658684, "ts_mono": 30.11904, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779107509.1460972, "ts_mono": 30.199269, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 4, "first_chunk": "Hello"}}
+{"ts": 1779107509.4194362, "ts_mono": 30.472608, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 4, "dt_ms": 354, "text_to_audio_ms": 273}}
+{"ts": 1779107509.4207253, "ts_mono": 30.473897, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779107509.752625, "ts_mono": 30.805797, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 4, "elapsed_ms": 700, "chunks": 31}}
+{"ts": 1779107509.9369526, "ts_mono": 30.990124, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 4, "frames": 32, "text_chars": 124, "stream_ms": 517, "total_ms": 871}}
+{"ts": 1779107509.9533591, "ts_mono": 31.006531, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 4, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107510.350456, "ts_mono": 31.403628, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 4, "first_chunk_bytes": 320}}
+{"ts": 1779107515.3732347, "ts_mono": 36.426406, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "Hello! It's nice to meet you. Is there something I can help you with or would you like to take a look at our facilities map?", "turn_id": 4}}
+{"ts": 1779107515.3735256, "ts_mono": 36.426697, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 4}}
+{"ts": 1779107525.420457, "ts_mono": 46.473629, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 5, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107525.5362926, "ts_mono": 46.589464, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 5}}
+{"ts": 1779107525.5379152, "ts_mono": 46.591087, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 5, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 6, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107525.550814, "ts_mono": 46.603986, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Yes, I want to see the MIPE.", "input": "speech", "turn_id": 5}}
+{"ts": 1779107525.550847, "ts_mono": 46.604019, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Yes, I want to see the MIPE.", "is_final": true, "turn_id": 5}}
+{"ts": 1779107525.5509372, "ts_mono": 46.604109, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779107525.6435254, "ts_mono": 46.696697, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 5, "first_chunk": "I'm"}}
+{"ts": 1779107525.8829365, "ts_mono": 46.936108, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 5, "dt_ms": 333, "text_to_audio_ms": 239}}
+{"ts": 1779107525.884404, "ts_mono": 46.937576, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779107525.9780183, "ts_mono": 47.03119, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 5, "elapsed_ms": 440, "chunks": 19}}
+{"ts": 1779107526.0491796, "ts_mono": 47.102351, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 5, "frames": 19, "text_chars": 71, "stream_ms": 166, "total_ms": 499}}
+{"ts": 1779107526.0621145, "ts_mono": 47.115286, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 5, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107526.471358, "ts_mono": 47.52453, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 5, "first_chunk_bytes": 320}}
+{"ts": 1779107529.1541553, "ts_mono": 50.207327, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I'm not familiar with the MIPE. Could you please tell me more about it?", "turn_id": 5}}
+{"ts": 1779107529.1544187, "ts_mono": 50.20759, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 5}}
+{"ts": 1779107536.9687586, "ts_mono": 58.02193, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 6, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107537.0778754, "ts_mono": 58.131047, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 6}}
+{"ts": 1779107537.079528, "ts_mono": 58.1327, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 6, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 8, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107537.0925505, "ts_mono": 58.145722, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "It's a myper of this building.", "input": "speech", "turn_id": 6}}
+{"ts": 1779107537.0925834, "ts_mono": 58.145755, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "It's a myper of this building.", "is_final": true, "turn_id": 6}}
+{"ts": 1779107537.092636, "ts_mono": 58.145808, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779107537.1613436, "ts_mono": 58.214515, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 6, "first_chunk": "I"}}
+{"ts": 1779107537.7818222, "ts_mono": 58.834994, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 6, "dt_ms": 690, "text_to_audio_ms": 620}}
+{"ts": 1779107537.7832882, "ts_mono": 58.83646, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779107537.8298316, "ts_mono": 58.883003, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 6, "elapsed_ms": 749, "chunks": 33}}
+{"ts": 1779107537.9542065, "ts_mono": 59.007378, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 6, "frames": 38, "text_chars": 130, "stream_ms": 172, "total_ms": 863}}
+{"ts": 1779107545.0125663, "ts_mono": 66.065738, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I think you might be referring to the Zengers auditorium, which is located in room E-107. Would you like to know how to get there?", "turn_id": 6}}
+{"ts": 1779107545.0128386, "ts_mono": 66.06601, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 6}}
+{"ts": 1779107546.7111545, "ts_mono": 67.764326, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 6, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107556.5682824, "ts_mono": 77.621454, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 7, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107556.7254448, "ts_mono": 77.778616, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 7}}
+{"ts": 1779107556.7271106, "ts_mono": 77.780282, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 7, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 10, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107556.7459536, "ts_mono": 77.799125, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "No, no, I want to see the map of this building.", "input": "speech", "turn_id": 7}}
+{"ts": 1779107556.745998, "ts_mono": 77.79917, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "No, no, I want to see the map of this building.", "is_final": true, "turn_id": 7}}
+{"ts": 1779107556.7460694, "ts_mono": 77.799241, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779107556.8313255, "ts_mono": 77.884497, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 7, "first_chunk": "You"}}
+{"ts": 1779107557.2295375, "ts_mono": 78.282709, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 7, "dt_ms": 485, "text_to_audio_ms": 398}}
+{"ts": 1779107557.231296, "ts_mono": 78.284468, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779107557.47999, "ts_mono": 78.533162, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 7, "first_chunk_bytes": 320}}
+{"ts": 1779107557.7808952, "ts_mono": 78.834067, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 7, "elapsed_ms": 1053, "chunks": 47}}
+{"ts": 1779107557.8753593, "ts_mono": 78.928531, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 7, "frames": 54, "text_chars": 196, "stream_ms": 645, "total_ms": 1131}}
+{"ts": 1779107567.5933075, "ts_mono": 88.646479, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "You can find the facilities map on the wall near the main entrance. It shows the location of all the rooms, including the gym, café, toilets, and lockers. Would you like me to point it out to you?", "turn_id": 7}}
+{"ts": 1779107567.593582, "ts_mono": 88.646754, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 7}}
+{"ts": 1779107569.311182, "ts_mono": 90.364354, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 7, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107581.1697874, "ts_mono": 102.222959, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 8, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107581.3445473, "ts_mono": 102.397719, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 8}}
+{"ts": 1779107581.3488102, "ts_mono": 102.401982, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 8, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 12, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107581.385364, "ts_mono": 102.438536, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Okay, I want to go to the toilet. Can you point that?", "input": "speech", "turn_id": 8}}
+{"ts": 1779107581.3854659, "ts_mono": 102.438637, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Okay, I want to go to the toilet. Can you point that?", "is_final": true, "turn_id": 8}}
+{"ts": 1779107581.38565, "ts_mono": 102.438822, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779107581.4859293, "ts_mono": 102.539101, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 8, "first_chunk": "The"}}
+{"ts": 1779107581.88808, "ts_mono": 102.941252, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 8, "elapsed_ms": 539, "chunks": 21}}
+{"ts": 1779107581.8971908, "ts_mono": 102.950362, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 8, "dt_ms": 515, "text_to_audio_ms": 411}}
+{"ts": 1779107581.898601, "ts_mono": 102.951773, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779107581.9944181, "ts_mono": 103.04759, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 8, "frames": 26, "text_chars": 86, "stream_ms": 97, "total_ms": 613}}
+{"ts": 1779107582.017696, "ts_mono": 103.070868, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 8, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107582.420651, "ts_mono": 103.473823, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 8, "first_chunk_bytes": 320}}
+{"ts": 1779107586.6083832, "ts_mono": 107.661555, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "The toilets are right above the main staircase, next to the café. You can't miss them.", "turn_id": 8}}
+{"ts": 1779107586.608663, "ts_mono": 107.661835, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 8}}
+{"ts": 1779107595.919277, "ts_mono": 116.972449, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 9, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107596.0749562, "ts_mono": 117.128128, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 9}}
+{"ts": 1779107596.077964, "ts_mono": 117.131136, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 9, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 14, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107596.099249, "ts_mono": 117.152421, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "But I don't know the cafe where is the cafe.", "input": "speech", "turn_id": 9}}
+{"ts": 1779107596.0992868, "ts_mono": 117.152458, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "But I don't know the cafe where is the cafe.", "is_final": true, "turn_id": 9}}
+{"ts": 1779107596.0993571, "ts_mono": 117.152529, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779107596.1916177, "ts_mono": 117.244789, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 9, "first_chunk": "The"}}
+{"ts": 1779107596.4263573, "ts_mono": 117.479529, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 9, "elapsed_ms": 348, "chunks": 13}}
+{"ts": 1779107596.5319734, "ts_mono": 117.585145, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 9, "dt_ms": 434, "text_to_audio_ms": 340}}
+{"ts": 1779107596.5335271, "ts_mono": 117.586699, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779107596.5660615, "ts_mono": 117.619233, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 9, "frames": 17, "text_chars": 57, "stream_ms": 34, "total_ms": 468}}
+{"ts": 1779107596.594413, "ts_mono": 117.647585, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 9, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107597.0015392, "ts_mono": 118.054711, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 9, "first_chunk_bytes": 320}}
+{"ts": 1779107599.7002974, "ts_mono": 120.753469, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "The café is right above the main staircase (first floor).", "turn_id": 9}}
+{"ts": 1779107599.7005608, "ts_mono": 120.753732, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 9}}
+{"ts": 1779107608.6190317, "ts_mono": 129.672203, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 10, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107608.775546, "ts_mono": 129.828718, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 10}}
+{"ts": 1779107608.779456, "ts_mono": 129.832628, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 10, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 16, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107608.8142042, "ts_mono": 129.867376, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Yeah, I want to go to the office of the human noise.", "input": "speech", "turn_id": 10}}
+{"ts": 1779107608.814477, "ts_mono": 129.867649, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Yeah, I want to go to the office of the human noise.", "is_final": true, "turn_id": 10}}
+{"ts": 1779107608.8147383, "ts_mono": 129.86791, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779107608.9151578, "ts_mono": 129.968329, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 10, "first_chunk": "I"}}
+{"ts": 1779107609.187558, "ts_mono": 130.24073, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 10, "dt_ms": 375, "text_to_audio_ms": 272}}
+{"ts": 1779107609.1890297, "ts_mono": 130.242201, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779107609.358226, "ts_mono": 130.411398, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 10, "elapsed_ms": 578, "chunks": 23}}
+{"ts": 1779107609.5026598, "ts_mono": 130.555831, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 10, "frames": 29, "text_chars": 103, "stream_ms": 315, "total_ms": 690}}
+{"ts": 1779107614.5723302, "ts_mono": 135.625502, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I think you mean the human receptionists. They are located in building A, over the courtyard from here.", "turn_id": 10}}
+{"ts": 1779107614.572595, "ts_mono": 135.625767, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 10}}
+{"ts": 1779107616.2404656, "ts_mono": 137.293637, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 10, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107620.7190654, "ts_mono": 141.772237, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 11, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107620.8235993, "ts_mono": 141.876771, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 11}}
+{"ts": 1779107620.8255782, "ts_mono": 141.87875, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 11, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 18, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107620.9110923, "ts_mono": 141.964264, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 11, "first_chunk": "I"}}
+{"ts": 1779107621.163059, "ts_mono": 142.216231, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 11, "dt_ms": 324, "text_to_audio_ms": 251}}
+{"ts": 1779107621.4807713, "ts_mono": 142.533943, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 11, "elapsed_ms": 655, "chunks": 29}}
+{"ts": 1779107621.5243847, "ts_mono": 142.577556, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 11, "frames": 34, "text_chars": 125, "stream_ms": 361, "total_ms": 685}}
+{"ts": 1779107621.5435736, "ts_mono": 142.596745, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 11, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107623.3198118, "ts_mono": 144.372983, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 12, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107623.3273313, "ts_mono": 144.380503, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "No, no, it's the...", "input": "speech", "turn_id": 12}}
+{"ts": 1779107623.327647, "ts_mono": 144.380819, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "No, no, it's the...", "is_final": true, "turn_id": 12}}
+{"ts": 1779107623.3279226, "ts_mono": 144.381094, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 12}}
+{"ts": 1779107623.458135, "ts_mono": 144.511307, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 12}}
+{"ts": 1779107623.458335, "ts_mono": 144.511507, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 12}}
+{"ts": 1779107623.527235, "ts_mono": 144.580407, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 12, "first_chunk_bytes": 320}}
+{"ts": 1779107623.9624162, "ts_mono": 145.015588, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 12, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 19, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107623.9959443, "ts_mono": 145.049116, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "All face off of the human noise", "input": "speech", "turn_id": 12}}
+{"ts": 1779107623.9960315, "ts_mono": 145.049203, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "All face off of the human noise", "is_final": true, "turn_id": 12}}
+{"ts": 1779107623.9961576, "ts_mono": 145.049329, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 12}}
+{"ts": 1779107624.0899203, "ts_mono": 145.143092, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 12, "first_chunk": "I"}}
+{"ts": 1779107624.473192, "ts_mono": 145.526364, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 12, "dt_ms": 478, "text_to_audio_ms": 383}}
+{"ts": 1779107624.4746232, "ts_mono": 145.527795, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 12}}
+{"ts": 1779107625.4395053, "ts_mono": 146.492677, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 12, "elapsed_ms": 1476, "chunks": 66}}
+{"ts": 1779107625.571097, "ts_mono": 146.624269, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 12, "frames": 72, "text_chars": 276, "stream_ms": 1097, "total_ms": 1576}}
+{"ts": 1779107638.341326, "ts_mono": 159.394498, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I think you're having a bit of trouble with the names. I'm Pepper, the humanoid receptionist robot, and I'm here to help. If you're looking for the human receptionists, they're in building A, over the courtyard from here. If you need help with anything else, feel free to ask!", "turn_id": 12}}
+{"ts": 1779107638.3416, "ts_mono": 159.394772, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 12}}
+{"ts": 1779107640.0515642, "ts_mono": 161.104736, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 12, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107651.070438, "ts_mono": 172.12361, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 13, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107651.2901134, "ts_mono": 172.343285, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 13}}
+{"ts": 1779107651.2953475, "ts_mono": 172.348519, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 13, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 21, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107651.3324652, "ts_mono": 172.385637, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Yeah, a little trouble. It's the office of the lab. It's in the E218.", "input": "speech", "turn_id": 13}}
+{"ts": 1779107651.3325706, "ts_mono": 172.385742, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Yeah, a little trouble. It's the office of the lab. It's in the E218.", "is_final": true, "turn_id": 13}}
+{"ts": 1779107651.3327565, "ts_mono": 172.385928, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 13}}
+{"ts": 1779107651.4337592, "ts_mono": 172.486931, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 13, "first_chunk": "I"}}
+{"ts": 1779107651.8263903, "ts_mono": 172.879562, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 13, "dt_ms": 497, "text_to_audio_ms": 392}}
+{"ts": 1779107651.8278518, "ts_mono": 172.881023, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 13}}
+{"ts": 1779107652.0700505, "ts_mono": 173.123222, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 13, "first_chunk_bytes": 320}}
+{"ts": 1779107652.2979574, "ts_mono": 173.351129, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 13, "elapsed_ms": 1002, "chunks": 43}}
+{"ts": 1779107652.4078755, "ts_mono": 173.461047, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 13, "frames": 48, "text_chars": 174, "stream_ms": 581, "total_ms": 1079}}
+{"ts": 1779107660.7854276, "ts_mono": 181.838599, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I think you might be thinking of the lab in building E. However, I don't have information on a lab in room E-218. Could you please tell me more about what you're looking for?", "turn_id": 13}}
+{"ts": 1779107660.7856944, "ts_mono": 181.838866, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 13}}
+{"ts": 1779107662.5417879, "ts_mono": 183.594959, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 13, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107672.269216, "ts_mono": 193.322388, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 14, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107672.4337463, "ts_mono": 193.486918, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 14}}
+{"ts": 1779107672.43544, "ts_mono": 193.488612, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 14, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 23, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107672.4539638, "ts_mono": 193.507135, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "I'm looking for a sitting and a robot called iCup.", "input": "speech", "turn_id": 14}}
+{"ts": 1779107672.4539976, "ts_mono": 193.507169, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "I'm looking for a sitting and a robot called iCup.", "is_final": true, "turn_id": 14}}
+{"ts": 1779107672.4540522, "ts_mono": 193.507224, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 14}}
+{"ts": 1779107672.557997, "ts_mono": 193.611169, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 14, "first_chunk": "I'm"}}
+{"ts": 1779107672.9608033, "ts_mono": 194.013975, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 14, "dt_ms": 508, "text_to_audio_ms": 402}}
+{"ts": 1779107672.962257, "ts_mono": 194.015429, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 14}}
+{"ts": 1779107673.1894097, "ts_mono": 194.242581, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 14, "first_chunk_bytes": 320}}
+{"ts": 1779107673.7855358, "ts_mono": 194.838707, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 14, "elapsed_ms": 1349, "chunks": 61}}
+{"ts": 1779107673.8687632, "ts_mono": 194.921935, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 14, "frames": 72, "text_chars": 242, "stream_ms": 907, "total_ms": 1416}}
+{"ts": 1779107681.3797493, "ts_mono": 202.432921, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 14, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107681.7623377, "ts_mono": 202.815509, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 14, "first_chunk_bytes": 320}}
+{"ts": 1779107686.8185189, "ts_mono": 207.871691, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I'm not familiar with a robot called iCup in our building. However, I can suggest that you might be thinking of the study room, which is located in room E-125. It has two microwaves and a sitting area. Would you like to know how to get there?", "turn_id": 14}}
+{"ts": 1779107686.8189068, "ts_mono": 207.872078, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 14}}
+{"ts": 1779107700.368517, "ts_mono": 221.421689, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 15, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107700.542614, "ts_mono": 221.595786, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 15}}
+{"ts": 1779107700.5452569, "ts_mono": 221.598428, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 15, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 25, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107700.6577566, "ts_mono": 221.710928, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 15, "first_chunk": "The"}}
+{"ts": 1779107700.9903016, "ts_mono": 222.043473, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 15, "dt_ms": 429, "text_to_audio_ms": 332}}
+{"ts": 1779107701.1662314, "ts_mono": 222.219403, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 15, "elapsed_ms": 620, "chunks": 26}}
+{"ts": 1779107701.2004256, "ts_mono": 222.253597, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 15, "frames": 31, "text_chars": 86, "stream_ms": 210, "total_ms": 639}}
+{"ts": 1779107701.2261806, "ts_mono": 222.279352, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 15, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107701.569335, "ts_mono": 222.622507, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 16, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107701.5745132, "ts_mono": 222.627685, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Yeah, I don't know exactly where is the study room. Can you...", "input": "speech", "turn_id": 16}}
+{"ts": 1779107701.5746033, "ts_mono": 222.627775, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Yeah, I don't know exactly where is the study room. Can you...", "is_final": true, "turn_id": 16}}
+{"ts": 1779107701.5747685, "ts_mono": 222.62794, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 16}}
+{"ts": 1779107701.6664858, "ts_mono": 222.719657, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 16}}
+{"ts": 1779107701.6666136, "ts_mono": 222.719785, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 16}}
+{"ts": 1779107701.940928, "ts_mono": 222.9941, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 16, "first_chunk_bytes": 320}}
+{"ts": 1779107702.170624, "ts_mono": 223.223796, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 16, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 26, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107702.2047017, "ts_mono": 223.257873, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Tell me", "input": "speech", "turn_id": 16}}
+{"ts": 1779107702.2047422, "ts_mono": 223.257914, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Tell me", "is_final": true, "turn_id": 16}}
+{"ts": 1779107702.2048125, "ts_mono": 223.257984, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 16}}
+{"ts": 1779107702.2963128, "ts_mono": 223.349484, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 16, "first_chunk": "The"}}
+{"ts": 1779107702.5105686, "ts_mono": 223.56374, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 16, "elapsed_ms": 339, "chunks": 12}}
+{"ts": 1779107702.619566, "ts_mono": 223.672738, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 16, "dt_ms": 416, "text_to_audio_ms": 323}}
+{"ts": 1779107702.620886, "ts_mono": 223.674058, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 16}}
+{"ts": 1779107702.652354, "ts_mono": 223.705526, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 16, "frames": 18, "text_chars": 40, "stream_ms": 32, "total_ms": 449}}
+{"ts": 1779107705.857822, "ts_mono": 226.910994, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "The study room is located in room E-125.", "turn_id": 16}}
+{"ts": 1779107705.858176, "ts_mono": 226.911348, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 16}}
+{"ts": 1779107707.5700793, "ts_mono": 228.623251, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 16, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107713.1687646, "ts_mono": 234.221936, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 17, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107719.3711991, "ts_mono": 240.424371, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 18, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107719.5228693, "ts_mono": 240.576041, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 18}}
+{"ts": 1779107719.5251205, "ts_mono": 240.578292, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 18, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 28, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107719.5467072, "ts_mono": 240.599879, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Can you say something else about this building?", "input": "speech", "turn_id": 18}}
+{"ts": 1779107719.5467422, "ts_mono": 240.599914, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Can you say something else about this building?", "is_final": true, "turn_id": 18}}
+{"ts": 1779107719.5468042, "ts_mono": 240.599976, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 18}}
+{"ts": 1779107719.6414354, "ts_mono": 240.694607, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 18, "first_chunk": "Building"}}
+{"ts": 1779107720.2170074, "ts_mono": 241.270179, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 18, "elapsed_ms": 691, "chunks": 29}}
+{"ts": 1779107720.4202325, "ts_mono": 241.473404, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 18, "dt_ms": 875, "text_to_audio_ms": 778}}
+{"ts": 1779107720.4216528, "ts_mono": 241.474824, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 18}}
+{"ts": 1779107720.5233905, "ts_mono": 241.576562, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 18, "first_chunk_bytes": 320}}
+{"ts": 1779107720.5375903, "ts_mono": 241.590762, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 18, "frames": 39, "text_chars": 130, "stream_ms": 117, "total_ms": 992}}
+{"ts": 1779107727.8259945, "ts_mono": 248.879166, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "Building E has a basement where you can find the gym, and a first floor with the café and toilets, right above the main staircase.", "turn_id": 18}}
+{"ts": 1779107727.8262484, "ts_mono": 248.87942, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 18}}
+{"ts": 1779107729.5303752, "ts_mono": 250.583547, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 18, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107732.9709704, "ts_mono": 254.024142, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 19, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107733.0540855, "ts_mono": 254.107257, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 19}}
+{"ts": 1779107733.0574377, "ts_mono": 254.110609, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 19, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 30, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107733.0820117, "ts_mono": 254.135183, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "And the else...", "input": "speech", "turn_id": 19}}
+{"ts": 1779107733.0820427, "ts_mono": 254.135214, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "And the else...", "is_final": true, "turn_id": 19}}
+{"ts": 1779107733.082109, "ts_mono": 254.135281, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 19}}
+{"ts": 1779107733.1560125, "ts_mono": 254.209184, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 19, "first_chunk": "There"}}
+{"ts": 1779107733.5207417, "ts_mono": 254.573913, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 19, "elapsed_ms": 463, "chunks": 19}}
+{"ts": 1779107733.657326, "ts_mono": 254.710498, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 19, "dt_ms": 576, "text_to_audio_ms": 501}}
+{"ts": 1779107733.6613474, "ts_mono": 254.714519, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 19}}
+{"ts": 1779107733.7238212, "ts_mono": 254.776993, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 19, "frames": 23, "text_chars": 83, "stream_ms": 66, "total_ms": 643}}
+{"ts": 1779107733.74719, "ts_mono": 254.800362, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 19, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107734.1497548, "ts_mono": 255.202926, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 19, "first_chunk_bytes": 320}}
+{"ts": 1779107737.9420087, "ts_mono": 258.99518, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "There are also lockers located right next to the main staircase, on the right side.", "turn_id": 19}}
+{"ts": 1779107737.9422736, "ts_mono": 258.995445, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 19}}
+{"ts": 1779107743.9188514, "ts_mono": 264.972023, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 20, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107743.9949062, "ts_mono": 265.048078, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 20}}
+{"ts": 1779107743.997736, "ts_mono": 265.050908, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 20, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 32, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107744.0247633, "ts_mono": 265.077935, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Okay.", "input": "speech", "turn_id": 20}}
+{"ts": 1779107744.025, "ts_mono": 265.078172, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Okay.", "is_final": true, "turn_id": 20}}
+{"ts": 1779107744.0251687, "ts_mono": 265.07834, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 20}}
+{"ts": 1779107744.1005056, "ts_mono": 265.153677, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 20, "first_chunk": "Is"}}
+{"ts": 1779107744.2945008, "ts_mono": 265.347672, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 20, "elapsed_ms": 296, "chunks": 11}}
+{"ts": 1779107744.3730953, "ts_mono": 265.426267, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 20, "dt_ms": 350, "text_to_audio_ms": 272}}
+{"ts": 1779107744.3770676, "ts_mono": 265.430239, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 20}}
+{"ts": 1779107744.3972785, "ts_mono": 265.45045, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 20, "frames": 11, "text_chars": 43, "stream_ms": 24, "total_ms": 374}}
+{"ts": 1779107744.4248192, "ts_mono": 265.477991, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 20, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107744.8204746, "ts_mono": 265.873646, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 20, "first_chunk_bytes": 320}}
+{"ts": 1779107746.3481166, "ts_mono": 267.401288, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "Is there anything else I can help you with?", "turn_id": 20}}
+{"ts": 1779107746.3483868, "ts_mono": 267.401558, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 20}}
+{"ts": 1779107754.5191507, "ts_mono": 275.572322, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 21, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107754.6107786, "ts_mono": 275.66395, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 21}}
+{"ts": 1779107754.6191275, "ts_mono": 275.672299, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 21, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 34, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107754.639429, "ts_mono": 275.692601, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "I want to find a", "input": "speech", "turn_id": 21}}
+{"ts": 1779107754.639461, "ts_mono": 275.692633, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "I want to find a", "is_final": true, "turn_id": 21}}
+{"ts": 1779107754.6399145, "ts_mono": 275.693086, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 21}}
+{"ts": 1779107754.7213428, "ts_mono": 275.774514, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 21, "first_chunk": "It"}}
+{"ts": 1779107755.1914, "ts_mono": 276.244572, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 21, "dt_ms": 553, "text_to_audio_ms": 470}}
+{"ts": 1779107755.192848, "ts_mono": 276.24602, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 21}}
+{"ts": 1779107755.2291195, "ts_mono": 276.282291, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 21, "elapsed_ms": 609, "chunks": 26}}
+{"ts": 1779107755.3257554, "ts_mono": 276.378927, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 21, "frames": 30, "text_chars": 110, "stream_ms": 134, "total_ms": 687}}
+{"ts": 1779107755.4742055, "ts_mono": 276.527377, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 21, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107755.879966, "ts_mono": 276.933138, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 21, "first_chunk_bytes": 320}}
+{"ts": 1779107756.06942, "ts_mono": 277.122592, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 21}}
+{"ts": 1779107756.8186622, "ts_mono": 277.871834, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 22, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107756.8894727, "ts_mono": 277.942644, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 22}}
+{"ts": 1779107756.8959367, "ts_mono": 277.949108, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "It looks like you're about to", "turn_id": 22}}
+{"ts": 1779107756.9045143, "ts_mono": 277.957686, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 22, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 36, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107756.934346, "ts_mono": 277.987518, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "classroom", "input": "speech", "turn_id": 22}}
+{"ts": 1779107756.934384, "ts_mono": 277.987556, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "classroom", "is_final": true, "turn_id": 22}}
+{"ts": 1779107756.9344988, "ts_mono": 277.98767, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 22}}
+{"ts": 1779107757.0349371, "ts_mono": 278.088109, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 22, "first_chunk": "I'm"}}
+{"ts": 1779107757.300411, "ts_mono": 278.353583, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 22, "dt_ms": 367, "text_to_audio_ms": 265}}
+{"ts": 1779107757.3018208, "ts_mono": 278.354992, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 22}}
+{"ts": 1779107757.5223033, "ts_mono": 278.575475, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 22, "elapsed_ms": 617, "chunks": 26}}
+{"ts": 1779107757.6546695, "ts_mono": 278.707841, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 22, "frames": 26, "text_chars": 110, "stream_ms": 354, "total_ms": 721}}
+{"ts": 1779107762.2672625, "ts_mono": 283.320434, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I'm not sure what you're looking for. Could you please tell me more about the classroom you're trying to find?", "turn_id": 22}}
+{"ts": 1779107762.267588, "ts_mono": 283.32076, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 22}}
+{"ts": 1779107763.9501653, "ts_mono": 285.003337, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 22, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107767.6239047, "ts_mono": 288.677076, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 23, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107767.705115, "ts_mono": 288.758287, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 23}}
+{"ts": 1779107767.7078826, "ts_mono": 288.761054, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 23, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 38, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107767.7272248, "ts_mono": 288.780396, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "a free classroom.", "input": "speech", "turn_id": 23}}
+{"ts": 1779107767.727258, "ts_mono": 288.78043, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "a free classroom.", "is_final": true, "turn_id": 23}}
+{"ts": 1779107767.7273161, "ts_mono": 288.780488, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 23}}
+{"ts": 1779107767.8217764, "ts_mono": 288.874948, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 23, "first_chunk": "I'm"}}
+{"ts": 1779107768.2310033, "ts_mono": 289.284175, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 23, "dt_ms": 504, "text_to_audio_ms": 409}}
+{"ts": 1779107768.232374, "ts_mono": 289.285546, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 23}}
+{"ts": 1779107768.366254, "ts_mono": 289.419426, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 23}}
+{"ts": 1779107768.4426877, "ts_mono": 289.495859, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 23, "first_chunk_bytes": 320}}
+{"ts": 1779107768.7826922, "ts_mono": 289.835864, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 23, "elapsed_ms": 1074, "chunks": 48}}
+{"ts": 1779107769.1697197, "ts_mono": 290.222891, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 23, "frames": 64, "text_chars": 254, "stream_ms": 938, "total_ms": 1443}}
+{"ts": 1779107770.1201353, "ts_mono": 291.173307, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 24, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107770.199304, "ts_mono": 291.252476, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 24, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107770.206025, "ts_mono": 291.259197, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 24}}
+{"ts": 1779107770.2080977, "ts_mono": 291.261269, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "I'm", "turn_id": 24}}
+{"ts": 1779107770.2111692, "ts_mono": 291.264341, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 24, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 40, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107770.2267454, "ts_mono": 291.279917, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Hi, everything is okay.", "input": "speech", "turn_id": 24}}
+{"ts": 1779107770.2267766, "ts_mono": 291.279948, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Hi, everything is okay.", "is_final": true, "turn_id": 24}}
+{"ts": 1779107770.226831, "ts_mono": 291.280003, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 24}}
+{"ts": 1779107770.2935586, "ts_mono": 291.34673, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 24, "first_chunk": "It"}}
+{"ts": 1779107770.511121, "ts_mono": 291.564293, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 24, "dt_ms": 285, "text_to_audio_ms": 217}}
+{"ts": 1779107770.512655, "ts_mono": 291.565827, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 24}}
+{"ts": 1779107770.5276186, "ts_mono": 291.58079, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 24, "elapsed_ms": 316, "chunks": 13}}
+{"ts": 1779107770.5800846, "ts_mono": 291.633256, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 24, "frames": 16, "text_chars": 48, "stream_ms": 68, "total_ms": 354}}
+{"ts": 1779107770.6019576, "ts_mono": 291.655129, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 24, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107771.015588, "ts_mono": 292.06876, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 24, "first_chunk_bytes": 320}}
+{"ts": 1779107773.4806724, "ts_mono": 294.533844, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "It was nice chatting with you. Have a great day!", "turn_id": 24}}
+{"ts": 1779107773.4809475, "ts_mono": 294.534119, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 24}}
+{"ts": 1779107786.3689477, "ts_mono": 307.422119, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 25, "prev_state": "speaking", "new_state": "listening"}}
+{"ts": 1779107786.4833252, "ts_mono": 307.536497, "conv_id": "T45", "variant": "A", "event": "warn", "data": {"component": "stt", "message": "empty final transcript", "turn_id": 25}}
+{"ts": 1779107786.4859862, "ts_mono": 307.539158, "conv_id": "T45", "variant": "A", "event": "llm_request_start", "data": {"turn_id": 25, "model": "hugging-quants/Meta-Llama-3.1-8B-Instruct-AWQ-INT4", "n_messages": 42, "n_tools": 7, "greeting_splice": false}}
+{"ts": 1779107786.5021873, "ts_mono": 307.555359, "conv_id": "T45", "variant": "A", "event": "user_turn", "data": {"text": "Can you say goodbye? Goodbye.", "input": "speech", "turn_id": 25}}
+{"ts": 1779107786.5022225, "ts_mono": 307.555394, "conv_id": "T45", "variant": "A", "event": "asr_result", "data": {"text": "Can you say goodbye? Goodbye.", "is_final": true, "turn_id": 25}}
+{"ts": 1779107786.5022836, "ts_mono": 307.555455, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 25}}
+{"ts": 1779107786.6047516, "ts_mono": 307.657923, "conv_id": "T45", "variant": "A", "event": "tts_request_start", "data": {"turn_id": 25, "first_chunk": "Goodbye"}}
+{"ts": 1779107786.6287193, "ts_mono": 307.681891, "conv_id": "T45", "variant": "A", "event": "llm_response_end", "data": {"turn_id": 25, "elapsed_ms": 142, "chunks": 4}}
+{"ts": 1779107786.6785886, "ts_mono": 307.73176, "conv_id": "T45", "variant": "A", "event": "tts_first_audio", "data": {"turn_id": 25, "dt_ms": 177, "text_to_audio_ms": 73}}
+{"ts": 1779107786.680384, "ts_mono": 307.733556, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 25}}
+{"ts": 1779107786.6838608, "ts_mono": 307.737032, "conv_id": "T45", "variant": "A", "event": "agent_audio_saved", "data": {"turn_id": 25, "frames": 5, "text_chars": 8, "stream_ms": 5, "total_ms": 183}}
+{"ts": 1779107786.7243462, "ts_mono": 307.777518, "conv_id": "T45", "variant": "A", "event": "pepper_drain_ack", "data": {"turn_id": 25, "reason": "paplay_tail_elapsed"}}
+{"ts": 1779107787.1300066, "ts_mono": 308.183178, "conv_id": "T45", "variant": "A", "event": "pepper_first_sound", "data": {"turn_id": 25, "first_chunk_bytes": 320}}
+{"ts": 1779107787.4210725, "ts_mono": 308.474244, "conv_id": "T45", "variant": "A", "event": "agent_speech", "data": {"text": "Goodbye!", "turn_id": 25}}
+{"ts": 1779107787.4213421, "ts_mono": 308.474514, "conv_id": "T45", "variant": "A", "event": "tablet_state", "data": {"state": "listening", "turn_id": 25}}
+{"ts": 1779107791.118905, "ts_mono": 312.172077, "conv_id": "T45", "variant": "A", "event": "vad_user_speech_end", "data": {"turn_id": 26, "prev_state": "speaking", "new_state": "listening"}}

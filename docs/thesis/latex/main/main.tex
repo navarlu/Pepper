@@ -23,7 +23,7 @@
 \usepackage{wrapfig}
 
 % === DRAFT VERSION TAG (remove before final submission) ===
-\newcommand{\draftversion}{v1.4-draft}
+\newcommand{\draftversion}{v6.50-draft}
 % === END DRAFT VERSION TAG ===
 
 
@@ -36,6 +36,9 @@
 \let\labelindent\relax
 \usepackage[inline]{enumitem} % inline enumerate
 \usepackage{cite}
+\usepackage{pdfpages} % for including the instructions PDF as an appendix
+\usepackage{tikz}
+\usetikzlibrary{positioning, arrows.meta, fit, backgrounds, calc}
 \graphicspath{ {imgs/} }
 
 
@@ -79,23 +82,34 @@
 	department-english = {Department of Cybernetics},
 	author = {Lukáš Navara},
 	supervisor = {doc. Mgr. Matěj Hoffmann, Ph.D.},
-	supervisor-specialist = {Ing. Lukáš Rustler},
+	supervisor-specialist = {MSc. Jason Khoury},
 	fieldofstudy-english = {Cybernetics and Robotics},
 	fieldofstudy-czech = {Kybernetika a Robotika},
-	keywords-czech = {},
-	keywords-english = {},
+	keywords-czech = {humanoidní robot; velký jazykový model; interakce člověka s robotem; hlasový agent; recepční robot; lokální vs. cloudové nasazení; Pepper},
+	keywords-english = {humanoid robot; large language model; human--robot interaction; voice agent; receptionist robot; local versus cloud deployment; Pepper},
 	day = 16,
 	month = 02,
 	year = 2026,
 	specification-file = {specification.pdf},
         declaration-file = {declaration.pdf},
         onecolumn-ack = true,
-	front-specification = false,
+	front-specification = true,
 	front-list-of-figures = false,
 	front-list-of-tables = false,
 }
 
 \ctuprocess
+
+% Explicit PDF metadata so the .pdf does not ship with the placeholder
+% values "title"/"author" that the ctuthesis class leaks into hyperref.
+\AtBeginDocument{%
+  \hypersetup{%
+    pdftitle  = {Design of an LLM-Driven Receptionist Robot for Social Interaction},%
+    pdfauthor = {Lukáš Navara},%
+    pdfsubject = {Master Thesis, Czech Technical University in Prague, FEE, Department of Cybernetics},%
+    pdfkeywords = {humanoid robot; large language model; human--robot interaction; voice agent; receptionist robot; local versus cloud deployment; Pepper}%
+  }%
+}
 
 \addto\ctucaptionsczech{%
 	\def\supervisorname{Vedoucí}%
@@ -123,17 +137,36 @@
 
 % Abstract in Czech
 \begin{abstract-czech}
-Česká abstrakt
+Tato práce navrhuje recepčního robota řízeného velkým jazykovým modelem na platformě SoftBank Pepper.
+Implementovaný systém zpracovává hlasový dialog kaskádou převodu řeči na text $\to$ jazykového modelu $\to$ syntézy řeči, odpovědi opírá o sadu nástrojů, doprovází je gesty a živým přepisem konverzace na tabletu.
+Stejná pipeline podporuje dva zaměnitelné jazykové backendy, jeden plně lokální na jediném GPU a jeden hostovaný v cloudu.
+
+Systém byl na jeden den nasazen na fakultní recepci, kde se mezi návštěvníky střídaly oba backendy.
+Dvacet šest návštěvníků vyplnilo dotazník složený ze čtyř subškál Godspeed dotazníku, tří Likertových položek zaměřených na konkrétní aspekty nasazení a otázek na preferenci.
+Z popisných statistik vyplývá, že cloudová kaskáda obdržela vyšší subjektivní hodnocení, zatímco lokální kaskáda dosáhla nižšího mediánu doby do první zvukové odezvy.
+Z 26 respondentů 19 dalo na recepci přednost robotovi před člověkem.
+Protože se obě varianty lišily v rozpoznávání řeči, jazykovém modelu i syntéze řeči, výsledky je třeba interpretovat jako explorativní srovnání kompletních lokálních a cloudových hlasových kaskád, nikoli jako izolované srovnání jazykových modelů samotných.
+Práce dále zvažuje oba backendy z hlediska budoucí rozšiřitelnosti, ceny a nakládání s daty.
 \end{abstract-czech}
 
 % Abstract in English
 \begin{abstract-english}
-English abstract
+This thesis designs an LLM-driven receptionist robot on the SoftBank Pepper.
+The implemented system handles spoken dialogue through a cascaded speech-to-text $\to$ language model $\to$ text-to-speech pipeline, grounds its answers in a set of tools, and accompanies its replies with body gestures and a live tablet transcript.
+The same pipeline supports two interchangeable language-model backends, one fully local on a single GPU and one cloud-hosted.
+
+The system was deployed for one day at a faculty reception desk, alternating between the two backends across visitors.
+Twenty-six visitors completed a questionnaire combining four Godspeed subscales, three deployment-specific Likert items, and preference questions.
+Descriptively, the cloud cascade received higher subjective ratings, whereas the local cascade achieved lower median time-to-first-audio.
+Of the 26 respondents, 19 preferred the robot over a human at the reception desk.
+Because the two conditions differed in speech recognition, language model, and speech synthesis, the results should be interpreted as an exploratory comparison of complete local and cloud voice cascades rather than as an isolated comparison of language models.
+The work also weighs the two backends on upgradability, cost, and data handling.
 \end{abstract-english}
    
 % Acknowledgements / Podekovani
 \begin{thanks}
-I thank CTU in Prague for being such a good \textit{alma mater}. 
+I would like to thank doc.~Mgr.~Mat\v{e}j Hoffmann, Ph.D., for his guidance and for maintaining such a positive atmosphere in the lab.
+I also thank MSc.~Jason Khoury for his help with the experimental design and Ing.~Luk\'a\v{s} Rustler for resolving connectivity issues.
 \end{thanks}
 
 % Declaration / Prohlaseni
@@ -153,7 +186,7 @@ V Praze dne \ctufield{day}.~\monthinlanguage{second}~\ctufield{year}
  \begin{minipage}{0.25\textwidth} 
   \centering   
   \dotfill\\   
-  Your name
+  Lukas Navara
  \end{minipage}
 \end{flushright}
 \end{declaration}
@@ -166,23 +199,29 @@ V Praze dne \ctufield{day}.~\monthinlanguage{second}~\ctufield{year}
 
 \begin{document}
 
-% === DRAFT footer (remove before final submission) ===
-\fancypagestyle{plain}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
-\fancypagestyle{headings}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
+% === DRAFT footer (disabled for submission; re-enable for future drafts) ===
+% \fancypagestyle{plain}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
+% \fancypagestyle{headings}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
 % === END DRAFT footer ===
 
 \maketitle
 \include{src/introduction}
 \include{src/related_work}
+\include{src/background}
 \include{src/methods}
 \include{src/experiments}
 \include{src/conclusion}
 \include{src/discussion}
 \include{src/future_work}
 
+\cleardoublepage
+\chapterstarmark{Bibliography}
 \pagestyle{plain}
 \bibliographystyle{IEEEtran}
 \bibliography{src/refs.bib}
+
+\appendix
+\include{src/appendix_instructions}
 
 \ctuifswitch{front-specification}{}{\ctutemplate{specification.as.chapter}}
 

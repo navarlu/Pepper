@@ -76,6 +76,11 @@ DOC_SOURCE_FIELD = "source"
 DOC_CREATED_AT_FIELD = "created_at"
 SEED_DATA_PATHS = [BASE_DIR / "data" / "FEL"]
 SEED_LOG_PREFIX = "[weaviate-seed]"
+# Chunking applied to seed documents before indexing. Chunks overlap
+# slightly so a span answering the user's question is not cut in half
+# by the chunk boundary.
+CHUNK_MAX_CHARS = 3000
+CHUNK_OVERLAP_CHARS = 300
 
 ENABLE_QUERY_SEARCH = False  # ported off in favour of curated tools (lookup_person, find_path_to_room, mensa_menu, subject_schedule). Re-enable only after rewriting the trigger description with strict greeting carve-outs.
 QUERY_SEARCH_DEFAULT_LIMIT = 5
