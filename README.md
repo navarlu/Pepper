@@ -1,14 +1,12 @@
 
 
-https://github.com/user-attachments/assets/2492acbb-9636-472e-82ef-f5f8f3a825a6
 
 # Pepper — LLM-Driven Receptionist Robot
 
 ![Pepper](docs/assets/pepper.jpeg)
 
 ## Demo
-
-<video src="https://github.com/navarlu/Pepper/raw/main/docs/assets/showcase.mp4" controls width="720" muted></video>
+https://github.com/user-attachments/assets/2492acbb-9636-472e-82ef-f5f8f3a825a6
 
 **Design of an LLM-Driven Receptionist Robot for Social Interaction**
 
