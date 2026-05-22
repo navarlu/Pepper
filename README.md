@@ -2,6 +2,10 @@
 
 ![Pepper](docs/assets/pepper.jpeg)
 
+## Demo
+
+<video src="https://github.com/navarlu/Pepper/raw/main/docs/assets/showcase.mp4" controls width="720" muted></video>
+
 **Design of an LLM-Driven Receptionist Robot for Social Interaction**
 
 Master's thesis project at CTU FEE Prague. Pepper greets students in front

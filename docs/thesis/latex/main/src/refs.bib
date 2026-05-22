@@ -14,7 +14,7 @@
 }
 
 @article{lewis2020rag,
-  title={Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks},
+  title={Retrieval-Augmented Generation for Knowledge-Intensive {NLP} Tasks},
   author={Lewis, Patrick and others},
   journal={Advances in Neural Information Processing Systems},
   year={2020}
@@ -27,10 +27,10 @@
   year={2023}
 }
 
-@article{schick2023toolformer,
-  title={Toolformer: Language Models Can Teach Themselves to Use Tools},
+@inproceedings{schick2023toolformer,
+  title={{Toolformer}: Language Models Can Teach Themselves to Use Tools},
   author={Schick, Timo and others},
-  journal={arXiv preprint arXiv:2302.04761},
+  booktitle={Advances in Neural Information Processing Systems (NeurIPS)},
   year={2023}
 }
 
@@ -65,7 +65,7 @@
 }
 
 @article{yao2023react,
-  title={ReAct: Synergizing Reasoning and Acting in Language Models},
+  title={{ReAct}: Synergizing Reasoning and Acting in Language Models},
   author={Yao, Shunyu and others},
   journal={International Conference on Learning Representations},
   year={2023}
@@ -81,17 +81,20 @@
 
 @misc{openai_tokenizer,
   author       = {{OpenAI}},
-  title        = {OpenAI Tokenizer},
+  title        = {{OpenAI} Tokenizer},
   year         = {2026},
   howpublished = {\url{https://platform.openai.com/tokenizer}},
   note         = {Accessed: 2026-03-03}
 }
 
 
-@article{radford2023whisper,
+@inproceedings{radford2023whisper,
   title={Robust Speech Recognition via Large-Scale Weak Supervision},
   author={Radford, Alec and others},
-  journal={arXiv preprint arXiv:2212.04356},
+  booktitle={Proceedings of the 40th International Conference on Machine Learning (ICML)},
+  series={Proceedings of Machine Learning Research},
+  volume={202},
+  pages={28492--28518},
   year={2023}
 }
 
@@ -113,12 +116,13 @@
   author       = {L. Navara},
   title        = {{LLM-Driven Receptionist Robot for Social Interaction} --- source code},
   year         = {2026},
-  howpublished = {[Online]. Available: \url{https://github.com/navarlu/Pepper}}
+  note         = {Version: tag \texttt{thesis-v1.0}},
+  howpublished = {[Online]. Available: \url{https://github.com/navarlu/Pepper/tree/thesis-v1.0}}
 }
 
 // Pepper platform & LLM-driven humanoid deployments
 @article{pandey2018pepper,
-  title={A Mass-Produced Sociable Humanoid Robot: Pepper, The First Machine of Its Kind},
+  title={A Mass-Produced Sociable Humanoid Robot: {Pepper}, The First Machine of Its Kind},
   author={Pandey, Amit Kumar and Gelin, Rodolphe},
   journal={IEEE Robotics \& Automation Magazine},
   volume={25},
@@ -145,11 +149,11 @@
   howpublished={arXiv:2402.07095}
 }
 
-@misc{ahn2022saycan,
+@inproceedings{ahn2022saycan,
   title={Do As I Can, Not As I Say: Grounding Language in Robotic Affordances},
   author={Ahn, Michael and Brohan, Anthony and Brown, Noah and others},
-  year={2022},
-  howpublished={arXiv:2204.01691 (Conference on Robot Learning 2022)}
+  booktitle={Proceedings of the 6th Conference on Robot Learning (CoRL)},
+  year={2022}
 }
 
 @inproceedings{huang2022inner,
@@ -200,7 +204,7 @@
 
 // LLM serving and small-model tool calling
 @inproceedings{kwon2023vllm,
-  title={Efficient Memory Management for Large Language Model Serving with PagedAttention},
+  title={Efficient Memory Management for Large Language Model Serving with {PagedAttention}},
   author={Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and Sheng, Ying and Zheng, Lianmin and Yu, Cody Hao and Gonzalez, Joseph E. and Zhang, Hao and Stoica, Ion},
   booktitle={ACM Symposium on Operating Systems Principles (SOSP)},
   pages={611--626},
@@ -208,14 +212,14 @@
 }
 
 @misc{grattafiori2024llama3,
-  title={The Llama 3 Herd of Models},
+  title={The {Llama 3} Herd of Models},
   author={Grattafiori, Aaron and others},
   year={2024},
   howpublished={arXiv:2407.21783}
 }
 
 @inproceedings{patil2025bfcl,
-  title={The Berkeley Function Calling Leaderboard (BFCL): From Tool Use to Agentic Evaluation of Large Language Models},
+  title={The {Berkeley} Function Calling Leaderboard ({BFCL}): From Tool Use to Agentic Evaluation of Large Language Models},
   author={Patil, Shishir G. and Mao, Huanzhi and Yan, Fanjia and Ji, Charlie Cheng-Jie and Suresh, Vishnu and Stoica, Ion and Gonzalez, Joseph E.},
   booktitle={International Conference on Machine Learning (ICML)},
   year={2025}
@@ -223,7 +227,7 @@
 
 // End-to-end speech models
 @misc{defossez2024moshi,
-  title={Moshi: a Speech-Text Foundation Model for Real-Time Dialogue},
+  title={{Moshi}: a Speech-Text Foundation Model for Real-Time Dialogue},
   author={D{\'e}fossez, Alexandre and Mazar{\'e}, Laurent and Orsini, Manu and Royer, Am{\'e}lie and P{\'e}rez, Patrick and J{\'e}gou, Herv{\'e} and Grave, Edouard and Zeghidour, Neil},
   year={2024},
   howpublished={arXiv:2410.00037}
@@ -232,7 +236,7 @@
 // HRI evaluation: complementary scales
 
 @inproceedings{carpinella2017rosas,
-  title={The Robotic Social Attributes Scale (RoSAS): Development and Validation},
+  title={The Robotic Social Attributes Scale ({RoSAS}): Development and Validation},
   author={Carpinella, Colleen M. and Wyman, Alisa B. and Perez, Michael A. and Stroessner, Steven J.},
   booktitle={ACM/IEEE International Conference on Human-Robot Interaction (HRI)},
   pages={254--262},
@@ -313,4 +317,28 @@
   year         = {2026},
   howpublished = {Google Forms},
   note         = {\url{https://docs.google.com/forms/d/e/1FAIpQLSfCO5Z9cbQsEfodz6oBXe2umM6A0uzTgPntF3kPQXpjQf_MSg/viewform}}
+}
+
+@misc{naoqi_docs,
+  author       = {{SoftBank Robotics}},
+  title        = {{NAOqi} Framework Documentation},
+  year         = {2018},
+  howpublished = {\url{http://doc.aldebaran.com/2-5/index_dev_guide.html}},
+  note         = {Accessed May~2026}
+}
+
+@misc{livekit_docs,
+  author       = {{LiveKit}},
+  title        = {{LiveKit} Documentation},
+  year         = {2026},
+  howpublished = {\url{https://docs.livekit.io/}},
+  note         = {Accessed May~2026}
+}
+
+@misc{silero_vad,
+  author       = {{Silero Team}},
+  title        = {Silero {VAD}: pre-trained enterprise-grade {V}oice {A}ctivity {D}etector},
+  year         = {2024},
+  howpublished = {\url{https://github.com/snakers4/silero-vad}},
+  note         = {Accessed May~2026}
 }

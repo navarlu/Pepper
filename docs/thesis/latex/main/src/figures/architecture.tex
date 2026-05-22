@@ -15,7 +15,7 @@
   },
   webrtc/.style={Latex-Latex, line width=0.8pt, draw=blue!60!black},
   http/.style={-Latex, line width=0.8pt, draw=orange!75!black},
-  ssh/.style={-Latex, line width=0.8pt, draw=teal!70!black},
+  ssh/.style={-Latex, line width=0.8pt, draw=green!50!black},
   micwire/.style={-Latex, thick, draw=gray!60!black},
 ]
 
@@ -30,7 +30,7 @@
   PulseAudio
 };
 
-\node[machine, right=24mm of pepper] (rpi) {
+\node[machine, right=12mm of pepper] (rpi) {
   \textbf{Raspberry Pi 5}\\[2pt]
   \scriptsize
   livekit \\
@@ -43,7 +43,7 @@
   session-driver
 };
 
-\node[machine, right=24mm of rpi] (gpu) {
+\node[machine, right=12mm of rpi] (gpu) {
   \textbf{GPU server}\\[2pt]
   \scriptsize
   voice-agent-A \\
@@ -70,8 +70,8 @@
 \draw[micwire] (mic) -- (rpi.south);
 
 % --- Reverse SSH tunnel annotation ---------------------------------
-\node[draw=teal!60!black, thick, dotted, rounded corners=2pt,
-      fill=teal!5, inner sep=5pt, align=center, font=\scriptsize,
+\node[draw=green!50!black, thick, dotted, rounded corners=2pt,
+      fill=green!5, inner sep=5pt, align=center, font=\scriptsize,
       below=5mm of mic, text width=120mm]
   (tunnel) {%
     \textbf{Reverse SSH tunnel} (\texttt{autossh})\,:\;
@@ -85,7 +85,7 @@
   (legend) {%
     \textcolor{blue!60!black}{\rule[0.4ex]{8mm}{0.9pt}}\,WebRTC \quad
     \textcolor{orange!75!black}{\rule[0.4ex]{8mm}{0.9pt}}\,HTTP \quad
-    \textcolor{teal!70!black}{\rule[0.4ex]{8mm}{0.9pt}}\,SSH+paplay%
+    \textcolor{green!50!black}{\rule[0.4ex]{8mm}{0.9pt}}\,SSH+paplay%
   };
 
 \end{tikzpicture}

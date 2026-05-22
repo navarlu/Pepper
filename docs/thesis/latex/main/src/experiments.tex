@@ -18,7 +18,7 @@ The chapter is organized in five parts.
 \secref{sec:exp_procedure} describes the deployment site, the visitor flow, and how participants were recruited.
 \secref{sec:exp_questionnaire} covers the questionnaire.
 \secref{sec:exp_results} presents the quantitative results: latency and subjective ratings.
-\secref{sec:exp_field} closes the chapter with the qualitative field observations made by the experimenter during the deployment.
+\secref{sec:exp_field} closes the chapter with the qualitative observations made by the experimenter during the deployment.
 Interpretation of these results, study limitations, and proposed remedies are taken up in Chapters~\ref{ch:discussion} and~\ref{ch:future_work}.
 
 
@@ -30,10 +30,10 @@ The study addresses two research questions:
 
 \begin{itemize}
     \item \textbf{RQ1.} How does an LLM-driven receptionist on the Pepper robot perform in a real institutional setting, both in terms of objective interaction quality (latency) and in terms of the subjective experience reported by visitors?
-    \item \textbf{RQ2.} How do the two voice backends --- Condition~A (the locally hosted cascade) and Condition~B (the cloud-hosted cascade) --- compare in the same deployment and on the same task?
+    \item \textbf{RQ2.} How do the two voice backends---Condition~A (the locally hosted cascade) and Condition~B (the cloud-hosted cascade)---compare in the same deployment and on the same task?
 \end{itemize}
 
-The study uses a \textbf{between-subjects} design, because an interaction with a receptionist is naturally a single visit. And because the subjective experience of interacting with Pepper in one condition would likely influence the experience of interacting with her in the other condition.
+The study uses a \textbf{between-subjects} design, because an interaction with a receptionist is naturally a single visit. And the subjective experience of interacting with Pepper in one condition would likely influence the experience of interacting with her in the other condition.
 Each visitor interacts with the system once, in exactly one of the two conditions, and provides a single questionnaire response.
 The condition is assigned by the experimental loop wrapper (see \secref{sec:experiment_loop}), which alternates between Condition~A and Condition~B on each new session.
 \newpage
@@ -46,15 +46,16 @@ The condition is assigned by the experimental loop wrapper (see \secref{sec:expe
 
 \begin{wrapfigure}{r}{0.48\textwidth}
 \centering
-\includegraphics[width=0.48\textwidth]{src/figures/experiment/pepper_at_reception.jpeg}
-\caption{Deployment scene.}
-\label{fig:pepper_at_reception}
+\includegraphics[width=0.48\textwidth]{src/figures/setup.jpeg}
+\caption{Setting: the reception desk where the experiment was done.}
+\label{fig:setup}
 \end{wrapfigure}
 
-The deployment site was the reception of Building~E of FEE CTU at Karlovo náměstí.
-Pepper was placed behind the standard reception desk, facing visitors who approach from the entrance corridor.
+The deployment site was the reception of Building~E of FEE CTU at Prague.
+Pepper was placed behind the standard reception desk, facing visitors (mostly students and staff) who approach from the entrance corridor.
 A pane of glass separates the reception staff side, where Pepper stood, from the visitor side of the desk.
-The external USB microphone described in \secref{sec:pepper_robot} was mounted on the visitor side of the glass so that speech capture stayed close to the visitor; with the microphone on Pepper's side, the glass and the distance made speech transcription unreliable.
+With the microphone on Pepper's side, the glass and the distance made speech transcription unreliable.
+So external USB microphone described in \secref{sec:pepper_robot} was mounted on the visitor side of the glass so that speech capture stayed close to the visitor. 
 
 
 \subsection{Visitor Flow and Recruitment}
@@ -76,14 +77,15 @@ The systematic observations that came out of this presence are reported in \secr
 \subsection{Ethics and data handling}
 \label{sec:exp_ethics}
 
+This research was approved by the Committee for Research Ethics at the Czech Technical University in Prague (reference number 0000-20/25/51902/EKČVUT).
 Visitors were informed about the study before they spoke to Pepper.
 The instructions board next to the desk stated that the conversation would be processed by the system and used for the thesis evaluation (see Appendix~\ref{ch:instructions}), and the experimenter additionally briefed each participant verbally during the active-recruitment phase (see \secref{sec:exp_recruitment}).
-The questionnaire was anonymous --- it asked for age, gender, and a short participant identifier, but no name --- and the system logs do not contain visitor names either, so questionnaire rows and session logs are joined only through that short identifier.
+The questionnaire was anonymous---it asked for age, gender, and a short participant identifier, but no name---and the system logs do not contain visitor names either, so questionnaire rows and session logs are joined only through that short identifier.
 The session logs include the visitor's microphone audio and the agent's synthesized reply alongside the event stream; these, together with the questionnaire responses, are stored on the Raspberry~Pi and in the project's experiment-results folder.
 
 The two backends differ in what leaves the institution.
 In Condition~A, the visitor's microphone audio, transcripts, and the agent's replies stay on the Raspberry~Pi and the departmental GPU server.
-In Condition~B, every visitor utterance is sent to OpenAI for transcription, language-model inference, and speech synthesis, together with the tool-result text appended to the model context --- which for the live-endpoint tools (e.g., \texttt{lookup\_person}) includes the public faculty directory data returned by the lookup.
+In Condition~B, every visitor utterance is sent to OpenAI for transcription, language-model inference, and speech synthesis, together with the tool-result text appended to the model context---which for the live-endpoint tools (e.g., \texttt{lookup\_person}) includes the public faculty directory data returned by the lookup.
 
 
 
@@ -92,16 +94,16 @@ In Condition~B, every visitor utterance is sent to OpenAI for transcription, lan
 \label{sec:exp_questionnaire}
 
 The questionnaire was hosted on Google Forms.
-The full questionnaire is available online~\cite{questionnaire-form}; this section describes its structure and the rationale for each block.
+The full questionnaire is reproduced in Appendix~\ref{ch:questionnaire}; this section describes its structure and the rationale for each block.
 
 The questionnaire is organized into five blocks:
 
 \begin{itemize}
-    \item \textbf{Identification and demographics} --- four items: the participant identifier, self-reported gender, age, and familiarity with robots on a 5-point scale.
-    \item \textbf{Custom Likert items} --- three 5-point Likert items (``strongly disagree'' to ``strongly agree'') targeting whether the visitor got the information they were looking for, whether Pepper responded quickly enough, and whether her hand and arm gestures felt natural and fit what she was saying.
-    \item \textbf{Categorical and open-ended items} --- four items about the interaction content and the visitor's perspective: what topic the visitor talked about, what problems occurred during the interaction, what the visitor would like Pepper to be able to help with in future, and whom they would prefer at the reception desk in general.
-    \item \textbf{Godspeed scales} --- twenty-one items from the Godspeed questionnaire~\cite{bartneck2009godspeed}, presented as bipolar adjective pairs on a 5-point scale, covering four of the five Godspeed subscales (Anthropomorphism, Animacy, Likeability, Perceived Intelligence). Godspeed was chosen because it is the most widely reported scale in the receptionist-robot literature surveyed in Chapter~\ref{ch:related_work}, which keeps the per-subscale means directly comparable to prior studies.
-    \item \textbf{Open comment} --- a final free-text item that invites the visitor to share anything else about their experience that the structured items did not capture.
+    \item \textbf{Identification and demographics}---four items: the participant identifier, self-reported gender, age, and familiarity with robots on a 5-point scale.
+    \item \textbf{Custom Likert items}---three 5-point Likert items (``strongly disagree'' to ``strongly agree'') targeting whether the visitor got the information they were looking for, whether Pepper responded quickly enough, and whether her hand and arm gestures felt natural and fit what she was saying.
+    \item \textbf{Categorical and open-ended items}---four items about the interaction content and the visitor's perspective: what topic the visitor talked about, what problems occurred during the interaction, what the visitor would like Pepper to be able to help with in future, and whom they would prefer at the reception desk in general.
+    \item \textbf{Godspeed scales}---twenty-one items from the Godspeed questionnaire~\cite{bartneck2009godspeed}, presented as bipolar adjective pairs on a 5-point scale, covering four of the five Godspeed subscales (Anthropomorphism, Animacy, Likeability, Perceived Intelligence). Godspeed was chosen because it is the most widely reported scale in the receptionist-robot literature surveyed in Chapter~\ref{ch:related_work}, which keeps the per-subscale means directly comparable to prior studies.
+    \item \textbf{Open comment}---a final free-text item that invites the visitor to share anything else about their experience that the structured items did not capture.
 \end{itemize}
 
 The fifth Godspeed subscale, Perceived Safety, was \emph{not} included.
@@ -111,8 +113,8 @@ Its items measure the respondent's self-reported emotional state as an indirect 
 \section{Quantitative Results}
 \label{sec:exp_results}
 
-The questionnaire collected 26 valid responses on the single deployment day.
-Twenty of those 26 responses could be matched back to a specific session log via the participant-identifier mechanism: 10 to a Condition~A session and 10 to a Condition~B session.
+The questionnaire collected 26 valid responses on a single deployment day.
+Twenty of those 26 responses could be matched back to a specific session log via the participant-identifier mechanism: 10 to a Condition~A (local) session and 10 to a Condition~B (cloud) session.
 The remaining 6 responses contained a participant identifier that did not uniquely map to a logged session, because the visitor scanned the printed backup QR after walking away and the on-tablet identifier did not get copied into the form correctly.
 These 6 responses are kept in the pooled descriptive statistics but are reported separately under ``unknown'' in the per-condition tables; they are excluded from the direct A--B comparison.
 The numbers and figures below were produced by the analysis scripts and notebooks in the project repository~\cite{github-repo-thesis}; subsequent references give each script or notebook by its path relative to the repository root.
@@ -123,21 +125,20 @@ The cleaned per-respondent responses, with each row matched to the corresponding
 \label{sec:exp_sample}
 
 The 26 respondents were 22 men and 4 women, with ages ranging from 19 to 49 and a median of 25.5~years.
-Self-reported familiarity with robots, on a 5-point scale from ``not familiar at all'' to ``very familiar'', had a mean of 3.62 and a median of 4.
+Self-reported familiarity with robots, on a 5-point scale from ``not familiar at all'' (1) to ``very familiar'' (5), had a mean of 3.62 and a median of 4.
 This is the kind of sample one would expect at an engineering-school reception during teaching hours: mostly young men with some prior exposure to robots. The ratings reported below should be read with that audience in mind.
 
 
 \subsection{Objective Latency}
 \label{sec:exp_latency}
 
-The headline objective measurement is the time-to-first-audio (TTFA): the time from the end of the visitor's utterance (as detected by the voice activity detector) to the first audio frame submitted to Pepper's audio device.
+The headline objective measurement is the time-to-first-audio (TTFA): the time from the end of the visitor's utterance to the first audio frame submitted to Pepper's audio device.
 
-TTFA is computed per turn from each session's event log (as the difference between the \texttt{vad\_user\_speech\_end} and \texttt{pepper\_first\_sound} timestamps), and each session is then summarized by the median TTFA across its turns.
-The two conditions are compared on these 10 per-session medians, so each visitor contributes one observation; the full computation is in \texttt{docs/thesis/experiment/evaluation/latency/latency\_per\_session.py}.
+TTFA is computed per turn from each session's event log, and each session is then summarized by the median TTFA across its turns.
+The two conditions are compared on these 10 per-session medians, so each visitor contributes one observation; the full computation is in \texttt{docs/thesis/experiment/evaluation/latency/latency\_per\_session.py} and \texttt{docs/thesis/experiment/evaluation/latency/latency\_histogram.py}.
 
 \tabref{tab:ttfa} reports the per-condition statistics.
-Condition~A is descriptively faster: the median session is 1.56~s for the local cascade, compared with 3.53~s for the cloud cascade.
-With ten sessions per condition, the gap should be read as a descriptive tendency rather than a strong inferential claim.
+Condition~A is descriptively faster: the median session is 1.39~s for the local cascade, compared with 3.30~s for the cloud cascade.
 
 \begin{table}[h]
 \centering
@@ -146,13 +147,27 @@ With ten sessions per condition, the gap should be read as a descriptive tendenc
 \hline
 \textbf{Condition} & \textbf{Sessions} & \textbf{Median (s)} & \textbf{Mean (s)} \\
 \hline
-A (local) & 10 & 1.56 & 2.88 \\
-B (cloud) & 10 & 3.53 & 4.64 \\
+A (local) & 10 & 1.39 & 1.31 \\
+B (cloud) & 10 & 3.30 & 3.29 \\
 \hline
 \end{tabular}
-\caption{Per-session time-to-first-audio (TTFA) for the two backends. Each session contributes its per-turn median; the table reports the median and mean across the 10 sessions per condition.}
+\caption{Per-session time-to-first-audio (TTFA) for the two backends. Each session contributes its per-turn median; the table reports the median and mean across the 10 sessions per condition. The full per-turn distribution is shown in \figref{fig:ttfa_hist_ab}, and the tool vs no-tool comparison in \figref{fig:ttfa_hist_tool}.}
 \label{tab:ttfa}
 \end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\textwidth]{src/figures/experiment/latency_histogram_AB.png}
+    \caption{Per-turn TTFA distribution for the two conditions (59 turns from A and 44 turns from B, across 10 sessions per condition).}
+    \label{fig:ttfa_hist_ab}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{src/figures/experiment/latency_histogram_tool.png}
+    \caption{Per-turn TTFA split by whether the turn involved at least one tool call. Tool turns sit consistently to the right of no-tool turns. The extra latency is not from the HTTP round-trip---a short ``Let me check'' filler is played immediately on the tool call---but from the fact that tool calls are not streamed: the language model has to finish writing the full tool call before the tool can run (see \secref{sec:dec_streaming}).}
+    \label{fig:ttfa_hist_tool}
+\end{figure}
 
 \subsection{Subjective Ratings}
 \label{sec:exp_subjective}
@@ -161,6 +176,10 @@ On every subjective item collected, respondents who experienced Condition~B rate
 
 \tabref{tab:custom_likert} reports the per-condition means on the three custom Likert items.
 Condition~B was rated higher than Condition~A on all three.
+
+The four Godspeed subscales follow the same direction.
+\tabref{tab:godspeed} reports the per-condition subscale means together with Cronbach's $\alpha$ as a check of internal consistency.
+All four subscales reach $\alpha > 0.7$, which is the conventional threshold for acceptable reliability of a short subscale.
 
 \begin{table}[h]
 \centering
@@ -178,16 +197,7 @@ Pepper's gestures felt natural and fit what she was saying            & 3.08 & 2
 \label{tab:custom_likert}
 \end{table}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=\textwidth]{src/figures/experiment/custom.png}
-\caption{Mean rating on the three custom Likert items, split by condition. Bars show the condition mean; dots show the individual respondents (jittered horizontally to avoid overplotting). ``A'' and ``B'' are the matched sessions; ``unknown'' are the six respondents whose questionnaire row could not be matched to a session log. Generated by \texttt{docs/thesis/experiment/results/analysis.ipynb}.}
-\label{fig:custom_likert}
-\end{figure}
 
-The four Godspeed subscales follow the same direction.
-\tabref{tab:godspeed} reports the per-condition subscale means together with Cronbach's $\alpha$ as a check of internal consistency.
-All four subscales reach $\alpha > 0.7$, which is the conventional threshold for acceptable reliability of a short subscale.
 
 \begin{table}[h]
 \centering
@@ -208,8 +218,16 @@ Perceived Intelligence & 0.80 & 3.45 & 3.38 & \textbf{3.58} & 3.33 \\
 
 \begin{figure}[H]
 \centering
+\includegraphics[width=\textwidth]{src/figures/experiment/custom.png}
+\caption{Mean rating on the three custom Likert items by condition. Bars show the condition mean; dots show individual respondents. ``Unknown'' covers respondents whose questionnaire row could not be matched to a session log.}
+
+\label{fig:custom_likert}
+\end{figure}
+
+\begin{figure}[H]
+\centering
 \includegraphics[width=\textwidth]{src/figures/experiment/godspeed.png}
-\caption{Godspeed subscale means by condition. Each subscale score is the mean of its items on the 5-point bipolar adjective scale. Bars show the condition mean; dots show the per-respondent subscale scores (jittered horizontally to avoid overplotting). Generated by \texttt{docs/thesis/experiment/results/analysis.ipynb}.}
+\caption{Godspeed subscale means by condition. Each subscale score is the mean of its items on the 5-point bipolar adjective scale. Bars show the condition mean; dots show the per-respondent subscale scores.}
 \label{fig:godspeed_ab}
 \end{figure}
 
@@ -225,17 +243,17 @@ For visitors who do not speak Czech, Pepper was therefore not a robot-versus-hum
 
 
 % ============================================================
-\section{Field Observations}
+\section{Observations from Experiment}
 \label{sec:exp_field}
 
 Because the experimenter was present for every session, the following recurring issues were noted during the day.
 They applied to both conditions equally unless noted otherwise.
 
 \begin{itemize}
-    \item \textbf{Pepper's voice behind the glass} --- the glass partition attenuated Pepper's voice on the visitor side. Turning the volume up to compensate produced audible echo, so several visitors ended up reading Pepper's words on the live tablet transcript rather than relying on the audio alone.
-    \item \textbf{Background chatter} --- the reception is located in a busy corridor. The microphone occasionally picked up nearby conversation as if it were the visitor speaking, and Pepper would politely reply to it.
-    \item \textbf{Repeated filler on tool retries} --- a short ``Let me check'' utterance is played in parallel with each tool call to cover the silence before Pepper's reply. When a tool failed and Pepper retried with a slightly different argument, the same filler line was spoken on every retry --- in one case three times in a row --- which sounded strongly unnatural. Limiting the filler to fire at most once per visitor turn would be enough to prevent this.
-    \item \textbf{Guided versus self-directed visitors} --- visitors who were briefed by the experimenter on what Pepper can help with usually had a smooth conversation. Visitors who approached cold tended to ask for things outside Pepper's capabilities, and the conversation degraded into apologies.
+    \item \textbf{Pepper's voice behind the glass.} The glass partition attenuated Pepper's voice on the visitor side. Turning the volume up to compensate produced audible echo, so several visitors ended up reading Pepper's words on the live tablet transcript rather than relying on the audio alone.
+    \item \textbf{Background chatter.} The reception is located in a busy corridor. The microphone occasionally picked up nearby conversation as if it were the visitor speaking, and Pepper would politely reply to it.
+    \item \textbf{Repeated filler on tool retries.} A short ``Let me check'' utterance is played in parallel with each tool call to cover the silence before Pepper's reply. When a tool failed and Pepper retried with a slightly different argument, the same filler line was spoken on every retry---in one case three times in a row---which sounded strongly unnatural. Limiting the filler to fire at most once per visitor turn would be enough to prevent this.
+    \item \textbf{Guided versus self-directed visitors.} Visitors who were briefed by the experimenter on what Pepper can help with usually had a smooth conversation. Visitors who approached cold tended to ask for things outside Pepper's capabilities, and the conversation degraded into apologies.
 \end{itemize}
 
 

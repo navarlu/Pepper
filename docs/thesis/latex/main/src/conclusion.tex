@@ -13,8 +13,8 @@
 % ============================================================
 
 This thesis presents the design and evaluation of an LLM-driven receptionist robot for social interaction.
-The implemented system runs on a SoftBank Pepper robot.
-A cascaded speech-to-text $\to$ language model $\to$ text-to-speech pipeline handles the conversation, a small fixed set of tools covers the questions a faculty visitor is likely to ask (room directions, staff lookup, lecture schedule, canteen menu), and short body gestures together with a live tablet transcript accompany every spoken reply.
+The implemented system runs on a Pepper robot.
+A cascaded speech-to-text, large language model, and text-to-speech pipeline handles the conversation, a small fixed set of helper functions covers the questions a faculty visitor is likely to ask (room directions, staff lookup, lecture schedule, canteen menu), and short body gestures together with a live tablet transcript accompany every spoken reply.
 The same agent code supports two interchangeable backends: a fully local cascade built around \texttt{faster-whisper}, Llama~3.1~8B Instruct served by vLLM, and a Piper voice; and a cloud cascade built around OpenAI's \texttt{gpt-4o-mini} family of models.
 The design also keeps the system easy to extend: a new capability is added by writing a single tool and naming it in the system prompt, Pepper's persona can be changed by editing the prompt itself, and new institutional knowledge can be added by dropping a PDF into the seed folder.
 
@@ -22,7 +22,7 @@ The system was deployed at the real reception desk of Building~E at FEE CTU for 
 Twenty-six visitors completed a short questionnaire combining four Godspeed subscales and three custom Likert items, and a closing categorical question on whom they would prefer at the desk.
 The headline finding is a two-sided trade-off.
 Condition~B (cloud) was rated at least as highly as Condition~A (local) on every subjective item, with gaps of 0.1 to 0.3 points on the Godspeed subscales and up to 0.8 on the gesture item.
-Condition~A was descriptively about twice as fast on the median session (1.56~s vs 3.53~s session-median time-to-first-audio across 10 sessions per condition) and does not incur per-token inference fees once the hardware is available, against the cloud cascade's metered USD~0.29 per active conversation hour.
+Condition~A was descriptively about twice as fast on the median session (1.39~s vs 3.30~s session-median time-to-first-audio across 10 sessions per condition) and does not incur per-token inference fees once the hardware is available, against the cloud cascade's metered USD~0.29 per active conversation hour.
 Of the 26 respondents, 19 (73~\%) preferred Pepper at the reception over a human.
 
 The thesis delivers the full LLM-driven receptionist system specified by the assignment (\secref{sec:goals}), including the side-by-side comparison of a local and a cloud voice cascade on the same task. Because the two conditions differ in speech recognition, language model, and speech synthesis simultaneously, the comparison is best read as a comparison of complete cascades rather than as an isolated test of the language model alone (see \secref{sec:limitations}).

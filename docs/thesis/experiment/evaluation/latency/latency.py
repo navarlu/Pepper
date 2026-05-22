@@ -19,13 +19,14 @@ import re
 import statistics
 import sys
 
-# Path to the cleaned session corpus. The script file lives at
-# docs/thesis/experiment/results/headline_table.py, so we go up four
-# parents to reach the project root before descending into voice-agent.
-LOG_ROOT = (
-    pathlib.Path(__file__).resolve().parents[4]
-    / "voice-agent/src/experiment/results/experiments_cleaned_manualy"
-)
+# Resolve the project root by walking up until we hit the docker/
+# directory, rather than counting parents (which is brittle if this
+# file is moved).
+PROJECT_ROOT = pathlib.Path(__file__).resolve()
+while not (PROJECT_ROOT / "docker").exists() and PROJECT_ROOT != PROJECT_ROOT.parent:
+    PROJECT_ROOT = PROJECT_ROOT.parent
+
+LOG_ROOT = PROJECT_ROOT / "voice-agent/src/experiment/results/experiments_cleaned_manualy"
 
 
 def walk_events(jl_path: pathlib.Path):
@@ -52,8 +53,12 @@ def per_turn_ttfa(events):
     TTFA is measured between:
       - turn start: either vad_user_speech_end (end of spoken input)
                     or typed_input (operator-typed input)
-      - turn end:   pepper_first_sound (first PCM frame submitted to
-                    NAOqi's audio device)
+      - turn end:   the **first** pepper_first_sound for the turn
+                    (first PCM frame submitted to paplay). On long tool
+                    turns the audio bridge can emit a second event for
+                    the real answer after the filler drains; we keep
+                    the earliest, since that is what the user actually
+                    heard first.
 
     Events are grouped by turn_id; turns missing either marker are
     skipped. Returns a list of float seconds, one per valid turn.
@@ -67,7 +72,8 @@ def per_turn_ttfa(events):
         if tid is None:
             continue
         if et in ("vad_user_speech_end", "typed_input", "pepper_first_sound"):
-            by_turn[tid][et] = ev["ts"]
+            # setdefault -> first occurrence wins.
+            by_turn[tid].setdefault(et, ev["ts"])
 
     # For each turn, take whichever start event fired (speech or typed)
     # and pair it with the moment Pepper first produced sound.

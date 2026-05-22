@@ -25,6 +25,7 @@ They are grouped here into two categories: small implementation fixes for issues
     \item \textbf{Better microphone capture.}
     A single omnidirectional microphone on the visitor's side of the glass occasionally forwarded background corridor chatter into the pipeline (\secref{sec:exp_field}).
     This could be solved, for example, by a push-to-talk button on the visitor's side of the desk so that the microphone is gated on only while a visitor is actively speaking to Pepper, which would also prevent Pepper from picking up unrelated conversation during the rest of the day.
+    A directional microphone pointed at the visitor would address the same issue acoustically by picking up less sound from the corridor.
 \end{itemize}
 
 
@@ -38,7 +39,7 @@ They are grouped here into two categories: small implementation fixes for issues
 
     \item \textbf{Memory of returning visitors.}
     The current agent has no persistent memory across sessions.
-    Lightweight personalization --- recognizing a returning face or accepting a name once and remembering it across visits --- would be a natural extension and would interact with the previous item.
+    Lightweight personalization---recognizing a returning face or accepting a name once and remembering it across visits---would be a natural extension and would interact with the previous item.
 
     \item \textbf{Unattended all-day operation.}
     The deployment described in Chapter~\ref{ch:experiments} ran for one day with the experimenter present.
@@ -48,5 +49,6 @@ They are grouped here into two categories: small implementation fixes for issues
     The current agent is blind: it knows nothing about the visitor's appearance, where they are looking, or what is happening around the reception desk.
     A natural extension is to add an additional tool, for example \texttt{look\_around}, that captures a still image from one of Pepper's cameras and sends it to a small vision-language model running alongside the local cascade; the model returns a short textual description of the scene that is fed back to the agent as the tool result.
     The agent could call this tool when context is unclear (``is the visitor still there?'', ``does the visitor look confused?'', ``is there a queue building up behind them?''), without changing anything else in the pipeline.
+    Both points come with trade-offs: each vision call adds image capture and model inference on top of the normal turn latency, and processing visitor faces and the surroundings raises stronger privacy concerns than the audio-only setup of the current system.
 
 \end{itemize}

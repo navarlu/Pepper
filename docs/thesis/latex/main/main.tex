@@ -23,7 +23,7 @@
 \usepackage{wrapfig}
 
 % === DRAFT VERSION TAG (remove before final submission) ===
-\newcommand{\draftversion}{v6.50-draft}
+\newcommand{\draftversion}{v6.83-draft}
 % === END DRAFT VERSION TAG ===
 
 
@@ -87,8 +87,8 @@
 	fieldofstudy-czech = {Kybernetika a Robotika},
 	keywords-czech = {humanoidní robot; velký jazykový model; interakce člověka s robotem; hlasový agent; recepční robot; lokální vs. cloudové nasazení; Pepper},
 	keywords-english = {humanoid robot; large language model; human--robot interaction; voice agent; receptionist robot; local versus cloud deployment; Pepper},
-	day = 16,
-	month = 02,
+	day = 22,
+	month = 05,
 	year = 2026,
 	specification-file = {specification.pdf},
         declaration-file = {declaration.pdf},
@@ -137,36 +137,34 @@
 
 % Abstract in Czech
 \begin{abstract-czech}
-Tato práce navrhuje recepčního robota řízeného velkým jazykovým modelem na platformě SoftBank Pepper.
-Implementovaný systém zpracovává hlasový dialog kaskádou převodu řeči na text $\to$ jazykového modelu $\to$ syntézy řeči, odpovědi opírá o sadu nástrojů, doprovází je gesty a živým přepisem konverzace na tabletu.
-Stejná pipeline podporuje dva zaměnitelné jazykové backendy, jeden plně lokální na jediném GPU a jeden hostovaný v cloudu.
+Tato práce navrhuje recepčního robota řízeného velkým jazykovým modelem na platformě Pepper.
+Kaskáda převodu řeči na text, velkého jazykového modelu a syntézy řeči zpracovává hlasový dialog; sada pomocných funkcí vyhledává aktuální fakultní data jako kontakty na zaměstnance a rozvrh přednášek; odpovědi doprovázejí gesta a živý přepis konverzace na tabletu.
+Stejná pipeline podporuje dva zaměnitelné backendy, jeden plně lokální na jediném GPU a jeden hostovaný v cloudu.
 
 Systém byl na jeden den nasazen na fakultní recepci, kde se mezi návštěvníky střídaly oba backendy.
-Dvacet šest návštěvníků vyplnilo dotazník složený ze čtyř subškál Godspeed dotazníku, tří Likertových položek zaměřených na konkrétní aspekty nasazení a otázek na preferenci.
-Z popisných statistik vyplývá, že cloudová kaskáda obdržela vyšší subjektivní hodnocení, zatímco lokální kaskáda dosáhla nižšího mediánu doby do první zvukové odezvy.
-Z 26 respondentů 19 dalo na recepci přednost robotovi před člověkem.
-Protože se obě varianty lišily v rozpoznávání řeči, jazykovém modelu i syntéze řeči, výsledky je třeba interpretovat jako explorativní srovnání kompletních lokálních a cloudových hlasových kaskád, nikoli jako izolované srovnání jazykových modelů samotných.
+Dvacet šest návštěvníků vyplnilo dotazník složený ze čtyř subškál Godspeed dotazníku, tří vlastních Likertových položek a otázek na preferenci.
+Cloudová kaskáda obdržela vyšší subjektivní hodnocení; lokální kaskáda byla rychlejší k první zvukové odezvě; 19 z 26 respondentů dalo na recepci přednost robotovi před člověkem.
+Protože se obě varianty lišily v rozpoznávání řeči, jazykovém modelu i syntéze řeči zároveň, výsledky je třeba číst jako explorativní srovnání kompletních kaskád, nikoli jazykových modelů samotných.
 Práce dále zvažuje oba backendy z hlediska budoucí rozšiřitelnosti, ceny a nakládání s daty.
 \end{abstract-czech}
 
 % Abstract in English
 \begin{abstract-english}
-This thesis designs an LLM-driven receptionist robot on the SoftBank Pepper.
-The implemented system handles spoken dialogue through a cascaded speech-to-text $\to$ language model $\to$ text-to-speech pipeline, grounds its answers in a set of tools, and accompanies its replies with body gestures and a live tablet transcript.
-The same pipeline supports two interchangeable language-model backends, one fully local on a single GPU and one cloud-hosted.
+This thesis designs an LLM-driven receptionist on the Pepper robot.
+A cascaded speech-to-text, large language model, and text-to-speech pipeline handles spoken dialogue; a set of helper functions looks up live faculty data such as staff contacts and lecture schedules; and body gestures and a live tablet transcript accompany the replies.
+The same pipeline supports two interchangeable backends, one fully local on a single GPU and one cloud-hosted.
 
-The system was deployed for one day at a faculty reception desk, alternating between the two backends across visitors.
-Twenty-six visitors completed a questionnaire combining four Godspeed subscales, three deployment-specific Likert items, and preference questions.
-Descriptively, the cloud cascade received higher subjective ratings, whereas the local cascade achieved lower median time-to-first-audio.
-Of the 26 respondents, 19 preferred the robot over a human at the reception desk.
-Because the two conditions differed in speech recognition, language model, and speech synthesis, the results should be interpreted as an exploratory comparison of complete local and cloud voice cascades rather than as an isolated comparison of language models.
+The system was deployed for one day at a faculty reception desk, alternating the two backends across visitors.
+Twenty-six visitors completed a questionnaire of four Godspeed subscales, three custom Likert items, and preference questions.
+The cloud cascade received higher subjective ratings; the local cascade was faster to first audio; 19 of the 26 preferred the robot over a human at the desk.
+Because the two conditions differed in speech recognition, language model, and speech synthesis at once, the results read as an exploratory comparison of complete cascades rather than of language models alone.
 The work also weighs the two backends on upgradability, cost, and data handling.
 \end{abstract-english}
    
 % Acknowledgements / Podekovani
 \begin{thanks}
 I would like to thank doc.~Mgr.~Mat\v{e}j Hoffmann, Ph.D., for his guidance and for maintaining such a positive atmosphere in the lab.
-I also thank MSc.~Jason Khoury for his help with the experimental design and Ing.~Luk\'a\v{s} Rustler for resolving connectivity issues.
+I also thank MSc.~Jason Khoury for his help with the experimental design, Ing.~Luk\'a\v{s} Rustler for resolving connectivity issues, and Shubhan Parag Patni, MSc. for reviewing the thesis.
 \end{thanks}
 
 % Declaration / Prohlaseni
@@ -200,8 +198,8 @@ V Praze dne \ctufield{day}.~\monthinlanguage{second}~\ctufield{year}
 \begin{document}
 
 % === DRAFT footer (disabled for submission; re-enable for future drafts) ===
-% \fancypagestyle{plain}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
-% \fancypagestyle{headings}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
+\fancypagestyle{plain}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
+\fancypagestyle{headings}{\fancyfoot[R]{\footnotesize\textcolor{gray}{\draftversion~|~\today}}}
 % === END DRAFT footer ===
 
 \maketitle
@@ -222,6 +220,7 @@ V Praze dne \ctufield{day}.~\monthinlanguage{second}~\ctufield{year}
 
 \appendix
 \include{src/appendix_instructions}
+\include{src/appendix_questionnaire}
 
 \ctuifswitch{front-specification}{}{\ctutemplate{specification.as.chapter}}
 

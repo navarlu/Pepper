@@ -12,7 +12,7 @@
 
 % TODO (compression pass before submission): the sections below currently
 % read as a textbook walk-through carried over from earlier drafts.
-% Trim aggressively --- target roughly two pages in total, just enough so a
+% Trim aggressively---target roughly two pages in total, just enough so a
 % reader from outside NLP can follow Chapter~\ref{ch:methods}. Keep the
 % figures and the high-level intuitions; drop the step-by-step derivations
 % and push deeper detail into the inline citations.
@@ -33,14 +33,14 @@ the probability of the next token given all previously observed tokens.
 
 Modern LLMs are based on the Transformer architecture~\cite{vaswani2017attention}, which replaces recurrent computation with self-attention.
 
-\subsection*{Tokenization and Representation}
+\subsection{Tokenization and Representation}
 
 Before text can be processed by a model, it must be converted into discrete units called \emph{tokens}.
 Tokens are not necessarily whole words; they may correspond to subword fragments, characters, or punctuation.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{src/figures/tokens.jpg}
+    \includegraphics[width=0.85\textwidth]{src/figures/tokens.png}
     \caption{Example tokenization produced by the OpenAI Tokenizer tool~\cite{openai_tokenizer}.}
     \label{fig:openai_tokenizer_tokens}
 \end{figure}
@@ -48,7 +48,7 @@ Tokens are not necessarily whole words; they may correspond to subword fragments
 Each token is mapped to a high-dimensional continuous vector representation called an \emph{embedding}.
 These embeddings capture semantic similarity: tokens appearing in similar contexts obtain nearby representations in vector space.
 
-\subsection*{Autoregressive Generation}
+\subsection{Autoregressive Generation}
 
 LLMs operate autoregressively. Given an input prompt (e.g., a user query), the model generates output one token at a time.
 At each step, it computes a probability distribution over the vocabulary and samples or selects the next token.
@@ -56,7 +56,7 @@ This token is appended to the sequence and becomes part of the context for the n
 
 Complex behaviors such as summarization, dialogue, or planning emerge from this objective at scale~\cite{wei2022emergent}.
 
-\subsection*{Context Window}
+\subsection{Context Window}
 
 The \emph{context window} defines the maximum number of tokens the model can process at once.
 All dialogue history, system instructions, retrieved documents, and intermediate tool outputs must fit within this window.
@@ -64,13 +64,13 @@ If the limit is exceeded, older tokens must be truncated or summarized.
 
 Context limitations directly affect system design in long-running interactions and motivate external memory mechanisms such as retrieval augmentation~\cite{lewis2020rag}.
 
-\subsection*{Practical Limitations}
+\subsection{Practical Limitations}
 
 Despite their capabilities, LLMs exhibit several well-known limitations:
 
 \begin{itemize}
     \item \textbf{Hallucinations:} The model may generate fluent but factually incorrect information when the prompt lacks grounding~\cite{ji2023survey}.
-    \item \textbf{Non-determinism:} Due to probabilistic sampling and internal stochasticity, outputs may vary across runs.
+    \item \textbf{Non-determinism:} Due to probabilistic sampling and internal stochasticity, outputs may vary across runs. The variability can be reduced through the temperature parameter but not eliminated. For some uses, such as creative writing, the variability is welcome.
     \item \textbf{Limited world state awareness:} The model does not have real-time knowledge unless external information is explicitly provided.
     \item \textbf{Latency and computational cost:} Token-by-token generation introduces delay, which becomes significant in real-time robotic interaction.
 \end{itemize}
@@ -223,16 +223,16 @@ Recent multimodal foundation models operate directly on audio representations, e
 Key characteristics include:
 
 \begin{itemize}
-    \item Unified perception and generation,
-    \item Reduced explicit pipeline orchestration,
-    \item Potentially lower end-to-end latency,
-    \item Native multimodal reasoning capabilities.
+    \item unified perception and generation
+    \item reduced explicit pipeline orchestration
+    \item potentially lower end-to-end latency
+    \item native multimodal reasoning capabilities
 \end{itemize}
 
 The absence of an intermediate textual representation reduces transparency and complicates debugging.
 
 
-\section{LLM Deployment: Local vs Cloud}
+\section{LLM Deployment: Local vs. Cloud}
 \label{sec:local_vs_cloud}
 
 Large language models and multimodal foundation models can be deployed either locally on dedicated hardware or accessed through cloud-based APIs.

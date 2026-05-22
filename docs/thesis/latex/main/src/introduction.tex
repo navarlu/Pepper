@@ -17,8 +17,15 @@ Robotic receptionists have been tested in public places for more than two decade
 These earlier systems showed that people accept humanoid robots in real settings, but the dialogue itself was limited to scripted exchanges and rigid command menus.
 The language layer, not the embodiment, was the main bottleneck.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.55\textwidth]{src/figures/related_work/valerie.png}
+    \caption{The CMU Roboceptionist Valerie, one of the earliest deployed receptionist robots~\cite{gockley2005longterm}.}
+    \label{fig:valerie}
+\end{figure}
+
 Large language models (LLMs) change this picture by addressing the dialogue bottleneck that held the older systems back.
-For a receptionist this is a big shift: a visitor can simply ask a question instead of choosing from a menu, and the robot can ground its reply in institutional information rather than giving a canned response.
+For a receptionist this is a big shift: a visitor can simply ask a question instead of choosing from a menu, and the robot can ground its reply in institutional information rather than giving a preprogrammed response.
 
 Compared to a human at a reception desk, a robot offers some practical advantages.
 It can work around the clock without breaks, hold a large and up-to-date set of facts about the building and the people in it, and does not get tired or impatient after the hundredth question of the day.
@@ -47,7 +54,7 @@ The goal of this thesis is to design an LLM-driven receptionist robot for social
 
 % TODO (final pass before submission): re-read this section after every other
 % chapter is finalised. The per-chapter summaries below can drift as content
-% moves between chapters --- make sure each sentence still matches what the
+% moves between chapters---make sure each sentence still matches what the
 % chapter actually contains, drop anything that no longer applies, and check
 % that no chapter has been added or removed without its preview being updated
 % here.
@@ -60,3 +67,10 @@ Chapter~\ref{ch:experiments} presents the user study: the between-subjects desig
 Chapter~\ref{ch:conclusion} gives a short summary of what was built and what was found.
 Chapter~\ref{ch:discussion} discusses the limitations of the work and the implications of the results.
 Chapter~\ref{ch:future_work} outlines directions for further work.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/figures/3rd_person.jpeg}
+    \caption{The deployed system: a visitor talking to Pepper at the Building~E reception desk during the experiment.}
+    \label{fig:third_person_intro}
+\end{figure}

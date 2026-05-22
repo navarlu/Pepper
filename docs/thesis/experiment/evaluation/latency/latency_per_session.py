@@ -15,6 +15,12 @@ This script uses the **session as the unit of analysis** instead:
 With n=10 sessions per condition, the per-condition descriptives are
 genuinely comparable (one observation per visitor, not one per turn).
 
+TTFA = time from user speech end to the **first** audible response
+(filler "Let me check..." counts). On long tool turns the audio bridge
+emits a second ``pepper_first_sound`` for the real answer after the
+filler drains; we ignore that and keep the earliest, since that is what
+the user actually heard first.
+
 Run from the project root:
     uv run python docs/thesis/experiment/evaluation/latency/latency_per_session.py
 """
@@ -58,7 +64,11 @@ def per_turn_ttfa(events):
         if tid is None:
             continue
         if et in ("vad_user_speech_end", "typed_input", "pepper_first_sound"):
-            by_turn[tid][et] = ev["ts"]
+            # setdefault -> first occurrence wins. Matters for
+            # `pepper_first_sound`: long tool turns can emit a second
+            # one for the real answer after the filler drains, but
+            # the user heard audio at the earlier one.
+            by_turn[tid].setdefault(et, ev["ts"])
     out = []
     for ts in by_turn.values():
         start = ts.get("vad_user_speech_end") or ts.get("typed_input")

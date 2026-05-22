@@ -11,7 +11,7 @@
 %
 % Reminder: every paper cited here must directly support a specific
 % claim being made. Tangential or "broader strand" references that are only
-% loosely connected dilute the load-bearing cites and should be left out --- a
+% loosely connected dilute the load-bearing cites and should be left out---a
 % paper being in the project's reading list is not sufficient reason to cite it.
 %
 % Note: the lab guide also suggests a closing "Thesis Contribution" section
@@ -25,16 +25,23 @@
 \section{Receptionist and Guide Robots}
 \label{sec:related_receptionist}
 
-As noted in the motivation (Section~\ref{sec:motivation}), two pre-LLM deployments anchor this work: Valerie the Roboceptionist at Carnegie Mellon University~\cite{gockley2005longterm} and Robovie in a Japanese shopping mall~\cite{kanda2010shoppingmall}.
+As noted in the motivation (Section~\ref{sec:motivation}), two pre-LLM deployments anchor this work: Valerie the Roboceptionist at Carnegie Mellon University (2005)~\cite{gockley2005longterm} and Robovie in a Japanese shopping mall (2010)~\cite{kanda2010shoppingmall}.
 Both predate LLM-driven dialogue and make concrete what was missing before.
 
 Valerie was placed in a booth in a busy hallway of the Computer Science building at CMU, where she greeted visitors, gave directions, and told scripted ``stories'' about her own fictional life.
 The system deliberately used text input from visitors at the booth rather than speech recognition, because off-the-shelf speech recognition of the time was not robust in a noisy hallway~\cite{gockley2005longterm}.
-The dialogue was authored in advance, and the team explicitly identifies the resulting brittleness as a long-term design problem: Valerie would continue telling her stories after visitors had departed, the interaction style did not adapt for repeat visitors, and any topic outside the scripted set had no graceful answer.
+The dialogue was authored in advance, and the team explicitly identifies the resulting brittleness as a long-term design problem: Valerie would continue telling her stories after visitors had departed, the interaction style did not adapt for returning visitors, and any topic outside the scripted set had no graceful answer.
 
 Robovie was deployed for a 25-day field trial in a Japanese shopping mall, where its tasks were shopping information, route guidance, and building rapport with visitors~\cite{kanda2010shoppingmall}.
 The architecture was a ``network robot'': most behaviors were pre-scripted, and a human operator could intervene by typing free-form text when the robot encountered an unexpected question.
 A survey reported in the paper found that 64.2\% of respondents considered robots appropriate for commercial places and 87.9\% considered guidance an appropriate robotic task, which suggests that public acceptance of robotic information desks is not the blocking factor.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{src/figures/related_work/shoping_mall.png}
+    \caption{Robovie deployed in a Japanese shopping mall, giving route guidance to visitors~\cite{kanda2010shoppingmall}.}
+    \label{fig:robovie}
+\end{figure}
 
 Both deployments show that placing a humanoid at a public reception or information desk is workable and that visitors are willing to engage.
 They also show the main failure mode of the pre-LLM era: any utterance outside the authored script either fell back to a canned reply or required a human operator.
@@ -45,22 +52,29 @@ They also show the main failure mode of the pre-LLM era: any utterance outside t
 
 The use of a large language model as the dialogue backend of a social robot is recent, but enough early studies exist to mark out the shape of the field.
 The two studies closest to the present thesis both attach a LLM to a Pepper robot and place the result in front of users.
-\etal{Chen}~\cite{chen2024relatable} replaced Pepper's limited built-in keyword speech recognition with Whisper for transcription and routed the user's words through ChatGPT for the reply, with the explicit aim of testing whether a more capable language layer makes the robot feel more relatable.
+\etal{Chen} (2024)~\cite{chen2024relatable} replaced Pepper's limited built-in keyword speech recognition with Whisper~\cite{radford2023whisper} for transcription and routed the user's words through ChatGPT for the reply, with the explicit aim of testing whether a more capable language layer makes the robot feel more relatable.
 They report an interesting limitation that is worth carrying into any later study of the same form: participants with extensive prior ChatGPT experience held higher expectations of the robot and were more easily disappointed when those were not met.
-\etal{Herath}~\cite{herath2025firstimpressions} deployed a comparable Pepper--ChatGPT system at a public science festival and gathered first impressions from non-expert visitors.
+\etal{Herath} (2025)~\cite{herath2025firstimpressions} deployed a comparable Pepper--ChatGPT system at a public science festival and gathered first impressions from the visitors.
 A recurring complaint in their data was the response latency (``the response time of 4\,s made it hard to interact''), which shows that latency is a real engineering problem and not only a benchmark number.
 
-A more directly comparable system is the one by \etal{Qu}~\cite{qu2024robot}, who built a ChatGPT-based control platform for multimodal interaction with humans on a humanoid robot.
-They wire the LLM into the dialogue loop alongside speech recognition and synthesis, and report that the resulting interaction feels more natural than a scripted baseline.
+A more directly comparable system is the one by \etal{Qu} (2024)~\cite{qu2024robot}, who built a ChatGPT-based control platform for multimodal interaction with humans on a humanoid robot.
+They wired the LLM into the dialogue loop alongside speech recognition and synthesis, and reported that the resulting interaction felt more natural than a scripted baseline.
 
-The closest sibling system in the literature is FurChat by \etal{Cherakara}~\cite{cherakara2023furchat}, a receptionist robot at the National Robotarium.
-They deploy GPT-3.5 on a Furhat robot and combine an open-domain dialogue mode with a closed-domain mode backed by a small dictionary scraped from the host institution's website.
-The LLM also picks an emoticon for each reply, which is mapped to one of Furhat's pre-defined facial gestures.
-FurChat is presented as a demonstrator rather than evaluated with users, but it shows that a single LLM can handle both factual questions about a venue and casual smalltalk, with the embodiment layer (facial expressions) generated by the same reasoning step.
+The closest sibling system in the literature is FurChat by \etal{Cherakara} (2023)~\cite{cherakara2023furchat}, a receptionist robot at the National Robotarium.
+They deployed GPT-3.5 on a Furhat robot and combined an open-domain dialogue mode with a closed-domain mode backed by a small dictionary scraped from the host institution's website.
+The LLM also picked an emoticon for each reply, which was mapped to one of Furhat's pre-defined facial gestures.
+FurChat was presented as a demonstrator rather than evaluated with users, but it showed that a single LLM could handle both factual questions about a venue and casual smalltalk, with the embodiment layer (facial expressions) generated by the same reasoning step.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{src/figures/related_work/furchat.png}
+    \caption{FurChat on the Furhat robot, with an LLM-selected facial expression accompanying the reply~\cite{cherakara2023furchat}.}
+    \label{fig:furchat}
+\end{figure}
 
 
-The idea of an LLM controlling a robot through a small set of tools predates these social-robotics applications.
-\etal{Huang}~\cite{huang2022inner} introduced an ``inner monologue'' loop in which the language model alternates between planning the next step and reading feedback from the robot's perception and skills, and \etal{Ahn}~\cite{ahn2022saycan} filtered LLM action proposals through learned estimates of which actions the robot could actually carry out on a mobile manipulator.
+The idea of an LLM controlling a robot through a small set of tools (see Section~\ref{sec:tool_calling}) predates these social robotics applications.
+\etal{Huang} (2022)~\cite{huang2022inner} introduced an ``inner monologue'' loop in which the language model alternates between planning the next step and reading feedback from the robot's perception and skills, and \etal{Ahn} (2022)~\cite{ahn2022saycan} filtered LLM action proposals through learned estimates of which actions the robot could actually carry out on a mobile manipulator.
 Neither targeted a humanoid receptionist, but they established the LLM-plus-validated-tool interface that this thesis applies to a social interaction role.
 
 
@@ -68,28 +82,35 @@ Neither targeted a humanoid receptionist, but they established the LLM-plus-vali
 \section{Gestures in Human--Robot Interaction}
 \label{sec:related_gestures}
 
-How a robot uses its body during interaction --- gestures, gaze, posture --- shapes how a person reads its behavior.
-\etal{Saunderson}~\cite{saunderson2019survey} survey this literature and document robust effects on engagement, likeability, perceived intelligence, and trust across many platforms and tasks.
+How a robot uses its body during interaction---gestures, gaze, posture---shapes how a person reads its behavior.
+\etal{Saunderson} (2019)~\cite{saunderson2019survey} survey this literature and document robust effects on engagement, likeability, perceived intelligence, and trust across many platforms and tasks.
 
-A more targeted question --- whether the gestures need to match the speech exactly to be useful --- is addressed by \etal{Salem}~\cite{salem2013err} in a controlled study.
+A more targeted question---whether the gestures need to match the speech exactly to be useful---is addressed by \etal{Salem} (2013)~\cite{salem2013err} in a controlled study.
 They compared three conditions on a humanoid robot: speech only; speech with gestures that matched the content; and speech with gestures that were occasionally incongruent with the content.
-Both gesture conditions raised perceived anthropomorphism over speech alone, and --- the surprising finding --- the incongruent-gesture condition produced significantly higher likability than the speech-only condition.
+Both gesture conditions raised perceived anthropomorphism over speech alone, and---the surprising finding---the incongruent-gesture condition produced significantly higher likability than the speech-only condition.
 In other words, imperfect gestures were still better than no gestures.
 
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.6\textwidth]{src/figures/related_work/salem.png}
+    \caption{The humanoid robot used in the Salem et al.\ study comparing speech-only, congruent-gesture, and incongruent-gesture conditions~\cite{salem2013err}.}
+    \label{fig:salem}
+\end{figure}
 
-\section{Evaluation of Social Robots}
+
+\section{Evaluation of Social Robotics Interaction}
 \label{sec:hri_evaluation}
 
 Interaction quality in a social robotics setting is hard to read from logs alone.
-Two visitors can leave a session with the same task completed and the same conversation length, yet experience the robot very differently --- one engaged, one frustrated.
+Two visitors can leave a session with the same task completed and the same conversation length, yet experience the robot very differently---one engaged, one frustrated.
 This gap is the reason questionnaire-based instruments are the default way to evaluate social robots, even when the system also produces detailed objective measures from its logs.
 
-The most widely used instrument is the Godspeed questionnaire of \etal{Bartneck}~\cite{bartneck2009godspeed}, which measures five separate attributes on bipolar adjective scales: anthropomorphism (humanlike versus machinelike), animacy (how lifelike), likeability (how friendly), perceived intelligence, and perceived safety.
+The most widely used instrument is the Godspeed questionnaire of \etal{Bartneck} (2009)~\cite{bartneck2009godspeed}, which measures five separate attributes on bipolar adjective scales: anthropomorphism (humanlike versus machinelike), animacy (how lifelike), likeability (how friendly), perceived intelligence, and perceived safety.
 Each subscale yields a separate mean score and the instrument has been used widely enough that comparison across studies is straightforward.
-\etal{Carpinella}~\cite{carpinella2017rosas} later proposed the Robotic Social Attributes Scale (RoSAS) as a complement to Godspeed, reorganizing the social attribution literature into three factors: warmth, competence, and discomfort.
+\etal{Carpinella} (2017)~\cite{carpinella2017rosas} later proposed the Robotic Social Attributes Scale (RoSAS) as a complement to Godspeed, reorganizing the social attribution literature into three factors: warmth, competence, and discomfort.
 The RoSAS authors explicitly position their scale as additive rather than as a replacement, so the two are often reported together.
 
-A different angle on evaluation is taken by the Almere model of \etal{Heerink}~\cite{heerink2010almere}, which extends the Technology Acceptance Model to assistive social robots and asks not what the robot is perceived to be, but whether the user intends to use it again.
+A different angle on evaluation is taken by the Almere model of \etal{Heerink} (2010)~\cite{heerink2010almere}, which extends the Technology Acceptance Model to assistive social robots and asks not what the robot is perceived to be, but whether the user intends to use it again.
 Acceptance and perception capture different things, and which one matters depends on the deployment goal: a one-off public installation is well served by perception scales, while a long-term assistive deployment is better evaluated through an acceptance lens.
 The choice of instrument made for the present thesis is described in Chapter~\ref{ch:experiments}.
 
