@@ -1,3 +1,7 @@
+
+
+https://github.com/user-attachments/assets/2492acbb-9636-472e-82ef-f5f8f3a825a6
+
 # Pepper — LLM-Driven Receptionist Robot
 
 ![Pepper](docs/assets/pepper.jpeg)
