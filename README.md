@@ -40,12 +40,12 @@ A student walks up to Pepper. Pepper:
    `query_search` hits a Weaviate vector DB seeded with FEE documents;
    `find_path_to_room`, `subject_schedule`, `lookup_person`,
    `mensa_menu`, `get_time` answer their respective queries directly.
-4. **Responds** — generates a reply, plays it back through Pepper's
-   speakers, and can push contextual content (QR codes, info cards, the
-   farewell screen) onto Pepper's tablet (`display_info`).
+4. **Responds** — generates a reply and plays it back through Pepper's
+   speakers, with the live transcript and contextual content (QR codes,
+   the farewell screen) shown on Pepper's tablet.
 5. **Wraps up** — once the conversation reaches a natural close, the
-   agent calls `end_conversation`, which displays a farewell QR for the
-   feedback form and ends the session.
+   agent calls `end_conversation_streaming`, which displays a farewell
+   QR for the feedback form and ends the session.
 
 The whole thing is driven from the experimenter's laptop as a study
 session: each conversation is one "participant" of the user study, logged
@@ -57,21 +57,22 @@ automatically.
 ## Experiment variants
 
 The same room, the same tools, the same prompt — only the speech stack
-changes:
+changes. Both variants run as **streaming** workers on the woska GPU
+server:
 
 | Variant | Where it runs | STT | LLM | TTS | Worker file |
 |---|---|---|---|---|---|
-| **A** (local) | woska (GPU server) | Faster-Whisper | vLLM **Llama 3.1 8B Instruct (AWQ)** | Piper | [agent.py](voice-agent/src/experiment/agent.py) |
-| **B** (cascade) | woska (GPU server) | **gpt-4o-mini-transcribe** | **gpt-4o-mini** | **gpt-4o-mini-tts** | [agent_4o.py](voice-agent/src/experiment/agent_4o.py) |
+| **A** (local streaming) | woska (GPU server) | Faster-Whisper | vLLM **Llama 3.1 8B Instruct (AWQ)** | Piper | [agent_streaming.py](voice-agent/src/experiment/agent_streaming.py) |
+| **B** (cloud streaming) | woska (GPU server) | **gpt-4o-mini-transcribe** | **gpt-4o-mini** | **gpt-4o-mini-tts** | [agent_4o_streaming.py](voice-agent/src/experiment/agent_4o_streaming.py) |
 
 Both workers register a distinct `agent_name` with LiveKit
-(`pepper-experiment`, `pepper-experiment-4o`) and the launcher
-dispatches the one that matches the requested variant. Tool definitions,
-the system prompt, and the JSONL recorder are shared across variants so
-transcripts are directly comparable.
+(`pepper-experiment-local-streaming`, `pepper-experiment-streaming`) and
+the launcher dispatches the one that matches the requested variant.
+Tool definitions, the system prompt, and the JSONL recorder are shared
+across variants so transcripts are directly comparable.
 
 The auto-loop alternates **A ↔ B** after every session (see
-`loop_launcher.py`).
+[loop_launcher_streaming.py](voice-agent/src/experiment/loop_launcher_streaming.py)).
 
 ---
 
@@ -81,45 +82,48 @@ The auto-loop alternates **A ↔ B** after every session (see
 +---------------- RPi (Raspberry Pi 5) -------------------+      +-- woska (GPU server) -------+
 |                                                         |      |                             |
 |  Student / mic                                          |      |  Variant A worker           |
-|       |                                                 |      |  (agent.py, tmux)           |
+|       |                                                 |      |  (agent_streaming.py, tmux) |
 |       v                                                 |      |    Faster-Whisper           |
 |  +------------+                                         |      |    vLLM Llama 3.1 8B AWQ    |
 |  |  LiveKit   |<--------------------------------+       |      |    Piper TTS                |
 |  |  server    |                                 | SSH   |      |                             |
 |  +-----+------+                                 | tun.  |      |  Variant B worker           |
-|        |                                        <=====> |      |  (agent_4o.py, tmux)        |
-|        |                                                |      |    gpt-4o-mini-transcribe   |
-|  +-----+------+   +-------------------+   +-----------+ |      |    gpt-4o-mini              |
-|  |  weaviate  |   |  experiment-      |   |  bridge   | |      |    gpt-4o-mini-tts          |
-|  |  (RAG over |   |  orchestrator     |   | (qi -> Pepper) |      |                             |
-|  |   FEE      |   | (room+tokens+     |   +-----+-----+ |      |  Both workers join the      |
-|  |   docs)    |   |  dispatch)        |         |       |      |  LiveKit room               |
-|  +------------+   +-------------------+         |       |      |  `pepper-experiment` when   |
-|                                                 |       |      |  dispatched by launcher.py  |
-|  +------------+   +-----------------+   +------------+  |      |                             |
-|  | tablet     |   | audio_bridge    |   | user_client|  |      +-----------------------------+
-|  | server     |   | (agent → speaker|   | (mic → LK) |  |
-|  | (QR / UI)  |   |  via TCP)       |   |            |  |               +----------+
-|  +------------+   +-----------------+   +------------+  |  +----------->|  Pepper  |
-|                                                         |  |            |  robot   |
-+---------------------------------------------------------+  +            |  :9559   |
-                                                                          +----------+
+|        |                                        <=====> |      |  (agent_4o_streaming.py,    |
+|        |                                                |      |   tmux)                     |
+|  +-----+------+   +-------------------+   +-----------+ |      |    gpt-4o-mini-transcribe   |
+|  |  weaviate  |   |  experiment-      |   |  bridge   | |      |    gpt-4o-mini              |
+|  |  (RAG over |   |  orchestrator     |   | (qi -> Pepper) |      |    gpt-4o-mini-tts          |
+|  |   FEE      |   | (room+tokens+     |   +-----+-----+ |      |                             |
+|  |   docs)    |   |  dispatch)        |         |       |      |  Both workers join the      |
+|  +------------+   +-------------------+         |       |      |  LiveKit room               |
+|                                                 |       |      |  `pepper-experiment` when   |
+|  +------------+   +-----------------+   +------------+  |      |  dispatched by              |
+|  | tablet     |   | audio_bridge    |   | user_client|  |      |  launcher_streaming.py      |
+|  | server     |   | (agent → speaker|   | (mic → LK) |  |      |                             |
+|  | (QR / UI)  |   |  via TCP)       |   |            |  |      +-----------------------------+
+|  +------------+   +-----------------+   +------------+  |
+|                                                         |               +----------+
++---------------------------------------------------------+  +----------->|  Pepper  |
+                                                             |            |  robot   |
+                                                             |            |  :9559   |
+                                                             |            +----------+
 
-                +-------------- experimenter laptop --------------+
-                |                                                 |
-                |  loop_launcher.py  →  launcher.py (one session) |
-                |   (rotates A/B,        writes JSONL log,        |
-                |    persists state,     dispatches variant       |
-                |    armed idle timer)   worker, watches stdin    |
-                +-------------------------------------------------+
+                +----------------- experimenter laptop -------------------+
+                |                                                         |
+                |  loop_launcher_streaming.py  →  launcher_streaming.py   |
+                |   (rotates A/B,                  (one session)          |
+                |    persists state,               writes JSONL log,      |
+                |    armed idle timer)             dispatches variant     |
+                |                                  worker, watches stdin) |
+                +---------------------------------------------------------+
 ```
 
 The **experiment-orchestrator** creates the fixed `pepper-experiment`
 room and hands tokens to all stationary participants (bridge,
-audio-bridge, user-client, tablet-server). Per session, `launcher.py`
-dispatches the variant-specific agent into that room and joins itself as
-`experimenter-recorder` to capture every event on the
-`pepper.experiment` data topic.
+audio-bridge, user-client, tablet-server). Per session,
+`launcher_streaming.py` dispatches the variant-specific streaming agent
+into that room and joins itself as `experimenter-recorder` to capture
+every event on the `pepper.experiment` data topic.
 
 ---
 
@@ -144,13 +148,13 @@ That starts LiveKit, Redis, Weaviate, the experiment-orchestrator,
 the Pepper bridge, the audio bridge, the user-client (mic), the tablet
 server, and the SSH tunnels.
 
-### 2. Start the variant A worker on woska (only needed if A is in rotation)
+### 2. Start the variant A streaming worker on woska
 
 ```bash
 ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux new-session -s pepper-experiment
 cd /mnt/.../Pepper && source .venv3/bin/activate
-python voice-agent/src/experiment/agent.py dev
+python voice-agent/src/experiment/agent_streaming.py dev
 ```
 
 Variant B runs in a separate woska tmux session (`pepper-experiment-4o`):
@@ -159,7 +163,7 @@ Variant B runs in a separate woska tmux session (`pepper-experiment-4o`):
 ssh -J navarlu2@halmos.felk.cvut.cz navarlu2@woska
 tmux new-session -s pepper-experiment-4o
 cd /mnt/.../Pepper && source .venv3/bin/activate
-python voice-agent/src/experiment/agent_4o.py dev
+python voice-agent/src/experiment/agent_4o_streaming.py dev
 ```
 
 ### 3. Run the experiment loop
@@ -168,28 +172,27 @@ From the experimenter's laptop:
 
 ```bash
 # First-time start (or to reset the counter):
-uv run python voice-agent/src/experiment/loop_launcher.py \
+uv run python voice-agent/src/experiment/loop_launcher_streaming.py \
     --student 1 --variant A
 
 # Subsequent runs — no args needed, resumes from saved state:
-uv run python voice-agent/src/experiment/loop_launcher.py
+uv run python voice-agent/src/experiment/loop_launcher_streaming.py
 ```
 
 The loop runner:
 
-- Dispatches `launcher.py` with the next `student_id` / `variant`.
+- Dispatches `launcher_streaming.py` with the next `student_id` /
+  `variant`.
 - Streams the recorder's log to stdout so you can see every
   `user_turn`, `tool_call`, `agent_speech`.
 - After **30 s with no user turn**, sends `/done` to end the session
   cleanly (override with `--idle-seconds`).
-- After the agent calls `end_conversation`, arms a watchdog that
-  SIGTERM/SIGKILLs the launcher if cleanup hangs.
 - Increments the student id and flips the variant (**A ↔ B**) for the
   next session.
 - Persists the next-up `student_id` + `variant` to
-  `voice-agent/src/experiment/results/loop_state.json` after every
-  session, so re-running the loop with no args resumes where you left
-  off (e.g. stopped at T05/A → next run picks up T06/B).
+  `voice-agent/src/experiment/results/streaming_loop_state.json` after
+  every session, so re-running the loop with no args resumes where you
+  left off (e.g. stopped at T05/A → next run picks up T06/B).
 - Keeps a heartbeat in `services/data/state.json` so the bridge and
   tablet know the experiment is running and keep Pepper awake. If you
   hard-kill the loop, the heartbeat ages out and Pepper falls asleep on
@@ -216,15 +219,15 @@ Each line is one structured event (`header`, `session_start`,
 Bypass the loop and run one session by hand:
 
 ```bash
-uv run python voice-agent/src/experiment/launcher.py \
+uv run python voice-agent/src/experiment/launcher_streaming.py \
     --student 1 --variant A
 # ...talk to Pepper, or type plain text + Enter to inject a typed turn...
 # Type /done + Enter to end.
 ```
 
-Slash commands inside `launcher.py`'s stdin: `/help`, `/done` (or EOF
-/ Ctrl-D). Anything else is published on `pepper.text` as a typed user
-turn so you can drive prompts without a mic.
+Slash commands inside `launcher_streaming.py`'s stdin: `/help`, `/done`
+(or EOF / Ctrl-D). Anything else is published on `pepper.text` as a
+typed user turn so you can drive prompts without a mic.
 
 ---
 
@@ -233,20 +236,21 @@ turn so you can drive prompts without a mic.
 ```
 voice-agent/
   src/
-    experiment/                     # study-mode workers + launchers
-      launcher.py                   # dispatch one session, record JSONL
-      loop_launcher.py              # rotate students/variants, persist state
-      agent.py                      # variant A (local stack on woska)
-      agent_4o.py                   # variant B (OpenAI 4o cascade on woska)
-      _pipeline.py                  # shared AgentSession wiring
+    experiment/                     # streaming study-mode workers + launchers
+      launcher_streaming.py         # dispatch one session, record JSONL
+      loop_launcher_streaming.py    # rotate students/variants, persist state
+      agent_streaming.py            # variant A (local stack on woska)
+      agent_4o_streaming.py         # variant B (OpenAI 4o cascade on woska)
+      audio_capture.py              # per-turn WAV capture for analysis
+      _streaming_runtime.py         # shared per-session state (room, callbacks)
       _runtime_state.py             # writes experiment_active heartbeat
-      prompt.py                     # system prompt (shared across A/B)
-      tools/                        # query_search, display_info,
-                                    # end_conversation, find_path_to_room,
+      prompt_streaming.py           # system prompt (shared across A/B)
+      tools/                        # query_search, find_path_to_room,
                                     # subject_schedule, lookup_person,
-                                    # mensa_menu, get_time, adjust_volume,
-                                    # send_message_to_user
-      results/                      # JSONL logs + loop_state.json
+                                    # mensa_menu, get_time,
+                                    # end_conversation_streaming
+      results/                      # JSONL logs + streaming_loop_state.json
+      tests/                        # streaming smoke test + tool tests
     live/                           # shared infra used by experiment workers
       bridge_client.py              #   HTTP clients for Pepper bridge
       config.py                     #   shared constants
@@ -287,12 +291,10 @@ checklist.
 
 | Topic | Doc |
 |-------|-----|
-| Running and deploying | [docs/notes/running.md](docs/notes/running.md) |
 | GPU server (woska) setup | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) |
-| Local LLM (vLLM) | [docs/notes/local-llm-setup.md](docs/notes/local-llm-setup.md) |
+| vLLM debugging notes | [docs/notes/vllm-debugging.md](docs/notes/vllm-debugging.md) |
 | RPi vs Ubuntu dev differences | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) |
 | All debugging/investigation notes | [docs/notes/](docs/notes/) |
-| Connection test journal | [docs/logs/connection-test-journal.md](docs/logs/connection-test-journal.md) |
 
 ---
 
@@ -301,8 +303,8 @@ checklist.
 | Layer | Technology |
 |-------|-----------|
 | WebRTC / Rooms | [LiveKit](https://livekit.io) + LiveKit Agents SDK |
-| LLM — variant A (local) | [vLLM](https://github.com/vllm-project/vllm) + **Llama 3.1 8B Instruct (AWQ)** |
-| LLM — variant B (cloud, cascade) | OpenAI — **gpt-4o-mini** |
+| LLM — variant A (local streaming) | [vLLM](https://github.com/vllm-project/vllm) + **Llama 3.1 8B Instruct (AWQ)** |
+| LLM — variant B (cloud streaming) | OpenAI — **gpt-4o-mini** |
 | STT — variant A | [Faster Whisper](https://github.com/SYSTRAN/faster-whisper) |
 | STT — variant B | OpenAI **gpt-4o-mini-transcribe** |
 | TTS — variant A | [Piper](https://github.com/rhasspy/piper) |

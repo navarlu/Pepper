@@ -1,21 +1,19 @@
-"""Tool surface for the experiment agent.
+"""Tool surface for the streaming experiment agents.
 
 Each `@function_tool` lives in its own module here:
 
-  - send_message_to_user.py  : terminal tool (only way Pepper speaks)
-  - lookup_person.py         : staff directory with EN→CZ surname fallback
-  - find_path_to_room.py     : Building E directions (curated + FelSight)
-  - mensa_menu.py            : canteen menu fetch
-  - subject_schedule.py      : public timetable by short course code
-  - get_time.py              : current local time
-  - adjust_volume.py         : step Pepper's speaker volume ±20 via state.json
-  - display_info.py          : (DISABLED — transcript is on the tablet already)
-  - query_search.py          : hybrid vector search (NOT in default surface)
+  - lookup_person.py             : staff directory with EN→CZ surname fallback
+  - find_path_to_room.py         : Building E directions (curated + FelSight)
+  - mensa_menu.py                : canteen menu fetch
+  - subject_schedule.py          : public timetable by short course code
+  - get_time.py                  : current local time
+  - query_search.py              : hybrid vector search over FEE docs
+  - end_conversation_streaming.py: terminal tool, plays farewell + ends session
 
-Shared helpers live in tools/utils/. The exported list
-`LIVEKIT_TOOLS_TOOLONLY` is what the agent passes to LiveKit. The
-event-listener hooks (`set_tool_event_listener`,
-`set_tool_result_listener`) are re-exported here for convenience.
+The streaming agents (`agent_streaming.py`, `agent_4o_streaming.py`)
+import each tool directly via `from tools.X import X`, so this package
+only needs to expose the path-glue side effect and the event-listener
+hooks used by the recorder.
 """
 
 from __future__ import annotations
@@ -28,26 +26,3 @@ from .utils._events import (  # noqa: F401
     set_tool_event_listener,
     set_tool_result_listener,
 )
-
-from .send_message_to_user import send_message_to_user
-from .lookup_person import lookup_person
-from .find_path_to_room import find_path_to_room
-from .mensa_menu import mensa_menu
-from .subject_schedule import subject_schedule
-from .get_time import get_time
-from .adjust_volume import adjust_volume
-from .end_conversation import end_conversation
-# query_search intentionally NOT in the default surface — its broad
-# trigger hijacks turn-1 with cascading search loops on bare greetings.
-# Re-add by importing and listing it below once the trigger is tightened.
-
-LIVEKIT_TOOLS_TOOLONLY = [
-    send_message_to_user,
-    find_path_to_room,
-    lookup_person,
-    get_time,
-    mensa_menu,
-    subject_schedule,
-    adjust_volume,
-    end_conversation,
-]
