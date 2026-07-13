@@ -1,0 +1,5 @@
+# Isolated environment for the paper/benchmark code
+.venv/
+
+# Run outputs (keep the folder, ignore the generated result files)
+results/*.jsonl

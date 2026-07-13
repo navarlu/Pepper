@@ -1,0 +1,201 @@
+# Paper (Track B) stack — RPi-only realtime receptionist MVP.
+#
+# The whole stack runs on the Raspberry Pi: a cloud realtime model
+# (speech-to-speech) needs no GPU, so there is no woska, no
+# reverse-tunnel, no vLLM. No RAG either → no weaviate. livekit.yaml
+# has no redis block (single-node in-memory) and nothing in the code
+# uses redis → no redis. Design doc: docs/paper/paper_code_plan.md.
+#
+#   livekit            — media server
+#   orchestrator       — creates the fixed `pepper-experiment` room +
+#                        writes tokens to services/data/token-latest.json
+#                        (reuses services/src/experiment/orchestrator.py)
+#   realtime-agent     — NEW: the paper worker (gpt-realtime[-mini],
+#                        Czech prompt, 2 tools)
+#   paper-dispatcher   — NEW: keeps one agent dispatched into the room
+#                        (re-dispatches if the agent's job ends)
+#   user-client        — USB mic + WebRTC AEC3 → LiveKit
+#   audio-bridge       — agent audio track → ssh+paplay → Pepper speakers
+#   bridge             — Pepper hardware (QI: gestures / tablet / LEDs)
+#   safe-startup       — boot-time pose/volume watchdog
+#   tablet-server      — Pepper's tablet UI (transcript + state pills)
+#
+# Model condition is an env var — set in .env (or inline) and restart:
+#   PAPER_REALTIME_MODEL=gpt-realtime-2.1        # big condition
+#   PAPER_REALTIME_MODEL=gpt-realtime-2.1-mini   # mini condition
+#
+# Bring everything up (from the project root):
+#   docker compose -f docker/docker-compose.paper.yml up -d --build
+#
+# Bring everything down:
+#   docker compose -f docker/docker-compose.paper.yml down
+
+services:
+  livekit:
+    image: livekit/livekit-server:v1.10.1
+    env_file: ../.env
+    command:
+      - --config=/livekit/livekit.yaml
+      - --keys=${LIVEKIT_KEYS}
+    volumes:
+      - ./livekit:/livekit:ro
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "127.0.0.1:7881:7881"
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/experiment/orchestrator.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_HOST_WS_URL: ws://127.0.0.1:7880
+      LIVEKIT_HTTP_URL: http://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      EXPERIMENT_ROOM_NAME: pepper-experiment
+    network_mode: host
+    depends_on:
+      - livekit
+    restart: unless-stopped
+
+  realtime-agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "voice-agent/src/paper/agent_realtime.py", "start"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      PAPER_AGENT_NAME: pepper-paper-realtime
+      PAPER_REALTIME_MODEL: ${PAPER_REALTIME_MODEL:-gpt-realtime-2.1}
+      PAPER_REALTIME_VOICE: ${PAPER_REALTIME_VOICE:-marin}
+      AGENT_LANG: cs
+    network_mode: host
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
+  paper-dispatcher:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "voice-agent/src/paper/dispatcher.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_HTTP_URL: http://127.0.0.1:7880
+      EXPERIMENT_ROOM_NAME: pepper-experiment
+      PAPER_AGENT_NAME: pepper-paper-realtime
+    network_mode: host
+    depends_on:
+      - realtime-agent
+    restart: unless-stopped
+
+  bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/src/bridge.py"]
+    volumes:
+      - ..:/workspace
+      - /home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release:/opt/qi
+      - /home/lucas/.conan2/p/b/boost00dddf9f5dc9e/p/lib:/opt/boost-lib
+      - /home/lucas/Projects/FEL/QI_test/local_qi/lib:/opt/qi-native-lib
+    environment:
+      PYTHONPATH: /opt/qi
+      LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
+      PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+      PEPPER_OUTPUT_VOLUME: ${PEPPER_OUTPUT_VOLUME:-100}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
+      BRIDGE_BIND_HOST: "0.0.0.0"
+      HEAD_LOCK_PITCH_RAD: "-0.30"
+      BRIDGE_URL: http://0.0.0.0:5000
+    network_mode: host
+    restart: unless-stopped
+
+  safe-startup:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "robot/scripts/safe_startup_watchdog.py"]
+    volumes:
+      - ..:/workspace
+      - /home/lucas/Projects/FEL/QI_test/libqi-python/build/build/linux-armv8-gcc-release:/opt/qi
+      - /home/lucas/.conan2/p/b/boost00dddf9f5dc9e/p/lib:/opt/boost-lib
+      - /home/lucas/Projects/FEL/QI_test/local_qi/lib:/opt/qi-native-lib
+    environment:
+      PYTHONPATH: /opt/qi
+      LD_LIBRARY_PATH: /opt/boost-lib:/opt/qi-native-lib
+      PEPPER_QI_URL: ${PEPPER_QI_URL:-tcp://192.168.210.113:9559}
+      PEPPER_SAFE_STARTUP_VOLUME: ${PEPPER_SAFE_STARTUP_VOLUME:-100}
+    network_mode: host
+    restart: unless-stopped
+
+  audio-bridge:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/live/audio_bridge.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      PEPPER_SSH_HOST: ${PEPPER_SSH_HOST:-10.42.0.205}
+      PEPPER_SSH_USER: ${PEPPER_SSH_USER:-nao}
+      PEPPER_SSH_PASSWORD: ${PEPPER_SSH_PASSWORD:-Argus}
+      PEPPER_PAPLAY_LATENCY_MS: ${PEPPER_PAPLAY_LATENCY_MS:-30}
+    network_mode: host
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
+  user-client:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/live/user_client.py"]
+    volumes:
+      - ..:/workspace
+    devices:
+      - /dev/snd:/dev/snd
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      USER_MIC_DEVICE: "DJI"
+      USER_MIC_BLOCKSIZE: "2400"   # 50 ms @ 48 kHz
+    network_mode: host
+    pid: host
+    privileged: true
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
+  tablet-server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "services/src/live/tablet_server.py"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      LIVEKIT_SESSION_FILE: /workspace/services/data/token-latest.json
+      BRIDGE_URL: http://127.0.0.1:5000
+    network_mode: host
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
