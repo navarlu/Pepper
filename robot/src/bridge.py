@@ -5,16 +5,28 @@ from __future__ import print_function
 
 import os
 import socket
+import subprocess
 import sys
 import time
 import threading
 import json
 
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import quote, unquote, urlparse, parse_qs
 try:
     from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 except Exception:
     from http.server import BaseHTTPRequestHandler, HTTPServer
+try:
+    from SocketServer import ThreadingMixIn
+except Exception:
+    from socketserver import ThreadingMixIn
+
+
+class _ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
+    """Threaded HTTP server so one blocking request (e.g. a sync
+    /animation/<name>?wait=1 stuck on a looping behavior) can't freeze the
+    whole control plane — POST /behaviors/stop must stay reachable."""
+    daemon_threads = True
 try:
     from Queue import Queue, Empty, Full
 except Exception:
@@ -39,8 +51,12 @@ from config import (
     LIFE_BASIC_AWARENESS,
     LIFE_LISTENING_MOVEMENT,
     LIFE_SPEAKING_MOVEMENT,
+    PEPPER_APPS_DIR,
     PEPPER_OUTPUT_VOLUME,
     PEPPER_QI_URL,
+    PEPPER_SSH_HOST,
+    PEPPER_SSH_PASSWORD,
+    PEPPER_SSH_USER,
     PEPPER_STREAM_RATE,
     STATE_FILE,
     TABLET_DEFAULT_ALIGN,
@@ -72,6 +88,112 @@ AUTONOMOUS_LIFE_ABILITIES = (
     "ListeningMovement",
     "SpeakingMovement",
 )
+
+# Suffix used by the per-call animation-sound override (?sound=off). Distinct
+# from the ".muted" suffix used by the manual session-wide tool
+# (experiments/animation_metadata/mute_animation_sounds.py) so the two
+# mechanisms can never rename each other's files.
+_SOUND_MUTE_SUFFIX = ".tmpmuted"
+# Suffix the session-wide tool uses; ?sound=on temporarily lifts it too.
+_SESSION_MUTE_SUFFIX = ".muted"
+
+
+def _ssh_pepper(remote_cmd, timeout=10.0):
+    """Run one shell command on the robot; returns (rc, stdout, stderr)."""
+    cmd = [
+        "sshpass", "-p", PEPPER_SSH_PASSWORD,
+        "ssh",
+        "-o", "StrictHostKeyChecking=no",
+        "-o", "UserKnownHostsFile=/dev/null",
+        "-o", "LogLevel=ERROR",
+        "-o", "ConnectTimeout=5",
+        "%s@%s" % (PEPPER_SSH_USER, PEPPER_SSH_HOST),
+        remote_cmd,
+    ]
+    result = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    return result.returncode, to_text(result.stdout), to_text(result.stderr)
+
+
+def _force_behavior_sounds(behavior_path, want_sound):
+    """Put one behavior's sound files into the requested audible state for
+    a single animation call — independent of the current on-disk state.
+
+    Animation sounds are played by ALSoundFilesPlayer straight from files
+    inside the behavior package (e.g. Sneeze/sneeze6.ogg) through its own
+    ephemeral PulseAudio stream — no NAOqi volume API covers it, and the
+    device master volume also kills the ssh+paplay TTS stream. Renaming the
+    files is the only per-call control that leaves TTS untouched.
+
+    want_sound=False: rename active *.ogg/*.wav/*.mp3 to *.tmpmuted.
+    want_sound=True:  restore any *.muted (session-wide tool) and *.tmpmuted
+                      files back to their playable names.
+
+    The rename doubles as the state check: if nothing matched, the behavior
+    was already in the requested state. Returns a zero-arg undo callable
+    that restores the previous on-disk state (so a session-wide mute stays
+    a session-wide mute after a ?sound=on call), or None if nothing changed.
+    """
+    behavior_dir = "%s/%s" % (PEPPER_APPS_DIR, behavior_path)
+    if want_sound:
+        remote = (
+            'find "' + behavior_dir + '" -type f -iname "*' + _SESSION_MUTE_SUFFIX + '" '
+            '! -iname "*' + _SOUND_MUTE_SUFFIX + '" '
+            '-exec sh -c \'mv "$1" "${1%' + _SESSION_MUTE_SUFFIX + '}" && '
+            'echo "' + _SESSION_MUTE_SUFFIX + ':${1%' + _SESSION_MUTE_SUFFIX + '}"\' _ {} \\; ; '
+            'find "' + behavior_dir + '" -type f -iname "*' + _SOUND_MUTE_SUFFIX + '" '
+            '-exec sh -c \'mv "$1" "${1%' + _SOUND_MUTE_SUFFIX + '}" && '
+            'echo "' + _SOUND_MUTE_SUFFIX + ':${1%' + _SOUND_MUTE_SUFFIX + '}"\' _ {} \\;'
+        )
+    else:
+        remote = (
+            'find "' + behavior_dir + '" -type f '
+            '\\( -iname "*.ogg" -o -iname "*.wav" -o -iname "*.mp3" \\) '
+            '-exec sh -c \'mv "$1" "$1' + _SOUND_MUTE_SUFFIX + '" && '
+            'echo "' + _SOUND_MUTE_SUFFIX + ':$1"\' _ {} \\;'
+        )
+    try:
+        rc, out, err = _ssh_pepper(remote)
+    except Exception as exc:
+        print("[animation] sound override ssh error:", to_text(exc))
+        return None
+    if rc != 0:
+        print("[animation] sound override failed rc=%d stderr=%s" % (rc, err[:200]))
+    # Lines are "<suffix>:<original playable path>" for every renamed file.
+    changed = []
+    for line in out.splitlines():
+        if ":" in line:
+            suffix, path = line.split(":", 1)
+            changed.append((suffix, path))
+    if not changed:
+        print("[animation] sounds already %s for %s" % (
+            "audible" if want_sound else "silent", behavior_path,
+        ))
+        return None
+    print("[animation] forced sounds %s for %s (%d file(s))" % (
+        "on" if want_sound else "off", behavior_path, len(changed),
+    ))
+
+    def undo():
+        commands = []
+        for suffix, path in changed:
+            if want_sound:
+                # We made it audible; put the mute suffix back.
+                commands.append('mv "%s" "%s%s"' % (path, path, suffix))
+            else:
+                # We muted it; restore the playable name.
+                commands.append('mv "%s%s" "%s"' % (path, suffix, path))
+        try:
+            rc2, _, err2 = _ssh_pepper(" ; ".join(commands))
+            if rc2 == 0:
+                print("[animation] sound state restored for %s (%d file(s))"
+                      % (behavior_path, len(changed)))
+            else:
+                print("[animation] sound state restore FAILED for %s rc=%d stderr=%s"
+                      % (behavior_path, rc2, err2[:200]))
+        except Exception as undo_exc:
+            print("[animation] sound state restore error:", to_text(undo_exc))
+
+    return undo
 
 # Minimal zzz page pushed to the tablet at bridge startup so NAOqi's default
 # app can't claim the screen before tablet_server.py posts its first render.
@@ -466,6 +588,10 @@ class TabletOverlayHttpServer(threading.Thread):
                                        head down, LEDs off (driven by tablet)
       - POST /motion/wake            — between-session wake: abilities on,
                                        head neutral, LEDs idle (driven by tablet)
+      - POST /motion/recording       — stillness profile for the animation-
+                                       recording rig: all movement abilities off
+      - POST /motion/posture         — blocking ALRobotPosture.goToPosture
+                                       (neutral-pose reset between clips)
       - GET  /notifications          — list active ALNotificationManager
                                        entries (shoulder/chest red blink)
       - POST /notifications/clear    — remove every active notification —
@@ -493,6 +619,7 @@ class TabletOverlayHttpServer(threading.Thread):
         awareness=None,
         motion=None,
         notification_manager=None,
+        posture=None,
     ):
         super(TabletOverlayHttpServer, self).__init__()
         self.daemon = True
@@ -510,6 +637,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._awareness = awareness
         self._motion = motion
         self._notifications = notification_manager
+        self._posture = posture
         self._server = None
         parsed = urlparse(bridge_url or "")
         host = parsed.hostname or BRIDGE_BIND_HOST or "127.0.0.1"
@@ -751,8 +879,8 @@ class TabletOverlayHttpServer(threading.Thread):
                     )
                     return
 
-                if path_only == "/motion/sleep" or path_only == "/motion/wake":
-                    action = "sleep" if path_only == "/motion/sleep" else "wake"
+                if path_only in ("/motion/sleep", "/motion/wake", "/motion/recording"):
+                    action = path_only.rsplit("/", 1)[1]
                     errors = apply_pepper_state(
                         action, life=life, motion=motion, led_manager=led_manager,
                     )
@@ -765,6 +893,65 @@ class TabletOverlayHttpServer(threading.Thread):
                             "errors": errors or None,
                         },
                     )
+                    return
+
+                if path_only == "/motion/posture":
+                    # Blocking neutral-pose reset via ALRobotPosture — used by
+                    # the animation-recording rig to return to the same base
+                    # pose before every clip. goToPosture only returns once
+                    # the posture is reached (or NAOqi gives up), so a 200
+                    # here means the robot is genuinely back at neutral.
+                    posture = server_self._posture
+                    if posture is None:
+                        self._write_json(503, {"ok": False, "error": "ALRobotPosture unavailable"})
+                        return
+                    length = int(self.headers.get("Content-Length", "0") or "0")
+                    raw = self.rfile.read(length) if length > 0 else "{}"
+                    try:
+                        payload = json.loads(raw) if raw else {}
+                        if not isinstance(payload, dict):
+                            payload = {}
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "invalid json"})
+                        return
+                    posture_name = to_text(payload.get("posture", u"Stand")).strip() or u"Stand"
+                    try:
+                        speed = float(payload.get("speed", 0.5))
+                        # Optional explicit head pose applied AFTER the posture
+                        # (goToPosture bakes in its own head pitch, so this is
+                        # the only way to end at a custom angle). Negative
+                        # pitch = head up on Pepper.
+                        head_pitch = payload.get("head_pitch")
+                        head_pitch = None if head_pitch is None else float(head_pitch)
+                        head_yaw = float(payload.get("head_yaw", 0.0))
+                        head_speed = float(payload.get("head_speed", 0.2))
+                    except Exception:
+                        self._write_json(400, {"ok": False, "error": "speed/head_* must be numbers"})
+                        return
+                    started = time.time()
+                    try:
+                        reached = bool(posture.goToPosture(posture_name, speed))
+                        if head_pitch is not None:
+                            if motion is None:
+                                raise RuntimeError("head_pitch requested but ALMotion unavailable")
+                            # Blocking, so a 200 still means "fully settled".
+                            motion.angleInterpolationWithSpeed(
+                                ["HeadYaw", "HeadPitch"],
+                                [head_yaw, head_pitch],
+                                head_speed,
+                            )
+                        elapsed_s = round(time.time() - started, 3)
+                        print("[posture] goToPosture %s speed=%.2f reached=%s head_pitch=%s elapsed=%.3fs"
+                              % (posture_name, speed, reached, head_pitch, elapsed_s))
+                        self._write_json(
+                            200,
+                            {"ok": True, "posture": posture_name,
+                             "reached": reached, "head_pitch": head_pitch,
+                             "elapsed_s": elapsed_s},
+                        )
+                    except Exception as exc:
+                        print("[posture] goToPosture %s failed: %s" % (posture_name, to_text(exc)))
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
 
                 if path_only == "/audio/volume":
@@ -826,6 +1013,27 @@ class TabletOverlayHttpServer(threading.Thread):
                     except Exception as exc:
                         self._write_json(500, {"ok": False, "error": to_text(exc)})
                     return
+                if path_only == "/behaviors/stop":
+                    # Emergency stop for running behaviors — the way out when
+                    # a looping animation (ThinkingLoop_*, BreathLoop_*) never
+                    # returns. Served from its own thread, so it works even
+                    # while a sync /animation request is stuck.
+                    if bm is None:
+                        self._write_json(503, {"ok": False, "error": "behavior manager unavailable"})
+                        return
+                    try:
+                        running = list(bm.getRunningBehaviors() or [])
+                    except Exception:
+                        running = []
+                    try:
+                        bm.stopAllBehaviors()
+                        print("[behaviors] stopAllBehaviors (was running: %s)" % (running or "none"))
+                        self._write_json(200, {"ok": True, "stopped": running})
+                    except Exception as exc:
+                        print("[behaviors] stopAllBehaviors failed:", to_text(exc))
+                        self._write_json(500, {"ok": False, "error": to_text(exc)})
+                    return
+
                 if path_only.startswith("/animation/"):
                     # Validate quickly, then dispatch the actual playback in a
                     # background thread and ack 200 immediately. This keeps the
@@ -846,6 +1054,36 @@ class TabletOverlayHttpServer(threading.Thread):
                         return
                     raw_name = path_only[len("/animation/"):]
                     name = unquote(raw_name)
+                    # Optional blocking mode (?wait=1): run the behavior in the
+                    # request thread and only ack once Pepper has finished the
+                    # gesture, returning the measured elapsed time. Used by the
+                    # animation-recording rig to trim clips to the real gesture
+                    # length. The default (async) path is untouched — the live
+                    # voice agent still gets its immediate 200 ack.
+                    query = parse_qs(urlparse(self.path).query)
+                    wait_for_completion = query.get("wait", ["0"])[0] not in (
+                        "0", "", "false", "False",
+                    )
+                    # Optional per-call sound override, independent of the
+                    # current on-disk state (the session-wide tool may have
+                    # renamed sound files to *.muted):
+                    #   ?sound=off (or legacy ?mute=1) — guarantee silence
+                    #   ?sound=on                      — guarantee sound
+                    #   absent                         — play disk state as-is
+                    # Implemented by temporarily renaming the behavior's sound
+                    # files via ssh (ALSoundFilesPlayer has no usable volume
+                    # API and the device master volume kills ssh+paplay TTS).
+                    # Previous state is restored after the gesture. Costs up
+                    # to two ssh round-trips (~0.4 s each) around the gesture.
+                    sound_param = query.get("sound", [None])[0]
+                    if sound_param is not None:
+                        sound_override = to_text(sound_param).strip().lower() in (
+                            "1", "on", "true", "yes",
+                        )
+                    elif query.get("mute", ["0"])[0] not in ("0", "", "false", "False"):
+                        sound_override = False
+                    else:
+                        sound_override = None
                     try:
                         installed = bm.getInstalledBehaviors()
                     except Exception as exc:
@@ -860,8 +1098,13 @@ class TabletOverlayHttpServer(threading.Thread):
                         return
 
                     # region: animation_background
-                    def _run_animation_bg(behavior_local, name_local):
+                    def _run_animation_bg(behavior_local, name_local, sound_override_local=None):
                         try:
+                            undo_sounds = None
+                            if sound_override_local is not None:
+                                undo_sounds = _force_behavior_sounds(
+                                    behavior_local, sound_override_local,
+                                )
                             if life is not None and TOUCH_AUTONOMOUS_LIFE:
                                 try:
                                     state = to_text(life.getState())
@@ -872,14 +1115,28 @@ class TabletOverlayHttpServer(threading.Thread):
                                 except Exception as life_exc:
                                     print("[life] warning:", to_text(life_exc))
 
-                            # Mute ALAudioPlayer so animation sounds don't
-                            # overlap with the streamed TTS audio.
+                            # Mute both animation-sound paths so gestures don't
+                            # overlap with the streamed (ssh+paplay) TTS audio:
+                            #   - ALAudioPlayer: behaviors playing sound files
+                            #   - ALTextToSpeech: behaviors voicing sounds via
+                            #     the TTS engine (e.g. Sneeze's "achoo")
+                            # Previous volumes are saved and restored so we
+                            # don't clobber an externally configured level.
                             if audio_player is not None:
                                 try:
                                     audio_player.setMasterVolume(0.0)
                                     print("[animation] muted ALAudioPlayer")
                                 except Exception as mute_exc:
-                                    print("[animation] mute warning:", to_text(mute_exc))
+                                    print("[animation] player mute warning:", to_text(mute_exc))
+                            previous_tts_volume = None
+                            if tts is not None:
+                                try:
+                                    previous_tts_volume = float(tts.getVolume())
+                                    tts.setVolume(0.0)
+                                    print("[animation] muted ALTextToSpeech (was %.2f)"
+                                          % previous_tts_volume)
+                                except Exception as mute_exc:
+                                    print("[animation] tts mute warning:", to_text(mute_exc))
 
                             print("[animation] running:", behavior_local)
                             try:
@@ -898,14 +1155,40 @@ class TabletOverlayHttpServer(threading.Thread):
                                         audio_player.setMasterVolume(1.0)
                                         print("[animation] restored ALAudioPlayer volume")
                                     except Exception as unmute_exc:
-                                        print("[animation] unmute warning:", to_text(unmute_exc))
+                                        print("[animation] player unmute warning:", to_text(unmute_exc))
+                                if tts is not None and previous_tts_volume is not None:
+                                    try:
+                                        tts.setVolume(previous_tts_volume)
+                                        print("[animation] restored ALTextToSpeech volume to %.2f"
+                                              % previous_tts_volume)
+                                    except Exception as unmute_exc:
+                                        print("[animation] tts unmute warning:", to_text(unmute_exc))
+                                if undo_sounds is not None:
+                                    undo_sounds()
                         except Exception as bg_exc:
                             print("[animation] failed:", name_local, to_text(bg_exc))
                     # endregion
 
+                    if wait_for_completion:
+                        # Blocking: run inline and time the gesture so the
+                        # recorder knows exactly when Pepper is done.
+                        started = time.time()
+                        _run_animation_bg(behavior, name, sound_override)
+                        elapsed_s = round(time.time() - started, 3)
+                        print("[animation] completed (sync) behavior=%s name=%s elapsed=%.3fs"
+                              % (behavior, name, elapsed_s))
+                        self._write_json(
+                            200,
+                            {"ok": True, "name": name, "behavior": behavior,
+                             "queued": False, "elapsed_s": elapsed_s,
+                             "sound": ("default" if sound_override is None
+                                       else ("on" if sound_override else "off"))},
+                        )
+                        return
+
                     worker = threading.Thread(
                         target=_run_animation_bg,
-                        args=(behavior, name),
+                        args=(behavior, name, sound_override),
                     )
                     worker.daemon = True
                     worker.start()
@@ -1011,7 +1294,17 @@ class TabletOverlayHttpServer(threading.Thread):
                     self.send_response(404)
                     self.end_headers()
                     return
-                pepper_connected = server_self._audio_device is not None
+                # Live probe, not just a handle check — after a network drop
+                # the qi proxies still exist but every call fails ("Socket is
+                # not connected"), and a stale "true" here made the recording
+                # rig churn through clips against a dead robot.
+                pepper_connected = False
+                if server_self._audio_device is not None:
+                    try:
+                        server_self._audio_device.getOutputVolume()
+                        pepper_connected = True
+                    except Exception:
+                        pepper_connected = False
                 self._write_json(
                     200,
                     {
@@ -1024,8 +1317,8 @@ class TabletOverlayHttpServer(threading.Thread):
                     },
                 )
 
-        self._server = HTTPServer(self._bind, Handler)
-        print("[tablet_http] listening on http://%s:%s" % self._bind)
+        self._server = _ThreadingHTTPServer(self._bind, Handler)
+        print("[tablet_http] listening on http://%s:%s (threaded)" % self._bind)
         self._server.serve_forever()
 
     def stop(self):
@@ -1049,6 +1342,7 @@ class TabletOverlayHttpServer(threading.Thread):
         awareness=None,
         motion=None,
         notification_manager=None,
+        posture=None,
     ):
         self._bm = behavior_manager
         self._anim = animation_player
@@ -1062,6 +1356,7 @@ class TabletOverlayHttpServer(threading.Thread):
         self._awareness = awareness
         self._motion = motion
         self._notifications = notification_manager
+        self._posture = posture
 
 
 def _read_runtime_state():
@@ -1201,6 +1496,27 @@ PEPPER_STATE_PROFILES = {
         "head_speed": WAKE_HEAD_SPEED,
         "led_mode": "idle",
     },
+    # Stillness profile for the animation-recording rig: life fully DISABLED
+    # (not solitary — NAOqi escalates solitary -> interactive whenever it
+    # detects a person, and the interactive activity re-enables
+    # BasicAwareness/BackgroundMovement on its own). Disabled is the only
+    # state nothing can escalate out of. wake_up keeps motor stiffness on so
+    # posture resets and animations still run. Ability flags are set for
+    # completeness; they only matter once life is re-enabled.
+    "recording": {
+        "life_state": "disabled",
+        "wake_up": True,
+        "abilities": {
+            "AutonomousBlinking": True,
+            "BackgroundMovement": False,
+            "BasicAwareness": False,
+            "ListeningMovement": False,
+            "SpeakingMovement": False,
+        },
+        "head_pitch": WAKE_HEAD_PITCH_RAD,
+        "head_speed": WAKE_HEAD_SPEED,
+        "led_mode": "idle",
+    },
 }
 
 
@@ -1232,6 +1548,14 @@ def apply_pepper_state(action, life=None, motion=None, led_manager=None):
                 errors[ability] = to_text(exc)
     else:
         errors["life"] = "life service unavailable"
+
+    # Disabling life can drop motor stiffness; wakeUp restores it so the
+    # robot keeps standing and posture/animation commands still work.
+    if profile.get("wake_up") and motion is not None:
+        try:
+            motion.wakeUp()
+        except Exception as exc:
+            errors["wake_up"] = to_text(exc)
 
     if motion is not None:
         try:
@@ -1514,6 +1838,14 @@ def main():
         print("[bridge] ALMotion not available — /motion/head_lock disabled")
         motion_service = None
 
+    posture_service = None
+    try:
+        posture_service = wait_for_service(sess, "ALRobotPosture", timeout_sec=BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC)
+        print("[bridge] ALRobotPosture available — /motion/posture enabled")
+    except Exception:
+        print("[bridge] ALRobotPosture not available — /motion/posture disabled")
+        posture_service = None
+
     tablet_service = None
     try:
         tablet_service = sess.service("ALTabletService")
@@ -1591,6 +1923,7 @@ def main():
         awareness=awareness_service,
         motion=motion_service,
         notification_manager=notification_manager,
+        posture=posture_service,
     )
 
     if led_manager is not None:
@@ -1652,13 +1985,24 @@ def main():
     )
 
     try:
-        # Idle loop. The HTTP control plane, tablet reporter, LED
-        # manager, runtime-volume watcher, and experiment-state watcher
-        # all run in daemon threads. Main just stays alive so the
-        # qi.Session and those threads keep running until SIGINT/TERM.
+        # Idle loop with a session watchdog. The qi.Session cannot recover
+        # from a network drop — every proxy call fails forever with "Socket
+        # is not connected". On sustained failure we exit(1) so Docker
+        # (restart: unless-stopped) respawns the bridge, which then blocks
+        # in connect_session until Pepper is reachable again.
+        consecutive_probe_failures = 0
         while True:
-            time.sleep(1.0)
-            _stay_alive_marker = True  # noqa: F841  (kept to make the loop body non-trivial)
+            time.sleep(5.0)
+            try:
+                audio.getOutputVolume()
+                consecutive_probe_failures = 0
+            except Exception as exc:
+                consecutive_probe_failures += 1
+                print("[watchdog] qi session probe failed (%d/3): %s"
+                      % (consecutive_probe_failures, to_text(exc)))
+                if consecutive_probe_failures >= 3:
+                    print("[watchdog] qi session is dead — exiting for docker restart")
+                    os._exit(1)
     finally:
         if runtime_volume_watcher is not None:
             runtime_volume_watcher.stop()

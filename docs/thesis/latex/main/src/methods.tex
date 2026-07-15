@@ -10,7 +10,7 @@
 % this chapter + the repository alone.
 % ============================================================
 
-All code used in this thesis is available at the project repository~\cite{github-repo-thesis}; file and directory paths in this chapter are given relative to the repository root.
+All code used in this thesis is available at the project repository \url{https://github.com/navarlu/Pepper}~\cite{github-repo-thesis}; file and directory paths in this chapter are given relative to the repository root.
 This chapter is organized so that the overview comes first, the non-obvious design choices come next, and the lower-level details follow.
 \secref{sec:system_overview} gives a high-level picture of what runs where.
 \secref{sec:arch_decisions} explains the key architecture decisions that shaped the system.
@@ -53,14 +53,14 @@ Three transports glue everything together: WebRTC via LiveKit for the real-time 
 This section explains the four design choices that most shaped the deployed system.
 Each of them was made under a concrete constraint---latency, the location of microphone and speaker, or the assignment's requirements---and each has visible consequences in the rest of the chapter.
 
-\subsection{Audio playback}
+\subsection{Audio Playback}
 \label{sec:dec_audio}
 
 An earlier version of the audio bridge fed PCM frames over a TCP socket into NAOqi's \texttt{ALAudioDevice} service.
 That path added roughly one second of playback buffer that could not be reduced from outside NAOqi, which dominated the perceived response time.
 The deployed system therefore bypasses NAOqi for real-time TTS playback: the \texttt{audio-bridge} service spawns a persistent \texttt{ssh + paplay} subprocess into Pepper's PulseAudio daemon and writes the agent's synthesized audio directly to its stdin (\texttt{services/src/live/audio\_bridge.py}).
 
-\subsection{Custom acoustic echo cancellation}
+\subsection{Custom Acoustic Echo Cancellation}
 \label{sec:dec_aec}
 
 The microphone is on the visitor's side of the reception desk; the speakers are on Pepper, on the other side of a pane of glass.
@@ -70,7 +70,7 @@ LiveKit's built-in echo cancellation would have been the obvious alternative, bu
 Echo cancellation is therefore done in the \texttt{user-client} service before the microphone audio is published into the LiveKit room: a WebRTC AEC3 module is fed both the microphone capture and the agent's reply track as a reference, and the cleaned-up signal is what the speech-to-text component sees.
 With the echo removed, the visitor can interrupt Pepper mid-reply without her own voice being mistaken for the interruption.
 
-\subsection{Streaming reply, gestures via tool calls}
+\subsection{Streaming Reply, Gestures via Tool Calls}
 \label{sec:dec_streaming}
 
 An earlier design followed the tool-only pattern of the Letta agent framework~\cite{packer2023memgpt}: the language model could only speak by calling a \texttt{send\_message\_to\_user} tool with the reply text and a gesture label as arguments.
@@ -82,7 +82,7 @@ Gestures still exist, but they are dispatched only when the model calls one of t
 The trade-off is honest: the surface of gesture intents is narrower than under the tool-only design---most gestures are now ``thinking'' on the way to a tool result, and the open-ended ``explaining'' or ``offering'' gestures that the older design could produce during the reply itself are missing.
 First-audio latency was the deciding factor.
 
-\subsection{Tools and prompt as the only extension points}
+\subsection{Tools and Prompt as the Only Extension Points}
 \label{sec:dec_extensibility}
 
 Pepper's behavior and knowledge are defined entirely by two things: the system prompt and the set of registered tools.
@@ -114,7 +114,7 @@ Pepper's autonomous-life service is left enabled while the robot is idle so that
 The robot's onboard microphone array is not used; speech is captured with an external USB microphone connected to the Raspberry~Pi.
 One bottom laser-range sensor on the particular Pepper unit developed a fault during the project and caused the start-up self-test to fail; a small \texttt{safe-startup} service suppresses the offending check and clears the resulting error notification on every boot.
 
-\subsection{Compute infrastructure}
+\subsection{Compute Infrastructure}
 \label{sec:compute_infra}
 
 Two compute nodes run the system in addition to Pepper itself:
@@ -211,7 +211,7 @@ Using cascades for both conditions is a study-design decision: it isolates the l
 Both voice-agent worker processes are built on the LiveKit Agents SDK and share most of their wiring through a common pipeline-construction routine: the same agent class, the same tool surface, the same recording schema.
 They differ only in the concrete component instances chosen when the pipeline is built, and they register with LiveKit under different agent names so that the session driver can dispatch the correct one for each visitor.
 
-\subsection{Condition A: local cascade}
+\subsection{Condition A: Local Cascade}
 \label{sec:local_mode}
 
 The local cascade runs on the GPU server.
@@ -224,7 +224,7 @@ Its components are:
     \item \textbf{Text-to-speech.} Piper, a fast open neural TTS engine, with an English female voice.
 \end{itemize}
 
-\subsection{Condition B: cloud cascade}
+\subsection{Condition B: Cloud Cascade}
 \label{sec:cloud_mode}
 
 The cloud cascade runs on the same GPU server as Condition~A; it does not use the GPU itself. So it could run on the Raspberry~Pi, but hosting it on the GPU server keeps the deployment more uniform and avoids adding extra load to the Raspberry~Pi.
@@ -238,7 +238,7 @@ Its components are:
 \end{itemize}
 
 
-\subsection{Turn-taking}
+\subsection{Turn-Taking}
 \label{sec:turn_taking}
 
 Both backends use the voice activity detector to determine when the visitor has finished speaking.
@@ -253,7 +253,7 @@ Visitors are free to interrupt Pepper mid-reply: with the echo cancellation of \
 The agent's behavior is shaped by two surfaces: a \emph{system prompt} that tells the language model who Pepper is and how to behave, and a \emph{tool surface} that lets the language model act on the world.
 These two surfaces are the only places where domain knowledge and persona live; the rest of the pipeline is plumbing that does not change when the agent is adapted to a different scenario (see \secref{sec:dec_extensibility}).
 
-\subsection{System prompt}
+\subsection{System Prompt}
 \label{sec:system_prompt}
 
 The system prompt is a single text document organized into three named sections:
@@ -268,7 +268,7 @@ The opening greeting is not part of the system prompt.
 The moment a session starts, Pepper speaks a fixed greeting line directly through the text-to-speech component, before the language model is called at all.
 During the experiment this turned out to be a mistake. The greeting plays unconditionally before the language model is involved, so a visitor who walked up and asked a question on the first turn got ``Hello, how can I help you today?'' instead of an answer.
 
-\subsection{Tool surface}
+\subsection{Tool Surface}
 \label{sec:tool_surface}
 
 The deployed agent exposes seven tools, listed in \tabref{tab:tools}.
@@ -391,7 +391,7 @@ When a visitor greets Pepper, the session driver sends an activation signal over
 The session ends when the agent fires \texttt{end\_conversation}, or after a silence timeout if the visitor does not respond.
 The warm-agent design is a deliberate choice driven by first-response latency: loading the speech-processing models takes several seconds on the target hardware, and keeping the worker alive across the idle state amortizes this cost.
 
-\subsection{Experimental loop}
+\subsection{Experimental Loop}
 \label{sec:experiment_loop}
 
 For the experiment, sessions are dispatched in a loop on the Raspberry~Pi.

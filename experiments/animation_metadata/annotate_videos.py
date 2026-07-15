@@ -21,6 +21,7 @@ Run:  uv run python experiments/animation_metadata/annotate_videos.py
 import json
 import os
 import re
+import time
 from typing import List, Literal
 
 import cv2
@@ -31,15 +32,26 @@ from google.genai import types
 from pydantic import BaseModel, Field
 
 # --- Configuration ---------------------------------------------------------
-ANNOTATION_MODEL = os.environ.get("GEMINI_ANNOTATION_MODEL", "gemini-2.5-flash")
-MOTION_THRESHOLD = 3.0   # mean absolute gray diff above which a frame counts as motion
+ANNOTATION_MODEL = os.environ.get("GEMINI_ANNOTATION_MODEL", "gemini-3.5-flash")
+MOTION_THRESHOLD = 0.7   # mean gray diff (160x90) above which a frame counts as
+                         # motion — Pepper's moving limb is a small share of the
+                         # frame, so the whole-frame mean stays low (idle ~0.35).
+                         # Only a fallback: gesture duration comes from the
+                         # recorder manifest (Pepper's own elapsed_s) when present.
 MOTION_PAD_SEC = 0.3     # padding around detected motion bounds
 INLINE_LIMIT_MB = 15     # inline video request limit safety margin (API cap ~20 MB)
+API_MAX_RETRIES = 5      # retries for transient 503/429/500 from the VLM
+API_BACKOFF_SEC = 4.0    # base backoff, doubled each retry (4/8/16/32 s)
+THINKING_LEVEL = "minimal"  # gemini-3.x reasoning depth; minimal = lowest latency,
+                            # enough for this bounded description task
+MEDIA_RESOLUTION = "low"    # low|medium|high — low is 66 tokens/frame (vs 258),
+                            # faster and cheaper; ample for gross-gesture description
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 RECORDINGS_DIR = os.path.join(SCRIPT_DIR, "data", "recordings")
 METADATA_DIR = os.path.join(SCRIPT_DIR, "data", "metadata")
 COMBINED_PATH = os.path.join(SCRIPT_DIR, "data", "animations_metadata.json")
+MANIFEST_PATH = os.path.join(SCRIPT_DIR, "data", "recordings_manifest.json")
 ANIMATIONS_JSON = os.path.join(SCRIPT_DIR, "..", "..", "robot", "data", "animations.json")
 # ---------------------------------------------------------------------------
 
@@ -64,6 +76,13 @@ Judge only what is visible in the video. Guidance for specific fields:
 awkward, e.g. "apology", "uncertainty", "serious_policy_answer", "farewell".
 - safety_notes: physical-space concerns (arm sweep radius etc.), or "" if none.
 - confidence: your overall confidence in this annotation, 0.0-1.0."""
+
+
+_MEDIA_RES = {
+    "low": types.MediaResolution.MEDIA_RESOLUTION_LOW,
+    "medium": types.MediaResolution.MEDIA_RESOLUTION_MEDIUM,
+    "high": types.MediaResolution.MEDIA_RESOLUTION_HIGH,
+}
 
 
 class GestureAnnotation(BaseModel):
@@ -125,18 +144,37 @@ def annotate_clip(client, clip_path):
     with open(clip_path, "rb") as f:
         video_bytes = f.read()
 
-    response = client.models.generate_content(
-        model=ANNOTATION_MODEL,
-        contents=[
-            types.Part.from_bytes(data=video_bytes, mime_type="video/mp4"),
-            PROMPT,
-        ],
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            response_schema=GestureAnnotation,
-        ),
-    )
-    return response.parsed
+    last_exc = None
+    for attempt in range(1, API_MAX_RETRIES + 1):
+        try:
+            response = client.models.generate_content(
+                model=ANNOTATION_MODEL,
+                contents=[
+                    types.Part.from_bytes(data=video_bytes, mime_type="video/mp4"),
+                    PROMPT,
+                ],
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    response_schema=GestureAnnotation,
+                    thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVEL),
+                    media_resolution=_MEDIA_RES[MEDIA_RESOLUTION],
+                ),
+            )
+            return response.parsed
+        except Exception as exc:
+            # Retry transient server-side conditions (503 overloaded, 429
+            # rate limit, 500). Anything else (e.g. bad request) re-raises.
+            msg = str(exc)
+            transient = any(code in msg for code in ("503", "429", "500", "UNAVAILABLE",
+                                                     "RESOURCE_EXHAUSTED"))
+            if not transient or attempt == API_MAX_RETRIES:
+                raise
+            wait = API_BACKOFF_SEC * (2 ** (attempt - 1))
+            print("[annotate]   transient error (attempt %d/%d), retrying in %.0fs: %s"
+                  % (attempt, API_MAX_RETRIES, wait, msg[:80]))
+            last_exc = exc
+            time.sleep(wait)
+    raise last_exc
 
 
 def main():
@@ -147,6 +185,10 @@ def main():
 
     with open(ANIMATIONS_JSON, "r", encoding="utf-8") as f:
         animations = json.load(f)
+    manifest = {}
+    if os.path.exists(MANIFEST_PATH):
+        with open(MANIFEST_PATH, "r", encoding="utf-8") as f:
+            manifest = json.load(f)
     os.makedirs(METADATA_DIR, exist_ok=True)
 
     clips = sorted(
@@ -164,8 +206,21 @@ def main():
         print("[annotate] (%d/%d) %s" % (index, len(todo), name))
         try:
             clip_sec, start_sec, end_sec, duration_sec = motion_bounds(clip_path)
-            if duration_sec is None:
-                print("[annotate] %s: WARNING no motion detected" % name)
+            # Prefer Pepper's own reported gesture time from the recorder
+            # manifest — it is ground truth, unlike whole-frame differencing.
+            entry = manifest.get(name, {})
+            elapsed = (entry.get("trigger") or {}).get("elapsed_s")
+            pre_roll = entry.get("pre_roll_sec")
+            duration_source = "motion_detection"
+            if elapsed is not None:
+                duration_sec = round(elapsed, 2)
+                duration_source = "robot_elapsed"
+                if pre_roll is not None:
+                    start_sec = round(pre_roll, 2)
+                    end_sec = round(pre_roll + elapsed, 2)
+            elif duration_sec is None:
+                print("[annotate] %s: WARNING no motion detected and no manifest "
+                      "elapsed_s — duration unknown" % name)
             annotation = annotate_clip(client, clip_path)
         except Exception as exc:
             print("[annotate] %s FAILED: %s" % (name, exc))
@@ -176,6 +231,7 @@ def main():
             "name": name,
             "source_label": source_label(name),
             "duration_s": duration_sec,
+            "duration_source": duration_source,
             "motion_start_s": start_sec,
             "motion_end_s": end_sec,
             "clip_s": clip_sec,

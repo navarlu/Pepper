@@ -202,6 +202,16 @@ LISTENER_LOG_PARTIAL_TRANSCRIPTS = _env_bool("LISTENER_LOG_PARTIAL_TRANSCRIPTS",
 # Pepper NAOqi endpoint used by the audio receiver.
 PEPPER_QI_URL = _env_str("PEPPER_QI_URL", "tcp://192.168.210.113:9559")
 
+# SSH access to Pepper — used by the bridge's per-call animation-sound mute
+# (?mute=1 temporarily renames the behavior's sound files on the robot).
+# Host defaults to the NAOqi host from PEPPER_QI_URL.
+_qi_host = PEPPER_QI_URL.split("://", 1)[-1].split(":", 1)[0]
+PEPPER_SSH_HOST = _env_str("PEPPER_SSH_HOST", _qi_host)
+PEPPER_SSH_USER = _env_str("PEPPER_SSH_USER", "nao")
+PEPPER_SSH_PASSWORD = _env_str("PEPPER_SSH_PASSWORD", "Argus")
+# Installed behavior packages root on the robot (sound files live inside).
+PEPPER_APPS_DIR = _env_str("PEPPER_APPS_DIR", "/home/nao/.local/share/PackageManager/apps")
+
 # Bridge service lookup tuning.
 BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC = _env_float("BRIDGE_AUDIO_SERVICE_TIMEOUT_SEC", 120.0)
 BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC = _env_float("BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC", 15.0)
