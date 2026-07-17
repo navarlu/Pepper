@@ -25,7 +25,26 @@ import time
 
 import config
 from prompt import SYSTEM_PROMPT
-from tools.find_room import TOOLS
+from tools.find_room import TOOLS as _FIND_ROOM_TOOLS
+
+# Active tool registry + system prompt, per config.MOVE_BODY_MODE. With
+# mode "off" this is exactly the original one-tool benchmark setup
+# (find_room, bare prompt). The catalog section goes last in the prompt so
+# the prefix stays byte-stable for caching.
+TOOLS = dict(_FIND_ROOM_TOOLS)
+ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT
+if config.MOVE_BODY_MODE == "tool":
+    from tools.move_body import ANIMATION_PROMPT_SECTION
+    from tools.move_body import TOOLS as _MOVE_BODY_TOOLS
+
+    TOOLS.update(_MOVE_BODY_TOOLS)
+    ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT + ANIMATION_PROMPT_SECTION
+elif config.MOVE_BODY_MODE == "inline":
+    from tools.move_body import INLINE_PROMPT_SECTION
+
+    ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT + INLINE_PROMPT_SECTION
+elif config.MOVE_BODY_MODE != "off":
+    raise ValueError(f"unknown MOVE_BODY_MODE: {config.MOVE_BODY_MODE!r}")
 
 # Responses API function-tool format (flat: name/description/parameters at top level).
 RESPONSES_TOOLS = [
@@ -60,7 +79,7 @@ def _stream_step(client, model, input_items, previous_response_id, effort, on_te
     and token usage. `on_text(delta)` fires for each answer-text token."""
     kwargs = dict(
         model=model,
-        instructions=SYSTEM_PROMPT,
+        instructions=ACTIVE_SYSTEM_PROMPT,
         input=input_items,
         tools=RESPONSES_TOOLS,
         stream=True,

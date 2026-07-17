@@ -244,6 +244,9 @@ LIFE_SPEAKING_MOVEMENT = _env_bool("LIFE_SPEAKING_MOVEMENT", True)
 # Head-lock defaults (used by POST /motion/head_lock).
 # Radians: HeadYaw 0 = center; HeadPitch negative = up, positive = down.
 # -0.15 rad ~= -8.6° (slight upward tilt, as if looking at a standing person).
+# HEAD_LOCK_ENABLED=false turns the endpoint into a logged no-op — callers
+# (voice-agent session start) still get a 200 but the head is never moved.
+HEAD_LOCK_ENABLED = _env_bool("HEAD_LOCK_ENABLED", True)
 HEAD_LOCK_YAW_RAD = _env_float("HEAD_LOCK_YAW_RAD", 0.0)
 HEAD_LOCK_PITCH_RAD = _env_float("HEAD_LOCK_PITCH_RAD", -0.15)
 HEAD_LOCK_SPEED = _env_float("HEAD_LOCK_SPEED", 0.1)

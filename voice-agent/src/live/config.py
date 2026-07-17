@@ -32,6 +32,13 @@ def _env_optional_int(name: str, default: int | None = None) -> int | None:
         return default
     return int(value)
 
+
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None or not str(value).strip():
+        return bool(default)
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
 LANG = "en"
 AGENT_VERSION = "0.6.4-llama-greet"
 MODEL_NAME = "gpt-realtime-mini"
@@ -117,6 +124,11 @@ LOOK_AROUND_VISION_PROMPT = _env_str(
 # implementation in tools.py is still used by the director (via
 # `trigger_animation`) and by manual smoke tests.
 ENABLE_ANIMATION_TOOL = False
+# Inline gesture tags (agent_4o_streaming only): the LLM starts every
+# sentence with an [AnimationName] tag from the annotated 390-clip
+# catalog; llm_node strips the tags and dispatches them to the bridge.
+# See tools/utils/_inline_gestures.py. Set 0 for a no-gesture baseline.
+ENABLE_INLINE_GESTURES = _env_bool("ENABLE_INLINE_GESTURES", True)
 # How much `adjust_volume` steps Pepper's speaker per call. The tool
 # POSTs `/audio/volume {"delta": +VOLUME_STEP|-VOLUME_STEP}` to the
 # bridge — the bridge owns the actual ALAudioDevice + state.json on

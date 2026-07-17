@@ -1,4 +1,4 @@
-"""Interactive chat console for the benchmark agent.
+r"""Interactive chat console for the benchmark agent.
 
 Talks to the same one-tool agent the benchmark uses (same SYSTEM_PROMPT +
 tools, same Responses-API loop in agent.py). The answer is **streamed
@@ -22,26 +22,50 @@ import json
 from openai import OpenAI
 
 import config
-from agent import new_state, run_turn
-from tools.find_room import TOOLS
+from agent import TOOLS, new_state, run_turn
 
-DEFAULT_MODEL = config.MODELS[0]  # gpt-5.4-nano
+if config.MOVE_BODY_MODE == "inline":
+    from tools.move_body import InlineGestureParser, play_animation
+
+DEFAULT_MODEL = config.MODELS[1]  # gpt-5.4-nano
 DEFAULT_EFFORT = "none"           # thinking off
 
 
 def handle_turn(client, model, state, user_text, effort):
-    """Run one user turn: print tool calls, stream the answer live, then stats."""
+    """Run one user turn: print tool calls, stream the answer live, then stats.
+
+    In inline gesture mode the streamed text is filtered through an
+    InlineGestureParser: [AnimationName] tags fire play_animation the moment
+    they complete and are shown as a ⟦name -> movement⟧ marker at their
+    position in the answer.
+    """
     started = {"text": False}
+
+    def ensure_header():
+        if not started["text"]:
+            print("\npepper> ", end="", flush=True)
+            started["text"] = True
 
     def on_tool(name, args, result):
         arg_str = ", ".join(f"{k}={v!r}" for k, v in args.items())
         print(f"  [tool] {name}({arg_str})")
         print(f"  [tool] -> {json.dumps(result, ensure_ascii=False)}")
 
+    parser = None
+    if config.MOVE_BODY_MODE == "inline":
+        def on_gesture(name):
+            ensure_header()
+            play_animation(name)
+            print(f"⟦{name}⟧", end="", flush=True)
+
+        parser = InlineGestureParser(on_gesture)
+
     def on_text(delta):
-        if not started["text"]:
-            print("\npepper> ", end="", flush=True)
-            started["text"] = True
+        if parser is not None:
+            delta = parser.feed(delta)
+            if not delta:
+                return
+        ensure_header()
         print(delta, end="", flush=True)
 
     try:
@@ -51,10 +75,24 @@ def handle_turn(client, model, state, user_text, effort):
         print(f"\n  [error] API call failed: {e}")
         return
 
+    if parser is not None:
+        tail = parser.flush()
+        if tail:
+            ensure_header()
+            print(tail, end="", flush=True)
+
     if started["text"]:
         print()  # end the streamed answer line
     elif trace["final_text"]:
-        print(f"\npepper> {trace['final_text']}")
+        text = trace["final_text"]
+        if parser is not None:
+            text = parser.feed(text) + parser.flush()
+        print(f"\npepper> {text}")
+
+    if parser is not None:
+        for candidate, suggestions in parser.misses:
+            hint = f" — closest: {', '.join(suggestions)}" if suggestions else ""
+            print(f"  [move] unresolved tag [{candidate}]{hint}")
 
     ttft = trace["ttft_answer_ms"]
     gen = trace["gen_ttft_ms"]

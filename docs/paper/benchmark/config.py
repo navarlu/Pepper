@@ -45,5 +45,18 @@ REQUEST_TIMEOUT_S = 60
 # the parameter entirely (falls back to the model's own default).
 REASONING_EFFORT = "low"
 
+# --- move_body (animation catalog) --------------------------------------
+# Gesture experiment for chat.py. The model gets the full animation catalog
+# (one line per clip) in its system prompt; execution is stubbed (logs
+# instead of contacting the robot). Modes:
+#   "tool"   - model calls the move_body(name) function tool
+#   "inline" - model embeds [AnimationName] tags in its answer text; a
+#              streaming parser strips them and fires the gesture at the
+#              tag's position in the stream
+#   "off"    - exact one-tool benchmark setup (set before benchmark runs!)
+MOVE_BODY_MODE = "inline"
+PROJECT_ROOT = BASE_DIR.parents[2]
+ANIMATION_METADATA_DIR = PROJECT_ROOT / "experiments" / "animation_metadata" / "data" / "metadata"
+
 # --- Auth --------------------------------------------------------------
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")

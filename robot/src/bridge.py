@@ -39,6 +39,7 @@ from config import (
     BRIDGE_LOG_TABLET_HTTP,
     BRIDGE_OPTIONAL_SERVICE_TIMEOUT_SEC,
     BRIDGE_URL,
+    HEAD_LOCK_ENABLED,
     HEAD_LOCK_PITCH_RAD,
     HEAD_LOCK_SPEED,
     HEAD_LOCK_YAW_RAD,
@@ -801,6 +802,13 @@ class TabletOverlayHttpServer(threading.Thread):
                         self._write_json(400, {"ok": False, "error": "invalid json"})
                         return
                     lock = bool(payload.get("lock", True))
+                    if not HEAD_LOCK_ENABLED:
+                        # Disabled via config: acknowledge the call so
+                        # callers (voice-agent session start) keep working,
+                        # but never touch the head or awareness.
+                        print("[head_lock] disabled via HEAD_LOCK_ENABLED — ignoring lock={}".format(lock))
+                        self._write_json(200, {"ok": True, "lock": lock, "disabled": True})
+                        return
                     try:
                         yaw = float(payload.get("yaw", HEAD_LOCK_YAW_RAD))
                         pitch = float(payload.get("pitch", HEAD_LOCK_PITCH_RAD))

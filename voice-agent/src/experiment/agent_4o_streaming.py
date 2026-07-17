@@ -103,6 +103,24 @@ from tools.utils._events import (  # noqa: E402
 import _streaming_runtime  # noqa: E402
 
 from src.live.bridge_client import post_head_lock  # noqa: E402
+from src.live.config import ENABLE_INLINE_GESTURES  # noqa: E402
+
+# Inline gesture layer (see tools/utils/_inline_gestures.py): the LLM
+# starts every sentence with an [AnimationName] tag; llm_node strips the
+# tags from the token stream (so TTS never speaks them) and dispatches
+# each one to the robot bridge through the shared animation queue.
+if ENABLE_INLINE_GESTURES:
+    from livekit.agents.llm import ChatChunk, ChoiceDelta  # noqa: E402
+    from tools.utils._animation import trigger_animation_exact  # noqa: E402
+    from tools.utils._inline_gestures import (  # noqa: E402
+        INLINE_GESTURES_PROMPT_SECTION,
+        InlineGestureParser,
+        gesture_has_sound,
+    )
+
+    ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT + INLINE_GESTURES_PROMPT_SECTION
+else:
+    ACTIVE_SYSTEM_PROMPT = SYSTEM_PROMPT
 
 STREAMING_TOOLS = [
     find_path_to_room,
@@ -286,17 +304,51 @@ class StreamingAgent(Agent):
         })
         t0 = time.monotonic()
         chunks = 0
+        parser = None
+        if ENABLE_INLINE_GESTURES:
+            def _fire_gesture(gesture_name: str) -> None:
+                print(f"  [gest] tag fired {gesture_name}", flush=True)
+                trigger_animation_exact(
+                    gesture_name,
+                    sound_off=gesture_has_sound(gesture_name),
+                )
+
+            parser = InlineGestureParser(_fire_gesture)
         try:
             async for chunk in Agent.default.llm_node(
                 self, chat_ctx, tools_passed, model_settings,
             ):
                 chunks += 1
+                if (
+                    parser is not None
+                    and getattr(chunk, "delta", None) is not None
+                    and chunk.delta.content
+                ):
+                    cleaned = parser.feed(chunk.delta.content)
+                    if cleaned != chunk.delta.content:
+                        chunk.delta.content = cleaned
                 yield chunk
+            if parser is not None:
+                # Unterminated '[' at end of stream is real prose the
+                # user should still hear — release it as a final chunk.
+                leftover = parser.flush()
+                if leftover:
+                    yield ChatChunk(
+                        id="inline-gesture-flush",
+                        delta=ChoiceDelta(role="assistant", content=leftover),
+                    )
         finally:
+            if parser is not None and (parser.fired or parser.misses):
+                print(
+                    f"  [gest] turn summary fired={parser.fired} "
+                    f"misses={[m[0] for m in parser.misses]}",
+                    flush=True,
+                )
             self._emit("llm_response_end", {
                 "turn_id": turn_id,
                 "elapsed_ms": int((time.monotonic() - t0) * 1000),
                 "chunks": chunks,
+                "gesture_tags_fired": parser.fired if parser else [],
             })
 
     async def tts_node(
@@ -533,10 +585,20 @@ async def entrypoint(ctx: JobContext) -> None:
     _streaming_runtime.set_room(ctx.room)
 
     # ── AgentSession ─────────────────────────────────────────────────
+    # gpt-5.x on /v1/chat/completions rejects function tools together
+    # with a non-"none" reasoning effort, and only accepts the default
+    # temperature (see docs/paper/benchmark/agent.py) — so for 5.x we
+    # pin reasoning off and omit temperature; 4o keeps the 0.2 used in
+    # the thesis runs.
+    if LLM_MODEL.startswith("gpt-5"):
+        llm = openai.LLM(model=LLM_MODEL, reasoning_effort="none")
+    else:
+        llm = openai.LLM(model=LLM_MODEL, temperature=0.2)
+
     session = AgentSession(
         vad=_get_vad(),
         stt=openai.STT(model=STT_MODEL, language=LANG),
-        llm=openai.LLM(model=LLM_MODEL, temperature=0.2),
+        llm=llm,
         tts=openai.TTS(
             model=TTS_MODEL,
             voice=TTS_VOICE,
@@ -830,7 +892,7 @@ async def entrypoint(ctx: JobContext) -> None:
 
     # ── Start the session ────────────────────────────────────────────
     agent = StreamingAgent(
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=ACTIVE_SYSTEM_PROMPT,
         greeting_instructions=GREETING_INSTRUCTIONS,
         tools_list=STREAMING_TOOLS,
         event_emitter=_publish_event,
@@ -853,10 +915,17 @@ async def entrypoint(ctx: JobContext) -> None:
     # One-shot LLM-context dump so we can confirm by reading stdout
     # exactly which SYSTEM_PROMPT, greeting splice, and tool
     # descriptions the model receives this session.
+    gesture_note = (
+        f"\n[... + inline-gesture section with animation catalog, "
+        f"{len(ACTIVE_SYSTEM_PROMPT) - len(SYSTEM_PROMPT)} chars omitted "
+        f"from dump (ENABLE_INLINE_GESTURES=1) ...]"
+        if ENABLE_INLINE_GESTURES
+        else ""
+    )
     print(
         f"[experiment-4o-streaming] === LLM CONTEXT DUMP ===\n"
-        f"--- SYSTEM_PROMPT ({len(SYSTEM_PROMPT)} chars) ---\n"
-        f"{SYSTEM_PROMPT}\n"
+        f"--- SYSTEM_PROMPT ({len(ACTIVE_SYSTEM_PROMPT)} chars) ---\n"
+        f"{SYSTEM_PROMPT}{gesture_note}\n"
         f"--- GREETING_INSTRUCTIONS (spliced on turn 1) ---\n"
         f"{GREETING_INSTRUCTIONS}\n"
         f"--- TOOLS ({len(STREAMING_TOOLS)}) ---\n"

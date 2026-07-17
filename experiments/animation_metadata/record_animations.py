@@ -69,11 +69,11 @@ TRIGGER_TIMEOUT_SEC = 30.0  # blocking trigger waits out the whole gesture
 NEUTRAL_POSTURE = "Stand"   # ALRobotPosture base pose (before + end of clip)
 POSTURE_SPEED = 0.5
 POSTURE_TIMEOUT_SEC = 20.0  # goToPosture is blocking on the bridge side
-HEAD_PITCH_RAD = -0.25      # applied after each posture reset; negative = up
+HEAD_PITCH_RAD = 0.2     # applied after each posture reset; negative = up
                             # (Stand's own head pitch looks slightly down on
                             # camera; Pepper's HeadPitch range is -0.71..0.64)
 HEAD_SPEED = 0.2
-LIMIT = 40                  # int -> record only the first N animations (for testing)
+LIMIT = 400                 # int -> record only the first N animations (for testing)
 ONLY = None                 # list of names -> record only these (for testing)
 SKIP_PREFIXES = ("animations/LED/",)  # LED-only entries, nothing to film
 # Behaviors that loop forever until explicitly stopped — the blocking
@@ -316,8 +316,7 @@ def go_neutral():
     a 400-clip session."""
     status, body = bridge_post(
         "/motion/posture",
-        {"posture": NEUTRAL_POSTURE, "speed": POSTURE_SPEED,
-         "head_pitch": HEAD_PITCH_RAD, "head_speed": HEAD_SPEED},
+        {"posture": NEUTRAL_POSTURE, "speed": POSTURE_SPEED},
         timeout=POSTURE_TIMEOUT_SEC,
     )
     if status != 200 or not body.get("reached", True):

@@ -94,7 +94,7 @@ _ANIM_DURATION_SEC = 2.5
 # the relevant speech is over is worse than no gesture at all.
 _QUEUE_MAX = 2
 
-_anim_queue: asyncio.Queue[tuple[str, str, str | None]] | None = None
+_anim_queue: asyncio.Queue[tuple[str, str, str | None, bool]] | None = None
 _worker_task: asyncio.Task[None] | None = None
 
 
@@ -124,10 +124,12 @@ async def _animation_worker() -> None:
     print("[anim] worker started")
     while True:
         item = await _anim_queue.get()
-        resolved, group, source_tool = item
+        resolved, group, source_tool, sound_off = item
         dispatch_started = time.monotonic()
         try:
-            status, body = await asyncio.to_thread(post_animation, resolved)
+            status, body = await asyncio.to_thread(
+                post_animation, resolved, sound_off=sound_off,
+            )
             print(
                 f"[anim] dispatched variant={resolved} status={status} "
                 f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
@@ -205,7 +207,7 @@ async def trigger_animation(name: str) -> bool:
     assert _anim_queue is not None
 
     try:
-        _anim_queue.put_nowait((resolved, group, source_tool))
+        _anim_queue.put_nowait((resolved, group, source_tool, False))
         print(
             f"[anim] enqueued variant={resolved} "
             f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
@@ -221,6 +223,52 @@ async def trigger_animation(name: str) -> bool:
             "variant_name": resolved,
             "reason": "queue_full",
             "source_tool": source_tool,
+            "queue_max": _QUEUE_MAX,
+        })
+        return False
+
+
+def trigger_animation_exact(
+    variant_name: str,
+    *,
+    sound_off: bool = False,
+    source: str = "inline_tag",
+) -> bool:
+    """Enqueue an already-resolved catalog animation, bypassing the
+    curated group/alias map.
+
+    Used by the inline-gesture layer (`_inline_gestures.py`), whose
+    names come from the full annotated catalog and are validated
+    against `robot/data/animations.json` at bundle-build time — the
+    curated `ANIMATION_TOOL_ALLOWED` set would wrongly reject them.
+    Same queue/worker as `trigger_animation`, so tag gestures and
+    tool-arg gestures never overlap. Returns True if queued.
+    """
+    _ensure_worker()
+    assert _anim_queue is not None
+    emit_experiment_event("animation_requested", {
+        "emotion": variant_name,
+        "group": source,
+        "variant_name": variant_name,
+        "source_tool": source,
+    })
+    try:
+        _anim_queue.put_nowait((variant_name, source, source, sound_off))
+        print(
+            f"[anim] enqueued exact variant={variant_name} sound_off={sound_off} "
+            f"qsize={_anim_queue.qsize()}/{_QUEUE_MAX}"
+        )
+        return True
+    except asyncio.QueueFull:
+        print(
+            f"[anim] dropped exact variant={variant_name} reason=queue_full(max={_QUEUE_MAX})"
+        )
+        emit_experiment_event("animation_dropped", {
+            "emotion": variant_name,
+            "group": source,
+            "variant_name": variant_name,
+            "reason": "queue_full",
+            "source_tool": source,
             "queue_max": _QUEUE_MAX,
         })
         return False

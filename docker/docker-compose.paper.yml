@@ -10,8 +10,11 @@
 #   orchestrator       — creates the fixed `pepper-experiment` room +
 #                        writes tokens to services/data/token-latest.json
 #                        (reuses services/src/experiment/orchestrator.py)
-#   realtime-agent     — NEW: the paper worker (gpt-realtime[-mini],
-#                        Czech prompt, 2 tools)
+#   agent-inline       — default worker: cascade STT→LLM→TTS with
+#                        inline gesture tags (gpt-5.4-mini, English)
+#   realtime-agent     — speech-to-speech variant (gpt-realtime[-mini],
+#                        Czech prompt, 2 tools) — behind the
+#                        "realtime" profile, see the service comment
 #   paper-dispatcher   — NEW: keeps one agent dispatched into the room
 #                        (re-dispatches if the agent's job ends)
 #   user-client        — USB mic + WebRTC AEC3 → LiveKit
@@ -63,7 +66,38 @@ services:
       - livekit
     restart: unless-stopped
 
+  # Default paper agent: cascade STT→LLM→TTS streaming worker with the
+  # inline-gesture layer (llm_node strips [AnimationName] tags from the
+  # token stream and dispatches them to the robot bridge). Tokens
+  # stream straight into TTS, so first-audio latency stays low.
+  agent-inline:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.runtime
+    working_dir: /workspace
+    command: ["uv", "run", "python", "voice-agent/src/experiment/agent_4o_streaming.py", "start"]
+    volumes:
+      - ..:/workspace
+    environment:
+      LIVEKIT_URL: ws://127.0.0.1:7880
+      PEPPER_EXPERIMENT_STREAMING_AGENT_NAME: ${PAPER_AGENT_NAME:-pepper-paper-inline}
+      OPENAI_LLM_MODEL: ${OPENAI_LLM_MODEL:-gpt-5.4-mini}
+      AGENT_LANG: ${AGENT_LANG:-en}
+      ENABLE_INLINE_GESTURES: ${ENABLE_INLINE_GESTURES:-1}
+      ANIMATION_BRIDGE_URL: http://127.0.0.1:5000
+    network_mode: host
+    depends_on:
+      - orchestrator
+    restart: unless-stopped
+
+  # Realtime speech-to-speech variant, kept behind a profile — start it
+  # with:  PAPER_AGENT_NAME=pepper-paper-realtime \
+  #        docker compose --profile realtime -f docker/docker-compose.paper.yml up -d
+  # (and stop agent-inline, so the dispatcher targets only one worker).
+  # No inline gestures here: a speech-to-speech model emits audio
+  # directly, so there is no text stream to strip tags from.
   realtime-agent:
+    profiles: ["realtime"]
     build:
       context: ..
       dockerfile: docker/Dockerfile.runtime
@@ -73,7 +107,7 @@ services:
       - ..:/workspace
     environment:
       LIVEKIT_URL: ws://127.0.0.1:7880
-      PAPER_AGENT_NAME: pepper-paper-realtime
+      PAPER_AGENT_NAME: ${PAPER_AGENT_NAME:-pepper-paper-realtime}
       PAPER_REALTIME_MODEL: ${PAPER_REALTIME_MODEL:-gpt-realtime-2.1}
       PAPER_REALTIME_VOICE: ${PAPER_REALTIME_VOICE:-marin}
       AGENT_LANG: cs
@@ -93,10 +127,10 @@ services:
     environment:
       LIVEKIT_HTTP_URL: http://127.0.0.1:7880
       EXPERIMENT_ROOM_NAME: pepper-experiment
-      PAPER_AGENT_NAME: pepper-paper-realtime
+      PAPER_AGENT_NAME: ${PAPER_AGENT_NAME:-pepper-paper-inline}
     network_mode: host
     depends_on:
-      - realtime-agent
+      - agent-inline
     restart: unless-stopped
 
   bridge:

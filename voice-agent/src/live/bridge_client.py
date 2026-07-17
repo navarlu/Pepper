@@ -49,7 +49,7 @@ def _bridge_base() -> str:
     return base
 
 
-def post_animation(animation_name: str) -> tuple[int, str]:
+def post_animation(animation_name: str, *, sound_off: bool = False) -> tuple[int, str]:
     """POST `/animation/<name>` and return `(status_code, response_body)`.
 
     The bridge replies 200 immediately and runs the behavior in a
@@ -57,8 +57,15 @@ def post_animation(animation_name: str) -> tuple[int, str]:
     /animation/<name> acks before running"). So this call should
     always be fast. Raises `RuntimeError` if the bridge is
     unreachable.
+
+    `sound_off=True` appends `?sound=off` so the bridge mutes the
+    behavior's embedded audio files before running it — required for
+    Emotions/* and Reactions/* clips whose vocalisations bypass the
+    master volume.
     """
     endpoint = f"{_bridge_base()}/animation/{quote(animation_name, safe='')}"
+    if sound_off:
+        endpoint += "?sound=off"
     req = Request(endpoint, data=b"", method="POST")
     try:
         with urlopen(req, timeout=float(ANIMATION_TOOL_HTTP_TIMEOUT_SEC)) as response:
