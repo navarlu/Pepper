@@ -1,5 +1,10 @@
 ## Common commands
 
+SSH to Pepper, connected to the Raspberry Pi hotspot (`lucas-rpi-5-8gb`):
+```bash
+ssh nao@10.42.0.205
+```
+
 SSH to halmos (jump host):
 ```bash
 ssh navarlu2@halmos.felk.cvut.cz

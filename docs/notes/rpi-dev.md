@@ -57,6 +57,7 @@ The `.env` file is in the project root (not `docker/`), must be passed with `--e
 
 ## Pepper IP / Network
 
+- **RPi hotspot**: Pepper connects to the hotspot on `lucas-rpi-5-8gb` at `10.42.0.205`. SSH from the RPi: `ssh nao@10.42.0.205`; NAOqi: `tcp://10.42.0.205:9559`.
 - **Ubuntu default**: `tcp://10.0.0.149:9559` (WiFi, static)
 - **RPi default**: `tcp://192.168.210.113:9559` (ethernet, DHCP — may change)
 - `safe_startup.py` has auto-discovery for when IP is unknown
