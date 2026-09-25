@@ -15,8 +15,8 @@
 #                                  dispatch, no state polling.
 #   tablet-server                — Pepper's tablet UI (chat + state
 #                                  pills) during the experiment.
-#   safe-startup                 — boot-time pose watchdog (hands down,
-#                                  neutral, baseline volume).
+#   safe-startup                 — manual fallback boot-time pose watchdog
+#                                  (profile: fallback).
 #
 # Bring everything up:
 #   docker compose -f docker/docker-compose.experiment.yml up -d
@@ -100,11 +100,12 @@ services:
     network_mode: host
     restart: unless-stopped
 
-  # Watchdog that puts Pepper into a known-safe pose on boot (hands
-  # down, neutral stance, baseline volume) before the bridge takes
-  # over. Without this, she can boot in whatever pose the previous
-  # session left her in — often arms in the air.
+  # Manual fallback for the on-board safe-startup package. It is kept
+  # out of the default stack to avoid duplicate wake sequences. Start
+  # explicitly with: docker compose -f docker/docker-compose.experiment.yml
+  # --profile fallback up -d safe-startup
   safe-startup:
+    profiles: ["fallback"]
     build:
       context: ..
       dockerfile: docker/Dockerfile.runtime

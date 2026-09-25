@@ -1,29 +1,29 @@
-# `robot/scripts/safe_startup*` — The Pepper Wake Sidecar
+# Safe startup — onboard primary and RPi fallback
 
-Safe-startup is Pepper's **boot sidecar**. Its job is narrow:
+Safe-startup puts Pepper into a known baseline after NAOqi starts:
 
-1. Notice when Pepper appears on the network.
-2. Run the "wake the robot" NAOqi sequence — disable reflexes, kill
-   Autonomous Life, `wakeUp()`, stand to `StandInit`, dump diagnosis.
-3. Sit idle while she's alive, resume polling the moment she drops.
+1. Run the wake sequence locally on Pepper — disable the diagnosis reflex and
+   Autonomous Life, `wakeUp()`, stand to `StandInit`, and dump diagnosis.
+2. Verify volume, reflex state, Autonomous Life, wake state, and posture.
+3. Exit. NAOqi ServiceManager launches it again on the next NAOqi start.
 
-It's the reason the rest of the stack can assume Pepper is awake,
-standing, and not flailing around in autonomous life when the voice
-agent connects.
+The onboard package is the primary mechanism. The old RPi Docker watchdog is
+retained behind the Compose `fallback` profile for manual recovery only. This
+prevents an RPi/container restart or transient network interruption from
+re-running motion commands on an already-running robot.
 
 ---
 
 ## Big picture
 
 ```
-  RPi boot                                Pepper power cycle
-     │                                           │
-     ▼                                           ▼
- safe-startup container (always on)   ─ probe ─► Pepper:9559
-     │                                   (5s offline / 10s online)
-     │  edge: offline → online
-     ▼
- run_safe_startup(host, port):
+ Pepper / NAOqi start
+          │
+          ▼
+ ServiceManager autorun
+          │
+          ▼
+ safe_startup_onboard.py → local NAOqi at 127.0.0.1:9559:
    disable diagnosis-effect reflex
    ALAutonomousLife.setState("disabled")
    turn off all 5 autonomous abilities
@@ -32,21 +32,28 @@ agent connects.
    dump passive + active diagnosis
 ```
 
-The bridge and safe-startup both connect to Pepper's NAOqi on port
-9559, but they don't talk to each other — they just happen to run in
-parallel. The bridge uses Pepper for runtime audio/HTTP; safe-startup
-only touches her at the "she just came online" edge.
+The onboard program retries local connection and service discovery because
+ServiceManager can launch it before all NAOqi services are ready. Individual
+robot calls have client-side deadlines, and final state is queried explicitly.
+Failures are preserved in the log rather than being reported as success.
 
 ---
 
 ## Code layout
 
-Two files, both standalone entry points (not importable as a
-library):
+Primary onboard files:
+
+| File | Role |
+|------|------|
+| [robot/onboard/safe_startup_pkg/safe_startup_onboard.py](../../robot/onboard/safe_startup_pkg/safe_startup_onboard.py) | Python 2.7 one-shot service. Uses Pepper's `/opt/aldebaran` qi runtime and connects locally. |
+| [robot/onboard/safe_startup_pkg/manifest.xml](../../robot/onboard/safe_startup_pkg/manifest.xml) | NAOqi package manifest; registers the autorun service `safe-startup-onboard.safestartup`. |
+| [robot/onboard/deploy_onboard.sh](../../robot/onboard/deploy_onboard.sh) | Builds the `.pkg`, installs it over SSH, starts a smoke run, and prints its persistent log. |
+
+RPi fallback and diagnostic tools:
 
 | File                                                                              | Role |
 |-----------------------------------------------------------------------------------|------|
-| [robot/scripts/safe_startup_watchdog.py](../../robot/scripts/safe_startup_watchdog.py) | **The service.** Runs in Docker (`safe-startup` compose service). Contains both the polling loop and its own inline copy of the wake sequence. Env-driven qi paths. |
+| [robot/scripts/safe_startup_watchdog.py](../../robot/scripts/safe_startup_watchdog.py) | Manual Docker fallback (`safe-startup`, profile `fallback`). Polls over the network and contains its own wake sequence. |
 | [robot/scripts/safe_startup.py](../../robot/scripts/safe_startup.py)                    | **The host-side CLI tool.** Same wake sequence + Pepper auto-discovery (mDNS / ARP / subnet scan). Hardcoded qi paths for the host. Useful when you want to manually wake Pepper from the RPi shell, or when you don't know her IP yet. |
 
 > ⚠️ The two files duplicate the NAOqi wake sequence — the watchdog
@@ -57,7 +64,40 @@ library):
 
 ---
 
-## The watchdog loop — [`safe_startup_watchdog.py`](../../robot/scripts/safe_startup_watchdog.py)
+## Install or update the onboard package
+
+Run from the repository root on the RPi. Override the address because it can
+change between Pepper's hotspot and another network:
+
+```bash
+PEPPER_HOST=10.42.0.205 robot/onboard/deploy_onboard.sh
+```
+
+The deployment performs a read-only runtime preflight before copying anything,
+then replaces the package idempotently and starts one smoke run. Its two log
+locations are:
+
+- `/home/nao/safe_startup_onboard.log` — persistent, capped by truncating it
+  before a run when it exceeds 1 MiB.
+- `/var/log/naoqi/servicemanager` — ServiceManager's captured process output.
+
+`SAFE_STARTUP_VOLUME` is a constant in the onboard script; Compose environment
+variables do not reach an onboard package. A robot system update or factory
+reset can remove locally installed packages; rerun the deployment script.
+
+After a successful smoke run, stop the currently running RPi fallback before
+testing a reboot. Merely adding the Compose profile does not stop a container
+that was already running:
+
+```bash
+docker compose -f docker/docker-compose.experiment.yml stop safe-startup
+```
+
+Installation and a smoke run do not prove boot behavior. Complete a supervised
+reboot and then a cold boot, checking for a fresh `boot run started` timestamp
+and `safe startup complete: final state verified` in the persistent log.
+
+## The fallback watchdog loop — [`safe_startup_watchdog.py`](../../robot/scripts/safe_startup_watchdog.py)
 
 ### State machine
 
@@ -180,13 +220,21 @@ See [rpi-dev.md](../notes/rpi-dev.md) for the qi build story.
 
 ---
 
-## Docker wiring
+## Docker fallback wiring
 
-Defined in [docker/docker-compose.yml](../../docker/docker-compose.yml)
-as the `safe-startup` service:
+Defined in
+[docker/docker-compose.experiment.yml](../../docker/docker-compose.experiment.yml)
+as the `safe-startup` service. It is not part of a normal `up -d`:
+
+```bash
+docker compose -f docker/docker-compose.experiment.yml --profile fallback up -d safe-startup
+```
+
+The service includes:
 
 ```yaml
 safe-startup:
+  profiles: ["fallback"]
   build:
     context: ..
     dockerfile: docker/Dockerfile.runtime
@@ -215,7 +263,8 @@ Key points:
   `LD_LIBRARY_PATH` point the Python interpreter at them.
 - **`PEPPER_QI_URL`** — the only runtime knob. Same value as the
   bridge container so both point at the same robot.
-- **`restart: unless-stopped`** — the watchdog is meant to run forever;
+- **`restart: unless-stopped`** — once manually enabled, the fallback watchdog
+  runs forever;
   if it crashes, compose restarts it. If Pepper is already online at
   restart, the "skip safe_startup at boot" branch kicks in.
 

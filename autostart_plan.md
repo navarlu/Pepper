@@ -21,7 +21,7 @@ Python 2.7 constraints: no f-strings (use `%` formatting), no type annotations, 
 Logic:
 1. Retry-connect `qi.Session()` to `tcp://127.0.0.1:9559` (1 s retry, ~120 s budget — ServiceManager launches autorun services early, possibly before the port is fully up).
 2. `wait_service` for `ALAudioDevice`, `ALMotion`, `ALAutonomousLife`, `ALRobotPosture` (90 s / 0.5 s, as today).
-3. `setOutputVolume(100)` — volume becomes a module constant (`SAFE_STARTUP_VOLUME = 100`, matching compose); no env injection on-board.
+3. `setOutputVolume(60)` — volume becomes a module constant (`SAFE_STARTUP_VOLUME = 60`, matching the deployed `.env` override); no env injection on-board.
 4. `ALMotion.setDiagnosisEffectEnabled(False)` — the laser suppression.
 5. `ALAutonomousLife.setState("disabled")` with a **verify-and-retry loop** (`getState() == "disabled"`, ≤10 tries × 1 s) — at boot, Autonomous Life runs its own wake-up and races us; verify before proceeding. Then disable the five autonomous abilities as today.
 6. `ALMotion.wakeUp()` + `goToPosture("StandInit", 0.6)`.
@@ -75,7 +75,7 @@ On-board package is primary: install path on robot, log locations (`/home/nao/sa
 
 1. Run `robot/onboard/deploy_onboard.sh` from the RPi — preflight, install, and smoke run must succeed; log shows the full sequence.
 2. Ensure the RPi `safe-startup` container is stopped (it will be, once behind the profile).
-3. Reboot Pepper (`ssh nao@$PEPPER_HOST "sudo shutdown -r now"` is permitted for the nao user) and observe: she boots, doesn't halt on the laser self-test, wakes, reaches StandInit, volume 100, Autonomous Life quiet.
+3. Reboot Pepper (`ssh nao@$PEPPER_HOST "sudo shutdown -r now"` is permitted for the nao user) and observe: she boots, doesn't halt on the laser self-test, wakes, reaches StandInit, volume 60, Autonomous Life quiet.
 4. Check state: `qicli call ALAutonomousLife.getState` → `disabled`; `qicli call ALMotion.robotIsWakeUp` → true; fresh timestamped run in `/home/nao/safe_startup_onboard.log`.
 5. Full power-off cold boot to confirm the broken-laser self-test path specifically.
 

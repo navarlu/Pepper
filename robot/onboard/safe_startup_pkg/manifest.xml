@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package uuid="safe-startup-onboard" version="0.1.0">
+  <services>
+    <service name="safestartup" autorun="true"
+             execStart="/usr/bin/python safe_startup_onboard.py" />
+    <executableFiles>
+      <file path="safe_startup_onboard.py" />
+    </executableFiles>
+  </services>
+</package>
