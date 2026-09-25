@@ -82,7 +82,17 @@ locations are:
 - `/var/log/naoqi/servicemanager` — ServiceManager's captured process output.
 
 `SAFE_STARTUP_VOLUME` is a constant in the onboard script; Compose environment
-variables do not reach an onboard package. A robot system update or factory
+variables do not reach an onboard package. The script sets output volume to
+`STARTUP_QUIET_VOLUME` (0) as soon as `ALAudioDevice` is available, before waiting
+for motion services. After the startup sequence it waits
+`STARTUP_QUIET_SETTLE_SEC` (10 seconds), then attempts to restore
+`SAFE_STARTUP_VOLUME` (60), including on failure. Restoration failures are logged.
+This buffer does not detect the end of an announcement: speech before the
+service starts or after volume restoration may still be audible. Verify the
+timing during a supervised boot. This volume timing applies to the onboard
+package only.
+
+A robot system update or factory
 reset can remove locally installed packages; rerun the deployment script.
 
 After a successful smoke run, stop the currently running RPi fallback before

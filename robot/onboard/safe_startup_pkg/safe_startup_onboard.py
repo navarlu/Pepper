@@ -23,6 +23,8 @@ SERVICE_RETRY_SEC = 0.5
 CALL_TIMEOUT_MS = 15000
 # Keep this aligned with the currently deployed RPi fallback setting.
 SAFE_STARTUP_VOLUME = 60
+STARTUP_QUIET_VOLUME = 0
+STARTUP_QUIET_SETTLE_SEC = 10.0
 
 AUTONOMOUS_ABILITIES = (
     "AutonomousBlinking",
@@ -149,17 +151,18 @@ def run_safe_startup():
     log.info("boot run started")
     session = connect_session()
     checks = []
+    audio = None
 
     try:
         audio = wait_service(session, "ALAudioDevice")
+        safe("startup quiet volume (%d)" % STARTUP_QUIET_VOLUME,
+             audio.setOutputVolume, (STARTUP_QUIET_VOLUME,))
+        ok, volume = safe("ALAudioDevice.getOutputVolume()", audio.getOutputVolume)
+        checks.append(ok and volume == STARTUP_QUIET_VOLUME)
+
         motion = wait_service(session, "ALMotion")
         life = wait_service(session, "ALAutonomousLife")
         posture = wait_service(session, "ALRobotPosture")
-
-        safe("ALAudioDevice.setOutputVolume(%d)" % SAFE_STARTUP_VOLUME,
-             audio.setOutputVolume, (SAFE_STARTUP_VOLUME,))
-        ok, volume = safe("ALAudioDevice.getOutputVolume()", audio.getOutputVolume)
-        checks.append(ok and volume == SAFE_STARTUP_VOLUME)
 
         safe("ALMotion.setDiagnosisEffectEnabled(False)",
              motion.setDiagnosisEffectEnabled, (False,))
@@ -192,15 +195,30 @@ def run_safe_startup():
         except Exception as exc:
             log.warning("[warn] ALDiagnosis unavailable: %s", exc)
 
-        if all(checks):
-            log.info("safe startup complete: final state verified")
-        else:
-            log.warning("safe startup complete with warnings: one or more final-state checks failed")
     finally:
         try:
-            session.close()
-        except Exception:
-            pass
+            if audio is not None:
+                # Also restore audio if service discovery or startup aborts.
+                try:
+                    log.info("holding startup quiet volume for %.1f seconds",
+                             STARTUP_QUIET_SETTLE_SEC)
+                    time.sleep(STARTUP_QUIET_SETTLE_SEC)
+                finally:
+                    safe("restore output volume (%d)" % SAFE_STARTUP_VOLUME,
+                         audio.setOutputVolume, (SAFE_STARTUP_VOLUME,))
+                    ok, volume = safe("ALAudioDevice.getOutputVolume()",
+                                      audio.getOutputVolume)
+                    checks.append(ok and volume == SAFE_STARTUP_VOLUME)
+        finally:
+            try:
+                session.close()
+            except Exception:
+                pass
+
+    if all(checks):
+        log.info("safe startup complete: final state verified")
+    else:
+        log.warning("safe startup complete with warnings: one or more final-state checks failed")
 
 
 def main():
