@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Hungry_1",
+  "name": "Hungry_1",
+  "source_label": "hungry",
+  "duration_s": 6.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.46,
+  "clip_s": 9.6,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head as if thinking of food and rubs its belly with one hand.",
+  "movement_description": "The robot starts by tilting its head upward and to its left while shifting its body slightly, as if daydreaming or thinking. It then brings its left hand up to its lower torso/belly area, making a gentle circular rubbing motion. Finally, it returns its hand to its side and brings its head back to the forward-facing neutral position.",
+  "communicative_functions": [
+    "self_reference",
+    "expressing_desire"
+  ],
+  "alternative_interpretations": [
+    "feeling_sick",
+    "thinking",
+    "anticipating_something"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "head",
+    "left_arm",
+    "hands",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

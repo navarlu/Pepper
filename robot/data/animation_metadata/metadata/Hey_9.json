@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Hey_9",
+  "name": "Hey_9",
+  "source_label": "hey",
+  "duration_s": 2.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.71,
+  "clip_s": 4.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right hand forward in a gentle, welcoming gesture before returning to its side.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm forward and slightly to the center, keeping its elbow bent while extending its hand with an open palm. At the same time, its head tilts slightly downward and to the right in a polite, acknowledging nod. The robot then smoothly lowers its right arm back to its side and returns its head to a neutral, forward-facing position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

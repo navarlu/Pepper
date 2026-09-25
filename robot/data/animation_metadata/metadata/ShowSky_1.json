@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_1",
+  "name": "ShowSky_1",
+  "source_label": "show_sky",
+  "duration_s": 3.13,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.63,
+  "clip_s": 7.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures upward and outward with both arms as if presenting the sky or a high ceiling.",
+  "movement_description": "The robot starts by bringing both hands inward near its stomach, then lifts its head and sweeps both arms upward and outward. Its left arm goes high and wide while its right arm is raised slightly bent near its temple, with both palms facing up and outward. After a brief pause in this expansive pose, the robot lowers its arms and head back to the neutral standing position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_enthusiasm",
+    "indicating_upward",
+    "grand_gesture",
+    "greeting"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "welcoming",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms quite high and wide; ensure there are no low-hanging objects or nearby visitors within the arm-span radius.",
+  "confidence": 0.95
+}

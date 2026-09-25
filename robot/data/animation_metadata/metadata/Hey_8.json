@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Hey_8",
+  "name": "Hey_8",
+  "source_label": "hey",
+  "duration_s": 2.14,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.64,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot executes a brief, subtle head tilt and gentle upward nod.",
+  "movement_description": "The robot begins in its neutral standing posture with arms relaxed at its sides. It performs a very slight, rapid head tilt to its right, followed by a soft, micro-nod upward before returning to the center. The arms and lower body remain completely static throughout the short animation.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "acknowledgement",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "listening_signal",
+    "subtle_emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal",
+    "casual",
+    "attentive"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

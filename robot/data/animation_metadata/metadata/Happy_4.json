@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Happy_4",
+  "name": "Happy_4",
+  "source_label": "happy",
+  "duration_s": 2.57,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.07,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot pulls both hands slightly inward and performs a brief, happy bobbing motion with its torso and head.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands slightly inward and upward toward its midsection with open, relaxed palms. It then performs a gentle, rhythmic bobbing motion of its head and upper torso, swaying slightly from side to side to convey a cheerful mood. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "affirmation",
+    "emphasis",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "agreement",
+    "satisfaction",
+    "polite_giggle"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness_or_error"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

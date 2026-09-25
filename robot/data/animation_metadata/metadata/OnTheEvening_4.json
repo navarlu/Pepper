@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Gestures/OnTheEvening_4",
+  "name": "OnTheEvening_4",
+  "source_label": "on_the_evening",
+  "duration_s": 2.7,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.2,
+  "clip_s": 5.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts and opens both hands outward in a welcoming, inclusive gesture.",
+  "movement_description": "The robot starts in a neutral posture and raises both hands up to chest height, bringing them close together with palms facing downward. It then smoothly spreads both arms outward and downward, opening its hands wide with palms facing slightly upward and forward. Finally, the robot returns both arms to its sides, settling back into its neutral rest posture.",
+  "communicative_functions": [
+    "greeting",
+    "welcoming",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "presenting_options",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "open",
+    "polite",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "sadness",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms outward at chest height. Ensure there are no obstacles or people within a one-meter radius of the upper body.",
+  "confidence": 0.95
+}

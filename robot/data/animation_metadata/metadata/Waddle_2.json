@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Waiting/Waddle_2",
+  "name": "Waddle_2",
+  "source_label": "waddle",
+  "duration_s": 8.77,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.27,
+  "clip_s": 11.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places both hands on its hips with elbows out and slightly shifts its body in a waiting stance.",
+  "movement_description": "The robot lifts both arms symmetrically, bending its elbows outward to rest its hands on its hips in a proud or waiting posture. While holding this hands-on-hips pose, its head and torso gently shift side to side, mimicking a patient but slightly expectant waddle. Finally, the robot lowers both arms back down to its sides, returning to the neutral upright rest position.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "expressing_confidence",
+    "waiting",
+    "attention_getting"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "serious",
+    "confident"
+  ],
+  "body_parts": [
+    "both_arms",
+    "torso",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "answering",
+    "apology",
+    "explaining",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot elbows extend outwards significantly during the hands-on-hips pose; keep clear of obstacles immediately to its left and right sides.",
+  "confidence": 0.95
+}

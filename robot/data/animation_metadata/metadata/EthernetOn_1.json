@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/EthernetOn_1",
+  "name": "EthernetOn_1",
+  "source_label": "ethernet_on",
+  "duration_s": 6.22,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.72,
+  "clip_s": 8.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its left hand to tap or scratch its head in a gesture of sudden realization or confusion.",
+  "movement_description": "Starting from a neutral posture, the robot lifts its left arm and bends its elbow to bring its left hand up to its temple, tapping its head gently twice. During this motion, its head tilts slightly to its right and its gaze shifts upward, mimicking a thoughtful or startled look. Finally, the robot lowers its arm back to its side and returns its head to the upright, forward-facing neutral posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "sudden_realization",
+    "confusion",
+    "embarrassment",
+    "forgetfulness"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

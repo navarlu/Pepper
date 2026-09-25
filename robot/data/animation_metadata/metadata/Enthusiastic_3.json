@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Enthusiastic_3",
+  "name": "Enthusiastic_3",
+  "source_label": "enthusiastic",
+  "duration_s": 2.68,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.18,
+  "clip_s": 5.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand in an enthusiastic, loose-fisted gesture to emphasize a point.",
+  "movement_description": "The robot starts from a neutral posture and raises its left arm, bringing the hand up towards the chest area in a loose, semi-closed fist while slightly tilting its head to the right. It holds this pose briefly to provide emphasis, then lowers the arm and returns its head to center. The motion concludes with the robot settling back into its fully upright neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "celebration",
+    "determination",
+    "encouragement"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "calming"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

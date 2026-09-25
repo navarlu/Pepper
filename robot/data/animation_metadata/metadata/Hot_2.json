@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Hot_2",
+  "name": "Hot_2",
+  "source_label": "hot",
+  "duration_s": 2.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.42,
+  "clip_s": 8.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot leans forward and tucks its head down as if shielding itself from intense heat.",
+  "movement_description": "The robot starts by slightly tilting its head to its left. It then quickly bends its torso forward and down while dropping its head and bringing both arms closer to its body in a protective, shrinking posture. After holding this low, shielded position for a couple of seconds, it smoothly rolls its head back up and returns its torso and arms to the neutral standing pose.",
+  "communicative_functions": [
+    "expressing_vulnerability",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "shame_or_embarrassment",
+    "feeling_hot",
+    "exhaustion",
+    "sadness"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "apologetic",
+    "dramatic"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "both_arms"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "explaining",
+    "serious_policy_answer",
+    "handover_to_human"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot leans significantly forward, reducing its vertical height briefly, but its arms remain close to its torso, making it safe for close-proximity interactions.",
+  "confidence": 0.95
+}

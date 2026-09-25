@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/Binoculars_1",
+  "name": "Binoculars_1",
+  "source_label": "binoculars",
+  "duration_s": 8.52,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.02,
+  "clip_s": 11.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics looking through a pair of binoculars using its hands.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly raises both arms to its head, shaping its fingers into loose rings in front of its eyes to mimic holding a pair of binoculars. It tilts its head slightly downward and remains in this looking posture for several seconds, holding the pose. Finally, it lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "seeking_information"
+  ],
+  "alternative_interpretations": [
+    "expressing_curiosity",
+    "searching_for_something",
+    "mimicking_a_superhero_mask"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot raises both elbows outwards and upwards, requiring clear lateral and forward clearance around the head and shoulders.",
+  "confidence": 0.95
+}

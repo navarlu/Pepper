@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_5",
+  "name": "Explain_5",
+  "source_label": "explain",
+  "duration_s": 2.4,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.9,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures forward and upward with its left hand to explain a point.",
+  "movement_description": "The robot starts from a neutral standing pose. It raises its left arm forward and outward with an open, upward-facing hand, while its head slightly tilts to follow the hand's direction. After briefly holding this open gesture to emphasize an explanation, the arm and head smoothly return to the neutral starting posture.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "welcoming",
+    "offering"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

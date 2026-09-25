@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Take_1",
+  "name": "Take_1",
+  "source_label": "take",
+  "duration_s": 2.37,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.87,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm outward to the side with an open hand, then draws it back to a centered resting position.",
+  "movement_description": "The robot begins in a neutral pose and sweeps its right arm outward and slightly upward to its right, turning its head to look in the direction of the hand. The palm is open and facing forward as if presenting or gesturing toward something. It then slowly brings the hand back inward, positioning the right arm slightly forward with an open palm near the chest, before fully returning to the neutral resting pose.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "offering",
+    "showing_direction"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "explaining",
+    "answering",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "thinking",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps outward to the side, so ensure there are no obstacles or people directly to the robot's right side within arm's reach.",
+  "confidence": 0.95
+}

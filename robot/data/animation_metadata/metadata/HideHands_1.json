@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Waiting/HideHands_1",
+  "name": "HideHands_1",
+  "source_label": "hide_hands",
+  "duration_s": 12.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 12.73,
+  "clip_s": 15.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot rests its left hand on its hip and sweeps its right hand forward as if offering a casual explanation.",
+  "movement_description": "The robot begins by placing its left hand on its hip in a relaxed, asymmetrical posture. It then turns its head to its right, sweeps its right arm outward and forward with an open palm gesture, and briefly looks toward the hand. Finally, it brings both arms back down to its sides and returns its head to a forward-facing neutral position.",
+  "communicative_functions": [
+    "explaining",
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "informal_greeting",
+    "welcoming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "informal",
+    "friendly",
+    "relaxed",
+    "confident"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends forward and slightly to the side; ensure a clear envelope of about 50cm in front of the robot.",
+  "confidence": 0.9
+}

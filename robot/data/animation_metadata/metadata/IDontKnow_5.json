@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/IDontKnow_5",
+  "name": "IDontKnow_5",
+  "source_label": "i_dont_know",
+  "duration_s": 2.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.71,
+  "clip_s": 5.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrugs its shoulders and opens its hands to express uncertainty or that it does not know.",
+  "movement_description": "The robot starts from a neutral posture and raises both hands toward the center of its chest with its palms turned slightly upward. It then moves both hands outward and slightly upward in a gentle shrugging motion while tilting its head slightly. Finally, it lowers its arms and returns to the initial neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "calming",
+    "helplessness"
+  ],
+  "social_tone": [
+    "friendly",
+    "apologetic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

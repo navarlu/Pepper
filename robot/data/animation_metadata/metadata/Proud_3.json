@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Proud_3",
+  "name": "Proud_3",
+  "source_label": "proud",
+  "duration_s": 5.9,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.4,
+  "clip_s": 8.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot proudly crosses its arms high on its chest and tilts its head up, showing off achievement or self-confidence.",
+  "movement_description": "The robot raises both arms from its sides, bringing its forearms together to cross them high over its tablet. It tilts its head slightly upward and holds this proud, triumphant posture for a few seconds. Finally, it uncrosses its arms, lowers them back to its sides, and returns its head to a neutral, forward-facing position.",
+  "communicative_functions": [
+    "self_reference",
+    "emphasis",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "defensiveness",
+    "thinking",
+    "resoluteness",
+    "stubbornness"
+  ],
+  "social_tone": [
+    "informal",
+    "enthusiastic",
+    "playful",
+    "formal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "uncertainty",
+    "serious_policy_answer",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot crosses its arms close to its own chest, keeping the range of motion compact and safe for close interactions.",
+  "confidence": 0.95
+}

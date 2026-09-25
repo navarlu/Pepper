@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Reactions/ShakeBody_3",
+  "name": "ShakeBody_3",
+  "source_label": "shake_body",
+  "duration_s": 4.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.46,
+  "clip_s": 7.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shivers slightly and pulls its elbows outward as if surprised or startled.",
+  "movement_description": "The robot starts in a neutral posture and then suddenly pulls both elbows outward away from its torso while tensing its hands. Simultaneously, it tilts its head slightly downward and forward in a quick, shiver-like reaction. It then relaxes its arms and head back into the neutral standing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "shuddering",
+    "being_startled",
+    "expressing_dislike"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "welcoming"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

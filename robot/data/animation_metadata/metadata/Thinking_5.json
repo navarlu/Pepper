@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_5",
+  "name": "Thinking_5",
+  "source_label": "thinking",
+  "duration_s": 2.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.0,
+  "clip_s": 5.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right arm out to the side and rests its hand on its hip in a thinking posture.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm outward, bending at the elbow. It then places its right hand on its hip, tilting its head slightly downward as if reflecting or processing. After holding this pose for a moment, it smoothly brings the arm back down to its side to return to the neutral posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "casual_waiting",
+    "skeptical_listening",
+    "impatience"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "thoughtful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "outward_and_downward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "formal_announcement",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

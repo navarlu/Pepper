@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Stretch_1",
+  "name": "Stretch_1",
+  "source_label": "stretch",
+  "duration_s": 6.12,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.62,
+  "clip_s": 10.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot arches its body and stretches its right arm high and to the side as if waking up or stretching.",
+  "movement_description": "The robot starts by bringing its right hand in front of its chest, then sweeps it upward and far out to the right side in a grand stretching motion. At the same time, its torso tilts slightly back and left, and its head tilts to the side to accentuate the stretch while the left arm hangs slightly outward. After holding this fully extended pose for a few seconds, it smoothly lowers both arms and returns to a centered, neutral standing posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "pointing_far_away",
+    "expressing_freedom",
+    "waking_up"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "enthusiastic",
+    "relaxed"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm sweeps wide to its right side; ensure sufficient lateral clearance to prevent hitting nearby walls or objects.",
+  "confidence": 0.95
+}

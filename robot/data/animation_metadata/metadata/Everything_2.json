@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/Everything_2",
+  "name": "Everything_2",
+  "source_label": "everything",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 4.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its left arm outward with an open palm to gesturally present or include everything.",
+  "movement_description": "The robot starts from a neutral posture and raises its left hand inward toward its chest before sweeping it outward to the left side with an open, upward-facing palm. The torso and head track the left arm slightly to emphasize the outward movement. Finally, the left arm smoothly returns to its side, restoring the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "explaining",
+    "pointing",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "listener_reference",
+    "welcoming",
+    "offering_choices"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "informative"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the side, so clear lateral space is required.",
+  "confidence": 0.95
+}

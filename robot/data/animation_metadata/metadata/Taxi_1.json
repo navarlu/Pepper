@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/Taxi_1",
+  "name": "Taxi_1",
+  "source_label": "taxi",
+  "duration_s": 4.68,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.18,
+  "clip_s": 7.63,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics hailing a taxi with its left hand while turning its head slightly to the side.",
+  "movement_description": "The robot starts by lifting its left arm forward and then raising it high and wide to the side with an open hand, imitating the gesture of hailing a taxi. During this movement, the head tilts and turns slightly to the left to look towards the raised hand. After holding the pose briefly, the robot smoothly lowers its arm and returns its head and body back to the central neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "waving_hello",
+    "farewell",
+    "pointing_upward_and_outward"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "waiting",
+    "session_end"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm swings high and outward to the left side of the robot; ensure adequate clearance on the robot's left.",
+  "confidence": 0.95
+}

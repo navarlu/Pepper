@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/OnTheEvening_3",
+  "name": "OnTheEvening_3",
+  "source_label": "on_the_evening",
+  "duration_s": 3.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.54,
+  "clip_s": 6.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures toward its midsection with its right hand before returning to a neutral stance.",
+  "movement_description": "The robot starts in a neutral posture. It then brings its right hand up and inward toward its lower torso, holding it briefly in a gentle curved pose while the left hand remains mostly neutral. Finally, the right arm smoothly lowers back down, returning the robot to its fully symmetrical neutral stance.",
+  "communicative_functions": [
+    "self_reference",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "pointing_to_tablet",
+    "expressing_satisfaction",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "polite",
+    "calm"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

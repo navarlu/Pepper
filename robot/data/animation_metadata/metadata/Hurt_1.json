@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Hurt_1",
+  "name": "Hurt_1",
+  "source_label": "hurt",
+  "duration_s": 2.4,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.9,
+  "clip_s": 6.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its left hand to its head as if experiencing a headache or recalling a mistake, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture and raises its left hand up to its left temple while tilting its head slightly downward and to the right. It holds this pose for a few seconds, touching its head as if in pain or distress. Finally, it lowers its arm and returns its head to the upright, center position to restore the neutral posture.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "forgetting",
+    "feeling_embarrassed",
+    "thinking_hard",
+    "realizing_a_mistake"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

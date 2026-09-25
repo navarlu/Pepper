@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_2",
+  "name": "BodyTalk_2",
+  "source_label": "body_talk",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 5.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens both arms outward with palms up, then returns them to its sides.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms upward and outward. It extends its forearms with palms facing upward in a welcoming, open gesture while slightly tilting its head to the left. Finally, it smoothly retracts both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "welcoming",
+    "expressing_openness"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "offering_assistance",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms sweep outwards to the sides; ensure a clear lateral clearance of about 50 cm on both sides of the robot.",
+  "confidence": 0.95
+}

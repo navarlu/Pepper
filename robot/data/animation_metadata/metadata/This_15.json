@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Gestures/This_15",
+  "name": "This_15",
+  "source_label": "this",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 4.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand slightly forward with an open palm to point out or present something.",
+  "movement_description": "The robot starts from its neutral rest posture. It raises its left arm forward and slightly to the left side, rotating its wrist so that the hand opens palm-upward. It holds this slight presenting gesture for a brief moment before smoothly lowering the arm back to the neutral starting position.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

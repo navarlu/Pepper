@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Hesitation_1",
+  "name": "Hesitation_1",
+  "source_label": "hesitation",
+  "duration_s": 9.42,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.92,
+  "clip_s": 12.4,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks around hesitantly, slightly raising its right hand as if unsure of what to do next.",
+  "movement_description": "The robot begins by tilting and turning its head to its right, while subtly lifting its right arm with a loose hand. It then shifts its gaze and turns its head to the left, momentarily pointing its right index finger forward before relaxing its hand into a soft fist. Finally, the robot turns its head back to the center and lowers its right arm, returning to a fully neutral resting posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "searching_for_someone",
+    "distraction"
+  ],
+  "social_tone": [
+    "informal",
+    "serious",
+    "empathetic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "farewell",
+    "enthusiastic_welcome"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The movement is small, slow, and kept close to the torso, posing no safety concerns.",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/ComeOn_1",
+  "name": "ComeOn_1",
+  "source_label": "come_on",
+  "duration_s": 5.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.84,
+  "clip_s": 8.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm and makes a welcoming beckoning gesture while resting its left hand on its hip.",
+  "movement_description": "The robot raises its right arm forward with an open palm facing up, while simultaneously placing its left hand on its hip. It gently tilts its open right hand upward and backward in a beckoning 'come here' motion, accompanied by a subtle forward tilt of the head. Finally, it smoothly retracts both arms and returns to a neutral standing posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "invitation",
+    "pointing"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "session_start",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm directly forward, requiring clear space in front of its torso.",
+  "confidence": 0.95
+}

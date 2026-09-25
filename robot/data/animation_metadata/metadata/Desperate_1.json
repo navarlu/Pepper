@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Desperate_1",
+  "name": "Desperate_1",
+  "source_label": "desperate",
+  "duration_s": 2.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.01,
+  "clip_s": 5.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly raises its right hand to chest height and extends its left hand outward in a pleading, desperate gesture.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm to chest height, curving its hand inward, while simultaneously extending its left arm outward with an open, downward-facing palm. Its head tilts slightly during this brief asymmetric pose, conveying a sense of pleading or desperation. It then smoothly lowers both arms back to its sides and returns to a neutral, forward-facing posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing",
+    "pleading"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "shrugging",
+    "defensiveness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "formal_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

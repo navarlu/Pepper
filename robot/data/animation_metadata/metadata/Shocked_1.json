@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Shocked_1",
+  "name": "Shocked_1",
+  "source_label": "shocked",
+  "duration_s": 4.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.94,
+  "clip_s": 7.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrinks back slightly and pulls both hands in toward its waist in a sudden, shocked gesture.",
+  "movement_description": "The robot starts in a neutral posture and suddenly draws its hands in toward the center of its waist, keeping its elbows tucked close to its sides. At the same time, its head tilts slightly down and forward, mimicking a defensive or startled recoil. After a brief freeze in this contracted position, the robot slowly lowers both arms and raises its head back to the neutral starting pose.",
+  "communicative_functions": [
+    "negation",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "feeling_intimidated",
+    "defensiveness",
+    "protecting_personal_space"
+  ],
+  "social_tone": [
+    "apologetic",
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The movement is fast but very compact and kept close to the torso, posing no collision risk.",
+  "confidence": 0.95
+}

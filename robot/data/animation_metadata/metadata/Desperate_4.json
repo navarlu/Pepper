@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Desperate_4",
+  "name": "Desperate_4",
+  "source_label": "desperate",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 4.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot quickly flares its elbows and arms outward in a brief gesture of desperation or helplessness.",
+  "movement_description": "The robot starts in a neutral posture and quickly lifts both elbows outward and upward, extending its forearms and turning its hands slightly out to the sides. This outward flared position is held briefly to express exasperation or desperation. The robot then smoothly lowers both arms back down to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing",
+    "expressing_helplessness"
+  ],
+  "alternative_interpretations": [
+    "shrugging",
+    "indicating_ignorance",
+    "showing_surprise"
+  ],
+  "social_tone": [
+    "informal",
+    "apologetic",
+    "expressive"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "formal_policy_answer",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

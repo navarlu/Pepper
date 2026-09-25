@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/Wings_4",
+  "name": "Wings_4",
+  "source_label": "wings",
+  "duration_s": 3.56,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.05,
+  "clip_s": 7.0,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot arches its body slightly and extends both arms wide to the sides, mimicking spreading wings.",
+  "movement_description": "Starting from neutral, the robot brings its hands together in front of its stomach before spreading both arms outward and slightly back in a wide, sweeping wing-like gesture. While extending its arms, it tilts its head back slightly to look upward, holding this open posture briefly. It then smoothly returns its head to level and lowers both arms back to its sides to end in the neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_broad_scope",
+    "expressing_freedom",
+    "enthusiasm"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms fully to the sides, requiring lateral clearance to avoid colliding with nearby people or objects.",
+  "confidence": 0.95
+}

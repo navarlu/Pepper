@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Yes_2",
+  "name": "Yes_2",
+  "source_label": "yes",
+  "duration_s": 1.26,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.76,
+  "clip_s": 4.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot nods its head once to show agreement or affirmation.",
+  "movement_description": "Starting from a neutral posture, the robot performs a single, clear downward nod of its head. The head tilts down and then smoothly returns to its level, forward-facing neutral position. The arms, torso, and base remain completely still throughout the gesture.",
+  "communicative_functions": [
+    "affirmation",
+    "agreement",
+    "acknowledgment"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "listening_feedback"
+  ],
+  "social_tone": [
+    "friendly",
+    "polite",
+    "welcoming",
+    "attentive"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "visitor_approach",
+    "clarification_request",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "negation",
+    "apology",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

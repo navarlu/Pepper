@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Waiting/PlayHands_3",
+  "name": "PlayHands_3",
+  "source_label": "play_hands",
+  "duration_s": 9.42,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.92,
+  "clip_s": 12.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands to chest level, playfully tapping and rolling them together before returning to a neutral pose.",
+  "movement_description": "The robot lifts both arms from its sides, bringing its hands together in front of its chest screen. It tilts its head slightly downward and rotates its hands around one another, tapping its fingers together in a playful, fidgeting, or 'playing' motion. After a few seconds of this hand-play, it lowers both arms back to its sides and returns its head to a neutral, forward-facing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "fidgeting_nervously",
+    "thinking",
+    "scheming_or_plotting",
+    "anticipation",
+    "explaining_details"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly",
+    "shy"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

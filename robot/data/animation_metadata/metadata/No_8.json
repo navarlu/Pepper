@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/No_8",
+  "name": "No_8",
+  "source_label": "no",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 4.97,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot performs a quick and subtle double-negative shake of its forearms and hands, indicating disagreement or refusal.",
+  "movement_description": "Starting from a neutral rest pose, the robot slightly draws both elbows back and brings its forearms inward toward the center, turning its palms somewhat downward with fingers loosely spread. It then executes a rapid, subtle side-to-side shaking motion of both hands and forearms, accompanied by a tiny, almost imperceptible head tilt. After this quick negation gesture, the arms and hands smoothly return to the relaxed neutral hanging posture.",
+  "communicative_functions": [
+    "negation",
+    "disagreement",
+    "refusal"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "apologizing",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "polite",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "clarification_request",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "greeting",
+    "affirmation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arm movement is very compact and remains close to its torso, making it exceptionally safe for tight reception desk spaces.",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/Relaxation_4",
+  "name": "Relaxation_4",
+  "source_label": "relaxation",
+  "duration_s": 7.26,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.76,
+  "clip_s": 9.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks down and to the side, shifting its posture slightly before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and slowly lowers its head, looking down and to its left. At the same time, it slightly bends both arms and brings its hands closer together in front of its waist. It holds this relaxed, contemplative position briefly before slowly raising its head back to center and lowering its arms back to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "waiting",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "sadness",
+    "shyness"
+  ],
+  "social_tone": [
+    "informal",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "emphasis",
+    "enthusiastic_response"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

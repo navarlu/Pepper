@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Waiting/Innocent_1",
+  "name": "Waiting_Innocent_1",
+  "source_label": "innocent",
+  "duration_s": 6.54,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.04,
+  "clip_s": 9.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrugs and opens its arms slightly with a head tilt, as if acting innocent or harmless.",
+  "movement_description": "The robot starts from its neutral rest posture, then smoothly raises and opens both arms outward to its sides with palms turned upward, while tilting its head slightly to the left. It holds this open, questioning posture for a second before gently returning both arms and its head back to the neutral, starting position. The entire motion is fluid, soft, and symmetrical.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "shrugging",
+    "not_knowing",
+    "showing_empty_hands",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend outward laterally, so ensure a clear lateral clearance of approximately 0.5 meters on both sides of the robot.",
+  "confidence": 0.95
+}

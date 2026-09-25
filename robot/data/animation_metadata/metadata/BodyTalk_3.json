@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_3",
+  "name": "BodyTalk_3",
+  "source_label": "body_talk",
+  "duration_s": 1.67,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.17,
+  "clip_s": 5.0,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand to chest height and briefly extends its left arm to gesturedly explain something.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm, bending at the elbow to bring the hand to chest level with an open palm facing upward and slightly inward. Immediately after, it extends its left hand slightly forward and outward in a small mirroring gesture, while slightly tilting its head to the right. Both arms then smoothly descend and return to the sides, resolving back into the neutral rest pose.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "welcoming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "conversational",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

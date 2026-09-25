@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Enthusiastic_4",
+  "name": "Enthusiastic_4",
+  "source_label": "enthusiastic",
+  "duration_s": 1.78,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.28,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its left hand near its chest with a gentle nod to emphasize a point or express sudden understanding.",
+  "movement_description": "The robot starts from a neutral standing posture, then raises its left hand up toward its chest area with the fingers slightly curled, while simultaneously tilting its head slightly to the left and nodding. The right arm remains lowered but flexes slightly in place. Finally, the robot lowers its left hand and straightens its head, smoothly returning to its neutral resting posture.",
+  "communicative_functions": [
+    "emphasis",
+    "affirmation",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_sudden_idea",
+    "agreement",
+    "explaining"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "conversational",
+    "engaging"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

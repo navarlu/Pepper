@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/Me_1",
+  "name": "Me_1",
+  "source_label": "me",
+  "duration_s": 2.02,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.52,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures toward itself by bringing its left hand to its chest to indicate 'me'.",
+  "movement_description": "The robot starts from a neutral standing posture and raises its left arm outward, opening its hand. It then sweeps the left arm inward, bringing the hand close to the center of its chest, specifically pointing toward its tablet, to indicate self-reference. Finally, the left arm lowers back down to its side, returning the robot to its neutral rest posture.",
+  "communicative_functions": [
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "affirmation",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "serious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "farewell",
+    "apology",
+    "visitor_approach"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

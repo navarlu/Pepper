@@ -1,0 +1,52 @@
+{
+  "action_id": "animations/Stand/Waiting/Helicopter_1",
+  "name": "Helicopter_1",
+  "source_label": "helicopter",
+  "duration_s": 17.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 17.54,
+  "clip_s": 19.77,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks up and to its left with one hand raised, then looks up and to its right with the other hand raised, as if observing something overhead.",
+  "movement_description": "The robot begins by tilting its head up and to the left while raising its left arm slightly bent with a loose hand towards its chest. After holding this posture briefly, it returns to the center before tilting its head up and to the right while raising its right arm in a similar fashion. Finally, it lowers both arms back to its sides and brings its head back to the level, forward-facing neutral position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

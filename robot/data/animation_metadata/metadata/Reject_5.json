@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_5",
+  "name": "Reject_5",
+  "source_label": "reject",
+  "duration_s": 1.93,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.43,
+  "clip_s": 5.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts both hands slightly and then sweeps its right arm downward and outward in a clear rejecting or dismissive gesture.",
+  "movement_description": "The robot starts in a neutral posture and briefly raises both hands toward its chest. It then sweeps its right arm downward and out to the side in a sharp, defensive brushing motion while rotating its torso slightly to the left. Finally, it pulls its arms back inward and returns smoothly to the default neutral standing pose.",
+  "communicative_functions": [
+    "negation",
+    "rejection",
+    "disagreement",
+    "dismissal"
+  ],
+  "alternative_interpretations": [
+    "brushing_off",
+    "declining_an_offer",
+    "expressing_dislike"
+  ],
+  "social_tone": [
+    "serious",
+    "assertive",
+    "dismissive"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "outward_and_downward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "welcoming",
+    "apology",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

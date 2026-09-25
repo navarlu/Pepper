@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_3",
+  "name": "ShowSky_3",
+  "source_label": "show_sky",
+  "duration_s": 1.68,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.18,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its left arm to point upward and outward with an open hand, then returns to its neutral pose.",
+  "movement_description": "The robot starts in a neutral posture and raises its left arm sideways and upward in a smooth arc. As the arm reaches its highest point, the hand is fully opened with the palm facing forward and upward, pointing toward the upper-right space. After a brief pause at the peak of the gesture, the robot gently lowers the left arm back to its side, returning to the neutral starting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "farewell",
+    "explaining"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the side; ensure there are no obstacles close to the robot's left side.",
+  "confidence": 0.95
+}

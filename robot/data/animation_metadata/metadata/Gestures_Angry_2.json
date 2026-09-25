@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Angry_2",
+  "name": "Gestures_Angry_2",
+  "source_label": "angry",
+  "duration_s": 2.81,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.31,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly pulls its elbows back, tenses its posture, and turns its head sideways with a subtle tilt.",
+  "movement_description": "The robot starts from a neutral posture, then pulls both of its elbows slightly backward and inward, creating a tensed torso alignment. Simultaneously, it turns its head to its left side with a subtle downward tilt, holding this rigid posture momentarily. Finally, it relaxes its arms and returns its head to the forward-facing neutral position.",
+  "communicative_functions": [
+    "negation",
+    "defensiveness"
+  ],
+  "alternative_interpretations": [
+    "disagreement",
+    "shyness",
+    "huffing",
+    "turning_away"
+  ],
+  "social_tone": [
+    "serious",
+    "informal",
+    "dramatic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "welcoming",
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

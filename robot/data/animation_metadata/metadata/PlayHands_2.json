@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Waiting/PlayHands_2",
+  "name": "PlayHands_2",
+  "source_label": "play_hands",
+  "duration_s": 7.2,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.7,
+  "clip_s": 10.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts both hands close to its face, miming playing with or examining its hands before returning to rest.",
+  "movement_description": "The robot begins by raising both arms outward and upward, then brings its hands close together directly in front of its face. It tilts its head down slightly to look at its fingers, turning and flexing its hands as if playing with them or examining them. Finally, it raises its left arm slightly higher before lowering both arms back to its sides and returning its head to the forward-facing neutral posture.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "feeling_shy",
+    "checking_hands"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "curious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "explaining",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot brings its hands close to its head and face cameras; ensure there are no external obstacles or people standing within the immediate arm sweep radius.",
+  "confidence": 0.95
+}

@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Hysterical_1",
+  "name": "Hysterical_1",
+  "source_label": "hysterical",
+  "duration_s": 2.64,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.14,
+  "clip_s": 5.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot giggles playfully while jerking its shoulders and pulling its left hand to its chest.",
+  "movement_description": "Starting from a neutral posture, the robot quickly jerks both shoulders and brings its left hand up toward its chest in a clenched fist gesture. At the same time, it tilts its head slightly back and to the side, mimicking a sudden chuckle or gasp. It then smoothly lowers its left arm and head back to the original neutral resting position.",
+  "communicative_functions": [
+    "expressing_giggle",
+    "amusement",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "gasping_in_surprise",
+    "sudden_fright",
+    "feeling_chilly"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "cheerful",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "answering",
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

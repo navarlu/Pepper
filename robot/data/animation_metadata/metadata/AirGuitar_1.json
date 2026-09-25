@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/AirGuitar_1",
+  "name": "AirGuitar_1",
+  "source_label": "air_guitar",
+  "duration_s": 16.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 17.36,
+  "clip_s": 20.23,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot plays a brief, playful air guitar solo, tilting its head and swaying its body.",
+  "movement_description": "Starting from neutral, the robot lifts both arms, positioning its left hand as if holding a guitar neck and its right hand as if strumming. It sways its torso side-to-side and tilts its head dynamically, mimicking a rock performance while rapidly moving its right hand in a strumming gesture. Finally, it raises its left arm slightly in a mini-crescendo before lowering both arms back to its sides and returning its head to the neutral forward-facing posture.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "dancing",
+    "celebration",
+    "joyful_excitement"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "informal",
+    "energetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "answering",
+    "explaining",
+    "apology",
+    "serious_policy_answer",
+    "session_start",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot performs rapid, asymmetric arm movements and side-to-side torso swaying; ensure a clear lateral clearance radius of at least 1 meter to avoid colliding with nearby objects or visitors.",
+  "confidence": 0.95
+}

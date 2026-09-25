@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Gestures/Please_2",
+  "name": "Please_2",
+  "source_label": "please",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands up close to its chest with palms up, gently offering or presenting something.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts both arms, keeping its elbows bent and drawing its hands inward and up in front of its chest. It rotates its wrists so that the open palms are facing upward in a classic 'please' or offering gesture, while slightly tilting its head forward. The robot holds this posture briefly before lowering its arms back down to its sides to return to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing",
+    "explaining",
+    "welcoming"
+  ],
+  "alternative_interpretations": [
+    "showing_tablet",
+    "offering",
+    "asking_for_input",
+    "shrugging",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "polite"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "session_start",
+    "answering",
+    "explaining",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_4",
+  "name": "Thinking_4",
+  "source_label": "thinking",
+  "duration_s": 1.67,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.17,
+  "clip_s": 4.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left arm slightly and gestures with a gently curled, pulsing hand, as if contemplating or explaining a subtle point.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its left arm and rotates its hand inward, bringing it near the chest. The left fingers curl slightly in a loose, thoughtful grip, pulsing momentarily as the head tilts down marginally. The robot then gently lowers the left arm back down to its side, returning fully to the neutral rest position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "pondering",
+    "hesitation"
+  ],
+  "social_tone": [
+    "thoughtful",
+    "serious",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "enthusiastic_welcome"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

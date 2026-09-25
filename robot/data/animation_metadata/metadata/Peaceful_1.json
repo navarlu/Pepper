@@ -1,0 +1,63 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Peaceful_1",
+  "name": "Peaceful_1",
+  "source_label": "peaceful",
+  "duration_s": 3.6,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.1,
+  "clip_s": 6.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently brings its hands together in front of its waist and slightly bows its head to project a peaceful, polite presence.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly brings both hands inward and downward to meet in front of its lower torso, turning its palms slightly upward. Simultaneously, it bows its head forward and slightly tilts it downward, maintaining a steady, calm posture. After a brief pause in this respectful position, it slowly returns its head and arms back to the default neutral standing pose.",
+  "communicative_functions": [
+    "greeting",
+    "calming",
+    "apologizing",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "polite_bow",
+    "showing_respect",
+    "listening_attentively",
+    "expressing_gratitude"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "apologetic",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "apology",
+    "waiting",
+    "session_end"
+  ],
+  "avoid_contexts": [
+    "enthusiastic_greeting",
+    "giving_directions"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

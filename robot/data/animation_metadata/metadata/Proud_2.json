@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Proud_2",
+  "name": "Proud_2",
+  "source_label": "proud",
+  "duration_s": 5.88,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.38,
+  "clip_s": 8.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its left hand on its hip and tilts its head back proudly.",
+  "movement_description": "The robot begins in a neutral posture and raises its left arm, placing its left hand onto its hip while slightly tilting its torso back. Simultaneously, it turns its head upward and to the left in a proud, confident stance, holding this pose for a few seconds. Finally, it smoothly lowers its arm and returns its head and torso to the forward-facing neutral starting position.",
+  "communicative_functions": [
+    "emphasis",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_confidence",
+    "showing_off",
+    "defiant",
+    "playful_boasting"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

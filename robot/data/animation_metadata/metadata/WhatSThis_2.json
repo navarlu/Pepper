@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_2",
+  "name": "WhatSThis_2",
+  "source_label": "what_s_this",
+  "duration_s": 1.79,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.29,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand outward with an open palm while tilting its head slightly, as if presenting or questioning an object.",
+  "movement_description": "The robot starts from its neutral standing posture. It slowly raises its left arm, opening the hand with palm facing upward and outward, while tilting its head slightly to the right to look toward the hand. After a brief pause in this open gesture, it smoothly returns its arm and head to the neutral starting position.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_option",
+    "asking_question",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm outward. Ensure there are no obstacles close to its left side.",
+  "confidence": 0.95
+}

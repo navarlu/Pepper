@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/SpaceShuttle_1",
+  "name": "SpaceShuttle_1",
+  "source_label": "space_shuttle",
+  "duration_s": 16.37,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 16.87,
+  "clip_s": 18.4,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot arches its head down slightly, then broadly opens its arms wide to the sides, mimicking a shuttle or airplane in flight.",
+  "movement_description": "The robot starts by bowing its head downward while drawing its hands slightly inward toward its chest. It then lifts its head back up while sweeping both arms fully outward and upward to the sides, forming a straight horizontal line to resemble wings. After holding this wide, outstretched pose for a couple of seconds, it smoothly lowers both arms and returns to its default neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_bigness",
+    "mimicking_flying"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires a clear lateral clearance as both arms extend fully to the sides to their maximum reach.",
+  "confidence": 0.95
+}

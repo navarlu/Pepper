@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Surprise_3",
+  "name": "Surprise_3",
+  "source_label": "surprise",
+  "duration_s": 2.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.71,
+  "clip_s": 5.53,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot reacts with sudden, subtle surprise by pulling its head back and opening both arms slightly outward.",
+  "movement_description": "The robot starts in a neutral posture and suddenly tilts its head slightly backward and upward while opening both arms outward away from its body, with fingers spread. This posture of mild shock or surprise is held briefly for about two seconds. Finally, the robot slowly lowers its arms and returns its head to the forward-facing neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "shrugging",
+    "welcoming",
+    "asking_for_clarification"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

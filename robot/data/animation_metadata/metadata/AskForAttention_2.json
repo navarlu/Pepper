@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/AskForAttention_2",
+  "name": "AskForAttention_2",
+  "source_label": "ask_for_attention",
+  "duration_s": 4.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.01,
+  "clip_s": 7.63,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand and waves briefly to get the visitor's attention.",
+  "movement_description": "Starting from a neutral rest pose, the robot lifts its right arm up and outward to the side, slightly tilting its head to the left to watch its hand. It performs a brief, rapid waving motion with its right hand and wrist, then lowers the arm back down. The robot returns its head and arm to the centered neutral posture as the movement completes.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "farewell",
+    "friendly_wave"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "session_start",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm sweeps outward to its side, so ensure a clear path of approximately 0.5 meters to the right side of the robot.",
+  "confidence": 0.95
+}

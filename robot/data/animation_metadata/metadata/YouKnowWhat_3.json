@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_3",
+  "name": "YouKnowWhat_3",
+  "source_label": "you_know_what",
+  "duration_s": 2.03,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.53,
+  "clip_s": 5.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places both hands on its hips in a cheeky or questioning posture before returning to neutral.",
+  "movement_description": "The robot starts from a neutral standing position and raises both arms symmetrically, bending at the elbows to bring its hands to its hips. It holds this pose for about two seconds with its hands turned outward and slightly open. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "defensiveness",
+    "playful_scolding",
+    "proud_stance",
+    "waiting_for_response"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "casual"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

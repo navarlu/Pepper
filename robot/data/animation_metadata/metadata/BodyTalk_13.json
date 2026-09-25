@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_13",
+  "name": "BodyTalk_13",
+  "source_label": "body_talk",
+  "duration_s": 2.08,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.58,
+  "clip_s": 6.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to touch its forehead in a salute-like or thinking gesture, then lowers it.",
+  "movement_description": "Starting from a neutral rest position, the robot lifts its right arm while turning the palm inward, bringing the hand up to touch or gesture near its forehead. It holds this pose briefly with a slight head tilt before sweeping the right hand outward and bringing the arm back down to its side, returning to the neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "self_reference",
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "salute",
+    "thinking",
+    "forgetting_something",
+    "headache_or_worry"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "thoughtful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "thinking",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "formal_greetings",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

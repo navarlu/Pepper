@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Look_1",
+  "name": "Look_1",
+  "source_label": "look",
+  "duration_s": 4.27,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.77,
+  "clip_s": 7.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head upward and to the side while slightly lifting its hands, as if looking up at something or thinking.",
+  "movement_description": "From a neutral standing posture, the robot slowly tilts its head upward and slightly to its right while raising its forearms and drawing its hands inward in a subtle shrug-like posture. It holds this upward-looking pose for a moment, and then smoothly lowers its head and arms back down, returning to the neutral resting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "gazing_upward",
+    "searching_memory",
+    "shrugging"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "thoughtful"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

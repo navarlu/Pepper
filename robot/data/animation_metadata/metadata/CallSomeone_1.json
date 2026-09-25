@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/CallSomeone_1",
+  "name": "CallSomeone_1",
+  "source_label": "call_someone",
+  "duration_s": 7.57,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.07,
+  "clip_s": 10.83,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot cups its left hand around its mouth to whisper or call out quietly, then returns to its neutral posture.",
+  "movement_description": "The robot starts from a neutral standing position and raises its left hand, cupping it over the left side of its mouth as if whispering a secret or shouting a quiet call. It holds this pose for several seconds, tilting its head slightly to the left, before gradually lowering the left arm back down to its side and returning to its default neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "secretive_sharing"
+  ],
+  "alternative_interpretations": [
+    "gossiping",
+    "whispering",
+    "coughing_or_sneezing_discreetly",
+    "thinking_deeply"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_3",
+  "name": "Explain_3",
+  "source_label": "explain",
+  "duration_s": 2.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.01,
+  "clip_s": 5.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand forward, palm up, to explain a point or present an idea.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its left arm and extends it forward with an open, upward-facing palm. Its head tilts slightly toward the left to follow the hand's motion. After holding the open-palm pose for a moment to emphasize the explanation, the robot smoothly retracts its arm and returns to the initial neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_option",
+    "inviting_input"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm forward; ensure there are no obstacles or people directly in front of its left side.",
+  "confidence": 1.0
+}

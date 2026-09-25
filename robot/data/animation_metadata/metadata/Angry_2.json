@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Angry_2",
+  "name": "Angry_2",
+  "source_label": "angry",
+  "duration_s": 4.81,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.31,
+  "clip_s": 7.6,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head away, lowers its body slightly, and pulls its arms inward to express frustration or mild anger.",
+  "movement_description": "The robot starts by turning its head to the right and looking downward, while pulling its shoulders and elbows slightly back and inward. It then hunches its torso forward and lowers its overall posture, tensing its hands near its hips. Finally, it slowly recovers, raising its head to look forward and returning its arms to the neutral hanging position.",
+  "communicative_functions": [
+    "negation",
+    "disapproval",
+    "rejection"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "shame_or_guilt",
+    "disappointment",
+    "sadness"
+  ],
+  "social_tone": [
+    "serious",
+    "defensive",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "welcoming",
+    "explaining",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

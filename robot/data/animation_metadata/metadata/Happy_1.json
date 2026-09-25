@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Happy_1",
+  "name": "Happy_1",
+  "source_label": "happy",
+  "duration_s": 3.71,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.21,
+  "clip_s": 6.3,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises both arms high with open hands in a celebratory gesture of happiness.",
+  "movement_description": "The robot starts from a neutral posture, bringing both elbows out and hands to its hips. It then rapidly sweeps both arms upward and outward into a wide, high-V shape with fully opened hands, while tilting its head slightly upward. Finally, it brings its hands back down in front of its chest, gently lowering them back to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "celebration",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "greeting",
+    "expressing_excitement"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful",
+    "welcoming"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend fully upward and outward to their maximum reach; ensure there are no low-hanging obstacles or nearby people within the arm sweep radius.",
+  "confidence": 0.95
+}

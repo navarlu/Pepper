@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_6",
+  "name": "YouKnowWhat_6",
+  "source_label": "you_know_what",
+  "duration_s": 1.68,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.18,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand slightly forward in a gentle, questioning gesture and tilts its head.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm forward with a loose, slightly open hand while tilting its head slightly to the left. It holds this gentle, inquiring posture briefly, pointing slightly outward to engage the listener. Finally, it smoothly lowers its arm and returns its head to the upright neutral position.",
+  "communicative_functions": [
+    "attention_getting",
+    "listener_reference",
+    "emphasis",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "expressing_uncertainty",
+    "friendly_suggestion"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "conversational"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

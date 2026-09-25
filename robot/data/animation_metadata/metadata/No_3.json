@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/No_3",
+  "name": "No_3",
+  "source_label": "no",
+  "duration_s": 2.88,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.38,
+  "clip_s": 5.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands to its chest with a head tilt, then opens its arms wide in a sudden refusal or expansive gesture.",
+  "movement_description": "The robot starts in a neutral posture, then quickly brings its hands up in front of its chest while tilting its head slightly to the right. It then sweeps both arms outward and downward in a broad, symmetrical gesture while returning its head to the center. Finally, the arms are brought smoothly back down to the sides, returning the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "negation",
+    "emphasis",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_abundance",
+    "opening_up",
+    "rejection"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "formal",
+    "serious",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The rapid outward sweep of the arms requires a clear lateral clearance zone of at least 0.6 meters on both sides of the robot.",
+  "confidence": 0.95
+}

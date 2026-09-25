@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Wings_3",
+  "name": "Wings_3",
+  "source_label": "wings",
+  "duration_s": 3.22,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.72,
+  "clip_s": 6.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide to the sides, presenting a welcoming and open posture.",
+  "movement_description": "The robot begins in a neutral rest pose and quickly lifts both arms outward to the sides, bending at the elbows with palms facing forward. It holds this wide, open wing-like posture briefly, tilting its head slightly upward. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_openness",
+    "presenting_options",
+    "showing_size_or_scale"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend wide to both sides, requiring a clear lateral clearance zone of about 0.5 meters on each side to avoid obstacles.",
+  "confidence": 0.95
+}

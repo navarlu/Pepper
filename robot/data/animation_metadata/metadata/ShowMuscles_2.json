@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowMuscles_2",
+  "name": "ShowMuscles_2",
+  "source_label": "show_muscles",
+  "duration_s": 5.56,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.06,
+  "clip_s": 8.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head to the side, flexes its right bicep playfully, and then returns to a neutral posture.",
+  "movement_description": "The robot starts by turning its head to the left while raising and extending its right arm outward. It then bends its right elbow, bringing its closed hand upward and inward to mimic flexing its bicep while looking toward the muscle. Finally, it turns its head back to the center and lowers its right arm smoothly back to its side, returning to its neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_strength",
+    "celebration",
+    "enthusiasm",
+    "pointing"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm sweeps outward to its side; ensure sufficient lateral clearance on the right side of the unit.",
+  "confidence": 0.95
+}

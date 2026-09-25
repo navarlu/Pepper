@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeColor_2",
+  "name": "SeeColor_2",
+  "source_label": "see_color",
+  "duration_s": 5.46,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.96,
+  "clip_s": 8.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its left hand up to cover its mouth as if in surprise or keeping a secret, then returns to a neutral stand.",
+  "movement_description": "Starting from a neutral posture, the robot raises its left arm in a sweeping curve while slightly tilting its head. It brings its left hand to cover its mouth, holding the posture briefly while looking forward. Finally, it smoothly lowers the arm back down to its side, returning to the neutral upright position.",
+  "communicative_functions": [
+    "gasp",
+    "surprise",
+    "secrecy",
+    "realization",
+    "gossip"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "shushing",
+    "embarrassment"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "expressive"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "formal_business_interaction",
+    "serious_policy_answer",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm moves in front of the chest and face; ensure no objects or people are within the immediate chest-level envelope of the left side.",
+  "confidence": 0.95
+}

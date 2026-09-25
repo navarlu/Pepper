@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Reactions/LightShine_2",
+  "name": "LightShine_2",
+  "source_label": "light_shine",
+  "duration_s": 4.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.37,
+  "clip_s": 7.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot acts as if shielding its eyes from a bright light or peering closely at something.",
+  "movement_description": "The robot raises both arms up toward its face, tilting its head slightly up and to the right. It brings its hands close to its eyes, palms facing inward as if shielding its face or peering through binoculars. After a brief pause, the arms smoothly lower back down to its sides as the head returns to a forward-facing neutral position.",
+  "communicative_functions": [
+    "attention_getting",
+    "gaze_direction",
+    "expressing_surprise"
+  ],
+  "alternative_interpretations": [
+    "peering_closely",
+    "shielding_eyes",
+    "looking_at_something_distant",
+    "hiding_face"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "curious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

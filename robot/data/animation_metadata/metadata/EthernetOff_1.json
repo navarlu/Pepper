@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Reactions/EthernetOff_1",
+  "name": "EthernetOff_1",
+  "source_label": "ethernet_off",
+  "duration_s": 5.71,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.21,
+  "clip_s": 8.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lowers its head, looks down briefly as if sad or disconnected, and then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture and slowly lowers its head, looking downward with a slight tilt. It remains in this dejected or disconnected-looking pose for a couple of seconds. Finally, it slowly raises its head back up to face forward, returning to the starting neutral position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "sadness",
+    "shame",
+    "thinking",
+    "disappointment",
+    "system_error"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic",
+    "submissive"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "welcoming",
+    "enthusiastic_response"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

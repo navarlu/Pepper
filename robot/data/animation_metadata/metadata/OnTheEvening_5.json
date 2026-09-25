@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/OnTheEvening_5",
+  "name": "OnTheEvening_5",
+  "source_label": "on_the_evening",
+  "duration_s": 2.17,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.67,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently lifts its hands up and outward with palms open, then returns to its neutral posture.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms slightly forward and upward, opening its hands with palms facing inward and up. It holds this gentle, open-handed gesture briefly as if presenting something or referencing the time. Finally, it smoothly lowers both arms back down to its sides to return to the neutral starting position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "welcoming",
+    "openness"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "offering_assistance",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "polite",
+    "gentle"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

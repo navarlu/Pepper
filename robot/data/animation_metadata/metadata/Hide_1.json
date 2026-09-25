@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Hide_1",
+  "name": "Hide_1",
+  "source_label": "hide",
+  "duration_s": 3.47,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.97,
+  "clip_s": 8.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings both hands up to cover its mouth in a shocked or secretive 'oops' gesture, then returns to neutral.",
+  "movement_description": "The robot raises both arms from its sides, bringing its hands together in front of its mouth. It holds them there, fingers slightly overlapping as if gasping or whispering a secret, while keeping its head facing forward. After a brief pause in this pose, it lowers both arms back down to its sides, returning to a neutral standing posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "gasping",
+    "gossiping",
+    "secretive_disclosure",
+    "oops_reaction"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "session_start",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms fold inwards towards the chest and mouth, keeping the risk of hitting external objects low.",
+  "confidence": 0.95
+}

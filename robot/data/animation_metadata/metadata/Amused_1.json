@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Amused_1",
+  "name": "Amused_1",
+  "source_label": "amused",
+  "duration_s": 2.42,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.92,
+  "clip_s": 5.5,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot giggles and looks slightly away to the side, expressing amusement.",
+  "movement_description": "The robot begins by tilting its head and turning it slightly to its left while lifting its right arm to its lower chest with the hand cupped, mimicking a polite chuckle or giggle. It holds this amused posture briefly with subtle head nods, then lowers its right arm and returns its head to the center, ending back in its neutral starting pose.",
+  "communicative_functions": [
+    "expressing_emotion",
+    "agreement",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "giggle",
+    "shy_agreement",
+    "polite_laugh",
+    "remembering_something"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "cheerful"
+  ],
+  "body_parts": [
+    "head",
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "visitor_approach"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

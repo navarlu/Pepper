@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/CountMore_1",
+  "name": "CountMore_1",
+  "source_label": "count_more",
+  "duration_s": 2.65,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.15,
+  "clip_s": 6.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide in a welcoming gesture of abundance.",
+  "movement_description": "The robot starts by bringing both hands close to its chest with palms facing inward. It then spreads its arms wide apart to the sides, turning its palms upward and tilting its head slightly back. After a brief pause in this open posture, it smoothly lowers its arms back to its sides and returns its head to the neutral position.",
+  "communicative_functions": [
+    "emphasis",
+    "counting",
+    "welcoming",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "expressing_abundance",
+    "showing_possibilities",
+    "offering_choices"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "open"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "sadness",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires lateral clearance as both arms extend fully outward to the sides.",
+  "confidence": 0.95
+}

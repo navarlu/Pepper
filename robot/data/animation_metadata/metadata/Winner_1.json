@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Winner_1",
+  "name": "Winner_1",
+  "source_label": "winner",
+  "duration_s": 5.41,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.91,
+  "clip_s": 8.23,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises its right arm into a victory fist while tilting its head up.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm high above its head with a closed fist. Simultaneously, its head tilts upward and slightly to the left, looking toward its raised hand. It holds this victorious pose for a couple of seconds before lowering its arm and returning its head to face forward, ending in the neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "celebration",
+    "raising_hand_to_speak",
+    "pointing_upward"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends fully upward and slightly outward, requiring clear overhead clearance.",
+  "confidence": 0.95
+}

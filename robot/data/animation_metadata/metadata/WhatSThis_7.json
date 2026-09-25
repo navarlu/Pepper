@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_7",
+  "name": "WhatSThis_7",
+  "source_label": "what_s_this",
+  "duration_s": 1.72,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.22,
+  "clip_s": 4.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left arm slightly and rotates its open palm upward as if presenting or questioning something.",
+  "movement_description": "The robot starts in a neutral posture and raises its left arm, bending the elbow and rotating the wrist so that the hand opens palm-upward toward the side. Its head tilts slightly toward the raised hand while the right arm remains stationary at its side. After a brief pause in this open position, the robot smoothly lowers the left arm and returns its head to the center, ending in the initial neutral posture.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_option",
+    "questioning"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "curious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "clarification_request",
+    "answering",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

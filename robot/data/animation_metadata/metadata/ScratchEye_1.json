@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchEye_1",
+  "name": "ScratchEye_1",
+  "source_label": "scratch_eye",
+  "duration_s": 5.28,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.78,
+  "clip_s": 8.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to gently rub near its eye as if tired or dealing with an itch, then returns to a neutral stand.",
+  "movement_description": "The robot begins in a neutral standing posture, then raises its right arm, bending at the elbow to bring its closed hand up to its face. It tilts its head slightly downward and forward, performing a subtle rubbing motion near its right eye. After a brief pause, it lowers its arm smoothly back to its side while returning its head to a level, forward-facing position.",
+  "communicative_functions": [
+    "expressing_fatigue",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "expressing_sadness",
+    "shyness",
+    "embarrassment"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "vulnerable"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "formal_greeting",
+    "serious_policy_answer",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm lifts in a compact trajectory close to the robot's face; no high-velocity sweeps or wide lateral clearance concerns.",
+  "confidence": 0.95
+}

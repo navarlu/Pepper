@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_2",
+  "name": "Explain_2",
+  "source_label": "explain",
+  "duration_s": 2.22,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.72,
+  "clip_s": 5.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand forward with an open palm while slightly tilting its head to explain or offer information.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its left arm forward and slightly to the side, opening its hand palm-upward in a classic offering or presenting gesture. Simultaneously, it tilts its head slightly to the left, focusing its gaze toward the direction of the hand. The robot then gently lowers its left arm back to its side and returns its head to the center, ending in the original neutral rest posture.",
+  "communicative_functions": [
+    "explaining",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "invitation",
+    "pointing",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps forward and slightly outward; ensure there are no obstacles or people within a 50cm radius of the robot's front-left side.",
+  "confidence": 0.95
+}

@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/This_12",
+  "name": "This_12",
+  "source_label": "this",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures with its left hand turned upward, as if presenting an option or indicating something nearby.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly raises its left arm, bending the elbow and rotating the forearm outwards to present an open, upward-facing hand toward its left side. Simultaneously, its head tilts slightly to follow the direction of the gesture. The robot holds this open-hand pose briefly before smoothly lowering its arm and returning its head to the upright, neutral position.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_option",
+    "direction_giving"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "informative"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's left arm sweeps outward to its left side; ensure there are no obstacles or people directly next to its left arm.",
+  "confidence": 0.95
+}

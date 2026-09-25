@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Wings_1",
+  "name": "Wings_1",
+  "source_label": "wings",
+  "duration_s": 7.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.0,
+  "clip_s": 10.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide outward and upward like wings, then brings them back down to its sides.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward toward its chest before sweeping them outward and upward in a broad, symmetrical arc with palms facing up. Its head tilts slightly upward and to the side as the arms reach their maximum extension. The robot then gently lowers its arms and returns to a neutral standing position.",
+  "communicative_functions": [
+    "welcoming",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_broadness",
+    "introducing_a_large_topic",
+    "enthusiastic_greeting"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps both arms wide to the sides, requiring a clear lateral clearance zone of approximately 0.5 meters on each side.",
+  "confidence": 0.95
+}

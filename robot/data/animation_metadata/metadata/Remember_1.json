@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Thinking/Remember_1",
+  "name": "Remember_1",
+  "source_label": "remember",
+  "duration_s": 1.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.73,
+  "clip_s": 5.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand, opening it slightly as if recalling an idea, and then gently returns it to its side.",
+  "movement_description": "The robot starts in a neutral posture. It raises its right hand to chest height with an open palm facing forward, while slightly tilting its head to the left to suggest cognitive effort or sudden recall. It pauses briefly in this expressive pose before lowering its arm back down and returning its head to the forward-facing neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "greeting",
+    "explaining",
+    "affirmation"
+  ],
+  "social_tone": [
+    "friendly",
+    "thoughtful",
+    "informal",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "explaining",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

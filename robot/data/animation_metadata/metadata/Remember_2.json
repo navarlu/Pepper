@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Thinking/Remember_2",
+  "name": "Remember_2",
+  "source_label": "remember",
+  "duration_s": 1.01,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.51,
+  "clip_s": 3.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head slightly and brings its right hand toward its chest, suggesting contemplation or remembering something.",
+  "movement_description": "Starting from a neutral posture, the robot subtly tilts its head to the right while lifting its right hand toward its lower chest with fingers slightly spread. The left arm remains relaxed at its side. After a brief pause in this pensive posture, the robot slowly lowers its right arm and returns its head to a level, forward-facing position, ending back in the neutral pose.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "self_reference",
+    "apologizing",
+    "calming"
+  ],
+  "social_tone": [
+    "serious",
+    "thoughtful",
+    "polite",
+    "formal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "apology",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

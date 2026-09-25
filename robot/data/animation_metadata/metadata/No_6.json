@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/No_6",
+  "name": "No_6",
+  "source_label": "no",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly rotates its forearms outward with open palms to express denial or negation.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly raises its forearms slightly while rotating its wrists so the palms face upward and outward in a subtle shrug-like gesture. It holds this open-handed posture briefly before returning its arms back down to the neutral resting position. The head and torso remain stable and forward-facing throughout the movement.",
+  "communicative_functions": [
+    "negation",
+    "expressing_uncertainty",
+    "disagreement",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "shrugging",
+    "honesty_or_openness",
+    "empty_handedness"
+  ],
+  "social_tone": [
+    "polite",
+    "apologetic",
+    "neutral",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "enthusiastic_welcome"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

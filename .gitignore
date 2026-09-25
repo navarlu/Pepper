@@ -18,6 +18,10 @@ htmlcov/
 .idea/
 .vscode/
 
+# Docker volumes from the old thesis stack (root-owned, unreadable by git).
+docker/redis-data/
+docker/weaviate_data/
+
 # Local config + secrets
 .env
 docker/.env
@@ -31,9 +35,14 @@ CLAUDE.md
 # Runtime data (tokens, state.json, recordings, annotation metadata).
 # The animation catalog is the one data file the agent needs in-repo.
 data/
-!voice-agent/src/experiment/data/
-voice-agent/src/experiment/data/*
-!voice-agent/src/experiment/data/animation_catalog.json
+!voice-agent/src/data/
+voice-agent/src/data/*
+!voice-agent/src/data/animation_catalog.json
+# robot/data: animations.json + the annotation metadata the catalog is
+# built from. The source video recordings (~3.9 GB) stay local.
+!robot/data/
+robot/data/animation_metadata/*
+!robot/data/animation_metadata/metadata/
 
 # Logs + local scratch
 *.log
@@ -43,5 +52,5 @@ notes.txt
 run*.txt
 backups/**
 
-# Experiment session output (large, kept off git).
-voice-agent/src/experiment/results/
+# Old thesis output left on disk (results ~4.3 GB, test outputs).
+voice-agent/src/experiment/

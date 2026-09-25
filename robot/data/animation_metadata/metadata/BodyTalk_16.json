@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_16",
+  "name": "BodyTalk_16",
+  "source_label": "body_talk",
+  "duration_s": 1.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.46,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot subtly pulls its hands inward toward its stomach and then releases them back to its sides.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands slightly inward and upward toward the lower torso, bending its elbows. The hands trace a small inward circle before smoothly returning to the default hanging position at the sides. The head and torso remain stable and forward-facing throughout the brief movement.",
+  "communicative_functions": [
+    "emphasis",
+    "explaining",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "thoughtful",
+    "polite",
+    "conversational"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "attention_getting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None, the arms stay within the body's main profile footprint.",
+  "confidence": 0.9
+}

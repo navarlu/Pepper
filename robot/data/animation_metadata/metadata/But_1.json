@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/But_1",
+  "name": "But_1",
+  "source_label": "but",
+  "duration_s": 1.39,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.89,
+  "clip_s": 5.33,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand to chest height with an open palm to make a gentle, emphasizing gesture.",
+  "movement_description": "The robot starts from a neutral standing pose and lifts its right arm forward and upward, bending the elbow. It positions its hand near chest level with an open palm facing slightly upward and toward the viewer, holding the position briefly to emphasize a point. Finally, the robot smoothly lowers its right arm back down to its side, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "emphasis",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "offering_an_alternative",
+    "introducing_a_topic",
+    "pointing_to_self"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "explanatory"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "clarification_request",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

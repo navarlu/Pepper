@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_1",
+  "name": "Thinking_1",
+  "source_label": "thinking",
+  "duration_s": 2.16,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.66,
+  "clip_s": 5.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its waist and tilts its head slightly as if contemplating or thinking.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward toward the center of its waist. The right hand cup-shapes underneath while the left hand hovers slightly above, mimicking a thoughtful, hands-joined posture, accompanied by a subtle head tilt. The hands then gently separate and return down to the neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "explaining",
+    "calming"
+  ],
+  "social_tone": [
+    "serious",
+    "formal",
+    "empathetic",
+    "polite"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "apology",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "enthusiastic_welcome"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

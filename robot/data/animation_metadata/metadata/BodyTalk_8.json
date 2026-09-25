@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_8",
+  "name": "BodyTalk_8",
+  "source_label": "body_talk",
+  "duration_s": 1.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.35,
+  "clip_s": 4.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently sweeps both arms inward, bringing its hands together in front of its waist before returning to a neutral stance.",
+  "movement_description": "The robot begins in a neutral posture and raises both arms slightly outward and forward. It then sweeps both hands inward toward each other, bringing them close together in front of its lower torso as if gently gathering or framing something. Finally, it smoothly retracts both arms back down to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "calming"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "gathering_thoughts",
+    "self_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend slightly forward and inward; no extra lateral clearance is needed beyond the standard operating envelope.",
+  "confidence": 0.95
+}

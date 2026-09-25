@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Reactions/ShakeBody_1",
+  "name": "ShakeBody_1",
+  "source_label": "shake_body",
+  "duration_s": 2.81,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.31,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shivers slightly by rapidly twitching its body and head side-to-side.",
+  "movement_description": "The robot begins in a neutral rest pose. It then performs a very brief, rapid side-to-side twitching or shivering motion of its head and upper torso, while its arms remain mostly stationary at its sides. The motion dampens quickly and the robot immediately returns to its static neutral posture.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_coldness",
+    "shuddering_in_fear",
+    "waking_up",
+    "system_glitch_simulation"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "silly"
+  ],
+  "body_parts": [
+    "head",
+    "torso"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

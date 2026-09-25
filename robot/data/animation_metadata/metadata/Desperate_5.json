@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Desperate_5",
+  "name": "Desperate_5",
+  "source_label": "desperate",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 5.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lowers its head and gazes downward with a dejected, desperate expression.",
+  "movement_description": "The robot starts in a neutral posture. It slowly tilts its head down and forward while its eyes look slightly downward, conveying a sense of despair or disappointment. After a brief pause in this low position, it slowly raises its head back up to return to the neutral forward-facing posture.",
+  "communicative_functions": [
+    "apologizing",
+    "negation",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "sadness",
+    "shame",
+    "disappointment",
+    "thinking"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "enthusiastic_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

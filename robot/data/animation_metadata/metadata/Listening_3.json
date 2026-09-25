@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Listening/Listening_3",
+  "name": "Listening_3",
+  "source_label": "listening",
+  "duration_s": 2.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.94,
+  "clip_s": 5.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly pulls its elbows back and shifts its weight, maintaining an open, listening posture.",
+  "movement_description": "The robot starts from a neutral posture and slightly draws its elbows backward while slightly curling its fingers inward, creating a receptive and open upper body stance. It subtly tilts its head upward and to the left, as if focusing attention on a speaker. After a brief hold, the robot smoothly returns its arms and head to the neutral forward-facing rest position.",
+  "communicative_functions": [
+    "listening",
+    "attention_getting",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "expressing_interest",
+    "anticipation"
+  ],
+  "social_tone": [
+    "friendly",
+    "attentive",
+    "polite",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "explaining",
+    "emphasis",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

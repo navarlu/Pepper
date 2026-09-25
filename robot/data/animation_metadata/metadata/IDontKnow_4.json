@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/IDontKnow_4",
+  "name": "IDontKnow_4",
+  "source_label": "i_dont_know",
+  "duration_s": 2.28,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.78,
+  "clip_s": 5.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot draws its hands together in front of its waist before extending both arms outward in an shrug-like gesture of uncertainty.",
+  "movement_description": "The robot starts by bringing both hands inward and down to meet near the waist with palms facing up. It then smoothly extends both arms outward and slightly upward to its sides, opening its palms toward the viewer while lifting its head slightly. Finally, the arms swing back down to the sides, returning the robot to its neutral standing posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "welcoming",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms sweep outwards to the sides; ensure lateral clearance is maintained.",
+  "confidence": 0.95
+}

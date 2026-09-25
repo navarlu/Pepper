@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Bored_2",
+  "name": "Bored_2",
+  "source_label": "bored",
+  "duration_s": 4.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.42,
+  "clip_s": 8.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand slightly, turns its head away, and stares off to the side, expressing boredom or indifference.",
+  "movement_description": "Starting from a neutral posture, the robot slowly raises its right arm slightly forward with a loose hand shape. Simultaneously, it turns its head to the left, tilting it slightly upward as if looking away in disinterest. After holding this pose for a few seconds, it slowly lowers its right arm and returns its head to face forward, resuming the neutral rest posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "waiting"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "distraction",
+    "disinterest",
+    "dismissal"
+  ],
+  "social_tone": [
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "welcoming",
+    "apology",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

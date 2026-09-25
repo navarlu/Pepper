@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/Monster_1",
+  "name": "Monster_1",
+  "source_label": "monster",
+  "duration_s": 8.73,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.23,
+  "clip_s": 11.43,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot acts out a playful monster by waving its raised arms in a dramatic, claw-like fashion.",
+  "movement_description": "The robot begins by bringing its hands near its hips before suddenly sweeping both arms wide and upward in a dramatic gesture. It then performs a series of asymmetric, clawing motions, lifting one arm high with fingers curved while the other drops lower, alternating sides dynamically. The head tilts and pans slightly to match the chaotic energy of the arms before both arms are lowered back to its sides, resolving into the neutral rest pose.",
+  "communicative_functions": [
+    "attention_getting",
+    "entertainment",
+    "playful_scare"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "celebration",
+    "acting_wild",
+    "expressing_excitement"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "enthusiastic",
+    "dramatic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps both arms wide and high with high energy; ensure a clear safety zone of at least 1 meter around the upper body to prevent collisions.",
+  "confidence": 0.95
+}

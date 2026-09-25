@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Hey_1",
+  "name": "Hey_1",
+  "source_label": "hey",
+  "duration_s": 4.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.0,
+  "clip_s": 7.33,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot waves its right hand high in a friendly greeting.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm high, opening its hand to wave. It waves the right hand side-to-side twice with a slight head tilt toward the hand. Finally, the robot lowers its arm back down and returns its head to a centered, neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "farewell"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "session_end"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends upwards and slightly outwards, requiring clear vertical and right-side clearance.",
+  "confidence": 1.0
+}

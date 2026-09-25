@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/No_9",
+  "name": "No_9",
+  "source_label": "no",
+  "duration_s": 2.03,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.53,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right arm slightly forward with a flat palm, shaking its head horizontally once to indicate 'no'.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm forward to about chest height, keeping the elbow slightly bent and the palm open and flat. Simultaneously, it turns its head slightly to the left and back to the center in a gentle shaking motion. The arm then drops back down to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "negation",
+    "disagreement",
+    "rejection"
+  ],
+  "alternative_interpretations": [
+    "declining_an_offer",
+    "expressing_incapability"
+  ],
+  "social_tone": [
+    "formal",
+    "serious",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "clarification_request",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "affirmation",
+    "expressing_agreement"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends slightly forward, requiring minimal clearance in front of the robot.",
+  "confidence": 1.0
+}

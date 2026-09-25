@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Happy_2",
+  "name": "Happy_2",
+  "source_label": "happy",
+  "duration_s": 1.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.35,
+  "clip_s": 5.07,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "Pepper performs a brief, happy gesture by bringing one hand up toward its chest with a tilted head before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm, bringing the hand up towards its chest with fingers curled as if expressing delight. Simultaneously, it tilts its head to the left and leans its torso slightly to the left. After holding this cheerful pose briefly, it smoothly lowers its right arm back to its side while returning its head and torso to the upright, center position.",
+  "communicative_functions": [
+    "affirmation",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_delight",
+    "agreement",
+    "self_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful",
+    "welcoming"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

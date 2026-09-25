@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_8",
+  "name": "Explain_8",
+  "source_label": "explain",
+  "duration_s": 2.57,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.07,
+  "clip_s": 5.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms outward with open palms to explain a concept.",
+  "movement_description": "The robot starts from a neutral pose and smoothly raises both arms forward, turning its palms upward and spreading its hands slightly outward. Its head remains centered, facing the viewer with a neutral posture. Finally, it slowly retracts its arms and hands back down to the default resting position at its sides.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend forward and slightly outward; ensure a clear envelope of about 30 cm in front of the robot.",
+  "confidence": 0.95
+}

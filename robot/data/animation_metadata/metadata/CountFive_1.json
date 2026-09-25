@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/CountFive_1",
+  "name": "CountFive_1",
+  "source_label": "count_five",
+  "duration_s": 3.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.47,
+  "clip_s": 7.33,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand, opening its fingers one by one to count to five before returning to a neutral posture.",
+  "movement_description": "The robot starts by tilting its head slightly to the left and raising its right arm to chest level, turning its palm upward with a closed fist. It then gradually opens its fingers in a counting sequence while sweeping its right arm slightly outward and downward in a gentle arc. Finally, the robot brings its head back to center and lowers both arms back to a relaxed, neutral resting position at its sides.",
+  "communicative_functions": [
+    "counting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "offering_something",
+    "presenting_option",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "informative",
+    "formal",
+    "patient"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "greeting",
+    "farewell",
+    "visitor_approach"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm forward and slightly to the side. Ensure sufficient clearance on the right side of the robot to prevent contact with visitors or obstacles.",
+  "confidence": 0.95
+}

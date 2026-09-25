@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Thinking/Remember_3",
+  "name": "Remember_3",
+  "source_label": "remember",
+  "duration_s": 1.08,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.58,
+  "clip_s": 4.97,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand toward its chin, briefly hesitates, and then returns to a neutral posture.",
+  "movement_description": "The robot starts in a neutral posture and raises its left hand up toward its chin as if pondering. The head tilts slightly downward to meet the hand, pausing briefly in this reflective pose. Finally, the hand lowers smoothly back to the side, returning the robot to its initial neutral stance.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking",
+    "remembering"
+  ],
+  "alternative_interpretations": [
+    "hesitation",
+    "curiosity",
+    "mild_surprise"
+  ],
+  "social_tone": [
+    "thoughtful",
+    "polite",
+    "friendly",
+    "serious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Give_3",
+  "name": "Give_3",
+  "source_label": "give",
+  "duration_s": 2.02,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.52,
+  "clip_s": 5.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right hand palm-upward in a welcoming gesture of offering or giving.",
+  "movement_description": "The robot begins in a neutral pose and starts by bringing its right hand inward toward its chest. It then extends the right arm outward and downward toward the listener, rotating the hand so the palm faces upward in an open offering posture. Finally, the right arm smoothly retracts and returns to its neutral resting position at the side.",
+  "communicative_functions": [
+    "offering",
+    "handover",
+    "presenting",
+    "welcoming",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "pointing",
+    "requesting_input"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm forward; ensure there is adequate clearance directly in front of the robot's right side.",
+  "confidence": 0.95
+}

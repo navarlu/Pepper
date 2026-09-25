@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Confident_1",
+  "name": "Confident_1",
+  "source_label": "confident",
+  "duration_s": 5.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.71,
+  "clip_s": 8.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot pulls its elbows back, squares its chest, and slightly nods forward to project self-assurance.",
+  "movement_description": "The robot starts from its neutral rest posture and smoothly pulls both elbows backward and slightly outward while keeping its hands held ready in front of its hips. It subtly arches its back and lifts its head slightly to square its chest, projecting a confident stance. After holding this proud, stable posture for a couple of seconds, it gently relaxes its shoulders and returns both arms to the neutral hanging position at its sides.",
+  "communicative_functions": [
+    "affirmation",
+    "emphasis",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "determination",
+    "preparedness",
+    "anticipation",
+    "standing_tall"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "serious",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "torso",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "uncertainty",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

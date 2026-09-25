@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Reactions/TouchHead_2",
+  "name": "TouchHead_2",
+  "source_label": "touch_head",
+  "duration_s": 4.2,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.7,
+  "clip_s": 6.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot reacts to a head touch by raising its arms defensively toward its head and then lowering them back to its sides.",
+  "movement_description": "The robot quickly raises both arms with open hands up toward its head, framing its face in a protective or startled posture. It pauses momentarily in this high, defensive stance while slightly tilting its head down. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "defensiveness",
+    "playful_scare",
+    "headache_or_concern"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms swing high up near the head level; ensure there is adequate lateral and vertical clearance around the head and upper torso.",
+  "confidence": 0.95
+}

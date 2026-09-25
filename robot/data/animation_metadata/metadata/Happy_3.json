@@ -1,0 +1,63 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Happy_3",
+  "name": "Happy_3",
+  "source_label": "happy",
+  "duration_s": 2.63,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.13,
+  "clip_s": 8.03,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises its right arm high in a victorious celebration of happiness.",
+  "movement_description": "The robot starts in a neutral posture, then raises its right arm high into the air with a closed fist while tilting its head up and to the left in a cheerful gesture. It holds this triumphant, happy pose for a moment with its head slightly cocked. Finally, it smoothly lowers its right arm and returns its head to center, settling back into its neutral rest position.",
+  "communicative_functions": [
+    "celebration",
+    "affirmation",
+    "enthusiastic_agreement",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "victory_sign",
+    "cheering",
+    "hand_raising",
+    "attention_getting"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful",
+    "happy",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness",
+    "formal"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends fully upward and slightly outward; ensure sufficient overhead and side clearance so the robot does not strike low-hanging objects or nearby visitors.",
+  "confidence": 0.95
+}

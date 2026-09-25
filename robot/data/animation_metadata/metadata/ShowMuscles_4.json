@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowMuscles_4",
+  "name": "ShowMuscles_4",
+  "source_label": "show_muscles",
+  "duration_s": 3.88,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.38,
+  "clip_s": 6.47,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide and then brings its hands down to its hips in a strong, proud pose.",
+  "movement_description": "Starting from a neutral rest pose, the robot raises and spreads both arms wide to the sides, turning its palms forward in an open, expansive gesture. It then sweeps its arms downward and curves them inward, placing its hands near its hips with bent elbows in a classic 'tough guy' or 'muscle' pose. After holding this posture briefly, it relaxes both arms and brings them smoothly back down to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "showing_off",
+    "pride",
+    "physical_strength",
+    "welcoming_grand"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal",
+    "answering"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires a clear lateral space around the robot as the arms extend fully outward to the sides.",
+  "confidence": 0.95
+}

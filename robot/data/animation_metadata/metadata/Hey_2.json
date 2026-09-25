@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Hey_2",
+  "name": "Hey_2",
+  "source_label": "hey",
+  "duration_s": 5.64,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.14,
+  "clip_s": 8.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises both arms above its head and waves to greet or get the attention of a visitor.",
+  "movement_description": "The robot starts from a neutral posture and raises both arms symmetrically outwards and upwards high above its head with hands open. It then waves its hands left and right in a rapid, cheerful waving motion to greet the visitor. Finally, it lowers both arms back down to its sides, returning smoothly to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "celebration",
+    "excitement",
+    "farewell"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "session_end"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires clearance above the robot and to the sides due to high vertical and lateral arm extension.",
+  "confidence": 1.0
+}

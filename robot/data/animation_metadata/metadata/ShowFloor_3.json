@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowFloor_3",
+  "name": "ShowFloor_3",
+  "source_label": "show_floor",
+  "duration_s": 2.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.71,
+  "clip_s": 5.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand up and outward, gesturing toward the floor or a low object.",
+  "movement_description": "The robot begins in a neutral posture. It raises its left arm, turning the palm upward near its chest before sweeping the arm downward and outward to its left side, pointing toward the floor. The hand stays open and extended for a brief moment before smoothly returning to its neutral, resting position by its side.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "presenting_option",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm outward to the side; ensure there are no obstacles or people directly next to the robot's left side within arm's reach.",
+  "confidence": 1.0
+}

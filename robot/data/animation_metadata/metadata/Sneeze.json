@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Sneeze",
+  "name": "Sneeze",
+  "source_label": "sneeze",
+  "duration_s": 2.93,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.43,
+  "clip_s": 5.67,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head back slightly and then brings its right hand to its face to mimic a sneeze.",
+  "movement_description": "Starting from a neutral posture, the robot tilts its head upward and slightly back while extending both arms outward and slightly back, as if inhaling. It then quickly brings its right hand up to cover its face while bowing its head and torso forward in a sharp, sneezing motion. Finally, the robot slowly returns its arm and head back down to the default neutral resting position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_pain",
+    "feeling_sick",
+    "giggling_shyly",
+    "deep_thought"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right hand moves close to the camera on the head and the tablet, but stays within the robot's default self-collision envelope.",
+  "confidence": 0.95
+}

@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowFloor_4",
+  "name": "ShowFloor_4",
+  "source_label": "show_floor",
+  "duration_s": 1.67,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.17,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures with its right arm pointing downward and to the right, then returns to its neutral posture.",
+  "movement_description": "The robot begins in a neutral posture and raises its right arm, sweeping it outward and downward to the side with an open hand, indicating a direction or object on the floor. Simultaneously, its head tilts slightly downward and to the right, following the motion. It pauses briefly to emphasize the area before smoothly bringing its arm and head back to the neutral starting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "greeting"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "thinking",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps outward to the side, requiring clear lateral clearance on the robot's right side.",
+  "confidence": 0.95
+}

@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Relieved_1",
+  "name": "Relieved_1",
+  "source_label": "relieved",
+  "duration_s": 4.64,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.14,
+  "clip_s": 7.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot wipes its brow with its right arm to show relief.",
+  "movement_description": "The robot starts by tilting its head slightly to the left, then brings its right forearm up across its forehead in a sweeping wiping motion. After momentarily holding its arm near its face as if wiping sweat from its brow, it lowers its hand forward and downward with open fingers. Finally, the robot returns its right arm to its side and brings its head back to a centered, upright position.",
+  "communicative_functions": [
+    "apologizing",
+    "calming",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "forgetfulness",
+    "embarrassment",
+    "exhaustion",
+    "salute"
+  ],
+  "social_tone": [
+    "informal",
+    "friendly",
+    "apologetic",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps upward close to the face and tablet; ensure no external obstructions are near the right side of the upper torso.",
+  "confidence": 0.95
+}

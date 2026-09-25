@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/CountTwo_1",
+  "name": "CountTwo_1",
+  "source_label": "count_two",
+  "duration_s": 2.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.37,
+  "clip_s": 5.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot counts to two by raising its right hand and then its left hand sequentially.",
+  "movement_description": "Starting from a neutral posture, the robot lifts its right hand to chest height with index finger extended to count 'one'. It then lowers the right arm while simultaneously raising its left hand to count 'two', briefly holding the pose. Finally, both arms are lowered back to the neutral hanging position at its sides.",
+  "communicative_functions": [
+    "counting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "presenting_options",
+    "comparison"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "educational"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

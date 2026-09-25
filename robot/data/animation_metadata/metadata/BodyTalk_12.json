@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_12",
+  "name": "BodyTalk_12",
+  "source_label": "body_talk",
+  "duration_s": 2.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.84,
+  "clip_s": 5.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "Pepper extends its left hand forward while slightly turning its right hand outward to support an explanation.",
+  "movement_description": "Starting from a neutral rest posture, the robot raises both hands. Its left arm moves outward and forward, opening the palm toward the listener, while the right arm lifts slightly with the palm facing up and inward. The robot holds this open-handed, asymmetrical explanatory posture briefly before smoothly lowering both arms back to its sides.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_options",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "helpful",
+    "welcoming",
+    "informative"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

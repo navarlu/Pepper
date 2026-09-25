@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Gestures/Wings_5",
+  "name": "Wings_5",
+  "source_label": "wings",
+  "duration_s": 1.61,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.12,
+  "clip_s": 5.0,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide and lifts them upward in a welcoming, expansive gesture before returning to its neutral pose.",
+  "movement_description": "Starting from a neutral posture, the robot swiftly lifts both arms outward and upward to chest height, spreading them wide with hands slightly open and palms facing forward. It holds this expansive, open-arm position briefly while keeping its head level and forward-facing. Finally, the robot smoothly lowers both arms back down to its sides, returning to the starting neutral posture.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "emphasis",
+    "expressing_enthusiasm"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "exasperation",
+    "celebration",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "welcoming",
+    "enthusiastic",
+    "friendly",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "session_start",
+    "explaining",
+    "celebrating"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking",
+    "sad_news"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot spreads both arms fully outward; ensure there is adequate lateral clearance on both sides of the robot.",
+  "confidence": 0.95
+}

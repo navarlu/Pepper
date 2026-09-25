@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_3",
+  "name": "Reject_3",
+  "source_label": "reject",
+  "duration_s": 1.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.42,
+  "clip_s": 5.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises both hands in a defensive, push-back motion to indicate rejection or denial.",
+  "movement_description": "The robot starts by quickly raising both arms in front of its chest with its palms facing inward. It then sweeps both arms downward and outward in an asymmetric, pushing-away gesture, with the left hand ending lower and further out than the right hand. Finally, the arms smoothly return downward to the sides, settling back into the neutral rest posture.",
+  "communicative_functions": [
+    "negation",
+    "dismissal",
+    "rejection"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "calming",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "serious",
+    "informal",
+    "assertive"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "apology",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend outward to the sides; ensure a clear side-to-side clearance of about 0.5 meters around the torso.",
+  "confidence": 0.95
+}

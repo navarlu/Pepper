@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/KungFu_1",
+  "name": "KungFu_1",
+  "source_label": "kung_fu",
+  "duration_s": 5.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.37,
+  "clip_s": 8.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics a classic Kung Fu martial arts stance, raising its right hand to face-level while turning its torso and head.",
+  "movement_description": "The robot begins by raising both arms up, drawing its right hand open near its face and its left hand slightly forward and down in a classic defensive martial arts posture. It tilts its head and twists its torso slightly to its left, holding this static Kung Fu stance for a brief moment. Finally, the robot lowers both arms back down to its sides and returns its head and torso to a straight-facing neutral position.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "attention_getting",
+    "playful_threat",
+    "defensive_pose"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "humorous"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining",
+    "session_start",
+    "session_end",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend outward to the front and right; ensure the immediate workspace is clear of close objects.",
+  "confidence": 0.95
+}

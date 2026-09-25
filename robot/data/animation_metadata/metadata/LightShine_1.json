@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Reactions/LightShine_1",
+  "name": "LightShine_1",
+  "source_label": "light_shine",
+  "duration_s": 7.46,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.96,
+  "clip_s": 10.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shields its eyes and looks up as if reacting to a bright light shining from above.",
+  "movement_description": "The robot starts from a neutral posture and raises both arms, bringing its left hand close to its face to shield its eyes while extending its right arm slightly forward with fingers spread. Its head tilts backward and to the side, looking upward as if reacting to a sudden bright light. After holding this defensive posture briefly and shifting its gaze, it lowers both arms back down to its sides and returns its head to the neutral forward-facing position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "gazing_at_the_sky",
+    "gasping_in_surprise",
+    "hiding_face_in_embarrassment",
+    "expressing_awe"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Suspicious_1",
+  "name": "Suspicious_1",
+  "source_label": "suspicious",
+  "duration_s": 7.14,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.64,
+  "clip_s": 9.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot suspiciously raises its hands to chest level, looks slightly away, and then returns to neutral.",
+  "movement_description": "Starting from neutral, the robot raises both hands and brings them close together near its chest as if holding an invisible object or typing on its screen, while tilting its head slightly upward and to the left. It holds this defensive or questioning posture briefly with its gaze diverted. It then lowers its hands back to its sides and brings its head forward to return to the neutral starting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "defensiveness",
+    "typing_or_using_screen",
+    "hiding_something",
+    "hesitation"
+  ],
+  "social_tone": [
+    "serious",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "welcoming",
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

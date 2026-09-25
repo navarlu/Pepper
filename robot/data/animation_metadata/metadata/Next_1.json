@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/Next_1",
+  "name": "Next_1",
+  "source_label": "next",
+  "duration_s": 3.1,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.6,
+  "clip_s": 6.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right arm forward briefly as if pointing or gesturing towards the next item, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture facing forward. It raises its right arm forward with the elbow bent, bringing the hand to about chest height while slightly rotating the wrist inward. After a brief pause at the peak of the gesture, it smoothly lowers the right arm back down to its side, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends slightly forward, so ensure there is clear space directly in front of the robot.",
+  "confidence": 0.95
+}

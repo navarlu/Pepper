@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Waiting/TakePicture_1",
+  "name": "TakePicture_1",
+  "source_label": "take_picture",
+  "duration_s": 4.25,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.75,
+  "clip_s": 6.83,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics holding a camera up to its eyes and taking a picture.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms symmetrically outwards, bringing its hands up to frame its eyes as if holding up a camera. It holds this pose for a brief moment, simulating taking a photograph, before lowering its arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "entertainment"
+  ],
+  "alternative_interpretations": [
+    "framing_something",
+    "peering_through_binoculars",
+    "hiding_eyes"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms sweep outwards and upwards, requiring clear lateral space around the upper body.",
+  "confidence": 0.95
+}

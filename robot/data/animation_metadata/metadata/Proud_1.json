@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Proud_1",
+  "name": "Proud_1",
+  "source_label": "proud",
+  "duration_s": 5.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.37,
+  "clip_s": 8.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks away in a proud, slightly aloof manner before returning to center.",
+  "movement_description": "The robot starts in a neutral posture and slowly lifts its chin while turning its head to its upper left, creating a proud and satisfied pose. It holds this posture for several seconds with subtle torso alignment, keeping its arms still at its sides. Finally, it smoothly turns its head back down and forward to return to the neutral starting position.",
+  "communicative_functions": [
+    "self_reference",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "gazing_away",
+    "disinterest",
+    "ignoring_listener"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "serious"
+  ],
+  "body_parts": [
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "clarification_request",
+    "visitor_approach",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/This_10",
+  "name": "This_10",
+  "source_label": "this",
+  "duration_s": 1.91,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.41,
+  "clip_s": 4.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand slightly forward and outward in a subtle pointing or presenting gesture.",
+  "movement_description": "Starting from a neutral posture, the robot slightly lifts its left hand, rotating the forearm outward and opening the fingers to face upwards and outwards. It briefly holds this open-handed presenting pose before smoothly retracting the arm back to the neutral hanging position. The head, torso, and right arm remain still throughout the motion.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm slightly forward and to the side; ensure no obstructions are immediately adjacent to its left side.",
+  "confidence": 0.95
+}

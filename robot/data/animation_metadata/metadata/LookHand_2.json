@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/LookHand_2",
+  "name": "LookHand_2",
+  "source_label": "look_hand",
+  "duration_s": 5.58,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.08,
+  "clip_s": 8.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to chest height and tilts its head down to look at it, before returning to neutral.",
+  "movement_description": "The robot raises its right hand to chest height with the palm facing inward, while simultaneously tilting its head down and slightly to the right to look directly at its hand. It holds this posture briefly, subtly adjusting its fingers as if examining its hand. Finally, the robot lowers its arm back to its side and returns its head to a forward-facing, level position.",
+  "communicative_functions": [
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "wondering",
+    "shyness"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "curious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "answering"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

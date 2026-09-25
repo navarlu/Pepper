@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_2",
+  "name": "Thinking_2",
+  "source_label": "thinking",
+  "duration_s": 7.52,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.02,
+  "clip_s": 10.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks up and to its left while slightly bringing its right hand in, as if deep in thought.",
+  "movement_description": "Starting from a neutral posture, the robot shifts its gaze upward and to its left. At the same time, it slightly raises and curves its right arm, bringing the right hand closer to its chest while the left arm remains relatively passive. After holding this contemplative pose briefly, the robot smoothly returns its head to the center and lowers its right arm back to the neutral starting position.",
+  "communicative_functions": [
+    "thinking",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "distraction",
+    "remembering",
+    "hesitation"
+  ],
+  "social_tone": [
+    "thoughtful",
+    "polite",
+    "casual"
+  ],
+  "body_parts": [
+    "head",
+    "right_arm",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None. This is a very compact, low-energy gesture with minimal arm movement.",
+  "confidence": 0.95
+}

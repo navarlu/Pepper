@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/HideEyes_1",
+  "name": "HideEyes_1",
+  "source_label": "hide_eyes",
+  "duration_s": 13.19,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 13.69,
+  "clip_s": 15.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot playfully hides its eyes behind its hands, first with its right hand, then its left hand, before returning to a neutral stance.",
+  "movement_description": "The robot begins in a neutral pose and lifts its right hand to cover its eyes, holding the position briefly before lowering it. It then raises its left hand to cover its eyes in a similar peek-a-boo fashion. Finally, it drops its left hand and smoothly transitions back to the initial neutral standing posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "playful_interaction",
+    "waiting"
+  ],
+  "alternative_interpretations": [
+    "expressing_shame",
+    "expressing_embarrassment",
+    "thinking",
+    "apologizing"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly",
+    "shy"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "formal_greeting",
+    "directional_guidance"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot raises both arms near its face; ensure there is clearance around the head and upper torso area.",
+  "confidence": 0.95
+}

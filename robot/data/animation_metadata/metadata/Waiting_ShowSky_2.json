@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowSky_2",
+  "name": "Waiting_ShowSky_2",
+  "source_label": "show_sky",
+  "duration_s": 2.16,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.66,
+  "clip_s": 7.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head back and points its left arm high up into the air as if looking at the sky.",
+  "movement_description": "The robot starts from a neutral posture, then lifts its left arm while tilting its head back and up to look in the direction of its hand. Its left arm extends fully upward and outward, remaining held high for a couple of seconds. Finally, the robot lowers its arm back to its side and returns its head to the forward-facing, neutral position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "showing_direction",
+    "introducing_something",
+    "celebration",
+    "waving_high"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps high and slightly to the side; ensure there are no low-hanging obstacles or nearby visitors on the robot's left side.",
+  "confidence": 0.01
+}

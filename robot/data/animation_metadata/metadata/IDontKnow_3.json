@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/IDontKnow_3",
+  "name": "IDontKnow_3",
+  "source_label": "i_dont_know",
+  "duration_s": 1.67,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.17,
+  "clip_s": 4.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrugs slightly, lifting and turning its hands outward to convey uncertainty or lack of knowledge.",
+  "movement_description": "Starting from a neutral rest pose, the robot lifts both hands slightly outward to waist level with palms facing upward and outward, accompanied by a subtle upward tilt of its head and shoulders. It holds this shrugging posture briefly to emphasize the gesture. It then smoothly lowers its arms back down and returns its head to the forward-facing, neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "calming",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "apologetic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

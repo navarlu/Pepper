@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/CountFour_1",
+  "name": "CountFour_1",
+  "source_label": "count_four",
+  "duration_s": 4.33,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.83,
+  "clip_s": 7.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot counts to four by raising its hands and curling its fingers in sequence.",
+  "movement_description": "The robot begins by bringing both hands up in front of its chest with its fingers loosely curled. It then extends its left arm slightly and counts, unfolding fingers sequentially to represent numbers, before lowering both arms back down to its sides in a neutral posture.",
+  "communicative_functions": [
+    "counting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "listing_items",
+    "sequential_explanation"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "educational"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "greeting",
+    "farewell",
+    "session_start",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_1",
+  "name": "Reject_1",
+  "source_label": "reject",
+  "duration_s": 2.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.71,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands up together in front of its chest, then pushes its left arm out to its side while sweeping its right arm down in a clear rejecting or dismissing gesture.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands up toward the center of its chest. It then sweeps its left arm outward to the left side with an open palm while simultaneously dropping its right arm downward and slightly back. Finally, it smoothly returns both arms to the neutral hanging position at its sides.",
+  "communicative_functions": [
+    "negation",
+    "disagreement",
+    "rejection"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "indicating_direction",
+    "explaining"
+  ],
+  "social_tone": [
+    "serious",
+    "formal",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "outward_and_downward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "apology",
+    "welcoming"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the robot's left side, requiring moderate lateral clearance.",
+  "confidence": 0.95
+}

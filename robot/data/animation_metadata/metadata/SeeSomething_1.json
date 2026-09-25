@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_1",
+  "name": "SeeSomething_1",
+  "source_label": "see_something",
+  "duration_s": 17.91,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 18.41,
+  "clip_s": 20.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts and rotates its head to inspect something on its side, bringing its hands together in a curious posture.",
+  "movement_description": "The robot starts in a neutral posture, then turns its head to the left while tilting it slightly as if noticing something. It brings both hands in front of its lower torso with curled fingers, mimicking a startled or intrigued posture. It then slowly tilts its head downward to inspect the imaginary object before returning its head and arms back to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "listening"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None",
+  "confidence": 0.9
+}

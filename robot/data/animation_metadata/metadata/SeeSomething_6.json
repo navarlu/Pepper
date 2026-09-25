@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_6",
+  "name": "SeeSomething_6",
+  "source_label": "see_something",
+  "duration_s": 3.11,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.61,
+  "clip_s": 5.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot reacts to seeing something by slightly leaning forward and bringing its hands close to its center.",
+  "movement_description": "Starting from a neutral posture, the robot subtly lowers and tilts its head slightly forward while pulling its elbows back and bringing both hands inward toward its lower torso. After a brief pause in this slightly crouched, focused posture, it smoothly extends its neck and returns its arms and head to the default upright neutral position.",
+  "communicative_functions": [
+    "attention_getting",
+    "affirmation",
+    "acknowledging_presence"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "agreement",
+    "subtle_nod",
+    "interest"
+  ],
+  "social_tone": [
+    "friendly",
+    "attentive",
+    "polite"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "session_start",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

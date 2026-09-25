@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_7",
+  "name": "BodyTalk_7",
+  "source_label": "body_talk",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 4.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot remains virtually static with extremely minor, almost imperceptible micro-adjustments of its joints.",
+  "movement_description": "The robot starts in a standard neutral resting posture facing forward. Throughout the short clip, there is no active gesture or significant movement; only tiny, natural-looking motor micro-drifts or idling adjustments occur in the arms and head. The sequence concludes with the robot in the exact same neutral resting pose.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "listening",
+    "waiting",
+    "neutral_gaze"
+  ],
+  "social_tone": [
+    "neutral",
+    "formal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "emphasis",
+    "pointing"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

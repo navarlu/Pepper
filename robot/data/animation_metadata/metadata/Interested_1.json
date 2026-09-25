@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Interested_1",
+  "name": "Interested_1",
+  "source_label": "interested",
+  "duration_s": 5.33,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.83,
+  "clip_s": 8.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head and brings its right hand to its mouth in a curious, thoughtful gesture.",
+  "movement_description": "The robot begins in a neutral pose, then raises its right hand up towards its mouth with a closed fist while tilting its head slightly downward and forward, as if in deep thought or showing curiosity. Its torso leans slightly forward as well to emphasize the posture. After holding this pensive position for a couple of seconds, the robot gently lowers its arm back to its side and returns its head and torso to the upright, neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "gossiping",
+    "giggling",
+    "hiding_a_smile"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "waiting",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

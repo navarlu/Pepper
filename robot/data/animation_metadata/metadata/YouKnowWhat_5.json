@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_5",
+  "name": "YouKnowWhat_5",
+  "source_label": "you_know_what",
+  "duration_s": 1.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.47,
+  "clip_s": 5.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its forearms and opens its hands to gesture 'you know what' or offer an open invitation.",
+  "movement_description": "Starting from a neutral rest pose, the robot raises both hands up to chest level with its elbows bent, turning its palms upward and opening its fingers. It holds this open-handed gesture briefly with a slight head tilt, and then smoothly lowers its arms back down to the neutral starting position.",
+  "communicative_functions": [
+    "listener_reference",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "welcoming",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

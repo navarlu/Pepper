@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_3",
+  "name": "Thinking_3",
+  "source_label": "thinking",
+  "duration_s": 2.11,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.61,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its hands on its hips in a thinking posture, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture and symmetrically raises both arms outward, rotating its hands. It places its open hands on its hips, leaning slightly forward with its head positioned straight ahead, holding this pose briefly. It then smoothly lowers both arms back down to its sides, returning to the neutral starting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "standing_proud",
+    "readiness",
+    "playful_defiance"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

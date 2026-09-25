@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/You_5",
+  "name": "You_5",
+  "source_label": "you",
+  "duration_s": 1.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.35,
+  "clip_s": 5.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand forward in a gentle, open palm gesture pointing toward the user.",
+  "movement_description": "Starting from a neutral posture, the robot raises its left arm, bending at the elbow and turning its palm slightly upward. It then extends the left arm forward toward the viewer with fingers spread open in a welcoming, pointing gesture. After a brief pause in this extended position, the robot smoothly lowers the arm back down to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "listener_reference",
+    "pointing",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "explaining",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "direct"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "uncertainty",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm extends directly forward. Ensure there are no physical obstacles or people standing extremely close directly in front of the robot.",
+  "confidence": 0.95
+}

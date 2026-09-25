@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Sure_1",
+  "name": "Sure_1",
+  "source_label": "sure",
+  "duration_s": 8.39,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.89,
+  "clip_s": 11.0,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its waist and tilts its head, projecting an air of confidence and self-assurance.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward to meet in front of its lower torso, with fingers slightly curled and facing each other. Simultaneously, it tilts its head slightly to the left and upward in a confident, knowing posture. It holds this pose for several seconds before smoothly lowering both arms back to its sides and returning its head to the neutral forward-facing position.",
+  "communicative_functions": [
+    "affirmation",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "polite_listening",
+    "waiting",
+    "readiness",
+    "thoughtfulness"
+  ],
+  "social_tone": [
+    "friendly",
+    "serious",
+    "formal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "greeting",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

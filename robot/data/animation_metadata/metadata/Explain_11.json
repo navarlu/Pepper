@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_11",
+  "name": "Explain_11",
+  "source_label": "explain",
+  "duration_s": 3.94,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.44,
+  "clip_s": 6.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its waist and then gestures forward with its right hand to explain a point.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward to meet briefly near its waist. It then retracts its left arm back to its side while raising its right hand forward with an open palm facing upward. Finally, the right arm is lowered back down, returning the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm directly forward; ensure there are no obstacles immediately in front of its chest level.",
+  "confidence": 0.95
+}

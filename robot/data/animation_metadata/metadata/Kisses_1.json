@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Kisses_1",
+  "name": "Kisses_1",
+  "source_label": "kisses",
+  "duration_s": 5.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.25,
+  "clip_s": 8.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot blows a kiss by raising both hands to its mouth and then sweeping them outward.",
+  "movement_description": "Starting from a neutral posture, the robot raises both hands in front of its mouth with palms facing inward, mimicking a blowing a kiss motion. It then opens both arms wide to the sides in a large outward sweep, extending its hands toward the audience. Finally, it smoothly retracts both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "farewell",
+    "greeting",
+    "affection"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "grand_gesture",
+    "revealing_something",
+    "celebration"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "enthusiastic",
+    "affectionate",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_end",
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend fully to both sides. Ensure there are no obstacles or people within a 1-meter radius of the robot's sides.",
+  "confidence": 0.95
+}

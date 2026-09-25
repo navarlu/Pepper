@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Reactions/ShakeBody_2",
+  "name": "ShakeBody_2",
+  "source_label": "shake_body",
+  "duration_s": 6.72,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.22,
+  "clip_s": 9.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shivers or shakes its shoulders while tilting its head.",
+  "movement_description": "The robot starts by tilting its head to the right while slightly lifting its shoulders and rotating its hands outward. It then shifts its head to the left and repeats a similar subtle shoulder and body shaking motion. Finally, the robot straightens up, aligns its head to the front, and returns its arms to the neutral hanging position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "feeling_cold",
+    "shrugging",
+    "playful_teasing",
+    "discomfort"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot moves its arms slightly outward, requiring minimal clearance.",
+  "confidence": 0.9
+}

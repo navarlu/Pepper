@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Mocker_1",
+  "name": "Mocker_1",
+  "source_label": "mocker",
+  "duration_s": 3.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.46,
+  "clip_s": 7.07,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot leans forward slightly, points its left hand forward, and curls its right hand to its chest in a playful, teasing gesture.",
+  "movement_description": "The robot begins in a neutral posture and then raises its right arm to its chest while simultaneously extending its left arm forward with fingers slightly curled. Its head tilts slightly down and to the left, directing its gaze towards the hand pointing forward as if playfully mocking or teasing. Finally, the robot retracts both arms and returns its head to the upright center position, coming to rest back in its neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "pointing",
+    "teasing",
+    "playful_scolding"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm extends forward; ensure there are no obstacles directly in front of the robot.",
+  "confidence": 0.9
+}

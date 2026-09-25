@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Waiting/Stretch_1",
+  "name": "Waiting_Stretch_1",
+  "source_label": "stretch",
+  "duration_s": 8.58,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.08,
+  "clip_s": 11.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot stretches by bringing its hands up to chest level, curving them downward, and then dropping into a deep, relaxed bow before rising back to neutral.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms to chest level with bent elbows, turning its hands so the palms face downward in front of its chest screen. It then lowers its hands while dropping its head and leaning its torso forward into a deep, relaxed stretching bow. After holding this low, bent-over posture for a moment, the robot slowly lifts its head, straightens its torso, and returns its arms to its sides in the initial neutral position.",
+  "communicative_functions": [
+    "calming",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "feeling_tired",
+    "deep_bow",
+    "sadness"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "apologetic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "explaining",
+    "emphasis",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot bends its torso forward significantly; ensure there are no low obstructions immediately in front of its chest or head.",
+  "confidence": 0.95
+}

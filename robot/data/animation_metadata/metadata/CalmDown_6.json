@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/CalmDown_6",
+  "name": "CalmDown_6",
+  "source_label": "calm_down",
+  "duration_s": 1.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.46,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently raises its left hand with an open palm toward the visitor in a calming gesture, then slowly lowers it back to its side.",
+  "movement_description": "The robot starts from a neutral posture and slowly lifts its left arm forward, turning its hand palm-downwards in a soothing, comforting manner. The hand reaches a moderate height, briefly sustaining the gentle, reassuring gesture, before smoothly retracing its path back to the resting position at its side. The rest of the body remains stable and stationary throughout the motion.",
+  "communicative_functions": [
+    "calming",
+    "soothing",
+    "reassuring",
+    "explanation"
+  ],
+  "alternative_interpretations": [
+    "presenting_an_option",
+    "gentle_denial",
+    "stopping_gently",
+    "beckoning_softly"
+  ],
+  "social_tone": [
+    "friendly",
+    "empathetic",
+    "calm",
+    "patient",
+    "welcoming"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "enthusiastic_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps forward and slightly outward; ensure a small clearance space is maintained on the robot's left side.",
+  "confidence": 0.95
+}

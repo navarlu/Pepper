@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_6",
+  "name": "WhatSThis_6",
+  "source_label": "what_s_this",
+  "duration_s": 2.08,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.58,
+  "clip_s": 5.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts and opens both hands palms-up, questioning 'what's this?' before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and quickly brings both arms up with closed fists near its chest. It then opens its hands palms-up and extends them outward symmetrically, holding the gesture while tilting its head slightly. Finally, it smoothly lowers both arms back down to its sides to return to the neutral starting posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "explanation",
+    "questioning"
+  ],
+  "alternative_interpretations": [
+    "offering_choices",
+    "welcoming",
+    "presenting_information"
+  ],
+  "social_tone": [
+    "friendly",
+    "open",
+    "inquisitive",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms outward horizontally. Ensure there is sufficient lateral clearance to prevent collision with visitors or objects.",
+  "confidence": 0.95
+}

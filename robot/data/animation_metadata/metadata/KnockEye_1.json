@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Waiting/KnockEye_1",
+  "name": "KnockEye_1",
+  "source_label": "knock_eye",
+  "duration_s": 5.59,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.09,
+  "clip_s": 8.47,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to its right eye, mimics knocking on it twice like a glass window, and returns to a neutral stand.",
+  "movement_description": "The robot starts from a neutral standing position. It raises its right arm, bending at the elbow and wrist, to position its hand directly in front of its right eye. It then performs two distinct, quick forward tapping motions with its fingers towards its eye, simulating knocking on glass. Finally, it lowers its right arm smoothly back down to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "salute",
+    "checking_vision",
+    "playful_peekaboo"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "quirky"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal_announcement"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot raises its right hand close to its own head; ensure no objects or people are within the immediate upper-right sweep radius of the arm.",
+  "confidence": 0.95
+}

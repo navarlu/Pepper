@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_7",
+  "name": "SeeSomething_7",
+  "source_label": "see_something",
+  "duration_s": 4.31,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.81,
+  "clip_s": 6.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head forward with widened eyes to closely examine something, then returns to neutral.",
+  "movement_description": "Starting from a neutral posture, the robot tilts its head slightly forward and downward while opening its eyes wide in a focused, attentive stare. This forward-leaning head posture is held for a few seconds to simulate looking at something close by. Finally, the robot smoothly raises and centers its head back to the default neutral standing pose.",
+  "communicative_functions": [
+    "attention_getting",
+    "acknowledging_presence"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "showing_curiosity",
+    "listening_intently"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "curious"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "forward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The movement is confined entirely to a minor head tilt, posing no safety concerns.",
+  "confidence": 0.95
+}

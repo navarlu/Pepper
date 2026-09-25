@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_7",
+  "name": "ShowSky_7",
+  "source_label": "show_sky",
+  "duration_s": 1.95,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.45,
+  "clip_s": 5.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks up and sweeps both arms upward and outward to present or point toward something above.",
+  "movement_description": "The robot begins in a neutral pose, then raises both arms upward and outward while tilting its head up to look high above. The left arm is held significantly higher and further back than the right arm, creating an asymmetrical framing. After briefly holding this pose to direct attention upward, the robot lowers both arms and returns its head to a forward-facing neutral position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "expressing_wonder",
+    "gazing_upward"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "informative"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms outward, requiring clear lateral clearance around its upper body.",
+  "confidence": 0.95
+}

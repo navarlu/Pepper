@@ -1,0 +1,63 @@
+{
+  "action_id": "animations/Stand/Gestures/Give_1",
+  "name": "Give_1",
+  "source_label": "give",
+  "duration_s": 2.89,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.39,
+  "clip_s": 6.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens both arms wide with palms up in an offering or welcoming gesture.",
+  "movement_description": "Starting from a neutral rest posture, the robot briefly retracts its hands toward its lower waist. It then sweeps both arms forward and outward in a smooth arc, presenting its open palms facing upward. The robot holds this open-handed posture momentarily before smoothly lowering its arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "offering",
+    "listener_reference",
+    "welcoming",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "presenting_information",
+    "expressing_honesty",
+    "inclusive_we"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "open",
+    "helpful",
+    "earnest"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering",
+    "handover_to_human",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms forward and outward; ensure the immediate front and lateral space is clear of visitors.",
+  "confidence": 1.0
+}

@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowSky_1",
+  "name": "Waiting_ShowSky_1",
+  "source_label": "show_sky",
+  "duration_s": 6.48,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.98,
+  "clip_s": 9.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks up, raises its right arm high to point toward the sky, and then lowers it back to its side.",
+  "movement_description": "The robot begins by tilting its head upward and to its left while bringing its right arm across its chest. It then extends its right arm fully upward and outward with an open hand, pointing toward the sky while looking up in that direction. After holding the pose briefly, the robot brings its right hand to its chest as its head returns forward, and finally lowers both arms back into a neutral standing posture.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "farewell",
+    "expressing_wonder",
+    "asking_to_speak"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm extends fully upwards and slightly outwards; ensure there are no low-hanging obstacles or nearby visitors within the right-arm sweep radius.",
+  "confidence": 0.95
+}

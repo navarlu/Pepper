@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Nothing_2",
+  "name": "Nothing_2",
+  "source_label": "nothing",
+  "duration_s": 2.35,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.85,
+  "clip_s": 5.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly sweeps both hands inward toward its stomach and then opens them slightly outward before returning to neutral.",
+  "movement_description": "The robot begins in a neutral pose and brings both hands inward in front of its lower torso, palms facing down and slightly inward. It then smoothly sweeps both arms outward and slightly downward, spreading the fingers open. Finally, the arms gracefully return to the sides, settling back into the neutral rest posture.",
+  "communicative_functions": [
+    "negation",
+    "emphasis",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "clearing_the_air",
+    "dismissal"
+  ],
+  "social_tone": [
+    "formal",
+    "serious",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "clarification_request",
+    "apology",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

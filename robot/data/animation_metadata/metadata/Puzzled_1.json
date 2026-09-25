@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Puzzled_1",
+  "name": "Puzzled_1",
+  "source_label": "puzzled",
+  "duration_s": 4.14,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.64,
+  "clip_s": 8.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its right hand to its chin and tilts its head, appearing puzzled or thoughtful.",
+  "movement_description": "The robot starts from a neutral posture, then lifts its right hand to touch its chin while placing its left hand on its hip. Simultaneously, it tilts its head slightly to the right, looking thoughtful. It holds this pensive posture for a few seconds before lowering its arms and returning its head to the upright neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "evaluating",
+    "recalling_information",
+    "listening_intently"
+  ],
+  "social_tone": [
+    "serious",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

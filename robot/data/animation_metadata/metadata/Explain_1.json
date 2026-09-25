@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_1",
+  "name": "Explain_1",
+  "source_label": "explain",
+  "duration_s": 2.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.84,
+  "clip_s": 5.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands inward toward its lower torso and then opens its arms outward with open palms to explain a concept.",
+  "movement_description": "The robot starts by bringing both hands inward and slightly down toward its lower stomach, bending its elbows. It then sweeps both arms outward and upward into an open-palm gesture at hip level, presenting its hands to the side while tilting its head slightly forward. Finally, it smoothly retracts both arms back down to its sides to return to the neutral rest posture.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "welcoming",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "offering_help",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "open"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "session_start",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

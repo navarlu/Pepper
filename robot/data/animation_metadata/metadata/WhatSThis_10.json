@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_10",
+  "name": "WhatSThis_10",
+  "source_label": "what_s_this",
+  "duration_s": 2.03,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.53,
+  "clip_s": 4.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm forward with an open palm while turning its head slightly to ask or point at something.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm forward with an open, slightly cupped hand while tilting and turning its head slightly to the left. It then smoothly retracts its arm and returns its head to the center, ending in the initial neutral resting posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "pointing",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "presenting_option",
+    "asking_question"
+  ],
+  "social_tone": [
+    "friendly",
+    "curious",
+    "informal",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "explaining",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends slightly forward, requiring minimal clearance directly in front of the robot.",
+  "confidence": 0.95
+}

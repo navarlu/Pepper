@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Cautious_1",
+  "name": "Cautious_1",
+  "source_label": "cautious",
+  "duration_s": 4.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.42,
+  "clip_s": 8.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head to the side cautiously, then looks back and returns to its neutral posture.",
+  "movement_description": "The robot starts in a neutral posture and slowly rotates its head to its right, tilting its face slightly upward to look toward the side. At the same time, its arms open very slightly outward. It holds this cautious sideward glance for a couple of seconds before turning its head back to face forward and settling its arms back to its sides.",
+  "communicative_functions": [
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "distraction",
+    "looking_at_something",
+    "thinking"
+  ],
+  "social_tone": [
+    "serious",
+    "formal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

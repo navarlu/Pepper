@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Salute_1",
+  "name": "Salute_1",
+  "source_label": "salute",
+  "duration_s": 3.66,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.16,
+  "clip_s": 6.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its right hand to its temple in a polite salute gesture.",
+  "movement_description": "Starting from a neutral posture, the robot slightly tilts its head forward and raises its right arm. It brings its right hand toward its temple, performing a brief and polite salute. After holding the salute briefly, the robot lowers its right arm and returns its head to the upright, neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "farewell",
+    "acknowledging"
+  ],
+  "alternative_interpretations": [
+    "affirmation",
+    "respectful_agreement"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "respectful",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "session_end",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm sweeps upward and outward; ensure there are no obstacles immediately to its right side.",
+  "confidence": 0.95
+}

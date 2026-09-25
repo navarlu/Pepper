@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Explain_7",
+  "name": "Explain_7",
+  "source_label": "explain",
+  "duration_s": 1.84,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.34,
+  "clip_s": 4.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand slightly to the side with an open palm while keeping its head focused on the listener.",
+  "movement_description": "Starting from a neutral posture, the robot slowly lifts its left forearm forward and slightly outward, rotating its hand to present an open-palm gesture at waist height. Its head tilts slightly to the left to complement the posture while maintaining forward gaze. The left arm then smoothly descends back to its side, returning the robot to its neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "indicating_direction",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "polite",
+    "helpful",
+    "calm"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The movement is highly compact and stays well within the robot's immediate cylinder space, posing no safety concerns.",
+  "confidence": 0.95
+}

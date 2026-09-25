@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Fear_2",
+  "name": "Fear_2",
+  "source_label": "fear",
+  "duration_s": 9.83,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 10.33,
+  "clip_s": 12.6,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrinks back, clutching its chest with its right hand and tilting its head in a fearful, startled reaction.",
+  "movement_description": "The robot quickly raises its right hand to its chest while bringing its left hand slightly forward in a self-protective posture, tilting its head back and to the side. It holds this defensive, startled posture briefly before slowly dropping its hands and head back down. Finally, it returns to its upright, neutral resting position.",
+  "communicative_functions": [
+    "expressing_fear",
+    "expressing_uncertainty",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "feeling_bashful",
+    "heartfelt_gasp"
+  ],
+  "social_tone": [
+    "serious",
+    "apologetic",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right hand moves very close to its tablet and chest area; ensure no loose lanyards or accessories are hanging from the neck that could get caught in the shoulder or elbow joints.",
+  "confidence": 0.95
+}

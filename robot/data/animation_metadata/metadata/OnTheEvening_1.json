@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/OnTheEvening_1",
+  "name": "OnTheEvening_1",
+  "source_label": "on_the_evening",
+  "duration_s": 2.09,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.59,
+  "clip_s": 5.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms outward and then brings them back down to its sides in a gentle, welcoming gesture.",
+  "movement_description": "The robot starts in a neutral posture and smoothly raises both arms outward and slightly forward, with its hands open and palms facing inward. After reaching a moderate height at around one second, it begins to lower its arms back down to its sides. By the four-second mark, the robot has fully returned to its resting neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "welcoming",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms outward to the sides, requiring clear space of about half a meter on both the left and right sides of its torso.",
+  "confidence": 0.95
+}

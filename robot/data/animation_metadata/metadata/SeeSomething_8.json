@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_8",
+  "name": "SeeSomething_8",
+  "source_label": "see_something",
+  "duration_s": 5.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.71,
+  "clip_s": 7.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks down at something on its right, then quickly returns to upright posture.",
+  "movement_description": "The robot turns its head and bends its torso down and to the right, sweeping its right arm slightly forward with fingers open as if noticing or reaching toward something low. It holds this posture briefly while looking down, then smoothly recovers back to an upright, neutral standing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing",
+    "gaze_direction"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "apologizing"
+  ],
+  "social_tone": [
+    "curious",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "thinking",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "formal_greeting",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right hand moves forward and slightly outward, but stays well within the standard envelope of the robot base.",
+  "confidence": 0.95
+}

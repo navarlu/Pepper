@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Fearful_1",
+  "name": "Fearful_1",
+  "source_label": "fearful",
+  "duration_s": 6.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.37,
+  "clip_s": 9.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrinks back, raising its left hand to its head while shielding itself with its right arm, portraying fear or shock.",
+  "movement_description": "The robot starts by tensing and raising both arms slightly. It then pulls its torso and head backward and to the right while lifting its left hand up to its temple, fingers slightly splayed, and holding its bent right arm protectively in front of its chest. After holding this fearful, defensive posture for a couple of seconds, it slowly lowers its arms and straightens its body back into a neutral standing pose.",
+  "communicative_functions": [
+    "expressing_fear",
+    "expressing_surprise",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_shock",
+    "feeling_threatened",
+    "reacting_to_loud_noise",
+    "forgetfulness_or_realization"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "formal_greeting",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot pulls its arms up close to its face and chest, keeping its sweep radius tight and safe for close interactions.",
+  "confidence": 0.95
+}

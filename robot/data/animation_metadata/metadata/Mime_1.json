@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/Mime_1",
+  "name": "Mime_1",
+  "source_label": "mime",
+  "duration_s": 2.28,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.78,
+  "clip_s": 5.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimes holding or patting an invisible wall in front of its chest.",
+  "movement_description": "The robot starts from a neutral posture and raises both hands up in front of its chest, palms facing forward with slightly curled fingers as if touching a vertical flat surface. It holds this position briefly, making subtle micro-movements with its fingers and wrists to simulate feeling a barrier, and then drops both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "holding_large_object",
+    "stopping_motion",
+    "shooing"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "formal_greeting"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

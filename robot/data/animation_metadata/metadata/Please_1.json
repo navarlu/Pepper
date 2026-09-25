@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Gestures/Please_1",
+  "name": "Please_1",
+  "source_label": "please",
+  "duration_s": 2.15,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.65,
+  "clip_s": 5.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends both arms outward with open palms in a welcoming gesture of invitation or offering.",
+  "movement_description": "The robot starts from its neutral standing posture and slightly lifts its forearms while curling its fingers. It then smoothly extends both arms outward and slightly downward, opening its palms fully toward the viewer in a classic 'please' or welcoming gesture. After a brief hold to emphasize the invitation, both arms retract symmetrically back to the sides, returning the robot to its neutral rest pose.",
+  "communicative_functions": [
+    "welcoming",
+    "offering",
+    "listener_reference",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "explaining",
+    "presenting_option",
+    "expressing_honesty"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "polite",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "handover_to_human",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend outward to the sides and front. Ensure there is a small clearance radius around the upper body.",
+  "confidence": 1.0
+}

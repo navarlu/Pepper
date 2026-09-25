@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Optimistic_1",
+  "name": "Optimistic_1",
+  "source_label": "optimistic",
+  "duration_s": 6.77,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.27,
+  "clip_s": 9.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head, shifts its hands slightly upward, and then returns to a neutral posture, conveying quiet optimism or listening interest.",
+  "movement_description": "The robot begins in a neutral posture and gently tilts its head to its right side while lifting both hands slightly, fingers subtly curling as if in anticipation. It holds this attentive, tilted pose for a few seconds with minor hand micro-movements. Finally, the robot slowly aligns its head back to the center and drops its arms back down into the neutral resting position.",
+  "communicative_functions": [
+    "affirmation",
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "listening_interest",
+    "curiosity",
+    "thinking"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "empathetic",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

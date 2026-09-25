@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/Think_4",
+  "name": "Think_4",
+  "source_label": "think",
+  "duration_s": 4.45,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.95,
+  "clip_s": 8.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to its chin and tilts its head, appearing to ponder or think.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm, bringing its hand up to rest near its chin. Simultaneously, it tilts its head slightly downward and to the right, holding this contemplative pose for several seconds. Finally, it lowers its right arm and returns its head to the upright, center position, ending back in the neutral rest posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "self_reference",
+    "apologizing",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "serious",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "pointing"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

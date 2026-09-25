@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Waiting/Robot_1",
+  "name": "Robot_1",
+  "source_label": "robot",
+  "duration_s": 6.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.35,
+  "clip_s": 9.67,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks away over its left shoulder and then turns back to face forward.",
+  "movement_description": "Starting from a neutral posture, the robot slowly rotates its head to its left, looking over its shoulder as if distracted by something behind it. After holding this turned position for a couple of seconds, it smoothly rotates its head back to the center. The arms and lower body remain completely still and relaxed throughout the entire movement.",
+  "communicative_functions": [
+    "attention_getting",
+    "waiting"
+  ],
+  "alternative_interpretations": [
+    "being_distracted",
+    "looking_at_something_offscreen",
+    "ignoring_listener"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "curious"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "answering",
+    "apology",
+    "serious_policy_answer",
+    "visitor_approach"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

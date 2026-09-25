@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_11",
+  "name": "WhatSThis_11",
+  "source_label": "what_s_this",
+  "duration_s": 1.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.25,
+  "clip_s": 4.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm forward with an open palm as if presenting or questioning an object.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its right arm forward and slightly to the side, rotating its wrist so the hand opens palm-upward. It holds this gentle offering or questioning posture briefly with its fingers slightly spread, while its head remains still and forward-facing. Finally, it brings the right arm down in a controlled manner, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "asking_for_clarification",
+    "presenting_an_object",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "helpful",
+    "welcoming",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends directly forward. Ensure there are no obstacles or people directly in front of the robot within arm's reach.",
+  "confidence": 0.95
+}

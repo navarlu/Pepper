@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_4",
+  "name": "SeeSomething_4",
+  "source_label": "see_something",
+  "duration_s": 6.42,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.92,
+  "clip_s": 10.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks down in surprise and places its hands on its hips, then relaxes its left arm.",
+  "movement_description": "The robot starts in a neutral posture, then quickly tilts its head down and brings both hands up to rest on its hips as if startled or inspecting something close. It holds this inquisitive, hands-on-hips pose for a few seconds while looking slightly downward. Finally, it raises its head back to a neutral position and relaxes its left arm back to its side while keeping its right hand resting on its hip.",
+  "communicative_functions": [
+    "attention_getting",
+    "gaze_direction",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "scolding",
+    "pride_or_confidence",
+    "curiosity"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": false,
+  "full_body_visible": true,
+  "safety_notes": "The robot's elbows flare out to the sides when placing hands on hips, requiring clearance on both sides.",
+  "confidence": 0.95
+}

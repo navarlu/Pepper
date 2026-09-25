@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Waiting/Bandmaster_1",
+  "name": "Bandmaster_1",
+  "source_label": "bandmaster",
+  "duration_s": 15.78,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 16.28,
+  "clip_s": 18.77,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot acts as an orchestral conductor, waving its arms rhythmically to lead an imaginary performance.",
+  "movement_description": "Starting from a neutral posture, the robot raises both hands to chest height and begins gesturing in a rhythmic, conducting pattern. It alternates between sweeping gestures with both arms, tapping its hand in front of the chest, and raising a single arm as if cuing an instrument section, while tilting and turning its head to follow the music. The sequence culminates in a dramatic, symmetric upward sweep of both arms that meets above its head before bringing both arms down smoothly back to its sides.",
+  "communicative_functions": [
+    "attention_getting",
+    "entertainment",
+    "storytelling"
+  ],
+  "alternative_interpretations": [
+    "explaining_with_emphasis",
+    "enthusiastic_welcoming",
+    "grand_gesture"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "friendly",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "answering",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot performs wide lateral and high vertical arm movements, requiring a clear radius of about 1 meter around the upper body.",
+  "confidence": 0.95
+}

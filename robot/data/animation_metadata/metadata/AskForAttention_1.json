@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/AskForAttention_1",
+  "name": "AskForAttention_1",
+  "source_label": "ask_for_attention",
+  "duration_s": 4.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.37,
+  "clip_s": 9.17,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head, raises its left hand to its chin as if thinking or listening closely, and then returns to a neutral position.",
+  "movement_description": "The robot starts by turning its head slightly to its right. It then raises its left hand up to its chin, holding it there for a couple of seconds as if in deep thought or listening intently. Finally, the robot lowers its arm back down and returns its head to the front-facing neutral position.",
+  "communicative_functions": [
+    "attention_getting",
+    "listening",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "secretiveness",
+    "conspiring"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "thoughtful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "clarification_request",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

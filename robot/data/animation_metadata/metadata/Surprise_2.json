@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Surprise_2",
+  "name": "Surprise_2",
+  "source_label": "surprise",
+  "duration_s": 3.36,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.86,
+  "clip_s": 7.57,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its left hand on its chest and tilts its head slightly back in mild surprise or self-referential shock.",
+  "movement_description": "The robot begins in a neutral standing posture. It raises its left hand to its upper chest, splaying its fingers slightly, while its head tilts backward and slightly to the right in a classic startled gesture. After a brief pause in this pose, the robot lowers its left arm back to its side and returns its head to the upright, forward-facing neutral position.",
+  "communicative_functions": [
+    "self_reference",
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "showing_empathy",
+    "feeling_honored",
+    "mild_fright"
+  ],
+  "social_tone": [
+    "formal",
+    "serious",
+    "apologetic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "answering",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm raises to chest level but stays close to the body, posing minimal risk to the immediate surrounding space.",
+  "confidence": 0.95
+}

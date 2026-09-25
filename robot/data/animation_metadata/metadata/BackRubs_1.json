@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/BackRubs_1",
+  "name": "BackRubs_1",
+  "source_label": "back_rubs",
+  "duration_s": 10.03,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 10.53,
+  "clip_s": 12.97,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places both hands on its hips with its head tilted slightly back, creating a confident posture, before returning to a neutral stance.",
+  "movement_description": "The robot begins by lifting both arms and placing its hands on its hips symmetrically. While doing this, it tilts its head slightly upward and backward. It holds this proud, confident pose for several seconds before smoothly lowering its arms back down to its sides and returning its head to the neutral, forward-facing position.",
+  "communicative_functions": [
+    "waiting",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_pride",
+    "displaying_confidence",
+    "showing_readiness",
+    "expressing_impatience"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "explaining",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend outward slightly before resting on the hips. Ensure there are no obstacles immediately adjacent to the robot's sides.",
+  "confidence": 0.95
+}

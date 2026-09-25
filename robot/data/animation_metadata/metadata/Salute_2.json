@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Salute_2",
+  "name": "Salute_2",
+  "source_label": "salute",
+  "duration_s": 4.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.94,
+  "clip_s": 7.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right arm to perform a quick, friendly military-style salute.",
+  "movement_description": "The robot starts by raising its right arm out to the side before sweeping it inward to touch its head in a salute gesture, while simultaneously tilting its head down and to the right. It holds the salute briefly while looking toward the viewer, then smoothly lowers its right arm back to its side as its head returns to a level, neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "acknowledging",
+    "respectful_agreement",
+    "reporting_for_duty"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "playful",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps outward and upward, requiring a clear lateral clearance on the robot's right side.",
+  "confidence": 0.95
+}

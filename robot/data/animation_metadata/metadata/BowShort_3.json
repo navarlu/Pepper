@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/BowShort_3",
+  "name": "BowShort_3",
+  "source_label": "bow_short",
+  "duration_s": 4.53,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.03,
+  "clip_s": 7.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot bows forward slightly from the waist while looking down, then returns to its upright posture.",
+  "movement_description": "The robot starts from a neutral standing position. It bends its upper body forward from the hips, lowers its head to look downward, and extends its left hand slightly forward with an open palm. After a brief pause in this bowed position, it smoothly straightens its torso and head back to the upright neutral stance.",
+  "communicative_functions": [
+    "greeting",
+    "apologizing",
+    "farewell"
+  ],
+  "alternative_interpretations": [
+    "expressing_sadness",
+    "showing_respect"
+  ],
+  "social_tone": [
+    "formal",
+    "apologetic",
+    "polite",
+    "respectful"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "left_arm",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "session_end",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "enthusiastic_greetings",
+    "giving_directions"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

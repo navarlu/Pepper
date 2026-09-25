@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Reactions/TouchHead_1",
+  "name": "TouchHead_1",
+  "source_label": "touch_head",
+  "duration_s": 3.06,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.56,
+  "clip_s": 5.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrinks back, bringing its hands together protectively in front of its waist while lowering its head.",
+  "movement_description": "The robot starts by bowing its head slightly while pulling its arms inward, bringing its hands together near its waist in a defensive, protective gesture. The fingers are slightly curled and the torso leans forward slightly, accentuating the submissive posture. It then gradually relaxes, lifting its head back to the center and returning its arms to the neutral hanging position at its sides.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "shyness",
+    "submission",
+    "embarrassment",
+    "defensiveness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "empathetic",
+    "serious",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "explaining",
+    "pointing"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot pulls its limbs inward, making this gesture safe in tight spaces.",
+  "confidence": 0.95
+}

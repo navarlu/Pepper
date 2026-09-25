@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowTablet_1",
+  "name": "ShowTablet_1",
+  "source_label": "show_tablet",
+  "duration_s": 2.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.73,
+  "clip_s": 5.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures toward its chest-mounted tablet with both hands.",
+  "movement_description": "The robot starts in a neutral posture and slightly lowers its head while bringing both hands inward and upward to point toward its chest-mounted tablet. Its hands form open, cupped shapes framing the screen, and its head tilts down to look directly at the tablet. After a brief pause to draw attention to the display, the robot raises its head back to face forward while lowering its arms back down to its sides, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "self_reference",
+    "explaining",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "helpful",
+    "welcoming"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

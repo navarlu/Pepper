@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/HeSays_3",
+  "name": "HeSays_3",
+  "source_label": "he_says",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts and opens its right hand slightly forward and to the side as if introducing an idea, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture. It raises its right arm, bending the elbow and bringing the hand up towards chest level before extending it slightly forward and outward with an open, palm-up hand gesture. The head tracks slightly to the right to follow the movement, and the robot then smoothly lowers its arm and returns its head to the central, neutral position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "welcoming",
+    "presenting_option"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

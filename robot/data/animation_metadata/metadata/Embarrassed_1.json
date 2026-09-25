@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Embarrassed_1",
+  "name": "Embarrassed_1",
+  "source_label": "embarrassed",
+  "duration_s": 6.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.54,
+  "clip_s": 8.77,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks down and nervously fidgets with its hands in front of its waist to show embarrassment.",
+  "movement_description": "The robot starts in a neutral posture and slowly tilts its head downward while bringing both hands together in front of its lower torso. It curls its fingers and subtly moves its hands in a nervous, fidgeting clasping motion. After a brief pause in this guarded posture, it slowly releases its hands, lifts its head back up, and returns both arms to its sides.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "shyness",
+    "thinking",
+    "sadness",
+    "submission",
+    "hesitation"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms stay very close to the torso during this motion, presenting minimal collision risk.",
+  "confidence": 0.95
+}

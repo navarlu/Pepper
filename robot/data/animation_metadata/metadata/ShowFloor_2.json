@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowFloor_2",
+  "name": "ShowFloor_2",
+  "source_label": "show_floor",
+  "duration_s": 1.93,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.43,
+  "clip_s": 5.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts both hands slightly and turns its palms upward to present something, then relaxes back to neutral.",
+  "movement_description": "The robot starts from a neutral posture and raises both arms symmetrically, bending its elbows to bring its open hands upward. It then rotates its wrists so that both palms face fully upward in a presenting gesture. After a brief hold, the robot lowers its arms and hands back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "pointing",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "welcoming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

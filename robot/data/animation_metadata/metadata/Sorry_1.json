@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Sorry_1",
+  "name": "Sorry_1",
+  "source_label": "sorry",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot spreads its arms wide with palms up and tilts its head slightly backward to express apology or helplessness.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts both arms outward and upward with open palms facing up. Simultaneously, it tilts its head slightly back and upward to look toward the ceiling, creating an open, apologetic stance. After a brief pause in this open position, it lowers its arms and head back down, returning to its neutral resting posture.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "shrugging",
+    "explanation",
+    "expressing_honesty"
+  ],
+  "social_tone": [
+    "apologetic",
+    "empathetic",
+    "sincere",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "formal_announcement"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot spreads both arms outward; ensure there are no obstacles immediately to its left or right.",
+  "confidence": 0.95
+}

@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Laugh_1",
+  "name": "Laugh_1",
+  "source_label": "laugh",
+  "duration_s": 6.89,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.39,
+  "clip_s": 9.67,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot leans forward, looks down, and shakes with gentle laughter before returning to its neutral pose.",
+  "movement_description": "The robot starts by tilting its head up and slightly to its right while raising its right hand in a brief, expressive gesture. It then leans its torso forward, bows its head downward, and brings both hands near its midsection as if chuckling warmly. After a brief period of shaking its body slightly, the robot raises its head back up to look forward and gradually returns both arms to its sides in a neutral posture.",
+  "communicative_functions": [
+    "expressing_happiness",
+    "affirmation",
+    "giggle"
+  ],
+  "alternative_interpretations": [
+    "giggle",
+    "polite_bow",
+    "agreeing_warmly"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "enthusiastic",
+    "welcoming"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward_and_inward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "visitor_complaint",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot leans forward slightly and brings its hands together in front of its chest; ensure a small clearance zone in front of the chest tablet.",
+  "confidence": 0.95
+}

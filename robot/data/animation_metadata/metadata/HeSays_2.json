@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/HeSays_2",
+  "name": "HeSays_2",
+  "source_label": "he_says",
+  "duration_s": 1.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.37,
+  "clip_s": 5.0,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left arm in a moderate, outward gesture as if indicating something nearby or explaining a point.",
+  "movement_description": "The robot starts in a neutral posture and raises its left arm, bending the elbow and bringing its left hand up in a loose fist toward chest level. It then extends the arm slightly outward and downward while opening its hand with the palm facing up, gesturing toward its left side. Finally, the left arm smoothly lowers back down to return to the neutral rest position.",
+  "communicative_functions": [
+    "explaining",
+    "pointing",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "directing_attention"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm outward to the side, so keep the left lateral space clear of objects.",
+  "confidence": 0.95
+}

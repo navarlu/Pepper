@@ -1,0 +1,52 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchLeg_1",
+  "name": "ScratchLeg_1",
+  "source_label": "scratch_leg",
+  "duration_s": 5.76,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.26,
+  "clip_s": 8.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot leans forward slightly and uses its right hand to briefly scratch its lower leg before returning to an upright posture.",
+  "movement_description": "The robot starts in a neutral posture and turns its head slightly to the right. It then bends its torso forward and downward while lowering its right arm, bringing the hand close to its knee to perform a brief scratching motion. After a moment, the robot straightens its torso, raises its right arm back up, and returns its head to face forward in the neutral rest pose.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "expressing_pain_or_discomfort",
+    "self_reference"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "answering",
+    "explaining",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot leans forward and lowers its hand near the lower body; ensure there are no small low-lying obstacles or wires near the base within the arm's reach.",
+  "confidence": 0.95
+}

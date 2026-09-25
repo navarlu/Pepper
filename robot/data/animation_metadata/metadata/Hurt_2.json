@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Hurt_2",
+  "name": "Hurt_2",
+  "source_label": "hurt",
+  "duration_s": 4.14,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.64,
+  "clip_s": 9.2,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand to touch its head, mimicking a headache or injury, before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and slightly pulls its arms inward. It then lifts its right hand rapidly to touch its temple or the top of its head, tilting its head slightly to the left as if feeling pain or confusion. After holding this posture for a few seconds, it lowers the arm back down to its side, returning to a neutral standing pose.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "forgetfulness",
+    "embarrassment",
+    "worry"
+  ],
+  "social_tone": [
+    "apologetic",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm lifts close to the head; ensure no accessories or objects are in the immediate vicinity of the robot's upper right side.",
+  "confidence": 0.95
+}

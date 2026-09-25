@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_7",
+  "name": "Thinking_7",
+  "source_label": "thinking",
+  "duration_s": 2.69,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.19,
+  "clip_s": 7.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand to its chin and tilts its head as if deep in thought.",
+  "movement_description": "Starting from a neutral posture, the robot raises its left arm and places its closed hand near its chin while tilting its head slightly downward and to the right. It holds this pensive posture briefly, mimicking a classic thinking pose. Finally, it lowers its left arm back to its side and returns its head to a forward-facing, upright position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "feeling_shy",
+    "hushing_or_seeking_silence",
+    "experiencing_a_cough_or_covering_mouth",
+    "conspiring_or_whispering"
+  ],
+  "social_tone": [
+    "thoughtful",
+    "serious",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "apology",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm raises to chin height and extends slightly forward; ensure there are no obstacles close to the front-left upper body of the robot.",
+  "confidence": 0.95
+}

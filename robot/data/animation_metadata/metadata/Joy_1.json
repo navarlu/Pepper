@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Joy_1",
+  "name": "Joy_1",
+  "source_label": "joy",
+  "duration_s": 2.9,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.4,
+  "clip_s": 6.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its arms wide in a joyous and welcoming gesture before returning to its neutral pose.",
+  "movement_description": "The robot starts from a neutral posture and brings both hands slightly inward and downward. It then sweeps both arms outward and upward in a wide, symmetrical arc with palms facing up, while lifting its head slightly. Finally, it smoothly retracts its arms and lowers its head, returning to the starting neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_broad_scope",
+    "grand_presentation"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "conveying_bad_news"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps both arms wide horizontally; ensure there are no obstacles or people directly to its left or right within arm's reach.",
+  "confidence": 0.95
+}

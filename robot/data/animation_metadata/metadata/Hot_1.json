@@ -1,0 +1,52 @@
+{
+  "action_id": "animations/Stand/Gestures/Hot_1",
+  "name": "Hot_1",
+  "source_label": "hot",
+  "duration_s": 2.17,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.67,
+  "clip_s": 4.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot remains perfectly still in a neutral standing posture without any movement.",
+  "movement_description": "The robot starts in a standard neutral posture with both arms hanging down at its sides, head facing forward, and torso upright. Throughout the entire video, the robot does not perform any physical movement, remaining completely static. It ends the video in the exact same neutral resting pose.",
+  "communicative_functions": [
+    "waiting"
+  ],
+  "alternative_interpretations": [
+    "listening",
+    "idle_state",
+    "power_saving"
+  ],
+  "social_tone": [
+    "serious",
+    "neutral",
+    "formal"
+  ],
+  "body_parts": [],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "emphasis",
+    "greeting",
+    "pointing",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None, as the robot is stationary.",
+  "confidence": 1.0
+}

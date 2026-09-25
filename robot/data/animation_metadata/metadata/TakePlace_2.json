@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/TakePlace_2",
+  "name": "TakePlace_2",
+  "source_label": "take_place",
+  "duration_s": 4.54,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.04,
+  "clip_s": 7.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right hand outward in a welcoming gesture to indicate a place or direction.",
+  "movement_description": "The robot begins in a neutral posture and raises its right arm forward and slightly to the side, opening its palm upward in a gentle directing motion. Its head turns slightly to follow the direction of the hand gesture. After a brief pause to emphasize the indicated direction, the robot smoothly lowers its right arm and returns its head to the center, ending in the initial neutral posture.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "explaining",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm laterally, requiring a clear physical space on its right side to avoid collision.",
+  "confidence": 0.95
+}

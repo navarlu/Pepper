@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Determined_1",
+  "name": "Determined_1",
+  "source_label": "determined",
+  "duration_s": 3.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.35,
+  "clip_s": 6.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot rests its left hand on its hip and then sweeps it outward, displaying a confident and determined stance.",
+  "movement_description": "Starting from a neutral posture, the robot brings its left hand up to rest briefly on its hip while slightly tilting its head. It then sweeps its left arm outward to the side with an open hand, indicating confidence, before smoothly bringing the arm back down to its side. The head returns to a forward-facing level position as the robot settles back into its neutral starting pose.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_confidence",
+    "explaining",
+    "welcoming"
+  ],
+  "social_tone": [
+    "serious",
+    "formal",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "session_start",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "uncertainty",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the side. Ensure there is enough clear lateral space on the robot's left side to prevent collision.",
+  "confidence": 0.95
+}

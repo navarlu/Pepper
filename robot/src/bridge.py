@@ -92,7 +92,7 @@ AUTONOMOUS_LIFE_ABILITIES = (
 
 # Suffix used by the per-call animation-sound override (?sound=off). Distinct
 # from the ".muted" suffix used by the manual session-wide tool
-# (experiments/animation_metadata/mute_animation_sounds.py) so the two
+# (mute_animation_sounds.py, kept on `main`) so the two
 # mechanisms can never rename each other's files.
 _SOUND_MUTE_SUFFIX = ".tmpmuted"
 # Suffix the session-wide tool uses; ?sound=on temporarily lifts it too.
@@ -1721,7 +1721,7 @@ def main():
       3. Apply the autonomous-life ability profile from config.
       4. Configure audio output: open the device, set output volume.
          Streaming audio to Pepper's speaker is now handled entirely
-         by `services/src/live/audio_bridge.py` via ssh+paplay — this
+         by `services/src/audio_bridge.py` via ssh+paplay — this
          process no longer touches `sendRemoteBufferToOutput`.
       5. Start auxiliary threads: `LedEffectManager`,
          `TabletDebugReporter`, `TabletOverlayHttpServer` (HTTP).
@@ -1975,7 +1975,7 @@ def main():
     experiment_state_watcher.start()
 
     # Audio streaming used to live here: a TCP server that received
-    # mono PCM from `services/src/live/audio_bridge.py` and pushed it
+    # mono PCM from `services/src/audio_bridge.py` and pushed it
     # to `ALAudioDevice.sendRemoteBufferToOutput`. That path imposed
     # ~1.3 s of NAOqi-side buffer latency. Audio now flows directly
     # from audio-bridge → ssh+paplay → Pepper PulseAudio (~120 ms

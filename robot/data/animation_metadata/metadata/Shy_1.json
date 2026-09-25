@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Shy_1",
+  "name": "Shy_1",
+  "source_label": "shy",
+  "duration_s": 7.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.47,
+  "clip_s": 10.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head away shyly and nervously fidgets with its hands in front of its waist.",
+  "movement_description": "The robot starts from a neutral posture and slowly turns its head to its right while tilting it slightly downward, avoiding direct eye contact. At the same time, it brings both hands together in front of its waist, curling its fingers and fidgeting in a classic nervous gesture. After holding this shy posture for a few seconds, the robot slowly returns its head to center and lowers its arms back to the neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "feeling_guilty",
+    "embarrassment",
+    "hesitation",
+    "thinking"
+  ],
+  "social_tone": [
+    "apologetic",
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "formal_greetings",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None. The arms remain close to the body, posing no risk to nearby objects or visitors.",
+  "confidence": 0.95
+}

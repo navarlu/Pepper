@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_11",
+  "name": "ShowSky_11",
+  "source_label": "show_sky",
+  "duration_s": 2.65,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.15,
+  "clip_s": 7.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot points high up into the sky with its left arm while looking upward, gesturing toward something above.",
+  "movement_description": "The robot lifts both arms from its sides, bringing its left hand up high with fingers spread, pointing toward the sky while its head tilts slightly up. Concurrently, it brings its right hand to its face level in a complementary shielding or looking gesture. After holding this pose for a few seconds, the robot lowers both arms back down and returns its head to the neutral forward-facing position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "explaining"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its left arm high and wide, so ensure there are no low-hanging obstacles or people standing immediately to its left.",
+  "confidence": 0.95
+}

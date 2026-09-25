@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_5",
+  "name": "SeeSomething_5",
+  "source_label": "see_something",
+  "duration_s": 7.38,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.88,
+  "clip_s": 10.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot notices something to its right, looks down curiously, and then returns to a neutral standing posture.",
+  "movement_description": "The robot starts with its right hand on its hip and its left arm slightly raised. It turns its head to its right, tilting its gaze downward as if examining something on the floor. It then brings both arms down to its sides while turning its head back to face forward, finishing in a neutral standing posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "curiosity"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": false,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

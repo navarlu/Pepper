@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Wings_2",
+  "name": "Wings_2",
+  "source_label": "wings",
+  "duration_s": 3.22,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.72,
+  "clip_s": 7.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens both arms wide and upward, like spreading wings, and then brings them back down.",
+  "movement_description": "Starting from a neutral posture, the robot quickly lifts both arms outward and upward to the sides in a wide, expansive arc. At the peak of the movement, its hands are raised above shoulder level with fingers slightly spread. The robot holds this open position briefly before smoothly lowering both arms back to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "emphasis",
+    "welcoming"
+  ],
+  "alternative_interpretations": [
+    "celebration",
+    "expressing_bigness",
+    "enthusiasm",
+    "excitement"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires lateral clearance as the arms extend fully outwards to both sides.",
+  "confidence": 0.95
+}

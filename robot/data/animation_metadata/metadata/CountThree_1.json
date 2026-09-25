@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/CountThree_1",
+  "name": "CountThree_1",
+  "source_label": "count_three",
+  "duration_s": 3.54,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.04,
+  "clip_s": 6.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts both hands to chest height and sequentially counts to three using its fingers.",
+  "movement_description": "Starting from neutral, the robot lifts both hands to chest level in front of its screen with loose fists. It extends its fingers to count 'one', 'two', and 'three' sequentially while slightly shifting its hands to emphasize each count. Finally, it lowers both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "counting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "attention_getting"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "greeting",
+    "farewell",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

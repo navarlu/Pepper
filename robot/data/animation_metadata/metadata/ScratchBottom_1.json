@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchBottom_1",
+  "name": "ScratchBottom_1",
+  "source_label": "scratch_bottom",
+  "duration_s": 5.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.25,
+  "clip_s": 8.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shifts its weight, brings its left hand behind its hip to scratch, and tilts its head upward before returning to neutral.",
+  "movement_description": "The robot begins by turning its head slightly to the left, then tilts its head up and to the right. Simultaneously, it pulls its left elbow back and moves its left hand behind its hip in a scratching motion while slightly shifting its torso. After a brief pause in this pose, it returns its left arm to its side and brings its head back to a level, forward-facing neutral position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "impatience"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "serious_policy_answer",
+    "apology",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps behind the robot's torso; ensure sufficient clearance on the left side and rear of the shell.",
+  "confidence": 0.95
+}

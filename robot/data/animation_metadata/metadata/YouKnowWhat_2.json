@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_2",
+  "name": "YouKnowWhat_2",
+  "source_label": "you_know_what",
+  "duration_s": 1.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.46,
+  "clip_s": 6.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to chest level with an open palm toward the listener, then lowers it.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm to chest height with an open, upward-facing palm tilted slightly toward the listener. It holds this position briefly, making a slight prompting gesture with its hand, while keeping its head focused forward. It then smoothly lowers the right arm back to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting",
+    "explaining",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "offering",
+    "conceding_point"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "explanatory",
+    "engaging"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

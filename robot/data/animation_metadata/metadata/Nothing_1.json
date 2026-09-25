@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Nothing_1",
+  "name": "Nothing_1",
+  "source_label": "nothing",
+  "duration_s": 2.33,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.83,
+  "clip_s": 5.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly brings its hands together in front of its waist and opens them slightly outward in a subtle shrugging gesture.",
+  "movement_description": "Starting from a neutral rest posture, the robot smoothly raises both hands, bringing them inward to meet in front of its lower abdomen. It then slightly opens its hands outward with palms angled upward and fingers spread, accompanied by a very subtle head tilt. Finally, the robot lowers both arms symmetrically back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "explaining",
+    "calming"
+  ],
+  "social_tone": [
+    "apologetic",
+    "friendly",
+    "polite",
+    "gentle"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "clarification_request",
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "enthusiastic_affirmation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

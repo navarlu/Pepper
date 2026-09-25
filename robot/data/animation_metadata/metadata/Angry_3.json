@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Angry_3",
+  "name": "Angry_3",
+  "source_label": "angry",
+  "duration_s": 2.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.01,
+  "clip_s": 5.83,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly raises its left hand with a quick wrist rotation while tilting its head, then returns to its neutral posture.",
+  "movement_description": "The robot begins in a neutral pose and quickly lifts its left hand slightly while rotating its wrist inward. Simultaneously, it tilts its head to its right, looking slightly away. After a brief pause, the robot lowers its left arm back to its side and brings its head back to the center-forward neutral position.",
+  "communicative_functions": [
+    "negation",
+    "expressing_uncertainty",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "dismissal",
+    "shrugging",
+    "minor_annoyance"
+  ],
+  "social_tone": [
+    "informal",
+    "serious",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "formal_greeting",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeColor_3",
+  "name": "SeeColor_3",
+  "source_label": "see_color",
+  "duration_s": 4.61,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.11,
+  "clip_s": 7.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot points a closed fist toward its eye in a scanning gesture and then returns to neutral.",
+  "movement_description": "The robot lifts its left arm up toward its head, turning its fist inward as if pointing toward its left eye or scanning something. Its head tilts slightly down and to the left to meet the hand gesture, and the right arm remains slightly bent at the waist. Finally, the left arm sweeps back down in a controlled, curved motion, and the robot returns to its fully upright neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "observation",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "saluting",
+    "adjusting_glasses",
+    "expressing_surprise",
+    "looking_closely"
+  ],
+  "social_tone": [
+    "playful",
+    "curious",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm raises close to the face, but stays within the standard vertical silhouette of the robot. Minimum clearance is required.",
+  "confidence": 0.95
+}

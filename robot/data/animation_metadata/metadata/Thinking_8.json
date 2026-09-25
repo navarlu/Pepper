@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_8",
+  "name": "Thinking_8",
+  "source_label": "thinking",
+  "duration_s": 2.84,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.34,
+  "clip_s": 7.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its left hand up to its chin in a thoughtful, contemplating gesture.",
+  "movement_description": "The robot starts in a neutral posture and raises its left hand up to its chin, curling its fingers slightly while tilting its head slightly forward and to the side. It holds this pensive position for a couple of seconds to simulate thinking or contemplating. Finally, it lowers its left arm back down to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "seeking_solution",
+    "remembering",
+    "mild_confusion"
+  ],
+  "social_tone": [
+    "serious",
+    "thoughtful",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

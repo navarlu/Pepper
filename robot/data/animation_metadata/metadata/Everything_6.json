@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Everything_6",
+  "name": "Everything_6",
+  "source_label": "everything",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 4.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its waist and then opens them wide in a broad, welcoming gesture.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward to meet briefly near its waist with fingers curved. It then sweeps both arms outward and upward in a wide, symmetric arc, turning its palms forward and fingers spread. Finally, it smoothly retracts both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "emphasis",
+    "welcoming"
+  ],
+  "alternative_interpretations": [
+    "expressing_abundance",
+    "presenting_options",
+    "explaining"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms wide to the sides, requiring clear lateral clearance.",
+  "confidence": 0.95
+}

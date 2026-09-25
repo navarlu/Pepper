@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/Fitness_1",
+  "name": "Fitness_1",
+  "source_label": "fitness",
+  "duration_s": 14.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 14.84,
+  "clip_s": 16.97,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head to the right and pumps its right hand up and down, resembling a light fitness exercise.",
+  "movement_description": "The robot starts from a neutral posture and raises its left hand slightly while its right hand comes up and bends at the elbow. It turns its head to the right and gazes downward at its right hand. It then pumps its right arm up and down several times in a slow, rhythmic squeezing gesture, keeping its left hand resting on its hip. Finally, it turns its head back to the front, lowers both arms, and returns to a neutral resting posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "counting",
+    "emphasis",
+    "presenting_item",
+    "thinking"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends outward and pumps up and down; ensure adequate clearance on the robot's right-hand side.",
+  "confidence": 0.95
+}

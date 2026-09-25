@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchTorso_1",
+  "name": "ScratchTorso_1",
+  "source_label": "scratch_torso",
+  "duration_s": 4.56,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.06,
+  "clip_s": 7.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand to briefly scratch its lower torso and look down, then returns to its neutral posture.",
+  "movement_description": "The robot starts in a neutral posture and raises its right hand up towards its lower chest/torso area. Simultaneously, it tilts its head slightly downward and to the right, looking at its own hand. After making a brief scratching or touching motion against its torso with its right fingers, it lowers its arm and returns its head to a forward-facing, upright neutral position.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "thinking",
+    "self_reference",
+    "shyness"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "formal",
+    "explaining",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

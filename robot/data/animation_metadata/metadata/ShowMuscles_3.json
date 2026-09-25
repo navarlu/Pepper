@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowMuscles_3",
+  "name": "ShowMuscles_3",
+  "source_label": "show_muscles",
+  "duration_s": 8.28,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.78,
+  "clip_s": 10.97,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot playfully flexes its right arm to show off its muscles before returning to neutral.",
+  "movement_description": "Starting from its neutral pose, the robot turns its head to the left and tilts its body slightly. It then raises its right arm high, bending the elbow and curling its fingers to mimic a classic 'strongman' muscle-flexing pose, while turning its head back to look at its raised bicep. After holding this pose briefly, the robot lowers its arm and returns its head and body back to the centered neutral position.",
+  "communicative_functions": [
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "celebration",
+    "success",
+    "victory_gesture"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "enthusiastic",
+    "humorous"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal",
+    "sadness",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends outwards and upwards quickly, requiring clear space on the right side of the robot.",
+  "confidence": 0.95
+}

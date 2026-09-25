@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Confused_1",
+  "name": "Confused_1",
+  "source_label": "confused",
+  "duration_s": 6.74,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.24,
+  "clip_s": 9.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises both hands to its face in a puzzled manner, then opens them wide in a gesture of confusion.",
+  "movement_description": "The robot begins by lifting both arms, bringing its hands near its eyes as if peering or squinting in confusion. It then sweeps its arms outward with palms facing up and open, while tilting its head slightly upward, conveying a clear state of perplexity. Finally, it smoothly lowers both arms back down to its sides and returns to the upright neutral posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "clarification_request"
+  ],
+  "alternative_interpretations": [
+    "goggles_mimicry",
+    "surprise",
+    "where_did_it_go"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "serious_policy_answer",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

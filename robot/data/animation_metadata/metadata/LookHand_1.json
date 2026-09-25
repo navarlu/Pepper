@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/LookHand_1",
+  "name": "LookHand_1",
+  "source_label": "look_hand",
+  "duration_s": 7.62,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.12,
+  "clip_s": 10.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand, examines it curiously with its head tilted, waves briefly, and returns to neutral.",
+  "movement_description": "The robot raises its right arm from its side, bringing the hand up towards its chest with the palm facing up. It tilts and turns its head to gaze down at its hand, then rotates the hand and spreads the fingers as if inspecting it. It then tilts its head back slightly and performs a small wave-like gesture with the right hand before returning both its arm and head back to the neutral resting pose.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "showing_something_small",
+    "checking_time",
+    "thinking",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "curious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps upward and outward to head level; ensure there is clearance on the robot's right side.",
+  "confidence": 0.95
+}

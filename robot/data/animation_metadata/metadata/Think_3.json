@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Waiting/Think_3",
+  "name": "Think_3",
+  "source_label": "think",
+  "duration_s": 4.03,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.53,
+  "clip_s": 8.33,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand to its chin in a thoughtful, contemplating gesture.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm, bringing its hand up to cup its chin. It holds this pensive posture with its hand near its mouth for several seconds, simulating a thinking state. Finally, the robot lowers its right arm back down to its side, returning to the neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "gasping",
+    "keeping_a_secret",
+    "giggling"
+  ],
+  "social_tone": [
+    "serious",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

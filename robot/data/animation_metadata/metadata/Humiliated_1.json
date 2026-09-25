@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Humiliated_1",
+  "name": "Humiliated_1",
+  "source_label": "humiliated",
+  "duration_s": 9.61,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 10.11,
+  "clip_s": 12.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head away, brings its hands toward its waist, and looks downcast as if humiliated or ashamed.",
+  "movement_description": "The robot starts in a neutral posture and slowly turns its head to the left while tilting it downward in a submissive gesture. Simultaneously, it brings both hands inward near its hips, with fingers slightly curled, while slightly leaning forward. It shifts its weight and arm position subtly as if fidgeting uncomfortably, before gradually returning its head to the center and lowering its arms back to the starting neutral position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "feeling_shy",
+    "embarrassment",
+    "sadness",
+    "submissiveness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic",
+    "formal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "enthusiastic_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

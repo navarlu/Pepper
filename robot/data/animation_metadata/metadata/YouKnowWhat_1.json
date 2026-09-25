@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_1",
+  "name": "YouKnowWhat_1",
+  "source_label": "you_know_what",
+  "duration_s": 2.53,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.03,
+  "clip_s": 5.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its hands on its hips in a confident posture before returning to a neutral stance.",
+  "movement_description": "The robot starts in a neutral posture and symmetrically lifts both arms, bending its elbows outward and curling its fingers to place its hands firmly on its hips. It holds this hands-on-hips pose for about two seconds, maintaining a level head and stable torso. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_confidence",
+    "expressing_readiness",
+    "playful_scolding",
+    "pride"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "enthusiastic",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "answering",
+    "explaining",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "expressing_uncertainty",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's elbows flare out wide to the sides, requiring clear lateral space around the torso to avoid striking obstacles or visitors.",
+  "confidence": 0.95
+}

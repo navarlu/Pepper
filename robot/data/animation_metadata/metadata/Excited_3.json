@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Excited_3",
+  "name": "Excited_3",
+  "source_label": "excited",
+  "duration_s": 2.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.01,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot pulls both hands up towards its chest and then drives them down in a quick, enthusiastic double-fist-pump gesture.",
+  "movement_description": "The robot starts in a neutral posture and quickly raises both arms symmetrically, bringing its open hands up in front of its chest as its head tilts slightly up. It then clenches its hands and drives its elbows back and fists down in a classic excited 'yes!' gesture. Finally, the robot relaxes its arms and lowers them back to its sides, returning to the neutral standing posture.",
+  "communicative_functions": [
+    "emphasis",
+    "affirmation",
+    "expressing_agreement"
+  ],
+  "alternative_interpretations": [
+    "celebration",
+    "determination",
+    "triumph"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/BowShort_1",
+  "name": "BowShort_1",
+  "source_label": "bow_short",
+  "duration_s": 4.43,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.93,
+  "clip_s": 7.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot performs a short, polite bow from the waist while looking down and then returns to an upright position.",
+  "movement_description": "Starting from a neutral posture, the robot bends its head and upper torso forward and downward in a quick, polite bowing motion. It holds the low point of the bow momentarily while looking toward the ground. Finally, it smoothly raises its head and straightens its torso back to the upright neutral position.",
+  "communicative_functions": [
+    "greeting",
+    "apologizing",
+    "farewell",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "showing_respect",
+    "acknowledging_mistake",
+    "expressing_gratitude"
+  ],
+  "social_tone": [
+    "formal",
+    "polite",
+    "respectful",
+    "apologetic",
+    "welcoming"
+  ],
+  "body_parts": [
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "downward_and_forward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "session_end",
+    "apology",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "explaining",
+    "thinking",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

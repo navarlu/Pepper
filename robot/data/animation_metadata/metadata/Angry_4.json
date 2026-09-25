@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Angry_4",
+  "name": "Angry_4",
+  "source_label": "angry",
+  "duration_s": 2.82,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.32,
+  "clip_s": 5.6,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its left arm with a clenched fist in a brief gesture of frustration or resolve, then returns to neutral.",
+  "movement_description": "Starting from a neutral stance, the robot swiftly lifts its left arm up and forward, clenching its hand into a tight fist near shoulder height. Its head tilts slightly upward and to the left to track the raised fist. The robot holds this tense posture for a brief moment before lowering the arm and returning its head to the front-facing neutral position.",
+  "communicative_functions": [
+    "emphasis",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "victory_celebration",
+    "determination"
+  ],
+  "social_tone": [
+    "serious",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "explaining",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_start",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

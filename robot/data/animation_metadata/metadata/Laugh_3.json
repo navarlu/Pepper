@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Laugh_3",
+  "name": "Laugh_3",
+  "source_label": "laugh",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 5.1,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands toward its stomach while tilting its head slightly, mimicking a light laugh.",
+  "movement_description": "The robot starts from a neutral posture and brings both hands up and inward toward its lower chest or stomach area, with elbows bent. Its head tilts slightly to its left side as it holds this posture momentarily, simulating a subtle laughing or chuckling gesture. Finally, the robot lowers both arms smoothly back down to its sides and returns its head to the upright, neutral position.",
+  "communicative_functions": [
+    "affirmation",
+    "giggle",
+    "amusement"
+  ],
+  "alternative_interpretations": [
+    "gently_mocking",
+    "thinking",
+    "expressing_shyness",
+    "polite_agreement"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_inward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "handover_to_human"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

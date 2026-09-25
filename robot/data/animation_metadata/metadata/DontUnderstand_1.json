@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/DontUnderstand_1",
+  "name": "DontUnderstand_1",
+  "source_label": "dont_understand",
+  "duration_s": 2.27,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.77,
+  "clip_s": 5.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrugs its shoulders and opens its hands with a tilted head to express confusion or uncertainty.",
+  "movement_description": "The robot begins by bringing both hands slightly inward toward its lower chest with fingers curled. It then extends both arms outward and downward, opening its palms toward the viewer while tilting its head slightly to the left. Finally, it rotates its arms back inward and lowers them to return to the neutral standing posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "helplessness",
+    "honesty",
+    "submission",
+    "not_knowing"
+  ],
+  "social_tone": [
+    "apologetic",
+    "friendly",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "farewell",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend outward sideways; ensure no visitors are standing immediately next to the sides of the robot.",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Reactions/TouchHead_3",
+  "name": "TouchHead_3",
+  "source_label": "touch_head",
+  "duration_s": 3.6,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.1,
+  "clip_s": 6.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot quickly raises both hands toward its head, recoils slightly with its head tilted, and then relaxes back to neutral.",
+  "movement_description": "The robot begins in a neutral pose and quickly lifts both arms up, bending its elbows to bring its open hands near the sides of its head. As its hands approach its head, the robot tilts its head slightly downward and to the right, mimicking a flinch or a protective reaction. It holds this posture briefly before lowering its arms smoothly and returning its head to a forward-facing, upright neutral position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_surprise",
+    "being_startled",
+    "playful_hide_and_seek",
+    "frustration_or_headache"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms raise rapidly near the head; ensure no objects or user's hands are in close proximity to the robot's upper torso and head area.",
+  "confidence": 0.95
+}

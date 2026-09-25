@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/No_7",
+  "name": "No_7",
+  "source_label": "no",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 4.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot spreads both arms outward with open palms to express negation or a lack of something.",
+  "movement_description": "The robot starts from a neutral standing posture. It smoothly raises both arms symmetrically, bending at the elbows, and rotates its wrists to present open, upward-facing palms while spreading its arms slightly outward. It holds this open-handed gesture briefly before bringing both arms back down to the neutral rest position.",
+  "communicative_functions": [
+    "negation",
+    "expressing_uncertainty",
+    "expressing_incapability",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "explaining",
+    "showing_empty_handedness"
+  ],
+  "social_tone": [
+    "friendly",
+    "apologetic",
+    "polite",
+    "honest"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "emphasis"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps both arms outward; ensure there are no obstacles immediately to its left or right.",
+  "confidence": 0.95
+}

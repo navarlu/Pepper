@@ -1,0 +1,52 @@
+{
+  "action_id": "animations/Stand/Gestures/Mime_2",
+  "name": "Mime_2",
+  "source_label": "mime",
+  "duration_s": 2.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.73,
+  "clip_s": 5.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics grasping and pulling an invisible object or rope in front of its chest.",
+  "movement_description": "The robot starts by raising both arms in front of its chest, bending its elbows, and curving its fingers as if grasping something. It pulls both hands slightly backward and downward in a brief mime-like pulling motion. Finally, it relaxes its hands and lowers both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "grasping_an_object",
+    "pulling_a_lever",
+    "drawing_closer"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "answering",
+    "explaining",
+    "session_start",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend forward and pull back; ensure clear space directly in front of the robot's chest.",
+  "confidence": 0.95
+}

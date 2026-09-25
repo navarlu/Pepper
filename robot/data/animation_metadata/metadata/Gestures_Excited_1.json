@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Excited_1",
+  "name": "Gestures_Excited_1",
+  "source_label": "excited",
+  "duration_s": 2.98,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.48,
+  "clip_s": 6.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shifts its weight, slightly raises both hands with open palms, and then returns to a neutral stand.",
+  "movement_description": "The robot starts in a neutral posture, then raises both hands slightly while gently shifting its torso and head to its right, keeping its palms open and fingers spread. It then sweeps its left hand down and across towards its right side in a smooth arc, while its right arm relaxes. Finally, it pulls both arms back to its sides and returns to the upright neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "indicating_direction",
+    "welcoming",
+    "offering"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "hands",
+    "torso",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

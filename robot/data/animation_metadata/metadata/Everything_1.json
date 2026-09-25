@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Everything_1",
+  "name": "Everything_1",
+  "source_label": "everything",
+  "duration_s": 3.19,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.69,
+  "clip_s": 6.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands to its chest and then sweeps both arms outwards in a grand, inclusive gesture.",
+  "movement_description": "The robot starts from its neutral posture, bringing both hands up and inward toward its chest with open palms. It then smoothly extends both arms outward and downward to its sides in a wide, sweeping arc, presenting a broad and welcoming pose. Finally, it lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "showing_everything",
+    "grand_gesture",
+    "offering_choices"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend fully to the sides during the outward sweep; ensure there are no obstacles or people within a 1-meter radius to the left and right.",
+  "confidence": 0.95
+}

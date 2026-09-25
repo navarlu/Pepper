@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/Me_7",
+  "name": "Me_7",
+  "source_label": "me",
+  "duration_s": 1.68,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.18,
+  "clip_s": 5.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures to its own chest using its left hand to refer to itself.",
+  "movement_description": "The robot starts in a neutral posture and raises its left hand in an arc towards its chest. It presses its left hand flat against its upper chest, momentarily holding this self-referential position. Finally, the arm is lowered back down smoothly to the side, returning the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "empathy"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "earnest",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "explaining",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "farewell",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

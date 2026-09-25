@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Sad_1",
+  "name": "Sad_1",
+  "source_label": "sad",
+  "duration_s": 7.06,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.56,
+  "clip_s": 9.97,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot sadly tilts its head and brings its right hand to its face, then lowers its arm while looking downcast.",
+  "movement_description": "The robot begins by tilting its head to the side and slightly down while raising its right arm in a curved arc. It brings its right hand close to its face/eyes as if wiping away a tear or hiding its face in sadness. After a brief pause in this pose, it slowly lowers its right arm back to its side while its head gradually returns to the center, ending in the neutral rest posture.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "feeling_fatigued",
+    "thinking",
+    "embarrassment"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None",
+  "confidence": 0.95
+}

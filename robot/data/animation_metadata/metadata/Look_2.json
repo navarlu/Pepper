@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Look_2",
+  "name": "Look_2",
+  "source_label": "look",
+  "duration_s": 4.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.94,
+  "clip_s": 7.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head slightly to the side while drawing its hands in, as if focusing attention or listening.",
+  "movement_description": "Starting from a neutral posture, the robot slowly turns its head to its left while lifting both hands slightly, bringing them close to the lower chest with fingers loosely curled. It holds this focused posture for a moment, looking slightly off-center as if observing or listening intently. Finally, it turns its head back to the center and smoothly lowers both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "listening"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "observing",
+    "showing_interest"
+  ],
+  "social_tone": [
+    "friendly",
+    "curious",
+    "attentive",
+    "polite"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

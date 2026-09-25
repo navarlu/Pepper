@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_6",
+  "name": "ShowSky_6",
+  "source_label": "show_sky",
+  "duration_s": 2.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.84,
+  "clip_s": 7.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand up toward the sky as if pointing upward or waving, then lowers it back to its side.",
+  "movement_description": "The robot begins in a neutral posture and raises its right arm high up and to the right, with its palm open and facing outward as if pointing to the sky or waving at a distance. It holds this upward-reaching pose briefly, looking slightly up and toward the right side. Finally, it smoothly lowers the right arm back down to its side, returning to its neutral, resting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "farewell",
+    "showing_direction",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "visitor_approach",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps upward and outward to its full extension, requiring clear physical clearance on the robot's right side.",
+  "confidence": 0.95
+}

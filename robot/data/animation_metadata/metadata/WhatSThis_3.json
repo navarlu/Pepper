@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_3",
+  "name": "WhatSThis_3",
+  "source_label": "what_s_this",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 5.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands in and then presents them open and forward in a questioning gesture.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward toward the center of its chest with wrists curled slightly. It then pushes both hands forward and outward with palms facing up, spreading its fingers in a questioning, presentation-like gesture. Finally, it smoothly retracts both arms back down to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "offering",
+    "explanation"
+  ],
+  "social_tone": [
+    "friendly",
+    "helpful",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "explaining",
+    "visitor_approach",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend forward and slightly outward; ensure a clear area immediately in front of the robot.",
+  "confidence": 0.95
+}

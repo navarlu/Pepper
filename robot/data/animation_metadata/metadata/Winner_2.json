@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Winner_2",
+  "name": "Winner_2",
+  "source_label": "winner",
+  "duration_s": 7.0,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.5,
+  "clip_s": 9.67,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises both arms high into the air with fists slightly clenched in a classic victory pose.",
+  "movement_description": "Starting from a neutral posture, the robot quickly bends its elbows and raises both arms symmetrically straight up above its head. It holds its hands high in a triumphal pose for several seconds, during which its head tilts up slightly. Finally, it smoothly lowers both arms back down through a bent-elbow path to return to the neutral starting position.",
+  "communicative_functions": [
+    "celebrating",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "enthusiastic_greeting",
+    "surprised_excitement",
+    "cheering"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "Requires overhead clearance as the arms are raised fully above the head. Ensure no objects or human hands are directly above or to the upper sides of the robot during execution.",
+  "confidence": 0.95
+}

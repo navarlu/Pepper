@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Fear_1",
+  "name": "Fear_1",
+  "source_label": "fear",
+  "duration_s": 4.57,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.07,
+  "clip_s": 7.37,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrinks back slightly, pulling its hands in and looking away as if startled or fearful.",
+  "movement_description": "The robot starts in a neutral posture and then quickly pulls its elbows back, bringing its hands close to its lower torso while slightly tensing its posture. Simultaneously, it tilts and rotates its head upward and to the left, as if looking away from an oncoming threat. It holds this retracted, defensive pose briefly before slowly lowering its head and extending its arms back down to return to the neutral starting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "being_startled",
+    "shyness",
+    "avoidance",
+    "hesitation"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "welcoming",
+    "answering"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms stay very close to the body, posing zero risk of collision with nearby objects or visitors.",
+  "confidence": 0.95
+}

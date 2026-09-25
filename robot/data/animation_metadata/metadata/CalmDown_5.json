@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/CalmDown_5",
+  "name": "CalmDown_5",
+  "source_label": "calm_down",
+  "duration_s": 2.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.25,
+  "clip_s": 6.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises both hands slightly and pushes downward in a gentle calming gesture.",
+  "movement_description": "Starting from a neutral rest pose, the robot smoothly lifts both arms to chest height with elbows bent and palms facing downwards. It then performs a gentle, slow downward pressing motion with its hands while slightly tilting its head forward, emphasizing a soothing or grounding action. After a brief pause at the bottom of the gesture, the arms slowly lower back down to return to the neutral posture.",
+  "communicative_functions": [
+    "calming",
+    "emphasis",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "empathetic",
+    "friendly",
+    "serious",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

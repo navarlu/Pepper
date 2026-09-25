@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Ecstatic_1",
+  "name": "Ecstatic_1",
+  "source_label": "ecstatic",
+  "duration_s": 7.19,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.69,
+  "clip_s": 10.17,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot does a small, excited upper-body bounce and head tilt to show ecstatic joy.",
+  "movement_description": "The robot starts in a neutral posture and quickly pulls its shoulders back and head slightly upward. It then performs a rapid, subtle shivering or bouncing motion of the torso and head, simulating an ecstatic giggle or shiver of excitement. Finally, the robot relaxes back down, returning its head and arms to the default neutral resting posture.",
+  "communicative_functions": [
+    "affirmation",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "giggling",
+    "shivering",
+    "feeling_cold",
+    "showing_excitement"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "both_arms"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The motion is small and tight to the body, making it very safe to perform in tight environments.",
+  "confidence": 0.95
+}

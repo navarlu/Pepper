@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Waiting/Stretch_2",
+  "name": "Waiting_Stretch_2",
+  "source_label": "stretch",
+  "duration_s": 7.31,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.81,
+  "clip_s": 10.13,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head to the right, bends its right elbow, and performs a light stretch.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands slightly up toward its waist. It then turns its head to the right while lifting and bending its right arm into a gentle stretch position. After holding the stretch briefly, the robot returns its head and arms back to the default neutral standing posture.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "looking_away",
+    "thinking"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "head",
+    "right_arm",
+    "left_arm"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "explaining",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

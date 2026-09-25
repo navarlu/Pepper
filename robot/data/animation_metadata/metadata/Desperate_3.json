@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Desperate_3",
+  "name": "Desperate_3",
+  "source_label": "desperate",
+  "duration_s": 2.63,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.13,
+  "clip_s": 5.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly pulls its forearms upward and inward with closed hands, then returns to its neutral posture.",
+  "movement_description": "Starting from a neutral posture, the robot quickly bends its elbows to bring both hands up to chest level, turning its wrists inward and forming loose fists. At the same time, it tilts its head slightly downward and forward. The robot pauses briefly in this tensed posture before lowering its arms smoothly back to its sides and returning its head to a level, forward-facing position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "frustration",
+    "pleading",
+    "nervousness",
+    "emphasis"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "welcoming"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

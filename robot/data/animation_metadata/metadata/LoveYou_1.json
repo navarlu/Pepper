@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/LoveYou_1",
+  "name": "LoveYou_1",
+  "source_label": "love_you",
+  "duration_s": 10.32,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 10.82,
+  "clip_s": 13.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot forms a heart shape with its hands, raises its arms high, and then blows a kiss to the visitor.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands to its chest, forming a symbolic heart shape with its fingers. It then raises both arms straight up and outward in an open, celebratory sweep before lowering them back to its lap. Finally, it brings its left hand to its mouth to blow a kiss toward the viewer, returning to its neutral resting posture at the end.",
+  "communicative_functions": [
+    "showing_affection",
+    "greeting",
+    "farewell",
+    "celebrating"
+  ],
+  "alternative_interpretations": [
+    "enthusiastic_welcome",
+    "expressing_gratitude",
+    "playful_goodbye"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "enthusiastic",
+    "informal",
+    "welcoming"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "session_end",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot sweeps its arms fully upward and outward; ensure a clear envelope of at least 80cm around the upper body to prevent collisions.",
+  "confidence": 1.0
+}

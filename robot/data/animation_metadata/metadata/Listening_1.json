@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Listening/Listening_1",
+  "name": "Listening_1",
+  "source_label": "listening",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot subtly shifts its weight and tilts its head slightly while listening attentively.",
+  "movement_description": "The robot starts from a neutral standing position, then subtly shifts its torso and shoulders slightly to its right while raising its right elbow outward slightly. Simultaneously, it tilts its head a tiny bit to the left in a listening pose. The robot holds this posture briefly before smoothly returning its body, arms, and head back to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "affirmation",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "social_tone": [
+    "friendly",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "right_arm"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

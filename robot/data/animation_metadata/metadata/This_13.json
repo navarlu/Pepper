@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/This_13",
+  "name": "This_13",
+  "source_label": "this",
+  "duration_s": 1.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.42,
+  "clip_s": 4.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures outward with its left arm and hand to indicate or present something.",
+  "movement_description": "The robot starts in a neutral posture with arms at its sides. It smoothly raises its left arm, opening the hand flat with the palm facing up and outward to the left side while turning its head slightly to follow the hand. It holds this presentation posture briefly before returning both the arm and head back to the neutral rest position.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "direction_giving"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm extends outward to the side; ensure adequate clearance on the robot's left.",
+  "confidence": 1.0
+}

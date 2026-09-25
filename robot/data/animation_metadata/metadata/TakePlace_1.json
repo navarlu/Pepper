@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/TakePlace_1",
+  "name": "TakePlace_1",
+  "source_label": "take_place",
+  "duration_s": 4.62,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.12,
+  "clip_s": 7.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures with its left arm to the side to invite someone to take a seat or go to a place.",
+  "movement_description": "Starting from a neutral posture, the robot slightly tilts its head while sweeping its left arm outward and upward with an open, palm-up hand gesture. It pauses briefly in this inviting pose, looking toward the indicated direction. Finally, it smoothly retracts the left arm and returns its head and body to the neutral resting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the side, requiring a small amount of lateral clearance on the robot's left side.",
+  "confidence": 0.95
+}

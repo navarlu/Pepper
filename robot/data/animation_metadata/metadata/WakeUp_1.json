@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/WakeUp_1",
+  "name": "WakeUp_1",
+  "source_label": "wake_up",
+  "duration_s": 22.38,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 22.88,
+  "clip_s": 25.0,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot stretches forward, raises its right arm high in a wake-up reach, and then settles back into its neutral posture.",
+  "movement_description": "The robot starts in a neutral posture, then slowly brings its hands forward and slightly down, bending its head down as if stretching or waking up. It then raises its right arm high and wide in a reaching gesture while tilting its head up and to the right, briefly extending its left arm outward. Finally, the robot lowers both arms smoothly, looks around slightly to the left, and returns to its upright neutral standing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "greeting"
+  ],
+  "alternative_interpretations": [
+    "enthusiastic_hello",
+    "celebration",
+    "pointing_upward"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm extends fully upward and outward, requiring vertical and lateral clearance on its right side.",
+  "confidence": 0.9
+}

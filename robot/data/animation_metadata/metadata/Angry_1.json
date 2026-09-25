@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Angry_1",
+  "name": "Angry_1",
+  "source_label": "angry",
+  "duration_s": 3.89,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.39,
+  "clip_s": 7.33,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot pulls its arms in and bows its head in a tense, defensive gesture representing frustration or anger.",
+  "movement_description": "The robot starts by tensing and pulling its elbows backward while slightly raising its forearms and turning its head up. It then suddenly tilts its head downward and brings both hands closer to its midsection in a tight, closed posture, holding this position momentarily as if frustrated. Finally, it slowly raises its head back to a neutral position and relaxes both arms down to its sides.",
+  "communicative_functions": [
+    "negation",
+    "disappointment",
+    "frustration"
+  ],
+  "alternative_interpretations": [
+    "apologizing",
+    "shame_or_embarrassment",
+    "deep_concentration",
+    "sadness"
+  ],
+  "social_tone": [
+    "serious",
+    "apologetic",
+    "dramatic"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "welcoming",
+    "farewell",
+    "friendly"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms stay close to the body, making this a safe animation to perform in tight reception spaces.",
+  "confidence": 0.95
+}

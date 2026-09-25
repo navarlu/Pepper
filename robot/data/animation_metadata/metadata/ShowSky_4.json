@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_4",
+  "name": "ShowSky_4",
+  "source_label": "show_sky",
+  "duration_s": 2.58,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.08,
+  "clip_s": 7.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens and raises both arms wide to point toward the sky or express grand scale.",
+  "movement_description": "The robot starts from a neutral posture, bringing its elbows out and hands to its chest level before raising both arms wide open and upward at a 45-degree angle. It holds this high-reaching, open-palm gesture with its head slightly tilted upward for a moment to emphasize looking toward the sky. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "expressing_grandeur",
+    "enthusiastic_greeting",
+    "celebration",
+    "showing_size"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "welcoming",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms extend fully outwards and upwards. Ensure there are no low-hanging objects or visitors standing extremely close to the sides of the robot.",
+  "confidence": 0.95
+}

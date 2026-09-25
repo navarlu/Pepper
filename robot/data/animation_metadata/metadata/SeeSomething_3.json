@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeSomething_3",
+  "name": "SeeSomething_3",
+  "source_label": "see_something",
+  "duration_s": 9.4,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.9,
+  "clip_s": 12.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot notices something interesting on the ground, pointing and leaning down to inspect it.",
+  "movement_description": "The robot starts by raising its right hand to chest level and looking slightly to the side. It then sweeps its arms out, leans its torso and head forward and downward, and points towards the floor as if discovering something on the ground. Finally, it slowly stands back up, bringing its head and arms back to the neutral starting posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "expressing_uncertainty",
+    "explaining"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "head",
+    "left_arm",
+    "right_arm",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot leans forward and moves its arms near the chest level; ensure there are no low-level obstacles immediately in front of its base.",
+  "confidence": 0.95
+}

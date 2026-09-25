@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowMuscles_1",
+  "name": "ShowMuscles_1",
+  "source_label": "show_muscles",
+  "duration_s": 6.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.46,
+  "clip_s": 9.57,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends and flexes its right arm to playfully display its biceps.",
+  "movement_description": "The robot begins in a neutral posture and raises its right arm forward with an open hand, turning its head slightly to the left to look at its own arm. It then pulls its hand back toward its shoulder while closing its hand into a tight fist, mimicking a muscle-flexing pose. Finally, it extends the arm forward again, opens its hand, and smoothly returns its arm and head back to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "triumph",
+    "success_celebration",
+    "determination",
+    "pointing_to_self",
+    "expressing_strength"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "informal",
+    "humorous"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request",
+    "handover_to_human"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends forward and upwards; ensure a clear envelope of about 50cm in front and to the right of the robot.",
+  "confidence": 0.95
+}

@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Exhausted_2",
+  "name": "Exhausted_2",
+  "source_label": "exhausted",
+  "duration_s": 8.69,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 9.19,
+  "clip_s": 11.33,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands to its chest, then drops its head and shoulders in a heavy, exhausted sigh.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms symmetrically, drawing its hands in toward the center of its chest. It then swiftly lowers its arms back to its sides while bowing its head deeply and slumping its shoulders forward, mimicking a deep sigh of exhaustion. After holding this defeated, slumped posture for a few seconds, it slowly lifts its head back up and returns to a upright, neutral standing position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "feeling_sad",
+    "shame_or_guilt",
+    "disappointment",
+    "being_tired"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "informal",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "answering",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

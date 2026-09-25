@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/HappyBirthday_1",
+  "name": "HappyBirthday_1",
+  "source_label": "happy_birthday",
+  "duration_s": 24.43,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 24.93,
+  "clip_s": 27.4,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics conducting an orchestra and playing a flute to celebrate a birthday.",
+  "movement_description": "The robot starts by raising both arms to chest height, gently swaying them side-to-side in a conducting motion. It then brings its right hand up near its mouth while holding its left arm out to the side, mimicking playing a transverse flute. After another brief conducting motion, it repeats the flute-playing gesture before slowly lowering both arms back to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "celebration",
+    "entertainment",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "musical_performance",
+    "conducting",
+    "playing_instrument"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "friendly",
+    "cheerful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms sweep in front of its chest and up towards its face; ensure there is clearance directly in front of the tablet area.",
+  "confidence": 0.95
+}

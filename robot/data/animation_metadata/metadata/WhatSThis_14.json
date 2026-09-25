@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_14",
+  "name": "WhatSThis_14",
+  "source_label": "what_s_this",
+  "duration_s": 1.3,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.8,
+  "clip_s": 4.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly rotates its forearms outward and opens its palms in a subtle gesture of questioning or presenting.",
+  "movement_description": "From a neutral standing posture, the robot gently lifts its forearms and rotates its wrists outward to present open palms toward the viewer. Its head remains centered, facing forward, with a very slight forward tilt of the upper torso. The movement concludes as the robot slowly lowers its arms back to the sides, returning to a fully neutral resting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "presenting_options",
+    "offering_assistance",
+    "shrugging"
+  ],
+  "social_tone": [
+    "friendly",
+    "open",
+    "curious",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

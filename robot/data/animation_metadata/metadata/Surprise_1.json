@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Surprise_1",
+  "name": "Surprise_1",
+  "source_label": "surprise",
+  "duration_s": 3.36,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.86,
+  "clip_s": 6.67,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot recoils its torso backward and turns its head to the right in a sudden startled gesture.",
+  "movement_description": "The robot starts in a neutral posture and suddenly jerks its torso and head backward, shifting its upper body slightly to the left while turning its head sharply to the right. During this startled recoil, its arms flare outward slightly away from the hips, remaining held low. Finally, the robot slowly relaxes its posture, bringing its head and torso back to the center and returning its arms to its sides.",
+  "communicative_functions": [
+    "negation",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "disagreement",
+    "avoidance"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "both_arms"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer",
+    "formal"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms move slightly outward but remain close to the body, requiring minimal clearance.",
+  "confidence": 0.9
+}

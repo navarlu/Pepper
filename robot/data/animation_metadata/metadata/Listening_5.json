@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Listening/Listening_5",
+  "name": "Listening_5",
+  "source_label": "listening",
+  "duration_s": 1.69,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.19,
+  "clip_s": 4.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly brings its hands together in front of its waist to show active listening.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly brings both hands inward and downward to meet in front of its lower torso. The fingers slightly clasp or hover near each other in a resting, attentive position. After holding this pose briefly, the robot gently releases its hands and returns them to its sides, ending in the neutral resting posture.",
+  "communicative_functions": [
+    "listening",
+    "attention_getting",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "politeness",
+    "submissive_waiting",
+    "readiness"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "respectful",
+    "attentive"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "enthusiastic_emphasis",
+    "pointing",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

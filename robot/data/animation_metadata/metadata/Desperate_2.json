@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Desperate_2",
+  "name": "Desperate_2",
+  "source_label": "desperate",
+  "duration_s": 1.82,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.32,
+  "clip_s": 4.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly raises its left hand in an open, questioning posture while turning its head, then quickly returns to neutral.",
+  "movement_description": "Starting from a neutral posture, the robot raises its left arm with an open palm toward its shoulder level while simultaneously tilting its head and looking slightly to its right. It holds this slight shrug-like posture momentarily before lowering its arm back to its side and returning its head to face forward. The entire motion is completed quickly, settling back into a calm neutral pose.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "puzzlement",
+    "explaining",
+    "minor_disappointment"
+  ],
+  "social_tone": [
+    "apologetic",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot raises its left arm forward and outward; ensure the left side is clear of obstacles within arm range.",
+  "confidence": 0.9
+}

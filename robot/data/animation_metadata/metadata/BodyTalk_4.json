@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_4",
+  "name": "BodyTalk_4",
+  "source_label": "body_talk",
+  "duration_s": 1.55,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.05,
+  "clip_s": 4.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand up and outward in an open-palm gesture to explain or present information.",
+  "movement_description": "The robot starts in a neutral posture and raises its left arm, bending the elbow and bringing the hand up towards its chest level with fingers curled. It then smoothly extends the left arm slightly outward to the side while opening its palm upward and outward towards the viewer. Finally, the left arm retracts and lowers back down to the side, returning the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "welcoming",
+    "offering"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's left arm extends outward to its left side, requiring a small amount of lateral clearance.",
+  "confidence": 0.95
+}

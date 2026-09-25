@@ -1,0 +1,64 @@
+{
+  "action_id": "animations/Stand/Gestures/Please_3",
+  "name": "Please_3",
+  "source_label": "please",
+  "duration_s": 2.04,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.54,
+  "clip_s": 5.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm forward with an open, upward-facing palm to politely invite or offer something.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly raises its right arm forward, rotating its forearm so that the palm faces upward in an open, welcoming gesture. The head tilts slightly downward and to the right, aligning with the direction of the arm's extension. After a brief pause holding the open-palm gesture, the arm gently retracts back down to the side while the head returns to a forward-facing, level position.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing",
+    "greeting",
+    "offering",
+    "inviting"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "asking_to_proceed",
+    "showing_direction",
+    "handover_to_human"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "polite",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "answering",
+    "explaining",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its right arm directly forward, requiring clear space in front of its right shoulder.",
+  "confidence": 0.95
+}

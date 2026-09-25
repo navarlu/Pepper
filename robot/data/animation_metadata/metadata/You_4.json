@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/You_4",
+  "name": "You_4",
+  "source_label": "you",
+  "duration_s": 1.73,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.23,
+  "clip_s": 5.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures forward with its right hand toward the visitor, then returns to neutral.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its right hand and extends its arm forward toward the listener, opening its fingers and turning its hand slightly palm-upwards. It holds this gentle pointing and referencing gesture briefly while keeping its head level. The robot then lowers the right arm back down to its side, returning fully to the initial neutral posture.",
+  "communicative_functions": [
+    "listener_reference",
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "invitation",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "polite",
+    "formal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "expressing_uncertainty",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends directly forward, requiring a clear, unobstructed space immediately in front of the robot.",
+  "confidence": 0.95
+}

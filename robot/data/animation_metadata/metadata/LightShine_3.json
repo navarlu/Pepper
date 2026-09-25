@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Reactions/LightShine_3",
+  "name": "LightShine_3",
+  "source_label": "light_shine",
+  "duration_s": 4.2,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.7,
+  "clip_s": 6.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand to shade its eyes as if shielding them from a bright light.",
+  "movement_description": "The robot starts from a neutral posture and raises its right arm, bringing its right hand up to its forehead with the palm facing down to shield its eyes. Simultaneously, its head tilts slightly downward and to the left as if reacting to a bright glare. After holding this protective posture for a couple of seconds, the robot lowers its arm back to its side and returns its head to the neutral forward-facing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "saluting",
+    "looking_into_distance",
+    "feeling_dizzy",
+    "expressing_shame"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "dramatic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends forward and upward during the shield gesture. Ensure there are no low-hanging obstacles or objects directly in front of the robot's upper body.",
+  "confidence": 0.95
+}

@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/FunnyDancer_1",
+  "name": "FunnyDancer_1",
+  "source_label": "funny_dancer",
+  "duration_s": 8.02,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.52,
+  "clip_s": 10.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot performs a brief, playful dance-like sway with its arms raised and head tilted.",
+  "movement_description": "The robot starts by tilting its head to the left and bringing its hands slightly inward. It then lifts both arms out to the sides while turning its head to the right, creating a wide, playful pose. Finally, it smoothly retracts its arms and lowers them back to its sides while returning its head to a forward-facing, neutral position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_excitement",
+    "stretching",
+    "celebrating"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "avoid_with_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining",
+    "answering"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms outward laterally. Ensure there are no obstacles or people within a 1-meter radius to prevent contact during the arm sweep.",
+  "confidence": 0.95
+}

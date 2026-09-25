@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/Me_4",
+  "name": "Me_4",
+  "source_label": "me",
+  "duration_s": 1.73,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.23,
+  "clip_s": 5.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures to itself by bringing its left hand toward its chest, indicating self-reference.",
+  "movement_description": "The robot starts in a neutral posture and raises its left arm, opening its hand as it sweeps outward and then curving it inward toward its chest. Its left fingers lightly cluster near the center of its tablet, pointing toward its own body in a self-referential gesture. After a brief pause in this position, the robot smoothly lowers the left arm back down to its side, returning to the neutral starting posture.",
+  "communicative_functions": [
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "explaining"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "serious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "thinking",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "negation",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

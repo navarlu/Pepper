@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/PlayHands_1",
+  "name": "PlayHands_1",
+  "source_label": "play_hands",
+  "duration_s": 4.87,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.37,
+  "clip_s": 7.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its hands to chest height and playfully taps its fingers together as if fidgeting.",
+  "movement_description": "The robot starts from a neutral posture and raises both arms, bringing its hands together in front of its chest. It then playfully taps and rolls its fingers against each other in a light, fidgeting motion while looking slightly downward toward its hands. Finally, it separates its hands, lowers its arms, and smoothly returns to its default standing posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "fidgeting",
+    "waiting",
+    "thinking",
+    "shyness",
+    "anticipation"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer",
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms move in front of the chest, requiring minimal lateral clearance, but standard safety buffer zones around the robot front should be respected.",
+  "confidence": 0.95
+}

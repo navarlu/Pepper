@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/Fitness_2",
+  "name": "Fitness_2",
+  "source_label": "fitness",
+  "duration_s": 14.21,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 14.71,
+  "clip_s": 17.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its left hand on its hip and looks down while gesturing with its right hand as if explaining or examining something.",
+  "movement_description": "The robot starts by lifting its left hand to its hip while turning its head to the right and tilting it downward. It then gestures with its right arm, opening and closing its hand as if indicating an object on the ground or explaining a point. After repeating this gentle hand movement a couple of times while keeping its gaze directed downwards, the robot smoothly returns its arms to its sides and brings its head back to the neutral, forward-facing position.",
+  "communicative_functions": [
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "thinking",
+    "pointing",
+    "gentle_scolding"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "serious"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "thinking",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's left elbow extends outward sideways, which requires a small clear space of about 20-30cm on its left side.",
+  "confidence": 0.9
+}

@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_15",
+  "name": "BodyTalk_15",
+  "source_label": "body_talk",
+  "duration_s": 2.66,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.16,
+  "clip_s": 5.9,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its hands outward slightly in a subtle conversational gesture.",
+  "movement_description": "Starting from a neutral posture, the robot slowly rotates both forearms outward, opening its palms to face forward and slightly upward. At the same time, its fingers extend fully, creating a welcoming and open posture. After holding this brief open gesture, the robot gently retracts its arms and fingers back to the relaxed neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "affirmation",
+    "welcoming"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "expressing_honesty",
+    "openness"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "empathetic",
+    "earnest"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

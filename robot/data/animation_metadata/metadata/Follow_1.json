@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Follow_1",
+  "name": "Follow_1",
+  "source_label": "follow",
+  "duration_s": 4.37,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.87,
+  "clip_s": 7.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its hips, slightly tilting its head to follow something, before returning to neutral.",
+  "movement_description": "The robot starts from its neutral rest posture and slowly brings both hands in front of its lower torso, turning its palms slightly upward as if preparing to hold or gesturing toward a low object. It tilts its head slightly downward and to the right, maintaining a soft focus. Finally, it smoothly lowers both arms back down to its sides and returns its head to the neutral forward-facing position.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "calming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "empathetic",
+    "polite"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "answering",
+    "explaining",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

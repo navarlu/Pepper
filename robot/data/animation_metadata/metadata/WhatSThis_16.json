@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_16",
+  "name": "WhatSThis_16",
+  "source_label": "what_s_this",
+  "duration_s": 2.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.73,
+  "clip_s": 5.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently turns its palms upward and tilts its head forward slightly as if asking a question or presenting something.",
+  "movement_description": "The robot starts in a neutral posture and then raises both lower arms slightly, rotating its wrists so that the palms face upward in an open gesture. Concurrently, it tilts its head forward and slightly down, looking at the imaginary object in front of it. After a brief pause, it lowers its arms and brings its head back up to return to the neutral rest position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "offering_assistance",
+    "presenting_option",
+    "questioning",
+    "apologizing"
+  ],
+  "social_tone": [
+    "friendly",
+    "empathetic",
+    "welcoming",
+    "polite"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "apology",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_8",
+  "name": "ShowSky_8",
+  "source_label": "show_sky",
+  "duration_s": 2.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.25,
+  "clip_s": 7.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot enthusiastically raises both arms high overhead with open palms, gesturing toward the sky or celebrating.",
+  "movement_description": "The robot starts in a neutral posture and quickly lifts both arms up and outward, bending slightly at the elbows, until its hands are positioned high above its head with fingers fully splayed. It holds this triumphant, open-palmed posture for approximately two seconds while keeping its head facing forward. Finally, it smoothly lowers both arms back down to its sides, returning to the starting neutral pose.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis",
+    "celebration",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "surrender",
+    "excitement",
+    "victory",
+    "wonder"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "high",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sad_or_solemn_context"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms extend fully upwards and outwards; ensure adequate vertical and lateral clearance to avoid hitting overhead hanging displays or low ceilings.",
+  "confidence": 0.95
+}

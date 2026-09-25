@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Excited_1",
+  "name": "Excited_1",
+  "source_label": "excited",
+  "duration_s": 3.82,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.32,
+  "clip_s": 6.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot quickly raises both hands to chest height with open palms in a brief, excited gesture before returning to neutral.",
+  "movement_description": "Starting from a neutral posture, the robot quickly lifts both arms forward and upward, bending its elbows to bring its open hands up to chest level. Its hands face inward and slightly toward each other as they make a brief, excited shaking or pulsing motion at the peak. Finally, the robot lowers both arms smoothly back down to its sides, returning to the static neutral pose.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_excitement",
+    "celebration",
+    "surprise",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "conveying_bad_news"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

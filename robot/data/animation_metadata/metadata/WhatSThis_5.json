@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_5",
+  "name": "WhatSThis_5",
+  "source_label": "what_s_this",
+  "duration_s": 2.09,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.59,
+  "clip_s": 5.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly brings its hands together in front of its waist and tilts its head slightly, as if examining something closely.",
+  "movement_description": "The robot starts from a neutral standing position and slightly tilts its head forward and to the right. Simultaneously, it brings both hands inward toward the center of its waist, with fingers slightly curled as if holding or pointing to a small object. It then smoothly returns its head to an upright position and drops its arms back down to its sides, ending in the initial neutral posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "thinking",
+    "pointing"
+  ],
+  "social_tone": [
+    "friendly",
+    "curious",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "waiting",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

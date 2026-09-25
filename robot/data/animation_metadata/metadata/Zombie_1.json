@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/Zombie_1",
+  "name": "Zombie_1",
+  "source_label": "zombie",
+  "duration_s": 21.29,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 21.79,
+  "clip_s": 24.4,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot acts like a zombie, raising its arms forward with limp hands before returning to rest.",
+  "movement_description": "The robot starts from a neutral posture, slowly raising both arms forward and upward while tilting its head to the side. Its hands droop limply from the wrists as it mimics a classic zombie posture, shifting its torso slightly. Finally, it slowly lowers its arms back down to its sides and brings its head back to a centered, neutral position.",
+  "communicative_functions": [
+    "entertainment",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "feeling_tired",
+    "sleepwalking",
+    "acting_clumsy",
+    "groping_in_the_dark"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "humorous"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "formal_greeting",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms forward at chest height. Ensure there is clear space directly in front of the robot.",
+  "confidence": 0.95
+}

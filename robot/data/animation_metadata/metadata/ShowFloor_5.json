@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowFloor_5",
+  "name": "ShowFloor_5",
+  "source_label": "show_floor",
+  "duration_s": 2.11,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.61,
+  "clip_s": 5.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly sweeps both hands down toward its base to point out the floor or ground.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly brings both arms inward and downward, pointing its hands toward the lower base. It holds this downward-pointing gesture briefly while maintaining a steady forward head gaze. Finally, it retracts both arms back to its sides, returning to the default neutral standing pose.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "presenting_something_low",
+    "self_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "helpful",
+    "informative"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms sweep inward and downward close to the torso and base; ensure the immediate low frontal area of the robot is free of obstacles.",
+  "confidence": 0.95
+}

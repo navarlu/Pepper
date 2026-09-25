@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/No_4",
+  "name": "No_4",
+  "source_label": "no",
+  "duration_s": 1.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.47,
+  "clip_s": 5.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right arm to its side and then sweeps it forward to gently decline or disagree.",
+  "movement_description": "The robot starts from a neutral posture, raises its right arm outward and upward with an open hand, and turns its head slightly to the right. It then sweeps the right arm forward and downward in a gentle waving gesture toward the center, as if brushing something away or saying 'no'. Finally, it returns its head and arm smoothly back to the neutral resting position.",
+  "communicative_functions": [
+    "negation",
+    "disagreement",
+    "declining",
+    "avoidance"
+  ],
+  "alternative_interpretations": [
+    "dismissing_an_idea",
+    "clearing_the_air",
+    "calming"
+  ],
+  "social_tone": [
+    "polite",
+    "gentle",
+    "formal",
+    "serious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "clarification_request",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends forward and slightly outward; ensure a clear envelope of 0.5 meters to the front and right side of the robot.",
+  "confidence": 0.95
+}

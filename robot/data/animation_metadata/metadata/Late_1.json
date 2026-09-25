@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Late_1",
+  "name": "Late_1",
+  "source_label": "late",
+  "duration_s": 11.51,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 12.01,
+  "clip_s": 14.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot looks away and taps an imaginary wrist watch to show impatience or being late.",
+  "movement_description": "The robot starts by tilting its head up and looking to its right while bringing both hands in toward its waist. It then lifts its left arm, turning its head back toward the center to look down at its left wrist. With its right hand, it taps the top of its left wrist several times as if checking a watch, before lowering both arms back to its sides and returning its head to a neutral forward position.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "pointing"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm raises forward and slightly to the side; ensure a small clear space in front of the robot.",
+  "confidence": 0.95
+}

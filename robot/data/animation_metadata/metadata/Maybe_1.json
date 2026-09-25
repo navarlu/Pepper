@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/Maybe_1",
+  "name": "Maybe_1",
+  "source_label": "maybe",
+  "duration_s": 1.61,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.11,
+  "clip_s": 4.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head slightly to the side with a gentle shoulder shrug, expressing mild uncertainty or a 'maybe' sentiment.",
+  "movement_description": "The robot starts in a neutral posture and begins by subtly lifting its shoulders while tilting its head to its right side. Its hands turn slightly outward in a subtle shrugging gesture. It holds this gentle, questioning pose briefly before smoothly bringing its head back to center and lowering its arms back into the neutral rest posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "clarification_request"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_start"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,51 @@
+{
+  "action_id": "animations/Stand/Gestures/Thinking_6",
+  "name": "Thinking_6",
+  "source_label": "thinking",
+  "duration_s": 2.09,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.59,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head slightly while placing its right hand near its hip in a thoughtful pose.",
+  "movement_description": "The robot begins by raising its right arm, bending the elbow to place its right hand open and downward-facing near its hip, while simultaneously tilting its head slightly to the left. It holds this pensive posture for a couple of seconds, maintaining a steady gaze forward. Finally, it smoothly lowers its right arm back to its side and returns its head to a level, neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "calming"
+  ],
+  "social_tone": [
+    "thoughtful",
+    "serious",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

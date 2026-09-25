@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_12",
+  "name": "ShowSky_12",
+  "source_label": "show_sky",
+  "duration_s": 1.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.42,
+  "clip_s": 5.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures upward and outward with both hands as if pointing out something above, like the sky.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms outward and upward. Its left hand is raised higher toward the upper side with its palm open and fingers relaxed, while its right hand is raised slightly lower to chest height with a partially closed fist. The robot's head tilts slightly upward and to its left, following the direction of the left hand, before it smoothly returns both arms and its head to the initial neutral resting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "emphasis",
+    "expressing_wonder",
+    "gazing_upward"
+  ],
+  "social_tone": [
+    "enthusiastic",
+    "friendly",
+    "welcoming",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "visitor_approach",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "negative_news"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms outward and upward. Ensure there is adequate clearance on both sides and slightly above the robot's head to prevent collisions.",
+  "confidence": 0.95
+}

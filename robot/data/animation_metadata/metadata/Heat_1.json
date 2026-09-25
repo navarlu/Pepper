@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Reactions/Heat_1",
+  "name": "Heat_1",
+  "source_label": "heat",
+  "duration_s": 4.84,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.34,
+  "clip_s": 7.6,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot subtly shifts its weight and tilts its head slightly, mimicking a faint physical reaction to heat or minor discomfort.",
+  "movement_description": "The robot begins in a neutral posture and slowly shifts its weight by tilting its hips and torso slightly to the left. At the same time, it tilts its head a tiny fraction to the right while maintaining forward gaze. The arms remain mostly relaxed at its sides, only shifting slightly in response to the torso's movement, before the robot gradually returns to its centered neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "listening_intently",
+    "slight_confusion",
+    "thoughtful_pause",
+    "boredom"
+  ],
+  "social_tone": [
+    "informal",
+    "casual",
+    "playful"
+  ],
+  "body_parts": [
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The movement is extremely subtle and confined, posing no safety concerns.",
+  "confidence": 0.9
+}

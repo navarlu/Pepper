@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/ShowSky_5",
+  "name": "ShowSky_5",
+  "source_label": "show_sky",
+  "duration_s": 2.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.0,
+  "clip_s": 7.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot sweeps its right arm upward and outward to point high and to the right, as if gesturing towards the sky or a high location.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm, bringing the forearm inward before sweeping it upward and outward to its far right. It extends the arm fully, pointing toward a high point, while slightly tilting its head to look in that direction and opening its left hand low on the opposite side. Finally, the robot smoothly retracts its right arm back to its side and returns to the initial neutral resting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining"
+  ],
+  "alternative_interpretations": [
+    "indicating_direction",
+    "showing_upward",
+    "emphasis"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "welcoming"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "visitor_approach",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps fully outward and upward to the robot's right side, requiring clear lateral and upper clearance.",
+  "confidence": 0.95
+}

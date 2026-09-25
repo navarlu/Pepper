@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Choice_1",
+  "name": "Choice_1",
+  "source_label": "choice",
+  "duration_s": 1.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.0,
+  "clip_s": 4.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently lifts both hands in front of its chest, palms facing slightly upward and inward, as if offering options.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly raises both arms forward and slightly inward. The right hand extends a bit lower and more open, while the left hand rises slightly higher with fingers curved, creating a balanced but asymmetrical presentation gesture at chest height. It holds this posture briefly before lowering both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "explaining",
+    "pointing",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "welcoming",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

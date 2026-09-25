@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Lonely_1",
+  "name": "Lonely_1",
+  "source_label": "lonely",
+  "duration_s": 7.25,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.75,
+  "clip_s": 10.07,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot slightly lowers its head and tilts it sideways with a subtle droop in its posture.",
+  "movement_description": "The robot starts in a neutral posture and slowly lowers its head while tilting it slightly to the left side. Its shoulders and arms remain mostly still, hanging slightly looser than before, conveying a slumped or dejected posture. It holds this lowered, tilted head position for a few seconds before slowly raising its head back to the level, forward-facing neutral position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "sadness"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "listening_intently",
+    "shyness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "empathetic",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "downward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "session_start",
+    "enthusiastic_welcome"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

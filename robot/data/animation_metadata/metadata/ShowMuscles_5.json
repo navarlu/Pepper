@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Waiting/ShowMuscles_5",
+  "name": "ShowMuscles_5",
+  "source_label": "show_muscles",
+  "duration_s": 5.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.94,
+  "clip_s": 8.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot flexes its arms outward and then brings its hands together in a playful show of strength.",
+  "movement_description": "Starting from a neutral posture, the robot bends both elbows and flares its arms outward to the sides, imitating a muscle-flexing pose. It then slowly rotates its arms downward and inward, bringing its open hands together near its lower stomach. Finally, the robot relaxes both arms and smoothly returns them to the neutral hanging position.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "gathering_ideas",
+    "bringing_things_together",
+    "holding_an_invisible_object"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms flare out laterally, requiring some clearance on both the left and right sides of the robot.",
+  "confidence": 0.9
+}

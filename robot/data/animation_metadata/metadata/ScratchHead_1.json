@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchHead_1",
+  "name": "ScratchHead_1",
+  "source_label": "scratch_head",
+  "duration_s": 2.93,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.43,
+  "clip_s": 7.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot scratches its head with its right hand as if in confusion or deep thought.",
+  "movement_description": "The robot lifts its right arm up and bends it at the elbow to bring its hand to the side of its head. It performs a small, repetitive scratching motion with its fingers near its temple while slightly tilting its head to the left. Finally, it lowers its arm back down and returns its head to a neutral, forward-facing position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "forgetfulness",
+    "confusion",
+    "embarrassment"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "empathetic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "formal_greeting",
+    "serious_policy_answer",
+    "session_end",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "None",
+  "confidence": 0.95
+}

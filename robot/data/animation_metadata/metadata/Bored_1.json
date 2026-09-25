@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Bored_1",
+  "name": "Bored_1",
+  "source_label": "bored",
+  "duration_s": 3.53,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.03,
+  "clip_s": 6.77,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shrugs its shoulders and pulls its elbows back, then slumps its head and looks down in a bored, dejected posture.",
+  "movement_description": "The robot quickly pulls both arms back, raising its elbows and tensing its shoulders as if sighing or shrugging. After holding this tense posture briefly, it completely relaxes, dropping its arms back to its sides and slumping its head forward to look at the floor. It remains in this dejected, downward-looking pose for several seconds before slowly lifting its head back to the neutral starting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "negation",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "sadness",
+    "exhaustion",
+    "disappointment",
+    "shrugging"
+  ],
+  "social_tone": [
+    "informal",
+    "apologetic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

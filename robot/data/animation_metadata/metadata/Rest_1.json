@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Waiting/Rest_1",
+  "name": "Rest_1",
+  "source_label": "rest",
+  "duration_s": 4.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.36,
+  "clip_s": 7.93,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands up toward its tablet and then spreads its arms open in a welcoming, helpful posture before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and brings both hands up and slightly inward toward the tablet, with elbows bent. It then sweeps both arms outward with open palms facing up and forward, tilting its head slightly upward to create an open, receptive posture. Finally, it smoothly lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "offering_help",
+    "welcoming",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "expressing_honesty",
+    "presenting_information"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "helpful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "waiting",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "expressing_uncertainty"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms sweep outward and forward; ensure there are no obstacles or people within the immediate front-lateral sweep radius of the robot's arms.",
+  "confidence": 0.95
+}

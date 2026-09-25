@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Waiting/Relaxation_1",
+  "name": "Relaxation_1",
+  "source_label": "relaxation",
+  "duration_s": 7.84,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.34,
+  "clip_s": 10.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot stretches one arm straight up and wide, then brings it down in a gentle, relaxing stretch.",
+  "movement_description": "Starting from neutral, the robot tilts its head slightly and raises its right arm in a slow upward and outward arc until it is fully extended overhead. The left arm moves slightly outward for balance as the robot stretches its torso upward. After a brief hold at the peak of the stretch, the robot smoothly lowers both arms back down and returns its head to a centered, neutral position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "farewell",
+    "pointing",
+    "enthusiasm"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "relaxed"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends fully upward and outward to its maximum range; ensure there are no overhead or lateral obstructions close to the robot.",
+  "confidence": 0.95
+}

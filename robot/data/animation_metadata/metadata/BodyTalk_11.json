@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_11",
+  "name": "BodyTalk_11",
+  "source_label": "body_talk",
+  "duration_s": 1.8,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.3,
+  "clip_s": 4.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures forward with its left hand open, palm facing up, while keeping its right arm relaxed.",
+  "movement_description": "The robot starts from a neutral standing pose. It raises its left arm, bending the elbow and presenting an open hand with the palm facing upward in a welcoming, conversational gesture. After holding this pose briefly, the robot smoothly lowers the left arm back down to return to the neutral starting position.",
+  "communicative_functions": [
+    "explaining",
+    "listener_reference",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "conversational"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 1.0
+}

@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_6",
+  "name": "BodyTalk_6",
+  "source_label": "body_talk",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 5.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens its left arm outward while bringing its right hand slightly inward in a relaxed, asymmetrical explanatory gesture.",
+  "movement_description": "The robot begins in a neutral standing posture and lifts both hands slightly. It then opens its left arm outward to the side with an open palm facing upward, while simultaneously bringing its right hand inward toward its lower chest. After a brief pause in this asymmetrical open stance, both arms smoothly return to the neutral hanging position at its sides.",
+  "communicative_functions": [
+    "explaining",
+    "emphasis",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "offering_choices",
+    "presenting_information",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal",
+    "conversational"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps outward to the side, so ensure there is adequate lateral clearance on the robot's left side.",
+  "confidence": 0.95
+}

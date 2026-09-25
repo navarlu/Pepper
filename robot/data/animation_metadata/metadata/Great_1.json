@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Great_1",
+  "name": "Great_1",
+  "source_label": "great",
+  "duration_s": 2.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.25,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly raises and tightens its right hand near its waist before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture. It quickly draws its right arm slightly forward and upward, curling its fingers into a loose fist near its waist, while keeping its head and left arm completely still. It holds this subtle, tensed position for a moment before relaxing the hand and lowering the arm back to its starting neutral position.",
+  "communicative_functions": [
+    "emphasis",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "expressing_determination",
+    "subtle_agreement",
+    "self_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "enthusiastic",
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

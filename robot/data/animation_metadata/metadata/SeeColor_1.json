@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Reactions/SeeColor_1",
+  "name": "SeeColor_1",
+  "source_label": "see_color",
+  "duration_s": 4.96,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.46,
+  "clip_s": 7.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its left hand toward its chin in a curious, examining gesture as if looking at a color.",
+  "movement_description": "The robot starts in a neutral posture and raises its left hand up toward its face, turning its head slightly to the left to look towards the raised hand. It gently holds its hand near its chin for a moment as if inspecting something close by, and then lowers both the head and left arm back to the neutral starting position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "gazing_at_hand",
+    "inspection",
+    "wonder"
+  ],
+  "social_tone": [
+    "playful",
+    "friendly",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

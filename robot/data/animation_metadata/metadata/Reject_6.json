@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_6",
+  "name": "Reject_6",
+  "source_label": "reject",
+  "duration_s": 1.79,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.29,
+  "clip_s": 5.2,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand slightly outward and sweeps it inward across its front to indicate rejection or dismissiveness.",
+  "movement_description": "Starting from a neutral rest pose, the robot raises its right arm forward and slightly to the side with an open, palm-up hand. It then sweeps the hand inward toward its chest while tilting the palm downward in a gentle brushing motion. Finally, the robot lowers its arm back down, returning smoothly to its neutral posture.",
+  "communicative_functions": [
+    "negation",
+    "disagreement"
+  ],
+  "alternative_interpretations": [
+    "dismissal",
+    "declining_an_offer",
+    "calming"
+  ],
+  "social_tone": [
+    "formal",
+    "serious",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "apology"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Alienated_1",
+  "name": "Alienated_1",
+  "source_label": "alienated",
+  "duration_s": 10.6,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 11.1,
+  "clip_s": 13.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts and turns its head from side to side in a curious, slightly alienated fashion while keeping its body still.",
+  "movement_description": "The robot starts in a neutral posture and slowly tilts its head to the right while rotating its head slightly to look upward. It pauses briefly, then slowly rolls and rotates its head to the left side in a similar tilted manner. Finally, it smoothly returns its head to the upright, forward-facing neutral position, keeping its arms and torso completely still throughout the sequence.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "curiosity",
+    "puzzlement",
+    "listening_closely",
+    "thinking"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "serious"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_end",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

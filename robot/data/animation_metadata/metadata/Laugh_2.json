@@ -1,0 +1,62 @@
+{
+  "action_id": "animations/Stand/Emotions/Positive/Laugh_2",
+  "name": "Laugh_2",
+  "source_label": "laugh",
+  "duration_s": 2.81,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.31,
+  "clip_s": 6.1,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot giggles politely, raising its right hand to cover its mouth while its left hand rests on its hip.",
+  "movement_description": "The robot begins by raising its right arm to bend at the elbow, bringing its hand close to its mouth area in a classic giggling or whispering posture. Simultaneously, its left arm retracts slightly and rests its hand near its left hip while its torso tilts forward slightly. The robot's head tilts downward and shakes subtly as if chuckling softly, before returning both arms back to the neutral hanging posture.",
+  "communicative_functions": [
+    "expressing_glee",
+    "laughing",
+    "agreement",
+    "playful_response"
+  ],
+  "alternative_interpretations": [
+    "gossiping_or_whispering",
+    "embarrassment_or_shyness",
+    "polite_gasp_or_surprise"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "amused",
+    "lighthearted"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Waiting/Relaxation_3",
+  "name": "Relaxation_3",
+  "source_label": "relaxation",
+  "duration_s": 4.55,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.05,
+  "clip_s": 7.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shifts its weight slightly, tilts its head, and gently brings its left hand up and down in a relaxed, idle movement.",
+  "movement_description": "The robot starts in a neutral posture and gently tilts its head down and to its left while shifting its torso. Simultaneously, it lifts its left arm slightly forward with a relaxed hand, fingers curled. The robot then slowly lowers its hand back down and returns its head and torso to the upright, neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "listening_attentively",
+    "calming"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "head",
+    "left_arm",
+    "hands",
+    "torso"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "greeting",
+    "farewell",
+    "enthusiastic_response"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

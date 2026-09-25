@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Anxious_1",
+  "name": "Anxious_1",
+  "source_label": "anxious",
+  "duration_s": 5.81,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.31,
+  "clip_s": 8.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot nervously brings its hands together near its waist, tilting and turning its head anxiously, before returning to a neutral pose.",
+  "movement_description": "The robot begins by bringing both hands inward to its waist, fingers partially open, as if in a self-conscious or protective gesture. Simultaneously, it tilts its head to its left and rotates its head to look slightly upward and to the right. After a brief pause in this defensive posture, it relaxes its arms back down to its sides and returns its head to the forward-facing neutral position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "expressing_shyness",
+    "thinking",
+    "submissiveness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "informal",
+    "empathetic",
+    "serious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "explaining",
+    "direction_giving"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

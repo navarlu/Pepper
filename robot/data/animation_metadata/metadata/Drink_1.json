@@ -1,0 +1,53 @@
+{
+  "action_id": "animations/Stand/Waiting/Drink_1",
+  "name": "Drink_1",
+  "source_label": "drink",
+  "duration_s": 7.62,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.12,
+  "clip_s": 10.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot mimics holding a glass and taking a drink, then wipes its mouth.",
+  "movement_description": "Starting from a neutral posture, the robot raises its right hand to its mouth while tilting its head slightly back, mimicking the action of drinking from a glass. After taking a virtual sip, it wipes its mouth with the back of its hand while rotating its body slightly to the left. Finally, it lowers its arm and returns its head and body to the neutral, forward-facing resting position.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "thinking",
+    "coughing",
+    "feeling_hot"
+  ],
+  "social_tone": [
+    "playful",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "answering",
+    "explaining",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends upward and forward near the face level; ensure sufficient frontal and right-side clearance to avoid hitting objects or users.",
+  "confidence": 0.95
+}

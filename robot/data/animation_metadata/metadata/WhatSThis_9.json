@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_9",
+  "name": "WhatSThis_9",
+  "source_label": "what_s_this",
+  "duration_s": 1.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.42,
+  "clip_s": 4.87,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its right hand slightly forward in a questioning manner, then opens both hands palms-up to express uncertainty or inquiry before returning to rest.",
+  "movement_description": "The robot starts by lifting its right hand slightly forward with a loose grip as if presenting or questioning. It then sweeps both arms outward with open, palms-up hands while tilting its head slightly, conveying a 'what is this?' gesture. Finally, it smoothly retracts both arms down and brings its head back to the central, neutral posture.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "welcoming",
+    "offering_assistance"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms forward and slightly outward; ensure a clear safety zone of about 0.5 meters in front of the chest.",
+  "confidence": 0.95
+}

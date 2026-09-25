@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Innocent_1",
+  "name": "Innocent_1",
+  "source_label": "innocent",
+  "duration_s": 7.97,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.47,
+  "clip_s": 11.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts its head, pulls its hands close together near its lap, and looks up innocently before returning to neutral.",
+  "movement_description": "The robot starts in a neutral posture and slowly tilts its head to the right while drawing both hands inward and down to meet near its lower torso. It holds this gentle, protective posture while slightly shifting its gaze upward, mimicking a shy or innocent look. Finally, the robot slowly tilts its head back to center and returns its arms to its sides, ending in a neutral posture.",
+  "communicative_functions": [
+    "self_reference",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "shyness",
+    "timidness",
+    "waiting"
+  ],
+  "social_tone": [
+    "apologetic",
+    "playful",
+    "friendly",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "thinking",
+    "waiting",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "serious_policy_answer",
+    "pointing"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The arms stay very close to the torso, posing no risk to nearby objects or humans.",
+  "confidence": 0.95
+}

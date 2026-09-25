@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/Relaxation_2",
+  "name": "Relaxation_2",
+  "source_label": "relaxation",
+  "duration_s": 6.75,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.25,
+  "clip_s": 9.73,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands together in front of its tablet in a relaxed, circular motion and looks down before returning to its neutral pose.",
+  "movement_description": "The robot starts in a neutral posture and slowly tilts its head downward while bringing both arms inward. It curves its arms to bring its hands close together near the lower edge of its chest tablet, briefly holding them in a cupping or resting gesture. It then smoothly lowers its arms back to its sides while raising its head to look forward, ending in the original neutral posture.",
+  "communicative_functions": [
+    "calming",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "expressing_uncertainty",
+    "apologizing",
+    "thinking"
+  ],
+  "social_tone": [
+    "friendly",
+    "empathetic",
+    "serious",
+    "formal",
+    "apologetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "apology",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "enthusiastic_greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

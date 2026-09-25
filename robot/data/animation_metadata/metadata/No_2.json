@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/No_2",
+  "name": "No_2",
+  "source_label": "no",
+  "duration_s": 1.78,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.28,
+  "clip_s": 5.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right hand forward with palm facing out to signal a polite refusal, stop, or disagreement.",
+  "movement_description": "Starting from a neutral posture, the robot raises its right arm forward with the hand open and palm facing outwards. The hand is held up momentarily around chest height as if indicating a 'stop' or 'no' gesture, while the head and left arm remain still. Finally, the right arm smoothly lowers back down to the side, returning the robot to its neutral resting posture.",
+  "communicative_functions": [
+    "negation",
+    "calming",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "greeting",
+    "pointing",
+    "emphasis"
+  ],
+  "social_tone": [
+    "formal",
+    "serious",
+    "polite"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "handover_to_human"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends directly forward. Ensure there are no obstacles or people directly in front of the robot's right side within a arm's reach.",
+  "confidence": 0.95
+}

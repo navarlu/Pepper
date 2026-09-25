@@ -1,0 +1,61 @@
+{
+  "action_id": "animations/Stand/Gestures/Enthusiastic_5",
+  "name": "Enthusiastic_5",
+  "source_label": "enthusiastic",
+  "duration_s": 2.83,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.33,
+  "clip_s": 5.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot opens both arms wide with open palms to express enthusiastic welcoming or explanation.",
+  "movement_description": "Starting from a neutral posture, the robot brings both hands inward near its chest before sweeping them outward and upward in a broad, welcoming gesture with open palms facing up. During this outward sweep, its head tilts slightly backward and then returns forward. The robot then smoothly lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "emphasis",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "expressing_openness",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "sadness",
+    "bad_news"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends both arms outward laterally; ensure there is adequate side clearance so the hands do not collide with visitors or nearby objects.",
+  "confidence": 0.95
+}

@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Waiting/MysticalPower_1",
+  "name": "MysticalPower_1",
+  "source_label": "mystical_power",
+  "duration_s": 8.28,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 8.78,
+  "clip_s": 10.87,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot dramatically sweeps both arms upward and tilts its head back as if summoning mystical power.",
+  "movement_description": "The robot begins in a neutral posture, then slowly extends both arms outward and sweeps them upward in a wide, dramatic arc. As its arms reach fully overhead with open palms, the robot tilts its head back to look upward, holding the pose briefly as if receiving or channeling energy. It then lowers its arms forward and down, returning its head and body smoothly to the neutral starting position.",
+  "communicative_functions": [
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "celebration",
+    "victory_pose",
+    "worship",
+    "stretching",
+    "surprise"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "clarification_request"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot requires a wide clearance zone as both arms extend fully outward and upward to their maximum physical range.",
+  "confidence": 0.95
+}

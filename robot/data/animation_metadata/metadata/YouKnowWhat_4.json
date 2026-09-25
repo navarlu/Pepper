@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/YouKnowWhat_4",
+  "name": "YouKnowWhat_4",
+  "source_label": "you_know_what",
+  "duration_s": 2.24,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.74,
+  "clip_s": 5.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot confidently places its hands on its hips in a proud, 'you know what?' posture before returning to its neutral stance.",
+  "movement_description": "The robot begins in a neutral rest pose and symmetrically lifts both arms outward and upward. It then bends its elbows and rotates its wrists inward to firmly place both hands on its hips, puffing out its posture slightly. After holding this confident pose for about two seconds, it smoothly releases its hands and lowers its arms back down to the sides, returning to the neutral posture.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting",
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "pride",
+    "confidence",
+    "playful_defiance",
+    "heroic_pose",
+    "determination"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "enthusiastic",
+    "friendly"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "answering",
+    "explaining",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "handover_to_human",
+    "calming"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's elbows extend outwards to its sides; ensure adequate lateral clearance around the robot's upper body.",
+  "confidence": 1.0
+}

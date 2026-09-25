@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Far_2",
+  "name": "Far_2",
+  "source_label": "far",
+  "duration_s": 2.23,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.73,
+  "clip_s": 5.77,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures outward with its left arm while slightly raising its right hand to indicate a far distance or location.",
+  "movement_description": "The robot starts from a neutral posture and raises its left arm outward and upward to the side with an open palm pointing away. Simultaneously, it lifts its right hand slightly forward with an open palm facing up, turning its head slightly to follow the direction of the left arm. It holds this expansive outward pose briefly before smoothly lowering both arms back to its sides and returning its head to center.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "presenting_option",
+    "offering_direction"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "left_arm",
+    "right_arm",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "thinking",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm extends significantly to the side; ensure adequate lateral clearance to prevent collision with visitors or objects.",
+  "confidence": 0.95
+}

@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchBack_1",
+  "name": "ScratchBack_1",
+  "source_label": "scratch_back",
+  "duration_s": 6.66,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.16,
+  "clip_s": 9.5,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot places its right hand on its hip while tilting its head, appearing to stretch or pose casually.",
+  "movement_description": "The robot begins by tilting its head to the left and slightly upward. At the same time, it brings its right hand up and rests it flat against its right hip, elbow pointing outward. After holding this pose briefly, the robot smoothly returns its head to the center and drops its right arm back down to its side, returning to a neutral standing posture.",
+  "communicative_functions": [],
+  "alternative_interpretations": [
+    "expressing_impatience",
+    "thinking",
+    "casual_waiting",
+    "posing_for_photo"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "relaxed"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "session_end",
+    "explaining",
+    "apology",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends outward to the side when resting on the hip. Ensure adequate clearance on the robot's right side.",
+  "confidence": 0.9
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Give_5",
+  "name": "Give_5",
+  "source_label": "give",
+  "duration_s": 2.34,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.84,
+  "clip_s": 5.53,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends both hands forward with open palms turned upward in a giving gesture.",
+  "movement_description": "Starting from a neutral posture, the robot raises both hands, rotating its wrists so that the palms face upward. It extends its hands outward toward the user in a gentle giving or offering motion. The robot holds this position briefly before smoothly retracting both arms back to its sides, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "offering",
+    "handover",
+    "welcoming",
+    "presenting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "explaining",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its arms forward; ensure there are no obstacles or people directly in front of the robot within arm's reach.",
+  "confidence": 0.95
+}

@@ -1,0 +1,55 @@
+{
+  "action_id": "animations/Stand/Gestures/This_4",
+  "name": "This_4",
+  "source_label": "this",
+  "duration_s": 1.61,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.11,
+  "clip_s": 4.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm forward with an open hand, then closes it into a gentle pointing or holding posture before returning to rest.",
+  "movement_description": "Starting from a neutral posture, the robot raises its right arm forward to about chest height with an open palm. It then transitions its right hand into a loose pointing gesture with fingers curled and the index finger slightly extended. After a brief pause to hold this pose, the arm lowers smoothly back down to its side, returning to the neutral resting position.",
+  "communicative_functions": [
+    "pointing",
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "self_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "formal",
+    "serious"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "waiting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

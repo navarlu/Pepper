@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Frustrated_1",
+  "name": "Frustrated_1",
+  "source_label": "frustrated",
+  "duration_s": 3.58,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.08,
+  "clip_s": 6.9,
+  "has_sound": true,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot turns its head away, lowers its head and hands slightly, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture and then turns its head to its left while tilting it downward. Simultaneously, it brings both hands inward and slightly down toward its lower torso with open palms facing inward. After a brief pause in this contracted posture, it lifts its head back up, rotates it to face forward, and returns both arms to the neutral hanging position.",
+  "communicative_functions": [
+    "negation",
+    "expressing_uncertainty",
+    "apologizing"
+  ],
+  "alternative_interpretations": [
+    "feeling_shame",
+    "disappointment",
+    "thinking",
+    "sadness"
+  ],
+  "social_tone": [
+    "apologetic",
+    "serious",
+    "informal"
+  ],
+  "body_parts": [
+    "head",
+    "both_arms",
+    "hands"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "welcoming",
+    "greeting"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

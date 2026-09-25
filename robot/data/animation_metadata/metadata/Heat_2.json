@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/Heat_2",
+  "name": "Heat_2",
+  "source_label": "heat",
+  "duration_s": 5.16,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.66,
+  "clip_s": 7.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot briefly reacts with a subtle, uncomfortable flinch, bringing its hands inward before bowing its head.",
+  "movement_description": "The robot starts in a neutral posture and quickly pulls both hands slightly inward toward its lower torso with fingers spread. It then lowers its head, tilting it forward and down as if feeling uncomfortable, hot, or embarrassed. Finally, the robot lifts its head back up and returns both arms to the neutral resting position at its sides.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "feeling_hot",
+    "embarrassment",
+    "shyness",
+    "subtle_startle"
+  ],
+  "social_tone": [
+    "apologetic",
+    "empathetic",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "apology",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "formal_greeting",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

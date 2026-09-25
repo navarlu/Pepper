@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/TouchHead_4",
+  "name": "TouchHead_4",
+  "source_label": "touch_head",
+  "duration_s": 3.17,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.67,
+  "clip_s": 5.83,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot reaches up to touch its head with its left hand as if reacting to a sudden sensation or thought, then returns to a neutral posture.",
+  "movement_description": "The robot begins in a neutral posture and raises its left hand up towards the left side of its head, tilting its head slightly down and to the left to meet it. It holds this touch pose briefly before lowering the left arm back to its side while returning its head to the upright, center position. The right arm remains inactive throughout the entire motion.",
+  "communicative_functions": [
+    "self_reference",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "headache",
+    "forgetfulness",
+    "thinking",
+    "surprise",
+    "embarrassment"
+  ],
+  "social_tone": [
+    "informal",
+    "playful",
+    "empathetic"
+  ],
+  "body_parts": [
+    "left_arm",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "thinking",
+    "clarification_request",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "session_start",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's left arm raises up to the head level; ensure there is clearance on the left side of the robot's upper body.",
+  "confidence": 0.95
+}

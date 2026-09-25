@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Give_4",
+  "name": "Give_4",
+  "source_label": "give",
+  "duration_s": 2.45,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.95,
+  "clip_s": 5.67,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends both hands forward with open palms in a welcoming, giving gesture.",
+  "movement_description": "Starting from a neutral posture, the robot draws its hands inward toward its lower torso before raising and sweeping both arms forward and outward. It presents its open palms upward to the listener in a clear offering or giving motion while its head remains steady. The robot briefly holds this open-handed pose before smoothly lowering both arms back to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "welcoming",
+    "explaining",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "enthusiastic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "answering",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "negation"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/This_9",
+  "name": "This_9",
+  "source_label": "this",
+  "duration_s": 2.0,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.5,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm outward and downward to indicate something or present an option to its right side.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms slightly, bringing its left hand near its chest. Simultaneously, it extends its right arm outward and downward to the side with an open palm facing upward and slightly forward. After holding this presentation pose briefly, the robot smoothly lowers both arms back to its sides, returning to the neutral upright posture.",
+  "communicative_functions": [
+    "pointing",
+    "explaining",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "offering",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "formal",
+    "helpful"
+  ],
+  "body_parts": [
+    "right_arm",
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "handover_to_human",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends laterally and slightly downward. Ensure there are no low-level obstructions on the robot's right side.",
+  "confidence": 0.95
+}

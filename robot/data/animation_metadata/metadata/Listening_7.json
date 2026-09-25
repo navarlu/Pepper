@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Listening/Listening_7",
+  "name": "Listening_7",
+  "source_label": "listening",
+  "duration_s": 2.44,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.94,
+  "clip_s": 6.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot tilts and turns its head slightly while keeping its arms relaxed at its sides, giving an attentive and listening appearance.",
+  "movement_description": "The robot starts in a relaxed neutral posture with its arms hanging naturally at its sides. It slowly tilts its head to the right and rotates it slightly, simulating an active listening posture. After a brief pause in this listening stance, the robot gently returns its head to the center, ending in the original neutral posture.",
+  "communicative_functions": [
+    "listening",
+    "affirmation"
+  ],
+  "alternative_interpretations": [
+    "expressing_interest",
+    "thinking",
+    "curiosity"
+  ],
+  "social_tone": [
+    "friendly",
+    "empathetic",
+    "polite",
+    "attentive"
+  ],
+  "body_parts": [
+    "head"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "small",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "explaining",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

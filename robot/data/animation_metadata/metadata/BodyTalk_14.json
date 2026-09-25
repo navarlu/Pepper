@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/BodyTalk/Speaking/BodyTalk_14",
+  "name": "BodyTalk_14",
+  "source_label": "body_talk",
+  "duration_s": 3.06,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.56,
+  "clip_s": 6.23,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings its hands up slightly and curls its fingers inward as if preparing to speak or hold something.",
+  "movement_description": "Starting from its neutral posture, the robot brings both hands forward and upward slightly while curving its fingers inward into loose fists. The hands hold this raised position for a couple of seconds before smoothly lowering back down to the sides, returning the robot to its default neutral state.",
+  "communicative_functions": [
+    "emphasis",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "anticipation",
+    "ready_to_receive"
+  ],
+  "social_tone": [
+    "friendly",
+    "earnest",
+    "attentive"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "small",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "farewell"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

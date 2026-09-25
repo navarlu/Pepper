@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Waiting/Waddle_1",
+  "name": "Waddle_1",
+  "source_label": "waddle",
+  "duration_s": 5.76,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 6.26,
+  "clip_s": 8.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot shifts its weight playfully from side to side while subtly gesturing with its hands.",
+  "movement_description": "The robot starts in a neutral posture and then tilts its head and torso to the right, raising its right arm in a relaxed gesture while looking down and away. It then shifts its weight back to the center and left, opening its left arm outward while turning its head to follow the hand. Finally, the robot smoothly returns its arms to its sides and brings its head and torso back to the upright neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "thinking",
+    "expressing_uncertainty",
+    "gentle_refusal"
+  ],
+  "social_tone": [
+    "friendly",
+    "playful",
+    "informal",
+    "relaxed"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot performs asymmetric arm extensions to the side. Ensure there is a small clearance envelope around both sides of the robot's arms.",
+  "confidence": 0.95
+}

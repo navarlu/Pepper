@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_2",
+  "name": "Reject_2",
+  "source_label": "reject",
+  "duration_s": 1.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.35,
+  "clip_s": 5.37,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot brings both hands forward before shifting into a dismissive, one-handed reject gesture.",
+  "movement_description": "The robot starts from a neutral posture and raises both hands up in front of its chest with fingers slightly spread. It then sweeps its left arm down and back while keeping its right hand raised and slightly rotated outward in a pushing-away motion. Finally, it drops both arms back down to return to its neutral resting posture.",
+  "communicative_functions": [
+    "negation",
+    "rejection",
+    "dismissal",
+    "disagreement"
+  ],
+  "alternative_interpretations": [
+    "explaining_two_options",
+    "expressing_uncertainty",
+    "balancing_choices"
+  ],
+  "social_tone": [
+    "serious",
+    "assertive",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "greeting",
+    "apology",
+    "handover_to_human"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

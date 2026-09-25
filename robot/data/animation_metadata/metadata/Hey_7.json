@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Hey_7",
+  "name": "Hey_7",
+  "source_label": "hey",
+  "duration_s": 3.47,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.97,
+  "clip_s": 6.3,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot raises its right arm forward with an open hand to grab attention or greet someone.",
+  "movement_description": "The robot starts from its neutral standing posture and raises its right arm forward and slightly upward, extending its hand with fingers open. Its head remains centered and level, facing the viewer. The arm is briefly held in this forward-extended position before smoothly lowering back down to its side to return to the neutral posture.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "listener_reference"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "offering",
+    "beckoning"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "informal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm extends directly forward. Ensure there are no obstacles or people directly in front of the robot within arm's reach.",
+  "confidence": 0.95
+}

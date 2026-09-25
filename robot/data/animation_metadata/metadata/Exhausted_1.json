@@ -1,0 +1,57 @@
+{
+  "action_id": "animations/Stand/Emotions/Negative/Exhausted_1",
+  "name": "Exhausted_1",
+  "source_label": "exhausted",
+  "duration_s": 6.72,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 7.22,
+  "clip_s": 9.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot sighs, dropping its head and torso forward in a look of exhaustion before slowly recovering.",
+  "movement_description": "The robot starts in a neutral posture and briefly pulls its hands slightly inward towards its hips. It then drops its head and upper body forward in a limp, slumped posture, with its eyes looking downward to convey fatigue. After holding this exhausted pose for a few seconds, it slowly lifts its head and straightens its torso back to the upright neutral position.",
+  "communicative_functions": [
+    "apologizing",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "feeling_sad",
+    "shame_or_guilt",
+    "disappointment",
+    "thinking"
+  ],
+  "social_tone": [
+    "informal",
+    "apologetic",
+    "empathetic"
+  ],
+  "body_parts": [
+    "head",
+    "torso",
+    "both_arms"
+  ],
+  "speed": "slow",
+  "motion_energy": "low",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "apology",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "explaining",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot droops forward slightly; ensure no physical obstructions are directly in front of its chest/head area.",
+  "confidence": 0.95
+}

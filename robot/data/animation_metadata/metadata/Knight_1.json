@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Waiting/Knight_1",
+  "name": "Knight_1",
+  "source_label": "knight",
+  "duration_s": 9.65,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 10.15,
+  "clip_s": 12.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot dramatically sweeps its right hand upward, shields its eyes to look into the distance, and then settles back to neutral.",
+  "movement_description": "The robot starts in a neutral posture and raises its right arm high in a dramatic, sweeping arc while looking upward and to the right. It then brings both hands up in front of its forehead as if shielding its eyes to peer into the distance or scan the horizon, turning its head slightly. Finally, it brings both arms down to its chest level, looks around briefly, and relaxes both arms back down to its sides to return to the neutral posture.",
+  "communicative_functions": [
+    "attention_getting",
+    "pointing",
+    "gaze_direction"
+  ],
+  "alternative_interpretations": [
+    "searching_for_something",
+    "looking_into_the_distance",
+    "saluting",
+    "showing_grandeur"
+  ],
+  "social_tone": [
+    "playful",
+    "enthusiastic",
+    "dramatic",
+    "informal"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "visitor_approach",
+    "session_start"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "explaining"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot raises its right arm high and wide; ensure there is sufficient clearance above and to the right side of the robot.",
+  "confidence": 0.95
+}

@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Angry_1",
+  "name": "Gestures_Angry_1",
+  "source_label": "angry",
+  "duration_s": 1.84,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.34,
+  "clip_s": 4.63,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot clenches its fists and pulls its elbows back slightly in a tense, frustrated manner before returning to rest.",
+  "movement_description": "The robot quickly raises both hands to chest level, clenching them into tight fists while pulling its elbows slightly back and tensing its upper body. It holds this tense, angry posture for about a second, keeping its head fixed forward. Finally, it relaxes its hands and lowers both arms back down to its sides, returning to the neutral resting position.",
+  "communicative_functions": [
+    "emphasis",
+    "negation"
+  ],
+  "alternative_interpretations": [
+    "enthusiasm",
+    "determination",
+    "celebration",
+    "physical_effort"
+  ],
+  "social_tone": [
+    "serious",
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "apology",
+    "waiting"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "formal_announcement"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

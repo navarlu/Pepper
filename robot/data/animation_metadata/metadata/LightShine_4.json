@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Reactions/LightShine_4",
+  "name": "LightShine_4",
+  "source_label": "light_shine",
+  "duration_s": 4.85,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.35,
+  "clip_s": 7.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot reacts to a bright light by shielding its eyes with its right arm and waving its left hand defensively.",
+  "movement_description": "The robot quickly raises both arms, bringing its right forearm up in front of its face as if to shield its eyes while turning its head away to the left. Its left hand is raised to the side with open fingers, gesturing defensively. After a brief pause in this defensive posture, it slowly lowers both arms back to its sides and returns its head to a forward-facing neutral position.",
+  "communicative_functions": [
+    "defensive_reaction",
+    "surprise",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "shyness",
+    "hiding_face",
+    "gasping_in_shock",
+    "cowering"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "dramatic"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "fast",
+  "motion_energy": "high",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "serious_policy_answer",
+    "apology",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's arms move quickly in front of its chest and face. Ensure there are no hanging objects or nearby visitors within the direct frontal sweep zone.",
+  "confidence": 0.95
+}

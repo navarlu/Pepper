@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_13",
+  "name": "WhatSThis_13",
+  "source_label": "what_s_this",
+  "duration_s": 1.5,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.0,
+  "clip_s": 4.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand forward with an open palm as if presenting an object or asking 'what's this?'.",
+  "movement_description": "Starting from a neutral posture, the robot smoothly lifts its left arm and extends it forward and slightly outward. The hand opens with the palm facing upward, while the right arm remains relaxed at its side. After holding this open-handed presentation posture briefly, the robot smoothly lowers the left arm back down to return to its neutral resting position.",
+  "communicative_functions": [
+    "pointing",
+    "attention_getting",
+    "explaining",
+    "expressing_uncertainty"
+  ],
+  "alternative_interpretations": [
+    "presentation",
+    "offering_assistance",
+    "asking_a_question",
+    "listener_reference"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "informal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "visitor_approach",
+    "explaining",
+    "clarification_request",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot extends its left arm forward; ensure there are no obstacles directly in front or to the left side of the robot within a 0.5-meter radius.",
+  "confidence": 0.95
+}

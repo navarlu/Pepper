@@ -1,0 +1,56 @@
+{
+  "action_id": "animations/Stand/Gestures/Me_2",
+  "name": "Me_2",
+  "source_label": "me",
+  "duration_s": 1.48,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 1.98,
+  "clip_s": 5.27,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its left hand forward before bringing it to its chest in a self-referential gesture.",
+  "movement_description": "Starting from a neutral posture, the robot extends its left arm forward and slightly to the side with an open hand, as if addressing the visitor. It then sweeps the left hand inward, placing it flat against the center of its chest over the tablet. Finally, it drops the left arm back down to its side, returning to the neutral resting pose.",
+  "communicative_functions": [
+    "self_reference"
+  ],
+  "alternative_interpretations": [
+    "affirmation",
+    "apologizing",
+    "sincerity"
+  ],
+  "social_tone": [
+    "friendly",
+    "polite",
+    "honest",
+    "welcoming",
+    "formal"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "explaining",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "negation",
+    "farewell",
+    "giving_directions"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The left arm sweeps forward and inward; ensure there is clearance of at least 0.5 meters in front of and to the left of the robot.",
+  "confidence": 0.95
+}

@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/Far_3",
+  "name": "Far_3",
+  "source_label": "far",
+  "duration_s": 2.93,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 3.43,
+  "clip_s": 7.7,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot waves its right hand high in the air to greet or point to a distant object.",
+  "movement_description": "The robot starts by lifting its right arm with a bent elbow, then fully extends the arm upward and outward to its right side while tilting its head slightly to the left. It holds its right hand open and high for a few seconds as if waving or indicating a far-off target. Finally, it smoothly retracts the arm and lowers it back to its side, returning to a neutral standing posture with the head facing forward.",
+  "communicative_functions": [
+    "greeting",
+    "attention_getting",
+    "pointing"
+  ],
+  "alternative_interpretations": [
+    "farewell",
+    "indicating_direction",
+    "introducing_someone"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "enthusiastic"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "large",
+  "symmetry": "asymmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "session_start",
+    "visitor_approach",
+    "explaining"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "sadness",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's right arm sweeps high and outward to the side; ensure a clear radius of approximately 0.6 meters on its right side to prevent collisions with passersby or obstacles.",
+  "confidence": 0.95
+}

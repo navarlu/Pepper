@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Emotions/Neutral/Mischievous_1",
+  "name": "Mischievous_1",
+  "source_label": "mischievous",
+  "duration_s": 4.36,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 4.86,
+  "clip_s": 7.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot conspiratorially brings its hands together near its chest with a subtle head tilt, as if plotting a mischievous idea, then returns to neutral.",
+  "movement_description": "The robot starts in a neutral posture and raises both arms, bringing its hands together in front of its upper chest. It tilts its head slightly to the left and leans forward, holding its fingers close together in a conspiratorial, planning gesture. After holding this pose briefly, it lowers its arms back to its sides and returns its head to a neutral, forward-facing position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "attention_getting",
+    "thinking"
+  ],
+  "alternative_interpretations": [
+    "anticipation",
+    "nervousness",
+    "scheming",
+    "self_reference"
+  ],
+  "social_tone": [
+    "playful",
+    "informal",
+    "mischievous"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "torso",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "either",
+  "suitable_dialogue_states": [
+    "thinking",
+    "waiting",
+    "visitor_approach"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "serious_policy_answer",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.9
+}

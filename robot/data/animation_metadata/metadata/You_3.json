@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/You_3",
+  "name": "You_3",
+  "source_label": "you",
+  "duration_s": 1.67,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.17,
+  "clip_s": 5.43,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gestures toward the visitor with its left hand to refer to them or invite their response.",
+  "movement_description": "The robot starts from a neutral standing posture and raises its left arm, bending the elbow to bring the hand up to shoulder height with the palm facing slightly upward and forward. It then extends the arm slightly toward the viewer in a gentle, open-handed pointing or offering gesture. Finally, it smoothly retracts the arm back down to its side, returning to the neutral resting posture.",
+  "communicative_functions": [
+    "listener_reference",
+    "attention_getting",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "offering_turn",
+    "welcoming"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "polite",
+    "conversational"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "session_start",
+    "answering",
+    "explaining",
+    "clarification_request"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "thinking"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}

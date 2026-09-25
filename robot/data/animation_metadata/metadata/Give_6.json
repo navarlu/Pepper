@@ -1,0 +1,59 @@
+{
+  "action_id": "animations/Stand/Gestures/Give_6",
+  "name": "Give_6",
+  "source_label": "give",
+  "duration_s": 1.62,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.12,
+  "clip_s": 5.1,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot gently extends its left hand forward, turning the palm upward in a welcoming offering gesture.",
+  "movement_description": "Starting from a neutral posture, the robot raises its left arm forward and outward while slightly tilting its head. As the arm reaches its peak, the hand opens and rotates so the palm faces upward in a gentle 'giving' or 'offering' motion. After a brief pause to emphasize the gesture, the arm smoothly retracts and lowers back to its neutral resting position beside the body.",
+  "communicative_functions": [
+    "listener_reference",
+    "explaining",
+    "emphasis"
+  ],
+  "alternative_interpretations": [
+    "presenting_option",
+    "welcoming",
+    "pointing"
+  ],
+  "social_tone": [
+    "friendly",
+    "welcoming",
+    "helpful",
+    "polite"
+  ],
+  "body_parts": [
+    "left_arm",
+    "hands",
+    "head"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "toward_listener",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "explaining",
+    "answering",
+    "visitor_approach",
+    "handover_to_human"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "negation",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's left arm extends forward; ensure there are no obstacles directly in front or to the left side of the robot within a 50cm radius.",
+  "confidence": 0.95
+}

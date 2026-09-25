@@ -1,0 +1,54 @@
+{
+  "action_id": "animations/Stand/Waiting/ScratchHand_1",
+  "name": "ScratchHand_1",
+  "source_label": "scratch_hand",
+  "duration_s": 5.15,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 5.65,
+  "clip_s": 8.03,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts its hands to its chest to briefly scratch or tap one wrist, then returns to its sides.",
+  "movement_description": "The robot starts from a neutral posture and raises both arms toward the center of its chest. It brings its right hand over its left wrist, performing a brief scratching or rubbing motion. After a couple of seconds, it separates its hands, lowers its arms, and returns to a neutral resting position.",
+  "communicative_functions": [
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "expressing_uncertainty",
+    "checking_time",
+    "fidgeting",
+    "thinking"
+  ],
+  "social_tone": [
+    "informal",
+    "playful"
+  ],
+  "body_parts": [
+    "both_arms",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "none",
+  "speech_compatibility": "before_or_after_speech",
+  "suitable_dialogue_states": [
+    "waiting",
+    "thinking"
+  ],
+  "avoid_contexts": [
+    "formal",
+    "apology",
+    "session_start",
+    "session_end"
+  ],
+  "interruptible": true,
+  "conversational": false,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The robot's hands interact near its chest tablet; ensure no physical objects are placed directly on the tablet that could obstruct the arms.",
+  "confidence": 0.95
+}

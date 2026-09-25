@@ -1,0 +1,60 @@
+{
+  "action_id": "animations/Stand/Gestures/Reject_4",
+  "name": "Reject_4",
+  "source_label": "reject",
+  "duration_s": 1.92,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.42,
+  "clip_s": 5.47,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot extends its right arm outward in a dismissive, rejecting gesture before returning to a neutral pose.",
+  "movement_description": "The robot begins by raising its right arm to chest level, bending the elbow and keeping the hand relaxed. It then sweeps the right arm outward to its side in a firm, direct motion while slightly tilting its head to the left, away from the hand. Finally, it lowers the arm back down to its side, returning to a neutral standing posture.",
+  "communicative_functions": [
+    "negation",
+    "dismissal",
+    "rejection",
+    "disagreement"
+  ],
+  "alternative_interpretations": [
+    "pointing",
+    "showing_direction",
+    "offering_alternative"
+  ],
+  "social_tone": [
+    "serious",
+    "formal",
+    "assertive",
+    "polite_refusal"
+  ],
+  "body_parts": [
+    "right_arm",
+    "head",
+    "torso"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "asymmetric",
+  "dominant_direction": "outward_and_right",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "answering",
+    "apology"
+  ],
+  "avoid_contexts": [
+    "session_start",
+    "visitor_approach",
+    "greeting",
+    "enthusiastic_response"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "The right arm sweeps outward to the side; ensure adequate lateral clearance on the robot's right side.",
+  "confidence": 0.95
+}

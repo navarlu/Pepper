@@ -1,0 +1,58 @@
+{
+  "action_id": "animations/Stand/Gestures/WhatSThis_1",
+  "name": "WhatSThis_1",
+  "source_label": "what_s_this",
+  "duration_s": 1.86,
+  "duration_source": "robot_elapsed",
+  "motion_start_s": 0.5,
+  "motion_end_s": 2.36,
+  "clip_s": 4.8,
+  "has_sound": false,
+  "annotation_model": "gemini-3.5-flash",
+  "short_caption": "The robot lifts both arms with palms turned upward in a questioning gesture, then drops them back to its sides.",
+  "movement_description": "The robot starts in a neutral posture and raises both elbows outward while curling its wrists and forearms inward. It then spreads its arms slightly outward with palms facing up, tilting its head slightly forward to inspect the space in front of it. Finally, it relaxes both arms back down to its sides and returns its head to a level, centered position.",
+  "communicative_functions": [
+    "expressing_uncertainty",
+    "questioning",
+    "attention_getting"
+  ],
+  "alternative_interpretations": [
+    "explaining",
+    "offering_assistance",
+    "presenting_options"
+  ],
+  "social_tone": [
+    "friendly",
+    "informal",
+    "playful",
+    "curious"
+  ],
+  "body_parts": [
+    "both_arms",
+    "head",
+    "hands"
+  ],
+  "speed": "moderate",
+  "motion_energy": "medium",
+  "amplitude": "medium",
+  "symmetry": "symmetric",
+  "dominant_direction": "upward_and_outward",
+  "speech_compatibility": "during_speech",
+  "suitable_dialogue_states": [
+    "clarification_request",
+    "thinking",
+    "answering"
+  ],
+  "avoid_contexts": [
+    "apology",
+    "session_end",
+    "serious_policy_answer"
+  ],
+  "interruptible": true,
+  "conversational": true,
+  "starts_in_neutral_posture": true,
+  "ends_in_neutral_posture": true,
+  "full_body_visible": true,
+  "safety_notes": "",
+  "confidence": 0.95
+}
