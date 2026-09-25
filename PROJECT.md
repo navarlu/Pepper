@@ -85,6 +85,7 @@ See [README.md](README.md#architecture) for the high-level diagram showing the R
 | [docs/notes/gpu-setup.md](docs/notes/gpu-setup.md) | woska (GPU server) setup — single SSH tunnel ICE/TCP topology, deployment |
 | [docs/notes/local-llm-setup.md](docs/notes/local-llm-setup.md) | Local LLM backend (Qwen via vLLM) setup and SSH tunnel |
 | [docs/notes/rpi-dev.md](docs/notes/rpi-dev.md) | RPi vs Ubuntu development differences (qi, Docker, audio) |
+| [docs/notes/onboard-hosting-feasibility.md](docs/notes/onboard-hosting-feasibility.md) | Why the app cannot be hosted on Pepper herself (32-bit i686, Python 2.7, no TLS) — RPi stays in the stack; her mics *do* work |
 | [docs/notes/text-chat-cli.md](docs/notes/text-chat-cli.md) | The `services/src/text_chat.py` debug CLI — slash commands, topics, architecture |
 | [docs/notes/cmd.md](docs/notes/cmd.md) | Frequently used commands (scp to woska, restart, mode switch) |
 | **Debugging notes** (chronological investigation logs) | |
