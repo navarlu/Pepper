@@ -19,8 +19,8 @@ machinery down to what the streaming workers actually need:
      `session.shutdown(drain=True)` followed by `aclose()`.
 
 The "QR stays visible" window is enforced by tablet-server's own
-auto-clear timer + `loop_launcher_streaming.py`'s
-`--inter-session-pause` between sessions. We do not sleep inside the
+auto-clear timer (it keeps `farewell_active=True` until the next
+session_start). We do not sleep inside the
 tool — that would needlessly keep the worker alive after audio is
 done.
 
@@ -93,7 +93,7 @@ def _speakable_conv_id(conv_id: str) -> str:
 
 
 def _already_mentions_reminder(text: str) -> bool:
-    """Llama-class models sometimes paste the call-to-action into
+    """Models sometimes paste the call-to-action into
     their own `text` instead of just providing a sign-off. Detect that
     so we don't double up."""
     t = (text or "").lower()
@@ -271,11 +271,9 @@ async def end_conversation_streaming(
     )
 
     # Signal the worker to start its graceful-drain shutdown path.
-    # The QR-hold window (EXPERIMENT_FAREWELL_DISPLAY_SEC) is enforced
-    # by `loop_launcher_streaming.py`'s inter-session pause AFTER the
-    # worker exits — that lets the worker tear down promptly while
-    # the tablet keeps showing the QR (because tablet-server still
-    # has `farewell_active=True` until the next session_start).
+    # The worker tears down promptly while the tablet keeps showing
+    # the QR (tablet-server has `farewell_active=True` until the next
+    # session_start).
     print(
         f"  [TOOL] end_conversation signalling_shutdown",
         flush=True,

@@ -123,8 +123,8 @@ PEPPER_STREAM_ATTENUATION = _env_float("PEPPER_STREAM_ATTENUATION", 0.4)
 #    speech gets clipped at the START of an utterance.
 #  * HANGOVER_MS: how long after the last loud frame we keep
 #    forwarding before gating again. Default 1500 ms is long enough
-#    to bridge sentence boundaries inside a single TTS reply (Piper
-#    can emit 500 ms of silence between sentences). Make it shorter
+#    to bridge sentence boundaries inside a single TTS reply (TTS
+#    can emit ~500 ms of silence between sentences). Make it shorter
 #    if you want the gate to close faster; longer if you hear it
 #    chopping inside a single reply.
 #  * SET SILENCE_GATE_RMS=0 to disable gating entirely.

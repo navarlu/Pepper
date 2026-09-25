@@ -37,8 +37,8 @@ from ._events import emit_experiment_event, _current_tool_name
 _LOCAL_GESTURE_ALIASES: dict[str, str] = {}
 
 
-# One-shot startup log so we can confirm in the agent stdout that the
-# new vocabulary actually loaded on woska after the file copy.
+# One-shot startup log so we can confirm in the agent stdout which
+# animation vocabulary was loaded.
 print(
     "[anim] config loaded groups={} aliases={} variants={}".format(
         len(ANIMATION_GROUPS),

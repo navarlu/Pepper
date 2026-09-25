@@ -1,10 +1,6 @@
-# Paper (Track B) stack — RPi-only realtime receptionist MVP.
-#
-# The whole stack runs on the Raspberry Pi: a cloud realtime model
-# (speech-to-speech) needs no GPU, so there is no woska, no
-# reverse-tunnel, no vLLM. No RAG either → no weaviate. livekit.yaml
-# has no redis block (single-node in-memory) and nothing in the code
-# uses redis → no redis. Design doc: docs/paper/paper_code_plan.md.
+# Paper stack — runs entirely on the Raspberry Pi. All models are cloud
+# (OpenAI), so there is no GPU server. livekit.yaml has no redis block
+# (single-node in-memory) and nothing in the code uses redis → no redis.
 #
 #   livekit            — media server
 #   orchestrator       — creates the fixed `pepper-experiment` room +
@@ -15,7 +11,7 @@
 #   realtime-agent     — speech-to-speech variant (gpt-realtime[-mini],
 #                        Czech prompt, 2 tools) — behind the
 #                        "realtime" profile, see the service comment
-#   paper-dispatcher   — NEW: keeps one agent dispatched into the room
+#   paper-dispatcher   — keeps one agent dispatched into the room
 #                        (re-dispatches if the agent's job ends)
 #   user-client        — USB mic + WebRTC AEC3 → LiveKit
 #   audio-bridge       — agent audio track → ssh+paplay → Pepper speakers
@@ -23,9 +19,8 @@
 #   safe-startup       — boot-time pose/volume watchdog
 #   tablet-server      — Pepper's tablet UI (transcript + state pills)
 #
-# Model condition is an env var — set in .env (or inline) and restart:
-#   PAPER_REALTIME_MODEL=gpt-realtime-2.1        # big condition
-#   PAPER_REALTIME_MODEL=gpt-realtime-2.1-mini   # mini condition
+# Realtime model is an env var — set in .env (or inline) and restart:
+#   PAPER_REALTIME_MODEL=gpt-realtime-2.1 | gpt-realtime-2.1-mini
 #
 # Bring everything up (from the project root):
 #   docker compose -f docker/docker-compose.paper.yml up -d --build

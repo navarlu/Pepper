@@ -1,9 +1,8 @@
 """Bundle the per-animation metadata JSONs into one catalog file for the
 voice agent.
 
-The streaming workers run on woska with their own copy of `voice-agent/`,
-so the agent must not depend on the 390 loose metadata files in
-`experiments/`. This script extracts the fields the inline-gesture layer
+The agent must not depend on the 390 loose metadata files in
+`experiments/animation_metadata/data/metadata/` (untracked). This script extracts the fields the inline-gesture layer
 needs (catalog line + dispatch flags) into a single deterministic JSON
 bundle inside `voice-agent/` that gets deployed with the code.
 

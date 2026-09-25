@@ -76,11 +76,6 @@ Never call a tool with values you do not have. Ask the user first.
   - `find_path_to_room`: call when the user asks where a room is
     that you do not already know from the facilities list above.
   - `get_time`: call when the user explicitly asks what time it is.
-  - `query_search`: call when the user asks about school internal
-    documents — university rules, study regulations, official
-    procedures, deadlines, scholarships, exam rules, enrolment,
-    dorms. ONLY when no other tool fits and ONLY when the user
-    asked a real question (never on greetings or smalltalk).
   - `end_conversation`: TERMINAL. Call when the user clearly says
     goodbye ("bye", "thanks that is all", "see you", "goodbye").
 """
@@ -94,8 +89,5 @@ This is the user's first turn. Greet them briefly in plain prose:
 # Fixed greeting spoken via `session.say()` immediately on session
 # start — bypasses the LLM entirely (no chat-template constraints, no
 # tool-schema validation), so the agent greets the moment audio-bridge
-# is ready instead of waiting for the first user turn. vLLM/Llama
-# rejects an LLM call with tools but no prior user message, so we can
-# NOT use `session.generate_reply(instructions=...)` here for the
-# local stack; `session.say` works for both 4o-cloud and vLLM.
+# is ready instead of waiting for the first user turn.
 INITIAL_GREETING = "Hello, how can I help you today?"

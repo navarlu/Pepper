@@ -1,4 +1,4 @@
-"""Czech system prompt for the paper (Track B) realtime agent.
+"""Czech system prompt for the paper realtime agent.
 
 Trimmed, Czech, 2-tool sibling of
 `voice-agent/src/experiment/prompt_streaming.py`. Differences:

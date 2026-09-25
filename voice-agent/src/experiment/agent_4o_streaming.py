@@ -1,40 +1,26 @@
-"""Streaming-variant OpenAI 4o experiment worker.
+"""Cascaded streaming worker for the paper stack (`agent-inline`).
 
 Audio path:
 
-    silero VAD  →  gpt-4o-mini-transcribe (STT)
-                →  gpt-4o-mini (LLM, streamed)
-                →  gpt-4o-mini-tts (TTS, streamed)
+    silero VAD  →  OpenAI STT (OPENAI_STT_MODEL, default gpt-4o-mini-transcribe)
+                →  OpenAI LLM (OPENAI_LLM_MODEL, streamed; compose sets gpt-5.4-mini)
+                →  OpenAI TTS (streamed)
 
 The agent emits **plain assistant text** which LiveKit pipes straight
-into the streaming TTS — no `send_message_to_user` tool wrapping.
-First-audio latency is bounded by LLM TTFT + a few hundred ms of TTS
-buffer, not by "model must finish a complete JSON tool argument first".
+into the streaming TTS. First-audio latency is bounded by LLM TTFT + a
+few hundred ms of TTS buffer.
 
-Differences vs. `agent_4o.py` (the tool-wrapped production worker):
-
-  * No `_pipeline.run_pipeline`. The streaming worker manages its own
-    session, shutdown, and recording. We deliberately skip the
-    pipeline's mic-mute state machine — self-echo will be handled by
-    AEC in `user_client.py`, not by gating the mic on Pepper's state.
-  * No `pepper.state` publishing. Without state events, `user-client`
-    keeps its mic open continuously — that is the intended behaviour
-    while AEC is the planned fix.
-  * Tools: information-only surface (mensa, schedule, person lookup,
-    paths, time). No `send_message_to_user`, no `end_conversation`,
-    no `adjust_volume` — those depend on the runtime callbacks that
-    only the production pipeline wires up.
-  * `allow_interruptions=True` (LiveKit default). VAD-detected user
-    speech CAN cut the agent off, which is the natural UX for a
-    streaming agent. The production tool-wrapped path explicitly
-    disables this because mid-tool-call interruptions corrupt state.
+  * No mic-mute state machine: self-echo is handled by WebRTC AEC3 in
+    `services/src/live/user_client.py`, so the mic stays open.
+  * Tools: find_path_to_room, lookup_person, mensa_menu,
+    subject_schedule, get_time, end_conversation (see `STREAMING_TOOLS`).
+  * With ENABLE_INLINE_GESTURES=1, `llm_node` strips `[AnimationName]`
+    tags from the token stream and dispatches them to the robot bridge.
+  * `allow_interruptions=True`: VAD-detected user speech can cut the
+    agent off (barge-in).
 
 Run (worker):
     uv run python voice-agent/src/experiment/agent_4o_streaming.py dev
-
-Launcher (per conversation):
-    uv run python voice-agent/src/experiment/launcher_streaming.py \\
-        --student 1
 """
 
 from __future__ import annotations
@@ -93,7 +79,6 @@ from tools.lookup_person import lookup_person  # noqa: E402
 from tools.mensa_menu import mensa_menu  # noqa: E402
 from tools.subject_schedule import subject_schedule  # noqa: E402
 from tools.get_time import get_time  # noqa: E402
-from tools.query_search import query_search  # noqa: E402
 from tools.end_conversation_streaming import end_conversation_streaming  # noqa: E402
 from tools.utils._events import (  # noqa: E402
     set_tool_event_listener,
@@ -128,14 +113,13 @@ STREAMING_TOOLS = [
     mensa_menu,
     subject_schedule,
     get_time,
-    query_search,
     end_conversation_streaming,
 ]
 
 
 def _format_tool_summary(tools_list) -> str:
     """One line per tool: `- name: first-line of description`.
-    Used by the per-session LLM-context dump (parity with agent_streaming.py)."""
+    Used by the per-session LLM-context dump."""
     lines: list[str] = []
     for t in tools_list:
         info = getattr(t, "info", None)
@@ -274,9 +258,7 @@ class StreamingAgent(Agent):
         )
         greeting_turn = user_msgs == 1 and not self._greeting_done
         if greeting_turn:
-            # First-turn `tools=[]` parity with agent_streaming.py.
-            # 4o doesn't suffer from the Llama-style tool-on-greeting
-            # bug, but the rule is universal: a first-turn greeting
+            # First turn runs with `tools=[]`: a first-turn greeting
             # has zero legitimate reason to call any tool, so we
             # eliminate the possibility outright.
             merged = f"{self._system_prompt}\n\n{self._greeting_instructions}"
@@ -587,7 +569,7 @@ async def entrypoint(ctx: JobContext) -> None:
     # ── AgentSession ─────────────────────────────────────────────────
     # gpt-5.x on /v1/chat/completions rejects function tools together
     # with a non-"none" reasoning effort, and only accepts the default
-    # temperature (see docs/paper/benchmark/agent.py) — so for 5.x we
+    # temperature — so for 5.x we
     # pin reasoning off and omit temperature; 4o keeps the 0.2 used in
     # the thesis runs.
     if LLM_MODEL.startswith("gpt-5"):
@@ -610,8 +592,7 @@ async def entrypoint(ctx: JobContext) -> None:
         preemptive_generation=True,
         # Voice barge-in ENABLED. WebRTC AEC3 (in user_client.py) now
         # cancels the chest-speaker leak before it reaches the mic,
-        # so VAD only trips on real user speech. Mirrors the same
-        # flag in `agent_streaming.py`.
+        # so VAD only trips on real user speech.
         allow_interruptions=True,
     )
 
@@ -879,10 +860,11 @@ async def entrypoint(ctx: JobContext) -> None:
     ctx.add_shutdown_callback(_ensure_session_closed)
 
     # ── Connect + wait for the user participant ─────────────────────
-    # See agent_streaming.py for the full rationale. tl;dr: pin
-    # RoomOptions to "user" so STT subscribes only to user-client and
-    # close_on_disconnect=True auto-tears-down the session if user
-    # leaves.
+    # We block until user-client is in the room so we can pin
+    # `RoomOptions.participant_identity` to "user" — this gives us:
+    #   (a) STT subscribes only to user's audio (no tablet/bridge noise)
+    #   (b) `close_on_disconnect=True` auto-closes the session if
+    #       user-client leaves (e.g. container restart)
     await ctx.connect()
     user_participant = await ctx.wait_for_participant(identity=USER_IDENTITY)
     logger.info(
@@ -947,9 +929,10 @@ async def entrypoint(ctx: JobContext) -> None:
         "ts": time.time(),
     })
     _publish_agent_state("listening")
-    # Monotonic anchor — pairs the worker's `time.monotonic()` with
-    # wall-clock for the launcher's `ts_mono` derivation. See
-    # `agent_streaming.py` for the full rationale.
+    # Monotonic anchor: pairs the worker's `time.monotonic()` baseline
+    # with its wall clock at the same instant, so an event consumer can
+    # derive a `ts_mono` for every later event without trusting that
+    # worker-side monotonic() is comparable across processes.
     _publish_event({
         "kind": "mono_anchor",
         "ts": time.time(),
@@ -987,8 +970,12 @@ async def entrypoint(ctx: JobContext) -> None:
     # `post_head_lock` swallows transport errors.
     await asyncio.to_thread(post_head_lock, False)
 
-    # Discriminated tear-down — see agent_streaming.py. `shutdown` is
-    # sync; wait briefly on the close event, then aclose as safety.
+    # Discriminated tear-down. `session.shutdown(drain=True)` is sync
+    # (just schedules the drain); the session's `close` event fires once
+    # drain finishes. So: trigger drain, wait briefly for the close
+    # event, then aclose as a safety net. A cooperative
+    # `pepper.control shutdown` message flips us into drain mode; every
+    # other path (user gone, session auto-close, exception) is abort.
     try:
         if shutdown_mode["mode"] == "drain" and not session_closed.is_set():
             session.shutdown(drain=True)

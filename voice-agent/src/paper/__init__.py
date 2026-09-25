@@ -1,9 +1,7 @@
-"""Paper (Track B) on-robot source — RPi-only realtime receptionist MVP.
+"""Realtime (speech-to-speech) agent variant for the paper stack.
 
-A minimal LiveKit Agents stack around an OpenAI realtime model
-(speech-to-speech) with 2 tools, talking to Pepper in Czech. Design
-doc: docs/paper/paper_code_plan.md. The offline benchmark (Track A)
-lives in docs/paper/benchmark/ and is unrelated to this package.
+A minimal LiveKit Agents worker around an OpenAI realtime model with 2
+tools, talking to Pepper in Czech (`realtime` compose profile).
 
 Modules:
   - agent_realtime.py : the LiveKit Agents worker (RealtimeModel + tools)

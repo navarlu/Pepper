@@ -976,8 +976,7 @@ class TabletOverlayHttpServer(threading.Thread):
                     # Accept either absolute `volume` (0..100) or relative
                     # `delta` (e.g. +20 / -20). Delta lets remote callers step
                     # the volume without first reading the current value —
-                    # avoids the "agent on woska / state.json on rpi" split
-                    # that bit us with the file-write tool design.
+                    # keeps the bridge the only owner of Pepper's volume.
                     try:
                         previous_volume = int(audio_device.getOutputVolume())
                     except Exception as exc:
@@ -1046,9 +1045,8 @@ class TabletOverlayHttpServer(threading.Thread):
                     # Validate quickly, then dispatch the actual playback in a
                     # background thread and ack 200 immediately. This keeps the
                     # agent's HTTP call latency in the millisecond range so the
-                    # WebRTC heartbeat between woska and the LiveKit server is
+                    # agent's WebRTC heartbeat to the LiveKit server is
                     # never starved by Pepper's animation runtime.
-                    # See CONNECTION_ISSUE.md for the full story.
                     if bm is None and anim is None:
                         self._write_json(
                             202,
@@ -1637,7 +1635,7 @@ class ExperimentStateWatcher(threading.Thread):
     """Drives Pepper's wake/sleep state from `experiment_active` in
     services/data/state.json.
 
-    The wrapper (`loop_launcher.py`) is the sole writer. It sets
+    The experiment runner is the sole writer. It sets
     `experiment_active: true` + refreshes `experiment_heartbeat_ts`
     every 2 s while it's running, and writes `experiment_active: false`
     on every exit path. If it dies hard (kill -9), the heartbeat ages
@@ -1966,7 +1964,7 @@ def main():
         print("[pepper_audio] setOutputVolume warning:", to_text(e))
 
     # Drive Pepper's wake/sleep state from state.json.experiment_active.
-    # loop_launcher.py writes that flag (+ heartbeat); this watcher
+    # The experiment runner writes that flag (+ heartbeat); this watcher
     # mirrors it onto the robot. Starts after life/motion/leds are
     # resolved so the very first tick has the handles it needs.
     experiment_state_watcher = ExperimentStateWatcher(

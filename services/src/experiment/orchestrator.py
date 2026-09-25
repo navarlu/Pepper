@@ -1,24 +1,15 @@
-"""Experiment orchestrator — slim sibling of orchestrator.py for
-the student-study setup.
+"""Experiment orchestrator — creates the fixed LiveKit room and mints tokens.
 
-Design goal: replace the production orchestrator when running the
-experiment compose. Same token plumbing (writes to
-`livekit_session.json`, identities unchanged) so bridge,
-audio-bridge, and listener follow into the experiment room with
-zero config change. Differences vs. the production orchestrator:
-
-  * Room name is FIXED — `pepper-experiment` — instead of
-    `pepper-<timestamp>`. This lets the experiment.py launcher
-    dispatch to a known target without coordinating timestamps.
-  * Does NOT dispatch any agent. The launcher (run from the RPi)
-    creates the agent dispatch on demand, with experiment metadata.
-  * No state-file polling, no mode switching, no token-refresh
-    loop, no pepper.state broadcasts. Tokens are minted with
-    a 30-day TTL so they cover any single study session, then
-    the process just sleeps to keep the docker container alive.
-
-If you ever need richer behaviour for the experiment, port pieces
-from orchestrator.py — they share the same building blocks.
+  * Room name is FIXED — `pepper-experiment` — so the agent dispatcher
+    has a known target without coordinating timestamps.
+  * Writes one token per identity (user-client, audio-bridge, bridge,
+    tablet, debug CLI) to LIVEKIT_SESSION_FILE; every other service
+    reads its token from there.
+  * Does NOT dispatch any agent — `voice-agent/src/paper/dispatcher.py`
+    does that.
+  * No state-file polling, no mode switching, no token-refresh loop.
+    Tokens are minted with a 30-day TTL so they cover any single study
+    session, then the process just sleeps to keep the container alive.
 """
 
 from __future__ import annotations
@@ -145,8 +136,8 @@ class ExperimentOrchestrator:
                 "identity": TABLET_IDENTITY,
                 "token": self._build_token(TABLET_IDENTITY, can_publish=True, can_subscribe=True),
             },
-            # `agent.name` is documentation-only here — the experiment.py
-            # launcher dispatches the agent itself, not this process.
+            # `agent.name` is documentation-only here — the dispatcher
+            # service dispatches the agent, not this process.
             "agent": {"name": "pepper-experiment"},
         }
         SESSION_FILE.parent.mkdir(parents=True, exist_ok=True)

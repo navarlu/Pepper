@@ -1,7 +1,4 @@
-choregraphe
-.env
-Pepper_env
-.claude
+# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -11,80 +8,40 @@ __pycache__/
 env/
 venv/
 ENV/
-env.bak/
-venv.bak/
-.ipynb_checkpoints
-.DS_Store
-.idea/
-.vscode/
-*.log
-logs/
-*.sqlite3
-db.sqlite3
 __pypackages__/
 .coverage
 htmlcov/
-web/*
-data/
-docker/letta-data
-docker/redis-data
-docker/weaviate_data
+.ipynb_checkpoints
 
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
 
-# LaTeX build artifacts
-*.aux
-*.log
-*.toc
-*.out
-*.bbl
-*.blg
-*.fls
-*.fdb_latexmk
-*.synctex.gz
-*.idx
-*.ilg
-*.ind
-*.lof
-*.lot
-*.nav
-*.snm
-*.vrb
-*.run.xml
-*.bcf
-
-# latexmk
-latexmkrc
-
-# LaTeX Workshop
-.vscode/.latex-workshop/
-
-
-services/src/dev_console/data/
-services/src/session_manager/data/
-voice-agent/models/
-notes.txt
-run*.txt
-
-AGENTS.md
-CLAUDE.md
-.mcp.json
-piper-samples/
+# Local config + secrets
+.env
 docker/.env
 docker/livekit/turn.key
 docker/livekit/turn.crt
-docs/thesis/overleaf/
-
 .claude
-.venv
+.mcp.json
+AGENTS.md
+CLAUDE.md
+
+# Runtime data (tokens, state.json, recordings, annotation metadata).
+# The animation catalog is the one data file the agent needs in-repo.
+data/
+!voice-agent/src/experiment/data/
+voice-agent/src/experiment/data/*
+!voice-agent/src/experiment/data/animation_catalog.json
+
+# Logs + local scratch
+*.log
+logs/
+*.wav
+notes.txt
+run*.txt
 backups/**
 
-# Teaching materials — tracked in their own separate repo.
-teaching/
-
-# Local-LLM benchmark output (model-by-model JSON + markdown summaries).
-voice-agent/tests/local_llm_benchmark/results/
-
-# Experiment session logs.
-voice-agent/src/experiment/results/experiments/
-voice-agent/src/experiment/results/experiments_backup/
-*.wav
+# Experiment session output (large, kept off git).
+voice-agent/src/experiment/results/

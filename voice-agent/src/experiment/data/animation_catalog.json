@@ -1,0 +1,6729 @@
+[
+ {
+  "name": "AirGuitar_1",
+  "caption": "The robot plays a brief, playful air guitar solo, tilting its head and swaying its body.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "informal",
+   "energetic"
+  ],
+  "energy": "high",
+  "has_sound": true,
+  "duration_s": 16.86
+ },
+ {
+  "name": "Alienated_1",
+  "caption": "The robot tilts and turns its head from side to side in a curious, slightly alienated fashion while keeping its body still.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 10.6
+ },
+ {
+  "name": "Amused_1",
+  "caption": "The robot giggles and looks slightly away to the side, expressing amusement.",
+  "functions": [
+   "expressing_emotion",
+   "agreement",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "cheerful"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 2.42
+ },
+ {
+  "name": "Angry_1",
+  "caption": "The robot pulls its arms in and bows its head in a tense, defensive gesture representing frustration or anger.",
+  "functions": [
+   "negation",
+   "disappointment",
+   "frustration"
+  ],
+  "tone": [
+   "serious",
+   "apologetic",
+   "dramatic"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 3.89
+ },
+ {
+  "name": "Angry_2",
+  "caption": "The robot turns its head away, lowers its body slightly, and pulls its arms inward to express frustration or mild anger.",
+  "functions": [
+   "negation",
+   "disapproval",
+   "rejection"
+  ],
+  "tone": [
+   "serious",
+   "defensive",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.81
+ },
+ {
+  "name": "Angry_3",
+  "caption": "The robot slightly raises its left hand with a quick wrist rotation while tilting its head, then returns to its neutral posture.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "serious",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Angry_4",
+  "caption": "The robot raises its left arm with a clenched fist in a brief gesture of frustration or resolve, then returns to neutral.",
+  "functions": [
+   "emphasis",
+   "negation"
+  ],
+  "tone": [
+   "serious",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 2.82
+ },
+ {
+  "name": "Anxious_1",
+  "caption": "The robot nervously brings its hands together near its waist, tilting and turning its head anxiously, before returning to a neutral pose.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "informal",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.81
+ },
+ {
+  "name": "AskForAttention_1",
+  "caption": "The robot turns its head, raises its left hand to its chin as if thinking or listening closely, and then returns to a neutral position.",
+  "functions": [
+   "attention_getting",
+   "listening",
+   "thinking"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "thoughtful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.87
+ },
+ {
+  "name": "AskForAttention_2",
+  "caption": "The robot raises its right hand and waves briefly to get the visitor's attention.",
+  "functions": [
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.51
+ },
+ {
+  "name": "AskForAttention_3",
+  "caption": "The robot raises its right hand to its mouth level to politely clear its throat or ask for attention.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "polite",
+   "informal",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 4.56
+ },
+ {
+  "name": "BackRubs_1",
+  "caption": "The robot places both hands on its hips with its head tilted slightly back, creating a confident posture, before returning to a neutral stance.",
+  "functions": [
+   "waiting",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 10.03
+ },
+ {
+  "name": "Bandmaster_1",
+  "caption": "The robot acts as an orchestral conductor, waving its arms rhythmically to lead an imaginary performance.",
+  "functions": [
+   "attention_getting",
+   "entertainment",
+   "storytelling"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "friendly",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 15.78
+ },
+ {
+  "name": "Binoculars_1",
+  "caption": "The robot mimics looking through a pair of binoculars using its hands.",
+  "functions": [
+   "attention_getting",
+   "seeking_information"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 8.52
+ },
+ {
+  "name": "BodyTalk_1",
+  "caption": "The robot lifts its hands to chest height with open palms in a welcoming, explanatory gesture before returning to a neutral pose.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "BodyTalk_10",
+  "caption": "The robot opens its hands outward and rotates its forearms slightly to present an open-palmed, welcoming gesture.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "greeting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "open",
+   "honest",
+   "helpful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.63
+ },
+ {
+  "name": "BodyTalk_11",
+  "caption": "The robot gestures forward with its left hand open, palm facing up, while keeping its right arm relaxed.",
+  "functions": [
+   "explaining",
+   "listener_reference",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "conversational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "BodyTalk_12",
+  "caption": "Pepper extends its left hand forward while slightly turning its right hand outward to support an explanation.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "welcoming",
+   "informative"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.34
+ },
+ {
+  "name": "BodyTalk_13",
+  "caption": "The robot lifts its right hand to touch its forehead in a salute-like or thinking gesture, then lowers it.",
+  "functions": [
+   "emphasis",
+   "self_reference",
+   "explaining",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "thoughtful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.08
+ },
+ {
+  "name": "BodyTalk_14",
+  "caption": "The robot brings its hands up slightly and curls its fingers inward as if preparing to speak or hold something.",
+  "functions": [
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "earnest",
+   "attentive"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.06
+ },
+ {
+  "name": "BodyTalk_15",
+  "caption": "The robot opens its hands outward slightly in a subtle conversational gesture.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "affirmation",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "empathetic",
+   "earnest"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.66
+ },
+ {
+  "name": "BodyTalk_16",
+  "caption": "The robot subtly pulls its hands inward toward its stomach and then releases them back to its sides.",
+  "functions": [
+   "emphasis",
+   "explaining",
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "thoughtful",
+   "polite",
+   "conversational"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.96
+ },
+ {
+  "name": "BodyTalk_2",
+  "caption": "The robot opens both arms outward with palms up, then returns them to its sides.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "welcoming",
+   "expressing_openness"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "BodyTalk_3",
+  "caption": "The robot raises its right hand to chest height and briefly extends its left arm to gesturedly explain something.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "conversational",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.67
+ },
+ {
+  "name": "BodyTalk_4",
+  "caption": "The robot lifts its left hand up and outward in an open-palm gesture to explain or present information.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.55
+ },
+ {
+  "name": "BodyTalk_5",
+  "caption": "The robot lifts and opens both hands outward while talking to emphasize or explain a point.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.05
+ },
+ {
+  "name": "BodyTalk_6",
+  "caption": "The robot opens its left arm outward while bringing its right hand slightly inward in a relaxed, asymmetrical explanatory gesture.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "conversational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "BodyTalk_7",
+  "caption": "The robot remains virtually static with extremely minor, almost imperceptible micro-adjustments of its joints.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "neutral",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "BodyTalk_8",
+  "caption": "The robot gently sweeps both arms inward, bringing its hands together in front of its waist before returning to a neutral stance.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "calming"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.85
+ },
+ {
+  "name": "BodyTalk_9",
+  "caption": "The robot spreads both hands slightly outward in a subtle, open-palmed conversational gesture.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "open",
+   "welcoming",
+   "helpful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.02
+ },
+ {
+  "name": "Bored_1",
+  "caption": "The robot shrugs its shoulders and pulls its elbows back, then slumps its head and looks down in a bored, dejected posture.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "informal",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.53
+ },
+ {
+  "name": "Bored_2",
+  "caption": "The robot lifts its right hand slightly, turns its head away, and stares off to the side, expressing boredom or indifference.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "waiting"
+  ],
+  "tone": [
+   "informal",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.92
+ },
+ {
+  "name": "BowShort_1",
+  "caption": "The robot performs a short, polite bow from the waist while looking down and then returns to an upright position.",
+  "functions": [
+   "greeting",
+   "apologizing",
+   "farewell",
+   "affirmation"
+  ],
+  "tone": [
+   "formal",
+   "polite",
+   "respectful",
+   "apologetic",
+   "welcoming"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.43
+ },
+ {
+  "name": "BowShort_2",
+  "caption": "The robot bows slightly while gesturing forward with its right hand to welcome or thank a visitor.",
+  "functions": [
+   "greeting",
+   "showing_respect",
+   "welcoming",
+   "apologizing"
+  ],
+  "tone": [
+   "formal",
+   "friendly",
+   "welcoming",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.44
+ },
+ {
+  "name": "BowShort_3",
+  "caption": "The robot bows forward slightly from the waist while looking down, then returns to its upright posture.",
+  "functions": [
+   "greeting",
+   "apologizing",
+   "farewell"
+  ],
+  "tone": [
+   "formal",
+   "apologetic",
+   "polite",
+   "respectful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.53
+ },
+ {
+  "name": "But_1",
+  "caption": "The robot raises its right hand to chest height with an open palm to make a gentle, emphasizing gesture.",
+  "functions": [
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "explanatory"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.39
+ },
+ {
+  "name": "CallSomeone_1",
+  "caption": "The robot cups its left hand around its mouth to whisper or call out quietly, then returns to its neutral posture.",
+  "functions": [
+   "attention_getting",
+   "secretive_sharing"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 7.57
+ },
+ {
+  "name": "CalmDown_1",
+  "caption": "The robot gently raises both hands with palms facing down and lowers them to suggest calming down or lowering intensity.",
+  "functions": [
+   "calming",
+   "negation",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "serious",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.81
+ },
+ {
+  "name": "CalmDown_2",
+  "caption": "The robot lifts both hands slightly with palms facing down to convey a soothing, calming gesture.",
+  "functions": [
+   "calming",
+   "negation"
+  ],
+  "tone": [
+   "empathetic",
+   "friendly",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "CalmDown_3",
+  "caption": "The robot gently raises both hands with palms facing down and pushes downward to signal calming or slowing down.",
+  "functions": [
+   "calming",
+   "negation",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "serious",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.27
+ },
+ {
+  "name": "CalmDown_4",
+  "caption": "The robot gently raises both hands with palms facing down to signal calm.",
+  "functions": [
+   "calming",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "serious",
+   "apologetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.1
+ },
+ {
+  "name": "CalmDown_5",
+  "caption": "The robot raises both hands slightly and pushes downward in a gentle calming gesture.",
+  "functions": [
+   "calming",
+   "emphasis",
+   "negation"
+  ],
+  "tone": [
+   "empathetic",
+   "friendly",
+   "serious",
+   "apologetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.75
+ },
+ {
+  "name": "CalmDown_6",
+  "caption": "The robot gently raises its left hand with an open palm toward the visitor in a calming gesture, then slowly lowers it back to its side.",
+  "functions": [
+   "calming",
+   "soothing",
+   "reassuring",
+   "explanation"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "calm",
+   "patient",
+   "welcoming"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.96
+ },
+ {
+  "name": "Cautious_1",
+  "caption": "The robot turns its head to the side cautiously, then looks back and returns to its neutral posture.",
+  "functions": [
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "serious",
+   "formal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.92
+ },
+ {
+  "name": "Choice_1",
+  "caption": "The robot gently lifts both hands in front of its chest, palms facing slightly upward and inward, as if offering options.",
+  "functions": [
+   "explaining",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.5
+ },
+ {
+  "name": "ComeOn_1",
+  "caption": "The robot extends its right arm and makes a welcoming beckoning gesture while resting its left hand on its hip.",
+  "functions": [
+   "attention_getting",
+   "greeting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.34
+ },
+ {
+  "name": "Confident_1",
+  "caption": "The robot pulls its elbows back, squares its chest, and slightly nods forward to project self-assurance.",
+  "functions": [
+   "affirmation",
+   "emphasis",
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.21
+ },
+ {
+  "name": "Confused_1",
+  "caption": "The robot raises both hands to its face in a puzzled manner, then opens them wide in a gesture of confusion.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "clarification_request"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.74
+ },
+ {
+  "name": "Confused_2",
+  "caption": "The robot brings both hands forward, turning its palms up in a questioning, hesitant gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "clarification_request"
+  ],
+  "tone": [
+   "friendly",
+   "apologetic",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.86
+ },
+ {
+  "name": "CountFive_1",
+  "caption": "The robot lifts its right hand, opening its fingers one by one to count to five before returning to a neutral posture.",
+  "functions": [
+   "counting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "informative",
+   "formal",
+   "patient"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.97
+ },
+ {
+  "name": "CountFour_1",
+  "caption": "The robot counts to four by raising its hands and curling its fingers in sequence.",
+  "functions": [
+   "counting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "educational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.33
+ },
+ {
+  "name": "CountMore_1",
+  "caption": "The robot opens its arms wide in a welcoming gesture of abundance.",
+  "functions": [
+   "emphasis",
+   "counting",
+   "welcoming",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "open"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.65
+ },
+ {
+  "name": "CountOne_1",
+  "caption": "The robot raises its right hand with the index finger extended to count 'one' or make a single point.",
+  "functions": [
+   "counting",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.78
+ },
+ {
+  "name": "CountThree_1",
+  "caption": "The robot lifts both hands to chest height and sequentially counts to three using its fingers.",
+  "functions": [
+   "counting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.54
+ },
+ {
+  "name": "CountTwo_1",
+  "caption": "The robot counts to two by raising its right hand and then its left hand sequentially.",
+  "functions": [
+   "counting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "educational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.87
+ },
+ {
+  "name": "Desperate_1",
+  "caption": "The robot briefly raises its right hand to chest height and extends its left hand outward in a pleading, desperate gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "pleading"
+  ],
+  "tone": [
+   "apologetic",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Desperate_2",
+  "caption": "The robot briefly raises its left hand in an open, questioning posture while turning its head, then quickly returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.82
+ },
+ {
+  "name": "Desperate_3",
+  "caption": "The robot briefly pulls its forearms upward and inward with closed hands, then returns to its neutral posture.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.63
+ },
+ {
+  "name": "Desperate_4",
+  "caption": "The robot quickly flares its elbows and arms outward in a brief gesture of desperation or helplessness.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing",
+   "expressing_helplessness"
+  ],
+  "tone": [
+   "informal",
+   "apologetic",
+   "expressive"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "Desperate_5",
+  "caption": "The robot lowers its head and gazes downward with a dejected, desperate expression.",
+  "functions": [
+   "apologizing",
+   "negation",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "Determined_1",
+  "caption": "The robot rests its left hand on its hip and then sweeps it outward, displaying a confident and determined stance.",
+  "functions": [
+   "emphasis",
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "serious",
+   "formal",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.85
+ },
+ {
+  "name": "Disappointed_1",
+  "caption": "The robot lowers its head and gazes down to the left in a disappointed gesture.",
+  "functions": [
+   "negation",
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "sad"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.06
+ },
+ {
+  "name": "DontUnderstand_1",
+  "caption": "The robot shrugs its shoulders and opens its hands with a tilted head to express confusion or uncertainty.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "friendly",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.27
+ },
+ {
+  "name": "Drink_1",
+  "caption": "The robot mimics holding a glass and taking a drink, then wipes its mouth.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.62
+ },
+ {
+  "name": "DriveCar_1",
+  "caption": "The robot mimics driving a car, turning an imaginary steering wheel left and right.",
+  "functions": [
+   "mimicking",
+   "storytelling",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 15.54
+ },
+ {
+  "name": "Ecstatic_1",
+  "caption": "The robot does a small, excited upper-body bounce and head tilt to show ecstatic joy.",
+  "functions": [
+   "affirmation",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.19
+ },
+ {
+  "name": "Embarrassed_1",
+  "caption": "The robot looks down and nervously fidgets with its hands in front of its waist to show embarrassment.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.04
+ },
+ {
+  "name": "Enthusiastic_1",
+  "caption": "The robot pulls both hands to its chest in an enthusiastic, self-affirming gesture.",
+  "functions": [
+   "affirmation",
+   "emphasis",
+   "self_reference",
+   "agreement"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "welcoming"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.35
+ },
+ {
+  "name": "Enthusiastic_3",
+  "caption": "The robot lifts its left hand in an enthusiastic, loose-fisted gesture to emphasize a point.",
+  "functions": [
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.68
+ },
+ {
+  "name": "Enthusiastic_4",
+  "caption": "The robot raises its left hand near its chest with a gentle nod to emphasize a point or express sudden understanding.",
+  "functions": [
+   "emphasis",
+   "affirmation",
+   "self_reference"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "conversational",
+   "engaging"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.78
+ },
+ {
+  "name": "Enthusiastic_5",
+  "caption": "The robot opens both arms wide with open palms to express enthusiastic welcoming or explanation.",
+  "functions": [
+   "greeting",
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.83
+ },
+ {
+  "name": "EthernetOff_1",
+  "caption": "The robot lowers its head, looks down briefly as if sad or disconnected, and then returns to neutral.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic",
+   "submissive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.71
+ },
+ {
+  "name": "EthernetOn_1",
+  "caption": "The robot raises its left hand to tap or scratch its head in a gesture of sudden realization or confusion.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.22
+ },
+ {
+  "name": "Everything_1",
+  "caption": "The robot brings its hands to its chest and then sweeps both arms outwards in a grand, inclusive gesture.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.19
+ },
+ {
+  "name": "Everything_2",
+  "caption": "The robot opens its left arm outward with an open palm to gesturally present or include everything.",
+  "functions": [
+   "explaining",
+   "pointing",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informative"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "Everything_3",
+  "caption": "The robot spreads both arms outward with open hands as if encompassing or presenting everything.",
+  "functions": [
+   "emphasis",
+   "explaining",
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "open"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.46
+ },
+ {
+  "name": "Everything_4",
+  "caption": "Pepper sweeps both arms outward with open palms to express a broad or comprehensive concept.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "welcoming",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.03
+ },
+ {
+  "name": "Everything_6",
+  "caption": "The robot brings its hands together in front of its waist and then opens them wide in a broad, welcoming gesture.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "emphasis",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "Excited_1",
+  "caption": "The robot quickly raises both hands to chest height with open palms in a brief, excited gesture before returning to neutral.",
+  "functions": [
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 3.82
+ },
+ {
+  "name": "Excited_2",
+  "caption": "The robot pulls its hands to its chest in excitement and looks slightly upward before returning to rest.",
+  "functions": [
+   "emphasis",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful",
+   "welcoming"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.86
+ },
+ {
+  "name": "Excited_3",
+  "caption": "The robot pulls both hands up towards its chest and then drives them down in a quick, enthusiastic double-fist-pump gesture.",
+  "functions": [
+   "emphasis",
+   "affirmation",
+   "expressing_agreement"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Exhausted_1",
+  "caption": "The robot sighs, dropping its head and torso forward in a look of exhaustion before slowly recovering.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "informal",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.72
+ },
+ {
+  "name": "Exhausted_2",
+  "caption": "The robot brings its hands to its chest, then drops its head and shoulders in a heavy, exhausted sigh.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 8.69
+ },
+ {
+  "name": "Explain_1",
+  "caption": "The robot brings its hands inward toward its lower torso and then opens its arms outward with open palms to explain a concept.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "welcoming",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "open"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.34
+ },
+ {
+  "name": "Explain_10",
+  "caption": "The robot gestures forward with its left hand to explain a point.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.61
+ },
+ {
+  "name": "Explain_11",
+  "caption": "The robot brings its hands together in front of its waist and then gestures forward with its right hand to explain a point.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.94
+ },
+ {
+  "name": "Explain_2",
+  "caption": "The robot extends its left hand forward with an open palm while slightly tilting its head to explain or offer information.",
+  "functions": [
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.22
+ },
+ {
+  "name": "Explain_3",
+  "caption": "The robot extends its left hand forward, palm up, to explain a point or present an idea.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Explain_4",
+  "caption": "The robot extends its right hand forward with an open palm while tilting its head slightly to explain a concept.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.63
+ },
+ {
+  "name": "Explain_5",
+  "caption": "The robot gestures forward and upward with its left hand to explain a point.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.4
+ },
+ {
+  "name": "Explain_6",
+  "caption": "The robot briefly raises its left hand with slightly open fingers to emphasize a point before returning to a neutral pose.",
+  "functions": [
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "formal",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.25
+ },
+ {
+  "name": "Explain_7",
+  "caption": "The robot lifts its left hand slightly to the side with an open palm while keeping its head focused on the listener.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "helpful",
+   "calm"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.84
+ },
+ {
+  "name": "Explain_8",
+  "caption": "The robot opens its arms outward with open palms to explain a concept.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.57
+ },
+ {
+  "name": "Far_1",
+  "caption": "The robot sweeps its left arm outward to point toward a far distance on its left side.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.93
+ },
+ {
+  "name": "Far_2",
+  "caption": "The robot gestures outward with its left arm while slightly raising its right hand to indicate a far distance or location.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.23
+ },
+ {
+  "name": "Far_3",
+  "caption": "The robot waves its right hand high in the air to greet or point to a distant object.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.93
+ },
+ {
+  "name": "Fear_1",
+  "caption": "The robot shrinks back slightly, pulling its hands in and looking away as if startled or fearful.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 4.57
+ },
+ {
+  "name": "Fear_2",
+  "caption": "The robot shrinks back, clutching its chest with its right hand and tilting its head in a fearful, startled reaction.",
+  "functions": [
+   "expressing_fear",
+   "expressing_uncertainty",
+   "apologizing"
+  ],
+  "tone": [
+   "serious",
+   "apologetic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 9.83
+ },
+ {
+  "name": "Fearful_1",
+  "caption": "The robot shrinks back, raising its left hand to its head while shielding itself with its right arm, portraying fear or shock.",
+  "functions": [
+   "expressing_fear",
+   "expressing_surprise",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.87
+ },
+ {
+  "name": "Fitness_1",
+  "caption": "The robot turns its head to the right and pumps its right hand up and down, resembling a light fitness exercise.",
+  "functions": [
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 14.34
+ },
+ {
+  "name": "Fitness_2",
+  "caption": "The robot places its left hand on its hip and looks down while gesturing with its right hand as if explaining or examining something.",
+  "functions": [
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 14.21
+ },
+ {
+  "name": "Fitness_3",
+  "caption": "The robot bows its head down briefly, then raises its arms overhead in a deep stretch or cheer before returning to its neutral pose.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 14.52
+ },
+ {
+  "name": "Follow_1",
+  "caption": "The robot brings its hands together in front of its hips, slightly tilting its head to follow something, before returning to neutral.",
+  "functions": [
+   "attention_getting",
+   "explaining",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "empathetic",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.37
+ },
+ {
+  "name": "Frustrated_1",
+  "caption": "The robot turns its head away, lowers its head and hands slightly, then returns to neutral.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 3.58
+ },
+ {
+  "name": "FunnyDancer_1",
+  "caption": "The robot performs a brief, playful dance-like sway with its arms raised and head tilted.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 8.02
+ },
+ {
+  "name": "Gestures_Angry_1",
+  "caption": "The robot clenches its fists and pulls its elbows back slightly in a tense, frustrated manner before returning to rest.",
+  "functions": [
+   "emphasis",
+   "negation"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.84
+ },
+ {
+  "name": "Gestures_Angry_2",
+  "caption": "The robot slightly pulls its elbows back, tenses its posture, and turns its head sideways with a subtle tilt.",
+  "functions": [
+   "negation",
+   "defensiveness"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "dramatic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.81
+ },
+ {
+  "name": "Gestures_Angry_3",
+  "caption": "The robot throws its hands up in a brief, dramatic gesture of frustration before bringing them low in a tense pose.",
+  "functions": [
+   "negation",
+   "emphasis",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "informal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.41
+ },
+ {
+  "name": "Gestures_Confused_1",
+  "caption": "The robot slightly rotates its head and moves its hands outward in a subtle gesture of confusion or hesitation.",
+  "functions": [
+   "expressing_uncertainty",
+   "clarification_request"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "apologetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.75
+ },
+ {
+  "name": "Gestures_Excited_1",
+  "caption": "The robot shifts its weight, slightly raises both hands with open palms, and then returns to a neutral stand.",
+  "functions": [
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.98
+ },
+ {
+  "name": "Gestures_Shy_1",
+  "caption": "The robot brings its hands together in front of its chest, gently tapping its index fingers in a shy, hesitant gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "self_reference"
+  ],
+  "tone": [
+   "apologetic",
+   "playful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.05
+ },
+ {
+  "name": "Give_1",
+  "caption": "The robot opens both arms wide with palms up in an offering or welcoming gesture.",
+  "functions": [
+   "offering",
+   "listener_reference",
+   "welcoming",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "open",
+   "helpful",
+   "earnest"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.89
+ },
+ {
+  "name": "Give_2",
+  "caption": "The robot extends both hands slightly forward with open palms turned upward in a small giving gesture.",
+  "functions": [
+   "offering",
+   "handover",
+   "welcoming",
+   "explanation"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.03
+ },
+ {
+  "name": "Give_3",
+  "caption": "The robot extends its right hand palm-upward in a welcoming gesture of offering or giving.",
+  "functions": [
+   "offering",
+   "handover",
+   "presenting",
+   "welcoming",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.02
+ },
+ {
+  "name": "Give_4",
+  "caption": "The robot extends both hands forward with open palms in a welcoming, giving gesture.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "enthusiastic",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.45
+ },
+ {
+  "name": "Give_5",
+  "caption": "The robot extends both hands forward with open palms turned upward in a giving gesture.",
+  "functions": [
+   "offering",
+   "handover",
+   "welcoming",
+   "presenting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.34
+ },
+ {
+  "name": "Give_6",
+  "caption": "The robot gently extends its left hand forward, turning the palm upward in a welcoming offering gesture.",
+  "functions": [
+   "listener_reference",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.62
+ },
+ {
+  "name": "Great_1",
+  "caption": "The robot briefly raises and tightens its right hand near its waist before returning to neutral.",
+  "functions": [
+   "emphasis",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "informal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.75
+ },
+ {
+  "name": "HappyBirthday_1",
+  "caption": "The robot mimics conducting an orchestra and playing a flute to celebrate a birthday.",
+  "functions": [
+   "celebration",
+   "entertainment",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "friendly",
+   "cheerful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 24.43
+ },
+ {
+  "name": "Happy_1",
+  "caption": "The robot enthusiastically raises both arms high with open hands in a celebratory gesture of happiness.",
+  "functions": [
+   "celebration",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "welcoming"
+  ],
+  "energy": "high",
+  "has_sound": true,
+  "duration_s": 3.71
+ },
+ {
+  "name": "Happy_2",
+  "caption": "Pepper performs a brief, happy gesture by bringing one hand up toward its chest with a tilted head before returning to neutral.",
+  "functions": [
+   "affirmation",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "welcoming"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 1.85
+ },
+ {
+  "name": "Happy_3",
+  "caption": "The robot enthusiastically raises its right arm high in a victorious celebration of happiness.",
+  "functions": [
+   "celebration",
+   "affirmation",
+   "enthusiastic_agreement",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "happy",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": true,
+  "duration_s": 2.63
+ },
+ {
+  "name": "Happy_4",
+  "caption": "The robot pulls both hands slightly inward and performs a brief, happy bobbing motion with its torso and head.",
+  "functions": [
+   "affirmation",
+   "emphasis",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.57
+ },
+ {
+  "name": "HeSays_1",
+  "caption": "The robot lifts its right arm slightly forward with a loose fist, then gestures outward with both hands opened slightly before returning to its neutral posture.",
+  "functions": [
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "conversational",
+   "confident"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "HeSays_2",
+  "caption": "The robot lifts its left arm in a moderate, outward gesture as if indicating something nearby or explaining a point.",
+  "functions": [
+   "explaining",
+   "pointing",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.87
+ },
+ {
+  "name": "HeSays_3",
+  "caption": "The robot lifts and opens its right hand slightly forward and to the side as if introducing an idea, then returns to neutral.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "Heat_1",
+  "caption": "The robot subtly shifts its weight and tilts its head slightly, mimicking a faint physical reaction to heat or minor discomfort.",
+  "functions": [
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "informal",
+   "casual",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.84
+ },
+ {
+  "name": "Heat_2",
+  "caption": "The robot briefly reacts with a subtle, uncomfortable flinch, bringing its hands inward before bowing its head.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.16
+ },
+ {
+  "name": "Helicopter_1",
+  "caption": "The robot looks up and to its left with one hand raised, then looks up and to its right with the other hand raised, as if observing something overhead.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 17.04
+ },
+ {
+  "name": "Hesitation_1",
+  "caption": "The robot looks around hesitantly, slightly raising its right hand as if unsure of what to do next.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "informal",
+   "serious",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 9.42
+ },
+ {
+  "name": "Hey_1",
+  "caption": "The robot waves its right hand high in a friendly greeting.",
+  "functions": [
+   "greeting",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.5
+ },
+ {
+  "name": "Hey_10",
+  "caption": "The robot raises its right hand to perform a friendly, one-handed wave.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "farewell"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.81
+ },
+ {
+  "name": "Hey_2",
+  "caption": "The robot enthusiastically raises both arms above its head and waves to greet or get the attention of a visitor.",
+  "functions": [
+   "greeting",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 5.64
+ },
+ {
+  "name": "Hey_3",
+  "caption": "The robot lifts its right arm and waves its open hand in a friendly greeting.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "farewell"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "Hey_4",
+  "caption": "The robot lifts its right arm and waves in a friendly greeting.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "farewell"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Hey_6",
+  "caption": "The robot waves its right hand to greet or get the attention of a visitor.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.79
+ },
+ {
+  "name": "Hey_7",
+  "caption": "The robot raises its right arm forward with an open hand to grab attention or greet someone.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.47
+ },
+ {
+  "name": "Hey_8",
+  "caption": "The robot executes a brief, subtle head tilt and gentle upward nod.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "acknowledgement",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "casual",
+   "attentive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.14
+ },
+ {
+  "name": "Hey_9",
+  "caption": "The robot extends its right hand forward in a gentle, welcoming gesture before returning to its side.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "HideEyes_1",
+  "caption": "The robot playfully hides its eyes behind its hands, first with its right hand, then its left hand, before returning to a neutral stance.",
+  "functions": [
+   "attention_getting",
+   "playful_interaction",
+   "waiting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly",
+   "shy"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 13.19
+ },
+ {
+  "name": "HideHands_1",
+  "caption": "The robot rests its left hand on its hip and sweeps its right hand forward as if offering a casual explanation.",
+  "functions": [
+   "explaining",
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "informal",
+   "friendly",
+   "relaxed",
+   "confident"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 12.23
+ },
+ {
+  "name": "Hide_1",
+  "caption": "The robot brings both hands up to cover its mouth in a shocked or secretive 'oops' gesture, then returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "apologetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.47
+ },
+ {
+  "name": "Hot_1",
+  "caption": "The robot remains perfectly still in a neutral standing posture without any movement.",
+  "functions": [
+   "waiting"
+  ],
+  "tone": [
+   "serious",
+   "neutral",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.17
+ },
+ {
+  "name": "Hot_2",
+  "caption": "The robot leans forward and tucks its head down as if shielding itself from intense heat.",
+  "functions": [
+   "expressing_vulnerability",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "apologetic",
+   "dramatic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.92
+ },
+ {
+  "name": "Humiliated_1",
+  "caption": "The robot turns its head away, brings its hands toward its waist, and looks downcast as if humiliated or ashamed.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 9.61
+ },
+ {
+  "name": "Hungry_1",
+  "caption": "The robot tilts its head as if thinking of food and rubs its belly with one hand.",
+  "functions": [
+   "self_reference",
+   "expressing_desire"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 6.96
+ },
+ {
+  "name": "Hurt_1",
+  "caption": "The robot brings its left hand to its head as if experiencing a headache or recalling a mistake, then returns to neutral.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.4
+ },
+ {
+  "name": "Hurt_2",
+  "caption": "The robot raises its right hand to touch its head, mimicking a headache or injury, before returning to neutral.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.14
+ },
+ {
+  "name": "Hysterical_1",
+  "caption": "The robot giggles playfully while jerking its shoulders and pulling its left hand to its chest.",
+  "functions": [
+   "expressing_giggle",
+   "amusement",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "cheerful",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.64
+ },
+ {
+  "name": "IDontKnow_1",
+  "caption": "The robot shrugs its shoulders and opens its hands to express uncertainty.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "friendly",
+   "apologetic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.81
+ },
+ {
+  "name": "IDontKnow_2",
+  "caption": "The robot slightly shrugs its shoulders and tilts its head to express uncertainty.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "friendly",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.99
+ },
+ {
+  "name": "IDontKnow_3",
+  "caption": "The robot shrugs slightly, lifting and turning its hands outward to convey uncertainty or lack of knowledge.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.67
+ },
+ {
+  "name": "IDontKnow_4",
+  "caption": "The robot draws its hands together in front of its waist before extending both arms outward in an shrug-like gesture of uncertainty.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "apologetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.28
+ },
+ {
+  "name": "IDontKnow_5",
+  "caption": "The robot shrugs its shoulders and opens its hands to express uncertainty or that it does not know.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "friendly",
+   "apologetic",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "IDontKnow_6",
+  "caption": "The robot shrugs its shoulders and opens its hands to express uncertainty.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.23
+ },
+ {
+  "name": "Innocent_1",
+  "caption": "The robot tilts its head, pulls its hands close together near its lap, and looks up innocently before returning to neutral.",
+  "functions": [
+   "self_reference",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "playful",
+   "friendly",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.97
+ },
+ {
+  "name": "Interested_1",
+  "caption": "The robot tilts its head and brings its right hand to its mouth in a curious, thoughtful gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.33
+ },
+ {
+  "name": "Interested_2",
+  "caption": "The robot tilts its head slightly and brings its left hand up to its chin, mimicking a pensive, interested pose.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 2.83
+ },
+ {
+  "name": "Joy_1",
+  "caption": "The robot opens its arms wide in a joyous and welcoming gesture before returning to its neutral pose.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.9
+ },
+ {
+  "name": "Kisses_1",
+  "caption": "The robot blows a kiss by raising both hands to its mouth and then sweeping them outward.",
+  "functions": [
+   "farewell",
+   "greeting",
+   "affection"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "enthusiastic",
+   "affectionate",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.75
+ },
+ {
+  "name": "Knight_1",
+  "caption": "The robot dramatically sweeps its right hand upward, shields its eyes to look into the distance, and then settles back to neutral.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "gaze_direction"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "dramatic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 9.65
+ },
+ {
+  "name": "KnockEye_1",
+  "caption": "The robot lifts its right hand to its right eye, mimics knocking on it twice like a glass window, and returns to a neutral stand.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "quirky"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 5.59
+ },
+ {
+  "name": "KungFu_1",
+  "caption": "The robot mimics a classic Kung Fu martial arts stance, raising its right hand to face-level while turning its torso and head.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "informal",
+   "humorous"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.87
+ },
+ {
+  "name": "Late_1",
+  "caption": "The robot looks away and taps an imaginary wrist watch to show impatience or being late.",
+  "functions": [
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 11.51
+ },
+ {
+  "name": "Laugh_1",
+  "caption": "The robot leans forward, looks down, and shakes with gentle laughter before returning to its neutral pose.",
+  "functions": [
+   "expressing_happiness",
+   "affirmation",
+   "giggle"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "enthusiastic",
+   "welcoming"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 6.89
+ },
+ {
+  "name": "Laugh_2",
+  "caption": "The robot giggles politely, raising its right hand to cover its mouth while its left hand rests on its hip.",
+  "functions": [
+   "expressing_glee",
+   "laughing",
+   "agreement",
+   "playful_response"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "amused",
+   "lighthearted"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 2.81
+ },
+ {
+  "name": "Laugh_3",
+  "caption": "The robot brings its hands toward its stomach while tilting its head slightly, mimicking a light laugh.",
+  "functions": [
+   "affirmation",
+   "giggle",
+   "amusement"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "enthusiastic"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 1.8
+ },
+ {
+  "name": "LightShine_1",
+  "caption": "The robot shields its eyes and looks up as if reacting to a bright light shining from above.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.46
+ },
+ {
+  "name": "LightShine_2",
+  "caption": "The robot acts as if shielding its eyes from a bright light or peering closely at something.",
+  "functions": [
+   "attention_getting",
+   "gaze_direction",
+   "expressing_surprise"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "curious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.87
+ },
+ {
+  "name": "LightShine_3",
+  "caption": "The robot raises its right hand to shade its eyes as if shielding them from a bright light.",
+  "functions": [
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "dramatic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.2
+ },
+ {
+  "name": "LightShine_4",
+  "caption": "The robot reacts to a bright light by shielding its eyes with its right arm and waving its left hand defensively.",
+  "functions": [
+   "defensive_reaction",
+   "surprise",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "dramatic"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 4.85
+ },
+ {
+  "name": "Listening_1",
+  "caption": "The robot subtly shifts its weight and tilts its head slightly while listening attentively.",
+  "functions": [
+   "attention_getting",
+   "affirmation",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "Listening_2",
+  "caption": "The robot slightly shifts its weight and tilts its head as if listening intently.",
+  "functions": [
+   "listening",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "welcoming",
+   "serious",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.08
+ },
+ {
+  "name": "Listening_3",
+  "caption": "The robot slightly pulls its elbows back and shifts its weight, maintaining an open, listening posture.",
+  "functions": [
+   "listening",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "attentive",
+   "polite",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.44
+ },
+ {
+  "name": "Listening_4",
+  "caption": "The robot tilts its head slightly and shifts its posture to indicate active listening.",
+  "functions": [
+   "attention_getting",
+   "listening_feedback",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "attentive",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.34
+ },
+ {
+  "name": "Listening_5",
+  "caption": "The robot briefly brings its hands together in front of its waist to show active listening.",
+  "functions": [
+   "listening",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "respectful",
+   "attentive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.69
+ },
+ {
+  "name": "Listening_6",
+  "caption": "The robot tilts its head slightly and shifts its posture to show it is actively listening.",
+  "functions": [
+   "listening",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "welcoming",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.41
+ },
+ {
+  "name": "Listening_7",
+  "caption": "The robot tilts and turns its head slightly while keeping its arms relaxed at its sides, giving an attentive and listening appearance.",
+  "functions": [
+   "listening",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "polite",
+   "attentive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.44
+ },
+ {
+  "name": "Lonely_1",
+  "caption": "The robot slightly lowers its head and tilts it sideways with a subtle droop in its posture.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "sadness"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.25
+ },
+ {
+  "name": "LookHand_1",
+  "caption": "The robot lifts its right hand, examines it curiously with its head tilted, waves briefly, and returns to neutral.",
+  "functions": [
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "curious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.62
+ },
+ {
+  "name": "LookHand_2",
+  "caption": "The robot lifts its right hand to chest height and tilts its head down to look at it, before returning to neutral.",
+  "functions": [
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "curious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.58
+ },
+ {
+  "name": "Look_1",
+  "caption": "The robot tilts its head upward and to the side while slightly lifting its hands, as if looking up at something or thinking.",
+  "functions": [
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "thoughtful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.27
+ },
+ {
+  "name": "Look_2",
+  "caption": "The robot turns its head slightly to the side while drawing its hands in, as if focusing attention or listening.",
+  "functions": [
+   "attention_getting",
+   "listening"
+  ],
+  "tone": [
+   "friendly",
+   "curious",
+   "attentive",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.44
+ },
+ {
+  "name": "LoveYou_1",
+  "caption": "The robot forms a heart shape with its hands, raises its arms high, and then blows a kiss to the visitor.",
+  "functions": [
+   "showing_affection",
+   "greeting",
+   "farewell",
+   "celebrating"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "enthusiastic",
+   "informal",
+   "welcoming"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 10.32
+ },
+ {
+  "name": "Maybe_1",
+  "caption": "The robot tilts its head slightly to the side with a gentle shoulder shrug, expressing mild uncertainty or a 'maybe' sentiment.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.61
+ },
+ {
+  "name": "Me_1",
+  "caption": "The robot gestures toward itself by bringing its left hand to its chest to indicate 'me'.",
+  "functions": [
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.02
+ },
+ {
+  "name": "Me_2",
+  "caption": "The robot extends its left hand forward before bringing it to its chest in a self-referential gesture.",
+  "functions": [
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "honest",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.48
+ },
+ {
+  "name": "Me_4",
+  "caption": "The robot gestures to itself by bringing its left hand toward its chest, indicating self-reference.",
+  "functions": [
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.73
+ },
+ {
+  "name": "Me_7",
+  "caption": "The robot gestures to its own chest using its left hand to refer to itself.",
+  "functions": [
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "earnest",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.68
+ },
+ {
+  "name": "Me_8",
+  "caption": "Pepper draws both hands inward toward its chest to refer to itself.",
+  "functions": [
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "honest",
+   "personal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.74
+ },
+ {
+  "name": "Mime_1",
+  "caption": "The robot mimes holding or patting an invisible wall in front of its chest.",
+  "functions": [
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.28
+ },
+ {
+  "name": "Mime_2",
+  "caption": "The robot mimics grasping and pulling an invisible object or rope in front of its chest.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.23
+ },
+ {
+  "name": "Mischievous_1",
+  "caption": "The robot conspiratorially brings its hands together near its chest with a subtle head tilt, as if plotting a mischievous idea, then returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "thinking"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "mischievous"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.36
+ },
+ {
+  "name": "Mocker_1",
+  "caption": "The robot leans forward slightly, points its left hand forward, and curls its right hand to its chest in a playful, teasing gesture.",
+  "functions": [
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 3.96
+ },
+ {
+  "name": "Monster_1",
+  "caption": "The robot acts out a playful monster by waving its raised arms in a dramatic, claw-like fashion.",
+  "functions": [
+   "attention_getting",
+   "entertainment",
+   "playful_scare"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "enthusiastic",
+   "dramatic"
+  ],
+  "energy": "high",
+  "has_sound": true,
+  "duration_s": 8.73
+ },
+ {
+  "name": "MysticalPower_1",
+  "caption": "The robot dramatically sweeps both arms upward and tilts its head back as if summoning mystical power.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 8.28
+ },
+ {
+  "name": "Next_1",
+  "caption": "The robot lifts its right arm forward briefly as if pointing or gesturing towards the next item, then returns to neutral.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.1
+ },
+ {
+  "name": "No_1",
+  "caption": "The robot raises its right hand to perform a gentle shaking or waving motion, signaling a mild disagreement or 'no'.",
+  "functions": [
+   "negation",
+   "disagreement",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "gentle"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.14
+ },
+ {
+  "name": "No_2",
+  "caption": "The robot raises its right hand forward with palm facing out to signal a polite refusal, stop, or disagreement.",
+  "functions": [
+   "negation",
+   "calming",
+   "attention_getting"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.78
+ },
+ {
+  "name": "No_3",
+  "caption": "The robot brings its hands to its chest with a head tilt, then opens its arms wide in a sudden refusal or expansive gesture.",
+  "functions": [
+   "negation",
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "formal",
+   "serious",
+   "playful"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 2.88
+ },
+ {
+  "name": "No_4",
+  "caption": "The robot raises its right arm to its side and then sweeps it forward to gently decline or disagree.",
+  "functions": [
+   "negation",
+   "disagreement",
+   "declining",
+   "avoidance"
+  ],
+  "tone": [
+   "polite",
+   "gentle",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "No_5",
+  "caption": "The robot brings its hands to its chest in a self-pointing gesture and then returns to neutral.",
+  "functions": [
+   "self_reference",
+   "negation"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "apologetic",
+   "modest"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.15
+ },
+ {
+  "name": "No_6",
+  "caption": "The robot slightly rotates its forearms outward with open palms to express denial or negation.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty",
+   "disagreement",
+   "apologizing"
+  ],
+  "tone": [
+   "polite",
+   "apologetic",
+   "neutral",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "No_7",
+  "caption": "The robot spreads both arms outward with open palms to express negation or a lack of something.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty",
+   "expressing_incapability",
+   "apologizing"
+  ],
+  "tone": [
+   "friendly",
+   "apologetic",
+   "polite",
+   "honest"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "No_8",
+  "caption": "The robot performs a quick and subtle double-negative shake of its forearms and hands, indicating disagreement or refusal.",
+  "functions": [
+   "negation",
+   "disagreement",
+   "refusal"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "apologetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "No_9",
+  "caption": "The robot raises its right arm slightly forward with a flat palm, shaking its head horizontally once to indicate 'no'.",
+  "functions": [
+   "negation",
+   "disagreement",
+   "rejection"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.03
+ },
+ {
+  "name": "Nothing_1",
+  "caption": "The robot briefly brings its hands together in front of its waist and opens them slightly outward in a subtle shrugging gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "negation",
+   "apologizing"
+  ],
+  "tone": [
+   "apologetic",
+   "friendly",
+   "polite",
+   "gentle"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.33
+ },
+ {
+  "name": "Nothing_2",
+  "caption": "The robot briefly sweeps both hands inward toward its stomach and then opens them slightly outward before returning to neutral.",
+  "functions": [
+   "negation",
+   "emphasis",
+   "explaining"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "apologetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.35
+ },
+ {
+  "name": "OnTheEvening_1",
+  "caption": "The robot opens its arms outward and then brings them back down to its sides in a gentle, welcoming gesture.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "welcoming",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.09
+ },
+ {
+  "name": "OnTheEvening_2",
+  "caption": "The robot extends both arms outward in a welcoming, inclusive gesture.",
+  "functions": [
+   "greeting",
+   "welcoming",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.82
+ },
+ {
+  "name": "OnTheEvening_3",
+  "caption": "The robot gestures toward its midsection with its right hand before returning to a neutral stance.",
+  "functions": [
+   "self_reference",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "polite",
+   "calm"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.04
+ },
+ {
+  "name": "OnTheEvening_4",
+  "caption": "The robot lifts and opens both hands outward in a welcoming, inclusive gesture.",
+  "functions": [
+   "greeting",
+   "welcoming",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "open",
+   "polite",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.7
+ },
+ {
+  "name": "OnTheEvening_5",
+  "caption": "The robot gently lifts its hands up and outward with palms open, then returns to its neutral posture.",
+  "functions": [
+   "explaining",
+   "emphasis",
+   "welcoming",
+   "openness"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "polite",
+   "gentle"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.17
+ },
+ {
+  "name": "Optimistic_1",
+  "caption": "The robot tilts its head, shifts its hands slightly upward, and then returns to a neutral posture, conveying quiet optimism or listening interest.",
+  "functions": [
+   "affirmation",
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "empathetic",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.77
+ },
+ {
+  "name": "Peaceful_1",
+  "caption": "The robot gently brings its hands together in front of its waist and slightly bows its head to project a peaceful, polite presence.",
+  "functions": [
+   "greeting",
+   "calming",
+   "apologizing",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "apologetic",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.6
+ },
+ {
+  "name": "PlayHands_1",
+  "caption": "The robot lifts its hands to chest height and playfully taps its fingers together as if fidgeting.",
+  "functions": [
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.87
+ },
+ {
+  "name": "PlayHands_2",
+  "caption": "The robot lifts both hands close to its face, miming playing with or examining its hands before returning to rest.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "informal",
+   "curious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.2
+ },
+ {
+  "name": "PlayHands_3",
+  "caption": "The robot brings its hands to chest level, playfully tapping and rolling them together before returning to a neutral pose.",
+  "functions": [
+   "attention_getting",
+   "explaining",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly",
+   "shy"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 9.42
+ },
+ {
+  "name": "Please_1",
+  "caption": "The robot extends both arms outward with open palms in a welcoming gesture of invitation or offering.",
+  "functions": [
+   "welcoming",
+   "offering",
+   "listener_reference",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "polite",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.15
+ },
+ {
+  "name": "Please_2",
+  "caption": "The robot brings its hands up close to its chest with palms up, gently offering or presenting something.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "explaining",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "Please_3",
+  "caption": "The robot extends its right arm forward with an open, upward-facing palm to politely invite or offer something.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "greeting",
+   "offering",
+   "inviting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "polite",
+   "helpful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "Proud_1",
+  "caption": "The robot looks away in a proud, slightly aloof manner before returning to center.",
+  "functions": [
+   "self_reference",
+   "affirmation"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.87
+ },
+ {
+  "name": "Proud_2",
+  "caption": "The robot places its left hand on its hip and tilts its head back proudly.",
+  "functions": [
+   "emphasis",
+   "self_reference"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.88
+ },
+ {
+  "name": "Proud_3",
+  "caption": "The robot proudly crosses its arms high on its chest and tilts its head up, showing off achievement or self-confidence.",
+  "functions": [
+   "self_reference",
+   "emphasis",
+   "affirmation"
+  ],
+  "tone": [
+   "informal",
+   "enthusiastic",
+   "playful",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.9
+ },
+ {
+  "name": "Puzzled_1",
+  "caption": "The robot brings its right hand to its chin and tilts its head, appearing puzzled or thoughtful.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.14
+ },
+ {
+  "name": "Reject_1",
+  "caption": "The robot brings its hands up together in front of its chest, then pushes its left arm out to its side while sweeping its right arm down in a clear rejecting or dismissing gesture.",
+  "functions": [
+   "negation",
+   "disagreement",
+   "rejection"
+  ],
+  "tone": [
+   "serious",
+   "formal",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "Reject_2",
+  "caption": "The robot brings both hands forward before shifting into a dismissive, one-handed reject gesture.",
+  "functions": [
+   "negation",
+   "rejection",
+   "dismissal",
+   "disagreement"
+  ],
+  "tone": [
+   "serious",
+   "assertive",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.85
+ },
+ {
+  "name": "Reject_3",
+  "caption": "The robot raises both hands in a defensive, push-back motion to indicate rejection or denial.",
+  "functions": [
+   "negation",
+   "dismissal",
+   "rejection"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "assertive"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "Reject_4",
+  "caption": "The robot extends its right arm outward in a dismissive, rejecting gesture before returning to a neutral pose.",
+  "functions": [
+   "negation",
+   "dismissal",
+   "rejection",
+   "disagreement"
+  ],
+  "tone": [
+   "serious",
+   "formal",
+   "assertive",
+   "polite_refusal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "Reject_5",
+  "caption": "The robot lifts both hands slightly and then sweeps its right arm downward and outward in a clear rejecting or dismissive gesture.",
+  "functions": [
+   "negation",
+   "rejection",
+   "disagreement",
+   "dismissal"
+  ],
+  "tone": [
+   "serious",
+   "assertive",
+   "dismissive"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.93
+ },
+ {
+  "name": "Reject_6",
+  "caption": "The robot raises its right hand slightly outward and sweeps it inward across its front to indicate rejection or dismissiveness.",
+  "functions": [
+   "negation",
+   "disagreement"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.79
+ },
+ {
+  "name": "Relaxation_1",
+  "caption": "The robot stretches one arm straight up and wide, then brings it down in a gentle, relaxing stretch.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "relaxed"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.84
+ },
+ {
+  "name": "Relaxation_2",
+  "caption": "The robot brings its hands together in front of its tablet in a relaxed, circular motion and looks down before returning to its neutral pose.",
+  "functions": [
+   "calming",
+   "self_reference"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "serious",
+   "formal",
+   "apologetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.75
+ },
+ {
+  "name": "Relaxation_3",
+  "caption": "The robot shifts its weight slightly, tilts its head, and gently brings its left hand up and down in a relaxed, idle movement.",
+  "functions": [
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.55
+ },
+ {
+  "name": "Relaxation_4",
+  "caption": "The robot looks down and to the side, shifting its posture slightly before returning to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "waiting",
+   "thinking"
+  ],
+  "tone": [
+   "informal",
+   "empathetic",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.26
+ },
+ {
+  "name": "Relieved_1",
+  "caption": "The robot wipes its brow with its right arm to show relief.",
+  "functions": [
+   "apologizing",
+   "calming",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "friendly",
+   "apologetic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.64
+ },
+ {
+  "name": "Remember_1",
+  "caption": "The robot lifts its right hand, opening it slightly as if recalling an idea, and then gently returns it to its side.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "thoughtful",
+   "informal",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.23
+ },
+ {
+  "name": "Remember_2",
+  "caption": "The robot tilts its head slightly and brings its right hand toward its chest, suggesting contemplation or remembering something.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "serious",
+   "thoughtful",
+   "polite",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.01
+ },
+ {
+  "name": "Remember_3",
+  "caption": "The robot lifts its left hand toward its chin, briefly hesitates, and then returns to a neutral posture.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking",
+   "remembering"
+  ],
+  "tone": [
+   "thoughtful",
+   "polite",
+   "friendly",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.08
+ },
+ {
+  "name": "Rest_1",
+  "caption": "The robot brings its hands up toward its tablet and then spreads its arms open in a welcoming, helpful posture before returning to neutral.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "offering_help",
+   "welcoming",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.86
+ },
+ {
+  "name": "Robot_1",
+  "caption": "The robot looks away over its left shoulder and then turns back to face forward.",
+  "functions": [
+   "attention_getting",
+   "waiting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "curious"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 6.85
+ },
+ {
+  "name": "Sad_1",
+  "caption": "The robot sadly tilts its head and brings its right hand to its face, then lowers its arm while looking downcast.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "serious",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": true,
+  "duration_s": 7.06
+ },
+ {
+  "name": "Sad_2",
+  "caption": "The robot turns its head down and to the side while bringing its hands slightly forward in a sad, dejected gesture.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "serious",
+   "sad"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.22
+ },
+ {
+  "name": "Salute_1",
+  "caption": "The robot brings its right hand to its temple in a polite salute gesture.",
+  "functions": [
+   "greeting",
+   "farewell",
+   "acknowledging"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "respectful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.66
+ },
+ {
+  "name": "Salute_2",
+  "caption": "The robot raises its right arm to perform a quick, friendly military-style salute.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "affirmation"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "playful",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.44
+ },
+ {
+  "name": "Salute_3",
+  "caption": "The robot performs a quick, brief salute by bringing its right hand up toward its chest area and nodding.",
+  "functions": [
+   "greeting",
+   "affirmation",
+   "acknowledgment"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "respectful",
+   "welcoming"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.54
+ },
+ {
+  "name": "ScratchBack_1",
+  "caption": "The robot places its right hand on its hip while tilting its head, appearing to stretch or pose casually.",
+  "functions": [],
+  "tone": [
+   "informal",
+   "playful",
+   "relaxed"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.66
+ },
+ {
+  "name": "ScratchBottom_1",
+  "caption": "The robot shifts its weight, brings its left hand behind its hip to scratch, and tilts its head upward before returning to neutral.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.75
+ },
+ {
+  "name": "ScratchEye_1",
+  "caption": "The robot lifts its right hand to gently rub near its eye as if tired or dealing with an itch, then returns to a neutral stand.",
+  "functions": [
+   "expressing_fatigue",
+   "thinking"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "vulnerable"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 5.28
+ },
+ {
+  "name": "ScratchHand_1",
+  "caption": "The robot lifts its hands to its chest to briefly scratch or tap one wrist, then returns to its sides.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.15
+ },
+ {
+  "name": "ScratchHead_1",
+  "caption": "The robot scratches its head with its right hand as if in confusion or deep thought.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.93
+ },
+ {
+  "name": "ScratchLeg_1",
+  "caption": "The robot leans forward slightly and uses its right hand to briefly scratch its lower leg before returning to an upright posture.",
+  "functions": [],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.76
+ },
+ {
+  "name": "ScratchTorso_1",
+  "caption": "The robot lifts its right hand to briefly scratch its lower torso and look down, then returns to its neutral posture.",
+  "functions": [],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.56
+ },
+ {
+  "name": "SeeColor_1",
+  "caption": "The robot lifts its left hand toward its chin in a curious, examining gesture as if looking at a color.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "friendly",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.96
+ },
+ {
+  "name": "SeeColor_2",
+  "caption": "The robot brings its left hand up to cover its mouth as if in surprise or keeping a secret, then returns to a neutral stand.",
+  "functions": [
+   "gasp",
+   "surprise",
+   "secrecy",
+   "realization",
+   "gossip"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "expressive"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.46
+ },
+ {
+  "name": "SeeColor_3",
+  "caption": "The robot points a closed fist toward its eye in a scanning gesture and then returns to neutral.",
+  "functions": [
+   "attention_getting",
+   "observation",
+   "pointing"
+  ],
+  "tone": [
+   "playful",
+   "curious",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.61
+ },
+ {
+  "name": "SeeSomething_1",
+  "caption": "The robot tilts and rotates its head to inspect something on its side, bringing its hands together in a curious posture.",
+  "functions": [
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 17.91
+ },
+ {
+  "name": "SeeSomething_3",
+  "caption": "The robot notices something interesting on the ground, pointing and leaning down to inspect it.",
+  "functions": [
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 9.4
+ },
+ {
+  "name": "SeeSomething_4",
+  "caption": "The robot looks down in surprise and places its hands on its hips, then relaxes its left arm.",
+  "functions": [
+   "attention_getting",
+   "gaze_direction",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.42
+ },
+ {
+  "name": "SeeSomething_5",
+  "caption": "The robot notices something to its right, looks down curiously, and then returns to a neutral standing posture.",
+  "functions": [
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.38
+ },
+ {
+  "name": "SeeSomething_6",
+  "caption": "The robot reacts to seeing something by slightly leaning forward and bringing its hands close to its center.",
+  "functions": [
+   "attention_getting",
+   "affirmation",
+   "acknowledging_presence"
+  ],
+  "tone": [
+   "friendly",
+   "attentive",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.11
+ },
+ {
+  "name": "SeeSomething_7",
+  "caption": "The robot tilts its head forward with widened eyes to closely examine something, then returns to neutral.",
+  "functions": [
+   "attention_getting",
+   "acknowledging_presence"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "curious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.31
+ },
+ {
+  "name": "SeeSomething_8",
+  "caption": "The robot looks down at something on its right, then quickly returns to upright posture.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "gaze_direction"
+  ],
+  "tone": [
+   "curious",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.21
+ },
+ {
+  "name": "ShakeBody_1",
+  "caption": "The robot shivers slightly by rapidly twitching its body and head side-to-side.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "silly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.81
+ },
+ {
+  "name": "ShakeBody_2",
+  "caption": "The robot shivers or shakes its shoulders while tilting its head.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.72
+ },
+ {
+  "name": "ShakeBody_3",
+  "caption": "The robot shivers slightly and pulls its elbows outward as if surprised or startled.",
+  "functions": [
+   "attention_getting",
+   "negation"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.96
+ },
+ {
+  "name": "Shocked_1",
+  "caption": "The robot shrinks back slightly and pulls both hands in toward its waist in a sudden, shocked gesture.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "informal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.44
+ },
+ {
+  "name": "ShowFloor_1",
+  "caption": "The robot gestures with its right hand toward the floor to show a direction or location.",
+  "functions": [
+   "pointing",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.31
+ },
+ {
+  "name": "ShowFloor_2",
+  "caption": "The robot lifts both hands slightly and turns its palms upward to present something, then relaxes back to neutral.",
+  "functions": [
+   "explaining",
+   "pointing",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.93
+ },
+ {
+  "name": "ShowFloor_3",
+  "caption": "The robot lifts its left hand up and outward, gesturing toward the floor or a low object.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "ShowFloor_4",
+  "caption": "The robot gestures with its right arm pointing downward and to the right, then returns to its neutral posture.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.67
+ },
+ {
+  "name": "ShowFloor_5",
+  "caption": "The robot briefly sweeps both hands down toward its base to point out the floor or ground.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "informative"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.11
+ },
+ {
+  "name": "ShowMuscles_1",
+  "caption": "The robot extends and flexes its right arm to playfully display its biceps.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "informal",
+   "humorous"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.96
+ },
+ {
+  "name": "ShowMuscles_2",
+  "caption": "The robot turns its head to the side, flexes its right bicep playfully, and then returns to a neutral posture.",
+  "functions": [
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.56
+ },
+ {
+  "name": "ShowMuscles_3",
+  "caption": "The robot playfully flexes its right arm to show off its muscles before returning to neutral.",
+  "functions": [
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "enthusiastic",
+   "humorous"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 8.28
+ },
+ {
+  "name": "ShowMuscles_4",
+  "caption": "The robot opens its arms wide and then brings its hands down to its hips in a strong, proud pose.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 3.88
+ },
+ {
+  "name": "ShowMuscles_5",
+  "caption": "The robot flexes its arms outward and then brings its hands together in a playful show of strength.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.44
+ },
+ {
+  "name": "ShowSky_1",
+  "caption": "The robot gestures upward and outward with both arms as if presenting the sky or a high ceiling.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "welcoming",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.13
+ },
+ {
+  "name": "ShowSky_10",
+  "caption": "The robot opens both arms wide and lifts them upward with palms up to show something above.",
+  "functions": [
+   "pointing",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "welcoming",
+   "open"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.96
+ },
+ {
+  "name": "ShowSky_11",
+  "caption": "The robot points high up into the sky with its left arm while looking upward, gesturing toward something above.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.65
+ },
+ {
+  "name": "ShowSky_12",
+  "caption": "The robot gestures upward and outward with both hands as if pointing out something above, like the sky.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "welcoming",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "ShowSky_2",
+  "caption": "The robot sweeps its left arm outward and upward, pointing high toward the sky to guide the viewer's gaze.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.93
+ },
+ {
+  "name": "ShowSky_3",
+  "caption": "The robot raises its left arm to point upward and outward with an open hand, then returns to its neutral pose.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.68
+ },
+ {
+  "name": "ShowSky_4",
+  "caption": "The robot opens and raises both arms wide to point toward the sky or express grand scale.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "emphasis"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "welcoming",
+   "playful"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 2.58
+ },
+ {
+  "name": "ShowSky_5",
+  "caption": "The robot sweeps its right arm upward and outward to point high and to the right, as if gesturing towards the sky or a high location.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "welcoming"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.5
+ },
+ {
+  "name": "ShowSky_6",
+  "caption": "The robot raises its right hand up toward the sky as if pointing upward or waving, then lowers it back to its side.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.34
+ },
+ {
+  "name": "ShowSky_7",
+  "caption": "The robot looks up and sweeps both arms upward and outward to present or point toward something above.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "informative"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.95
+ },
+ {
+  "name": "ShowSky_8",
+  "caption": "The robot enthusiastically raises both arms high overhead with open palms, gesturing toward the sky or celebrating.",
+  "functions": [
+   "attention_getting",
+   "emphasis",
+   "celebration",
+   "pointing"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 2.75
+ },
+ {
+  "name": "ShowSky_9",
+  "caption": "The robot raises its right hand high into the air with an open palm to point upwards, then returns to neutral.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.4
+ },
+ {
+  "name": "ShowTablet_1",
+  "caption": "The robot gestures toward its chest-mounted tablet with both hands.",
+  "functions": [
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "welcoming"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.23
+ },
+ {
+  "name": "ShowTablet_2",
+  "caption": "The robot gestures toward its chest tablet with its left hand to direct the visitor's attention to displayed information.",
+  "functions": [
+   "attention_getting",
+   "pointing",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.12
+ },
+ {
+  "name": "ShowTablet_3",
+  "caption": "The robot gestures toward its chest tablet with its right hand to direct the visitor's attention to displayed information.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.21
+ },
+ {
+  "name": "Shy_1",
+  "caption": "The robot turns its head away shyly and nervously fidgets with its hands in front of its waist.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "self_reference"
+  ],
+  "tone": [
+   "apologetic",
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.97
+ },
+ {
+  "name": "Shy_2",
+  "caption": "The robot bashfully brings its hands together near its stomach while tilting its head slightly, conveying shyness.",
+  "functions": [
+   "self_reference",
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "apologetic",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.69
+ },
+ {
+  "name": "Sneeze",
+  "caption": "The robot tilts its head back slightly and then brings its right hand to its face to mimic a sneeze.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 2.93
+ },
+ {
+  "name": "Sorry_1",
+  "caption": "The robot spreads its arms wide with palms up and tilts its head slightly backward to express apology or helplessness.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "negation"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "sincere",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "SpaceShuttle_1",
+  "caption": "The robot arches its head down slightly, then broadly opens its arms wide to the sides, mimicking a shuttle or airplane in flight.",
+  "functions": [
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "playful",
+   "enthusiastic",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 16.37
+ },
+ {
+  "name": "Stretch_1",
+  "caption": "The robot arches its body and stretches its right arm high and to the side as if waking up or stretching.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "enthusiastic",
+   "relaxed"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.12
+ },
+ {
+  "name": "Stretch_2",
+  "caption": "The robot tilts its head back while pulling its elbows out to perform a relaxed stretch.",
+  "functions": [
+   "waiting",
+   "calming"
+  ],
+  "tone": [
+   "informal",
+   "relaxed",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.62
+ },
+ {
+  "name": "Stubborn_1",
+  "caption": "The robot brings its left hand up in a quick, dismissive shrug or stubborn turn of the head, then returns to neutral.",
+  "functions": [
+   "negation",
+   "expressing_uncertainty",
+   "apologizing"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.02
+ },
+ {
+  "name": "Sure_1",
+  "caption": "The robot brings its hands together in front of its waist and tilts its head, projecting an air of confidence and self-assurance.",
+  "functions": [
+   "affirmation",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "serious",
+   "formal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 8.39
+ },
+ {
+  "name": "Surprise_1",
+  "caption": "The robot recoils its torso backward and turns its head to the right in a sudden startled gesture.",
+  "functions": [
+   "negation",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 3.36
+ },
+ {
+  "name": "Surprise_2",
+  "caption": "The robot places its left hand on its chest and tilts its head slightly back in mild surprise or self-referential shock.",
+  "functions": [
+   "self_reference",
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "formal",
+   "serious",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 3.36
+ },
+ {
+  "name": "Surprise_3",
+  "caption": "The robot reacts with sudden, subtle surprise by pulling its head back and opening both arms slightly outward.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 2.21
+ },
+ {
+  "name": "Surprised_1",
+  "caption": "The robot pulls its arms backward and slightly raises them in a sudden, startled reaction.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 5.08
+ },
+ {
+  "name": "Suspicious_1",
+  "caption": "The robot suspiciously raises its hands to chest level, looks slightly away, and then returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "negation"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.14
+ },
+ {
+  "name": "TakePicture_1",
+  "caption": "The robot mimics holding a camera up to its eyes and taking a picture.",
+  "functions": [
+   "attention_getting",
+   "entertainment"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.25
+ },
+ {
+  "name": "TakePlace_1",
+  "caption": "The robot gestures with its left arm to the side to invite someone to take a seat or go to a place.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.62
+ },
+ {
+  "name": "TakePlace_2",
+  "caption": "The robot extends its right hand outward in a welcoming gesture to indicate a place or direction.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 4.54
+ },
+ {
+  "name": "Take_1",
+  "caption": "The robot extends its right arm outward to the side with an open hand, then draws it back to a centered resting position.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.37
+ },
+ {
+  "name": "Taxi_1",
+  "caption": "The robot mimics hailing a taxi with its left hand while turning its head slightly to the side.",
+  "functions": [
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "enthusiastic"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 4.68
+ },
+ {
+  "name": "Think_1",
+  "caption": "The robot lifts its right hand to its mouth in a thinking or whispering gesture, then returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "thoughtful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.51
+ },
+ {
+  "name": "Think_2",
+  "caption": "The robot raises its right hand to its chin in a thoughtful, contemplating pose before returning to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "serious",
+   "informal",
+   "thoughtful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.9
+ },
+ {
+  "name": "Think_3",
+  "caption": "The robot raises its right hand to its chin in a thoughtful, contemplating gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "serious",
+   "playful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.03
+ },
+ {
+  "name": "Think_4",
+  "caption": "The robot lifts its right hand to its chin and tilts its head, appearing to ponder or think.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "serious",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 4.45
+ },
+ {
+  "name": "Thinking_1",
+  "caption": "The robot brings its hands together in front of its waist and tilts its head slightly as if contemplating or thinking.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "serious",
+   "formal",
+   "empathetic",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.16
+ },
+ {
+  "name": "Thinking_2",
+  "caption": "The robot looks up and to its left while slightly bringing its right hand in, as if deep in thought.",
+  "functions": [
+   "thinking",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "thoughtful",
+   "polite",
+   "casual"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.52
+ },
+ {
+  "name": "Thinking_3",
+  "caption": "The robot places its hands on its hips in a thinking posture, then returns to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.11
+ },
+ {
+  "name": "Thinking_4",
+  "caption": "The robot lifts its left arm slightly and gestures with a gently curled, pulsing hand, as if contemplating or explaining a subtle point.",
+  "functions": [
+   "expressing_uncertainty",
+   "explaining"
+  ],
+  "tone": [
+   "thoughtful",
+   "serious",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.67
+ },
+ {
+  "name": "Thinking_5",
+  "caption": "The robot lifts its right arm out to the side and rests its hand on its hip in a thinking posture.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "thoughtful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.5
+ },
+ {
+  "name": "Thinking_6",
+  "caption": "The robot tilts its head slightly while placing its right hand near its hip in a thoughtful pose.",
+  "functions": [
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "thoughtful",
+   "serious",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.09
+ },
+ {
+  "name": "Thinking_7",
+  "caption": "The robot lifts its left hand to its chin and tilts its head as if deep in thought.",
+  "functions": [
+   "expressing_uncertainty",
+   "thinking",
+   "attention_getting"
+  ],
+  "tone": [
+   "thoughtful",
+   "serious",
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.69
+ },
+ {
+  "name": "Thinking_8",
+  "caption": "The robot brings its left hand up to its chin in a thoughtful, contemplating gesture.",
+  "functions": [
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "serious",
+   "thoughtful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.84
+ },
+ {
+  "name": "This_1",
+  "caption": "The robot extends its right hand forward with an open palm to point out or present something.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.33
+ },
+ {
+  "name": "This_10",
+  "caption": "The robot extends its left hand slightly forward and outward in a subtle pointing or presenting gesture.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.91
+ },
+ {
+  "name": "This_11",
+  "caption": "The robot extends its right arm forward with an open palm to point out or present something.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informative"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.02
+ },
+ {
+  "name": "This_12",
+  "caption": "The robot gestures with its left hand turned upward, as if presenting an option or indicating something nearby.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informative"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.04
+ },
+ {
+  "name": "This_13",
+  "caption": "The robot gestures outward with its left arm and hand to indicate or present something.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "This_14",
+  "caption": "The robot extends its left hand forward, palm facing up, to offer or indicate something.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.27
+ },
+ {
+  "name": "This_15",
+  "caption": "The robot extends its left hand slightly forward with an open palm to point out or present something.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.8
+ },
+ {
+  "name": "This_2",
+  "caption": "The robot extends its right arm forward and outward with an open palm to point out or present something.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.38
+ },
+ {
+  "name": "This_3",
+  "caption": "The robot lifts its left hand in a gentle fist, then extends it forward slightly to indicate something nearby.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.93
+ },
+ {
+  "name": "This_4",
+  "caption": "The robot extends its right arm forward with an open hand, then closes it into a gentle pointing or holding posture before returning to rest.",
+  "functions": [
+   "pointing",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "formal",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.61
+ },
+ {
+  "name": "This_5",
+  "caption": "The robot extends its right arm outward and upward with an open palm to point out or present something.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.74
+ },
+ {
+  "name": "This_6",
+  "caption": "The robot gestures forward with its right hand to indicate a specific item or concept close to itself.",
+  "functions": [
+   "pointing",
+   "emphasis",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "formal",
+   "welcoming"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.79
+ },
+ {
+  "name": "This_7",
+  "caption": "The robot extends its right arm forward with an open palm to point out or present something nearby, then returns to neutral.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "This_8",
+  "caption": "The robot extends its right arm forward with an open palm while slightly retracting its left arm to highlight or present something.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.21
+ },
+ {
+  "name": "This_9",
+  "caption": "The robot extends its right arm outward and downward to indicate something or present an option to its right side.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.0
+ },
+ {
+  "name": "TouchHead_1",
+  "caption": "The robot shrinks back, bringing its hands together protectively in front of its waist while lowering its head.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "apologetic",
+   "empathetic",
+   "serious",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 3.06
+ },
+ {
+  "name": "TouchHead_2",
+  "caption": "The robot reacts to a head touch by raising its arms defensively toward its head and then lowering them back to its sides.",
+  "functions": [
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "enthusiastic"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 4.2
+ },
+ {
+  "name": "TouchHead_3",
+  "caption": "The robot quickly raises both hands toward its head, recoils slightly with its head tilted, and then relaxes back to neutral.",
+  "functions": [
+   "apologizing",
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.6
+ },
+ {
+  "name": "TouchHead_4",
+  "caption": "The robot reaches up to touch its head with its left hand as if reacting to a sudden sensation or thought, then returns to a neutral posture.",
+  "functions": [
+   "self_reference",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "empathetic"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.17
+ },
+ {
+  "name": "Waddle_1",
+  "caption": "The robot shifts its weight playfully from side to side while subtly gesturing with its hands.",
+  "functions": [
+   "attention_getting",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "relaxed"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 5.76
+ },
+ {
+  "name": "Waddle_2",
+  "caption": "The robot places both hands on its hips with elbows out and slightly shifts its body in a waiting stance.",
+  "functions": [],
+  "tone": [
+   "playful",
+   "informal",
+   "serious",
+   "confident"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 8.77
+ },
+ {
+  "name": "Waiting_Innocent_1",
+  "caption": "The robot shrugs and opens its arms slightly with a head tilt, as if acting innocent or harmless.",
+  "functions": [
+   "expressing_uncertainty",
+   "apologizing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 6.54
+ },
+ {
+  "name": "Waiting_ShowSky_1",
+  "caption": "The robot looks up, raises its right arm high to point toward the sky, and then lowers it back to its side.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 6.48
+ },
+ {
+  "name": "Waiting_ShowSky_2",
+  "caption": "The robot tilts its head back and points its left arm high up into the air as if looking at the sky.",
+  "functions": [
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.16
+ },
+ {
+  "name": "Waiting_Stretch_1",
+  "caption": "The robot stretches by bringing its hands up to chest level, curving them downward, and then dropping into a deep, relaxed bow before rising back to neutral.",
+  "functions": [
+   "calming",
+   "apologizing"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "apologetic",
+   "empathetic"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 8.58
+ },
+ {
+  "name": "Waiting_Stretch_2",
+  "caption": "The robot turns its head to the right, bends its right elbow, and performs a light stretch.",
+  "functions": [
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 7.31
+ },
+ {
+  "name": "WakeUp_1",
+  "caption": "The robot stretches forward, raises its right arm high in a wake-up reach, and then settles back into its neutral posture.",
+  "functions": [
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "enthusiastic",
+   "playful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 22.38
+ },
+ {
+  "name": "WhatSThis_1",
+  "caption": "The robot lifts both arms with palms turned upward in a questioning gesture, then drops them back to its sides.",
+  "functions": [
+   "expressing_uncertainty",
+   "questioning",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "curious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "WhatSThis_10",
+  "caption": "The robot extends its right arm forward with an open palm while turning its head slightly to ask or point at something.",
+  "functions": [
+   "expressing_uncertainty",
+   "pointing",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "curious",
+   "informal",
+   "helpful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.03
+ },
+ {
+  "name": "WhatSThis_11",
+  "caption": "The robot extends its right arm forward with an open palm as if presenting or questioning an object.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "welcoming",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.75
+ },
+ {
+  "name": "WhatSThis_12",
+  "caption": "The robot gestures with its left hand open, asking 'what's this?'",
+  "functions": [
+   "expressing_uncertainty",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "WhatSThis_13",
+  "caption": "The robot extends its left hand forward with an open palm as if presenting an object or asking 'what's this?'.",
+  "functions": [
+   "pointing",
+   "attention_getting",
+   "explaining",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.5
+ },
+ {
+  "name": "WhatSThis_14",
+  "caption": "The robot slightly rotates its forearms outward and opens its palms in a subtle gesture of questioning or presenting.",
+  "functions": [
+   "expressing_uncertainty",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "open",
+   "curious",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.3
+ },
+ {
+  "name": "WhatSThis_15",
+  "caption": "The robot pulls its hands inward near its chest and then sweeps them outward to the sides with palms up to show or present something.",
+  "functions": [
+   "explaining",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "WhatSThis_16",
+  "caption": "The robot gently turns its palms upward and tilts its head forward slightly as if asking a question or presenting something.",
+  "functions": [
+   "expressing_uncertainty",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "empathetic",
+   "welcoming",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.23
+ },
+ {
+  "name": "WhatSThis_2",
+  "caption": "The robot extends its left hand outward with an open palm while tilting its head slightly, as if presenting or questioning an object.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "attention_getting",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "polite"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.79
+ },
+ {
+  "name": "WhatSThis_3",
+  "caption": "The robot brings its hands in and then presents them open and forward in a questioning gesture.",
+  "functions": [
+   "expressing_uncertainty",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "helpful",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.86
+ },
+ {
+  "name": "WhatSThis_4",
+  "caption": "The robot extends both hands slightly outward in a questioning gesture of curiosity.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting",
+   "pointing"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "curious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.09
+ },
+ {
+  "name": "WhatSThis_5",
+  "caption": "The robot briefly brings its hands together in front of its waist and tilts its head slightly, as if examining something closely.",
+  "functions": [
+   "expressing_uncertainty",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "curious",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.09
+ },
+ {
+  "name": "WhatSThis_6",
+  "caption": "The robot lifts and opens both hands palms-up, questioning 'what's this?' before returning to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "explanation",
+   "questioning"
+  ],
+  "tone": [
+   "friendly",
+   "open",
+   "inquisitive",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.08
+ },
+ {
+  "name": "WhatSThis_7",
+  "caption": "The robot lifts its left arm slightly and rotates its open palm upward as if presenting or questioning something.",
+  "functions": [
+   "pointing",
+   "explaining",
+   "expressing_uncertainty"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "helpful",
+   "curious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.72
+ },
+ {
+  "name": "WhatSThis_8",
+  "caption": "The robot extends its right hand forward with an open palm while slightly tilting its head to inquire about an object or concept.",
+  "functions": [
+   "expressing_uncertainty",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "playful",
+   "informal"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.85
+ },
+ {
+  "name": "WhatSThis_9",
+  "caption": "The robot lifts its right hand slightly forward in a questioning manner, then opens both hands palms-up to express uncertainty or inquiry before returning to rest.",
+  "functions": [
+   "expressing_uncertainty",
+   "explaining",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.92
+ },
+ {
+  "name": "Whisper_1",
+  "caption": "The robot raises its right hand to its ear as if listening to or telling a secret.",
+  "functions": [
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "playful",
+   "friendly",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.74
+ },
+ {
+  "name": "Wings_1",
+  "caption": "The robot opens its arms wide outward and upward like wings, then brings them back down to its sides.",
+  "functions": [
+   "welcoming",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 7.5
+ },
+ {
+  "name": "Wings_2",
+  "caption": "The robot opens both arms wide and upward, like spreading wings, and then brings them back down.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "emphasis",
+   "welcoming"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 3.22
+ },
+ {
+  "name": "Wings_3",
+  "caption": "The robot opens its arms wide to the sides, presenting a welcoming and open posture.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.22
+ },
+ {
+  "name": "Wings_4",
+  "caption": "The robot arches its body slightly and extends both arms wide to the sides, mimicking spreading wings.",
+  "functions": [
+   "emphasis",
+   "attention_getting",
+   "greeting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "enthusiastic",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 3.56
+ },
+ {
+  "name": "Wings_5",
+  "caption": "The robot opens its arms wide and lifts them upward in a welcoming, expansive gesture before returning to its neutral pose.",
+  "functions": [
+   "greeting",
+   "attention_getting",
+   "emphasis",
+   "expressing_enthusiasm"
+  ],
+  "tone": [
+   "welcoming",
+   "enthusiastic",
+   "friendly",
+   "playful",
+   "informal"
+  ],
+  "energy": "high",
+  "has_sound": false,
+  "duration_s": 1.61
+ },
+ {
+  "name": "Winner_1",
+  "caption": "The robot enthusiastically raises its right arm into a victory fist while tilting its head up.",
+  "functions": [
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": true,
+  "duration_s": 5.41
+ },
+ {
+  "name": "Winner_2",
+  "caption": "The robot enthusiastically raises both arms high into the air with fists slightly clenched in a classic victory pose.",
+  "functions": [
+   "celebrating",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "enthusiastic",
+   "friendly",
+   "playful"
+  ],
+  "energy": "high",
+  "has_sound": true,
+  "duration_s": 7.0
+ },
+ {
+  "name": "Yes_1",
+  "caption": "The robot nods its head slightly forward and down to indicate agreement.",
+  "functions": [
+   "affirmation",
+   "agreement",
+   "acknowledgement"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "formal",
+   "attentive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.16
+ },
+ {
+  "name": "Yes_2",
+  "caption": "The robot nods its head once to show agreement or affirmation.",
+  "functions": [
+   "affirmation",
+   "agreement",
+   "acknowledgment"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "welcoming",
+   "attentive"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.26
+ },
+ {
+  "name": "Yes_3",
+  "caption": "The robot nods its head slightly forward and down to indicate agreement or affirmation.",
+  "functions": [
+   "affirmation",
+   "agreement",
+   "acknowledgment"
+  ],
+  "tone": [
+   "friendly",
+   "polite",
+   "formal",
+   "serious"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 1.61
+ },
+ {
+  "name": "YouKnowWhat_1",
+  "caption": "The robot places its hands on its hips in a confident posture before returning to a neutral stance.",
+  "functions": [
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "enthusiastic",
+   "serious"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.53
+ },
+ {
+  "name": "YouKnowWhat_2",
+  "caption": "The robot lifts its right hand to chest level with an open palm toward the listener, then lowers it.",
+  "functions": [
+   "emphasis",
+   "attention_getting",
+   "explaining",
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "explanatory",
+   "engaging"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "YouKnowWhat_3",
+  "caption": "The robot places both hands on its hips in a cheeky or questioning posture before returning to neutral.",
+  "functions": [
+   "expressing_uncertainty",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "casual"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.03
+ },
+ {
+  "name": "YouKnowWhat_4",
+  "caption": "The robot confidently places its hands on its hips in a proud, 'you know what?' posture before returning to its neutral stance.",
+  "functions": [
+   "emphasis",
+   "attention_getting",
+   "self_reference"
+  ],
+  "tone": [
+   "informal",
+   "playful",
+   "enthusiastic",
+   "friendly"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 2.24
+ },
+ {
+  "name": "YouKnowWhat_5",
+  "caption": "The robot lifts its forearms and opens its hands to gesture 'you know what' or offer an open invitation.",
+  "functions": [
+   "listener_reference",
+   "explaining",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "YouKnowWhat_6",
+  "caption": "The robot lifts its right hand slightly forward in a gentle, questioning gesture and tilts its head.",
+  "functions": [
+   "attention_getting",
+   "listener_reference",
+   "emphasis",
+   "explaining"
+  ],
+  "tone": [
+   "friendly",
+   "informal",
+   "playful",
+   "conversational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.68
+ },
+ {
+  "name": "You_1",
+  "caption": "The robot extends its right arm forward, open-palmed toward the listener, to indicate 'you' or direct attention.",
+  "functions": [
+   "listener_reference",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "helpful"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.97
+ },
+ {
+  "name": "You_2",
+  "caption": "The robot gestures toward the user with its right hand to indicate 'you'.",
+  "functions": [
+   "listener_reference"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "informal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.74
+ },
+ {
+  "name": "You_3",
+  "caption": "The robot gestures toward the visitor with its left hand to refer to them or invite their response.",
+  "functions": [
+   "listener_reference",
+   "attention_getting",
+   "emphasis"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "polite",
+   "conversational"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.67
+ },
+ {
+  "name": "You_4",
+  "caption": "The robot gestures forward with its right hand toward the visitor, then returns to neutral.",
+  "functions": [
+   "listener_reference",
+   "pointing",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "polite",
+   "formal"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.73
+ },
+ {
+  "name": "You_5",
+  "caption": "The robot extends its left hand forward in a gentle, open palm gesture pointing toward the user.",
+  "functions": [
+   "listener_reference",
+   "pointing",
+   "emphasis",
+   "attention_getting"
+  ],
+  "tone": [
+   "friendly",
+   "welcoming",
+   "formal",
+   "direct"
+  ],
+  "energy": "medium",
+  "has_sound": false,
+  "duration_s": 1.85
+ },
+ {
+  "name": "Yum_1",
+  "caption": "The robot rubs its stomach in satisfaction as if expressing enjoyment of delicious food.",
+  "functions": [
+   "self_reference",
+   "emphasis"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "friendly"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 2.99
+ },
+ {
+  "name": "Zombie_1",
+  "caption": "The robot acts like a zombie, raising its arms forward with limp hands before returning to rest.",
+  "functions": [
+   "entertainment",
+   "attention_getting"
+  ],
+  "tone": [
+   "playful",
+   "informal",
+   "humorous"
+  ],
+  "energy": "low",
+  "has_sound": false,
+  "duration_s": 21.29
+ }
+]

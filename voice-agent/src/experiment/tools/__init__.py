@@ -7,11 +7,9 @@ Each `@function_tool` lives in its own module here:
   - mensa_menu.py                : canteen menu fetch
   - subject_schedule.py          : public timetable by short course code
   - get_time.py                  : current local time
-  - query_search.py              : hybrid vector search over FEE docs
   - end_conversation_streaming.py: terminal tool, plays farewell + ends session
 
-The streaming agents (`agent_streaming.py`, `agent_4o_streaming.py`)
-import each tool directly via `from tools.X import X`, so this package
+`agent_4o_streaming.py` imports each tool directly via `from tools.X import X`, so this package
 only needs to expose the path-glue side effect and the event-listener
 hooks used by the recorder.
 """

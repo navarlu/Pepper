@@ -1,7 +1,6 @@
 """Inline gesture tags: catalog, prompt section, and stream parser.
 
-The embodiment layer prototyped in docs/paper/benchmark (MOVE_BODY_MODE
-= "inline"), ported to the LiveKit streaming agent. The LLM starts every
+Embodiment layer for the LiveKit streaming agent. The LLM starts every
 sentence with an animation tag like `[Hey_1]`; `InlineGestureParser`
 filters the streamed LLM text inside `llm_node`, fires each resolved tag
 as a robot gesture, and strips it so the TTS never speaks it.

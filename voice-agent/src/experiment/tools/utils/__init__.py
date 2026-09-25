@@ -1,7 +1,7 @@
 """Shared helpers reused by the per-tool modules in
 voice-agent/src/experiment/tools/.
 
-  - `_common`   : sys.path glue, JSON debug print, weaviate seeder
+  - `_common`   : sys.path glue, diacritic-folding JSON serializer
   - `_animation`: trigger_animation / animation-name normalization
   - `_person`   : person-result slim formatter (UDB → LLM)
   - `find_path_to_room`: ROOM_DIRECTIONS table + path-rendering helpers

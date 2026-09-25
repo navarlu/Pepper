@@ -1,4 +1,4 @@
-"""Tool surface for the paper (Track B) realtime agent — 2 tools.
+"""Tool surface for the paper realtime agent — 2 tools.
 
   - find_room.py     : Building E directions (curated table + FelSight
                        floor fallback) — slim wrapper over the same

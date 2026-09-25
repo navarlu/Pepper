@@ -1,4 +1,4 @@
-"""Paper (Track B) realtime worker — RPi-only receptionist MVP.
+"""Paper realtime worker — RPi-only receptionist MVP.
 
 Audio path:
 

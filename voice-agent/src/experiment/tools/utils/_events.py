@@ -2,7 +2,7 @@
 
 Every tool emits a `_emit_tool_event(name, args)` at entry and a
 `_heartbeat_or_none(payload, request_heartbeat)` at exit. The
-experiment recorder (launcher.py) registers listeners via
+experiment recorder registers listeners via
 `set_tool_event_listener` / `set_tool_result_listener` to capture
 both into the JSONL transcript.
 

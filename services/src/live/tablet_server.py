@@ -223,7 +223,7 @@ class TabletDisplay:
         self._last_posted_hash: int | None = None
         # `experiment_active` is the single source of truth for whether
         # to render the chat UI or the zzz sleeping UI. Written by
-        # loop_launcher.py into services/data/state.json. Refreshed by
+        # the experiment runner into services/data/state.json. Refreshed by
         # the state.json watcher below.
         self._state["experiment_active"] = False
         # Tracks last state-file mtime so the watcher only re-derives
@@ -579,7 +579,7 @@ class TabletDisplay:
         into `self._state` so the renderer can switch between the chat
         UI and the zzz sleeping UI.
 
-        loop_launcher.py is the only writer; it also stamps an
+        The experiment runner is the only writer; it also stamps an
         `experiment_heartbeat_ts`. If the heartbeat is stale (process
         died without a clean exit), treat the experiment as inactive.
 
